@@ -1,0 +1,838 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2022.7">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+    span.s1 {font: 12.0px 'Apple Color Emoji'}
+    span.s2 {font: 12.0px Menlo}
+    span.s3 {font: 12.0px 'PingFang SC'}
+    span.s4 {font: 12.0px 'Zapf Dingbats'}
+    span.s5 {font: 12.0px 'Lucida Grande'}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html lang="en"&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;Skincare Routine Builder | Customize Your AM/PM Routine&lt;/title&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Google Fonts --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;link rel="preconnect" href="https://fonts.googleapis.com"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;link rel="preconnect" href="https://fonts.gstatic.com" crossorigin&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&amp;family=Inter:wght@300;400;500;600&amp;family=Montserrat:wght@300;400;500;600&amp;family=Questrial&amp;display=swap" rel="stylesheet"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>* {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin: 0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>box-sizing: border-box;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>body {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #f5efe9;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 2rem 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #3e3c39;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>line-height: 1.4;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>/* Main App Container */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.skincare-app {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>max-width: 1400px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin: 0 auto;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: #faf7f2;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 32px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 20px 40px -12px rgba(100, 80, 60, 0.2);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid #e8dfd4;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>overflow: hidden;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>.app-container {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 2rem 1.8rem;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>/* Header */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.ritual-header {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 2rem;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.ritual-header h1 {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Montserrat', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 300;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-size: 1.8rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>letter-spacing: 3px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #7f6e5d;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>text-transform: uppercase;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 0.5rem;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.ritual-header p {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.85rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>letter-spacing: 2px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>text-transform: uppercase;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #b7a99a;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-top: 1px solid #e0d3c7;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: inline-block;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding-top: 0.6rem;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>/* Routine Selector Bar */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.routine-selector-bar {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #fff9f2;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 24px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 1.2rem 1.5rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 1.8rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid #e7dbd0;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.selector-header {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>justify-content: space-between;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>flex-wrap: wrap;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>gap: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.selector-title {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Montserrat', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.9rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 600;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #8f7e6b;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>text-transform: uppercase;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>letter-spacing: 1px;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.selector-actions {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>gap: 0.8rem;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.manage-btn {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: transparent;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid #d2c0b0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 0.4rem 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 40px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.75rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 500;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>transition: all 0.2s;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Inter', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #5f5347;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.manage-btn:hover {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #d2c0b0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: white;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.routine-buttons {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>flex-wrap: wrap;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>gap: 0.8rem;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.routine-btn {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #e9dfd4;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: none;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 0.5rem 1.2rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 40px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Montserrat', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.8rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 500;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #5f5347;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>transition: all 0.2s;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.routine-btn.active {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #b99f87;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: white;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.routine-btn:hover:not(.active) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #dacbbb;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>/* Product Library */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.product-library {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #fff9f2;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 24px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 1.2rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 1.8rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid #e7dbd0;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.library-header {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>justify-content: space-between;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>flex-wrap: wrap;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>gap: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.library-title {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Montserrat', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.9rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 600;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #8f7e6b;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>text-transform: uppercase;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>letter-spacing: 1px;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.toggle-add-btn {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #e9dfd4;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: none;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 0.4rem 1.2rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 40px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.75rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 500;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Inter', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.brand-tabs {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>flex-wrap: wrap;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>gap: 0.5rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-bottom: 1px solid #e7dbd0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding-bottom: 0.8rem;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.brand-tab {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 0.3rem 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: transparent;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: none;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.75rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 500;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #b7a99a;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 30px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>transition: all 0.2s;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.brand-tab.active {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #e9dfd4;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #5f5347;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.brand-products {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>flex-wrap: wrap;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>gap: 0.7rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>max-height: 180px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>overflow-y: auto;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 0.3rem 0;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.library-item {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #e9dfd4;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 0.45rem 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 40px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.75rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 500;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #5f5347;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>cursor: grab;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: inline-flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>gap: 0.5rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>transition: all 0.2s;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.library-item:active { cursor: grabbing; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.library-item:hover { background: #dacbbb; transform: translateY(-1px); }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.library-price { font-size: 0.7rem; color: #b99f87; font-weight: 500; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.edit-icon { cursor: pointer; font-size: 0.7rem; opacity: 0.6; margin-left: 4px; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.edit-icon:hover { opacity: 1; }</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>/* Product Form */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.product-form {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #f5efe8;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 20px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 1.2rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 1.2rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: none;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.product-form.show { display: block; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.form-row {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: grid;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));</p>
+<p class="p1"><span class="Apple-converted-space">            </span>gap: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.form-group {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>flex-direction: column;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.form-group label {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.7rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 600;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #8f7e6b;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 0.3rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>text-transform: uppercase;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>letter-spacing: 0.5px;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.form-group input, .form-group select, .form-group textarea {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 0.6rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid #e2d4c6;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 14px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.8rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: white;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Inter', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.form-group textarea { min-height: 60px; resize: vertical; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.form-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 0.5rem; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.form-actions button { padding: 0.5rem 1.5rem; border-radius: 40px; border: none; cursor: pointer; font-weight: 500; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.btn-save { background: #b99f87; color: white; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.btn-cancel { background: #e9dfd4; color: #5f5347; }</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>/* Routine Grid - AM/PM */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.routine-grid {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: grid;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>grid-template-columns: 1fr 1fr;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>gap: 1.5rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 1.5rem;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.column {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: rgba(255, 255, 255, 0.75);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 24px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 1.4rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid #e7dbd0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>backdrop-filter: blur(2px);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>flex-direction: column;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.column-title {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Montserrat', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-size: 1.2rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 400;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #8f7e6b;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-bottom: 1.2rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding-bottom: 0.5rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-bottom: 1px solid #e2d4c6;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>justify-content: space-between;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.product-list {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>flex-direction: column;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>gap: 0.9rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>flex: 1;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>min-height: 320px;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.product-card {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>gap: 0.9rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 0.7rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: white;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 18px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid #e7dbd0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>position: relative;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>transition: all 0.2s;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.product-card.drag-over { border: 2px dashed #b99f87; background: #fef7ef; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.delete-btn {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>position: absolute;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>top: 6px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>right: 6px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>width: 22px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>height: 22px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 50%;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #e9dfd4;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: none;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-size: 12px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>justify-content: center;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #5f5347;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.delete-btn:hover { background: #d2c0b0; color: white; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.product-image {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>width: 52px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>height: 52px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 50%;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #f1e8e0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: 1.5px solid #dacbbb;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>overflow: hidden;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>flex-shrink: 0;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.product-image img { width: 100%; height: 100%; object-fit: cover; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.product-info { flex: 1; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.product-name { font-size: 0.9rem; font-weight: 600; color: #5f5347; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.product-price { font-size: 0.75rem; color: #b99f87; margin-left: 0.4rem; font-weight: 500; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.benefit { font-size: 0.7rem; color: #b7a99a; margin-top: 2px; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.usage { font-size: 0.65rem; color: #8e7e6e; margin-top: 3px; display: flex; align-items: center; gap: 4px; }</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>/* Icons */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.morning-icon .icon-hand::before,</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.morning-icon .icon-clock::before,</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.morning-icon .icon-drop::before { content: "<span class="s1">☀️</span>"; font-size: 0.8rem; margin-right: 3px; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.evening-icon .icon-hand::before,</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.evening-icon .icon-clock::before,</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.evening-icon .icon-drop::before { content: "<span class="s2">☾</span>"; font-size: 0.8rem; margin-right: 3px; }</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>/* Footer */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.footer-actions {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>flex-direction: column;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>gap: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 0.5rem;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.total-bar {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 1rem 1.3rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #e9dfd4;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 20px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>justify-content: space-between;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>align-items: center;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>flex-wrap: wrap;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.total-label { font-weight: 500; color: #5f5347; font-size: 0.9rem; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.total-amount { font-size: 1.8rem; font-weight: 600; color: #8f7e6b; letter-spacing: 1px; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.action-buttons {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>display: flex;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>justify-content: flex-end;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>gap: 1.2rem;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.print-btn, .save-standard-btn {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: transparent;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border: 1px solid #d2c0b0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding: 0.7rem 1.8rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 50px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Montserrat', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.85rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-weight: 500;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>transition: all 0.2s;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.print-btn:hover, .save-standard-btn:hover {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #d2c0b0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: white;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.save-standard-btn {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: #b99f87;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: white;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-color: #b99f87;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.save-standard-btn:hover { background: #9f8468; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.footnote {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>margin-top: 1.5rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>text-align: center;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-size: 0.65rem;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: #ccbeaf;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-top: 1px solid #e1d4c6;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>padding-top: 1rem;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>@media (max-width: 750px) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>.app-container { padding: 1.2rem; }</p>
+<p class="p1"><span class="Apple-converted-space">            </span>.routine-grid { grid-template-columns: 1fr; }</p>
+<p class="p1"><span class="Apple-converted-space">            </span>.action-buttons { justify-content: center; }</p>
+<p class="p1"><span class="Apple-converted-space">            </span>.selector-header { flex-direction: column; align-items: flex-start; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>@media print {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>.product-library, .routine-selector-bar, .print-btn, .save-standard-btn, .delete-btn, .total-bar, .action-buttons, .product-price {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>display: none !important;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>.routine-grid { gap: 20px; }</p>
+<p class="p1"><span class="Apple-converted-space">            </span>.column { break-inside: avoid; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body&gt;</p>
+<p class="p1">&lt;div class="skincare-app"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="app-container"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="ritual-header"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;h1&gt;Skincare Routine Builder&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;p&gt;customize · save · manage&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- Routine Selector --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="routine-selector-bar"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="selector-header"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="selector-title"&gt;<span class="s1">📋</span> SELECT ROUTINE&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="selector-actions"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button id="editRoutineBtn" class="manage-btn"&gt;<span class="s1">✏️</span> Edit Routine Name&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;button id="deleteRoutineBtn" class="manage-btn"&gt;<span class="s1">🗑️</span> Delete Routine&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="routine-buttons" id="routineButtons"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- Product Library --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="product-library"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="library-header"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="library-title"&gt;<span class="s1">📦</span> PRODUCT LIBRARY · drag to replace&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;button class="toggle-add-btn" id="toggleAddBtn"&gt;+ Add Product&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="brand-tabs" id="brandTabs"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div id="brandProductsContainer" class="brand-products"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div id="productForm" class="product-form"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="form-row"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="form-group"&gt;&lt;label&gt;Product Name *&lt;/label&gt;&lt;input type="text" id="productName" placeholder="e.g., Vitamin C Serum"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="form-group"&gt;&lt;label&gt;Brand&lt;/label&gt;&lt;select id="productBrand"&gt;&lt;option&gt;SkinMedica&lt;/option&gt;&lt;option&gt;Skinceuticals&lt;/option&gt;&lt;option&gt;FNL&lt;/option&gt;&lt;option&gt;ColorScience&lt;/option&gt;&lt;option&gt;Others&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="form-group"&gt;&lt;label&gt;Price ($)&lt;/label&gt;&lt;input type="number" id="productPrice" step="0.01" placeholder="0.00"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="form-row"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="form-group"&gt;&lt;label&gt;Benefit /<span class="s3">功效</span>&lt;/label&gt;&lt;input type="text" id="productBenefit" placeholder="e.g., Brightens · Antioxidant"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="form-group"&gt;&lt;label&gt;Image URL&lt;/label&gt;&lt;input type="text" id="productImage" placeholder="https://..."&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="form-group"&gt;&lt;label&gt;Usage /<span class="s3">使用方法</span>&lt;/label&gt;&lt;textarea id="productUsage" rows="2" placeholder="How to apply..."&gt;&lt;/textarea&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="form-actions"&gt;&lt;button class="btn-cancel" id="cancelFormBtn"&gt;Cancel&lt;/button&gt;&lt;button class="btn-save" id="saveProductBtn"&gt;Save Product&lt;/button&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;input type="hidden" id="editProductId"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- AM/PM Routine Grid --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="routine-grid"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="column morning-icon"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="column-title"&gt;MORNING &lt;span&gt;AM&lt;/span&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="product-list" id="morningList"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="column evening-icon"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="column-title"&gt;EVENING &lt;span&gt;PM&lt;/span&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="product-list" id="eveningList"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;!-- Footer --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="footer-actions"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="total-bar"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="total-label"&gt;TOTAL VALUE (Unique Products)&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="total-amount"&gt;$&lt;span id="totalPrice"&gt;0.00&lt;/span&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="action-buttons"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;button class="print-btn" id="printBtn"&gt;<span class="s1">🖨️</span> PRINT ROUTINE&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;button class="save-standard-btn" id="saveStandardBtn"&gt;<span class="s1">💾</span> Save Current Routine as a Standard Routine&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="footnote"&gt;<span class="s4">✦</span> Each product counted once regardless of repetition <span class="s4">✦</span> Drag from library to replace any product <span class="s4">✦</span> Data saved in your browser <span class="s4">✦</span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>(function() {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>// ==================== PRODUCT DATABASE ====================</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let productsData = [</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "cleanser", name: "Cleanser", brand: "SkinMedica", price: 46, benefit: "Cleans · Removes SPF &amp; Makeup", usage: "Pea size - add water - cleanse face &amp; neck 1-2 min", image: "https://static.wixstatic.com/media/11a6e1_cd31f58211984ecabef518ed158ea4dc~mv2.webp" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "tns", name: "TNS+ Serum", brand: "SkinMedica", price: 330, benefit: "Lifting · Anti-aging Growth Factors", usage: "1 pump - mix together - apply to face &amp; neck", image: "https://static.wixstatic.com/media/11a6e1_8eb00266d932471483652b5a40828272~mv2.jpg" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "lumivive-day", name: "Lumivive - Day", brand: "SkinMedica", price: 285, benefit: "Antioxidant · Protects from Free Radicals", usage: "1 pump - apply to face &amp; neck", image: "https://static.wixstatic.com/media/11a6e1_b12de65e4f8d4240ab28bdeecda8f811~mv2.webp" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "lytera", name: "Lytera", brand: "SkinMedica", price: 170, benefit: "Brightener · Manages Melanin", usage: "1 pump - apply to face &amp; neck", image: "https://static.wixstatic.com/media/11a6e1_daddf6362e3b4bb0871467d485dcc76b~mv2.jpg" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "ha5", name: "HA5", brand: "SkinMedica", price: 196, benefit: "Oil-Free Hydrator · Plumper", usage: "1 pump - apply to face &amp; neck", image: "https://static.wixstatic.com/media/11a6e1_20f2ce9ce07a4ccaa0b5d5c6631fc0dc~mv2.webp" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "moisturizer", name: "Moisturizer", brand: "SkinMedica", price: 155, benefit: "Soothing · Reduces Retinol Reaction", usage: "1 pump - apply to face &amp; neck", image: "https://static.wixstatic.com/media/11a6e1_0f0aeb5de10d4a7ca110e93adb057e80~mv2.webp" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "spf50", name: "Sheer Physical SPF50", brand: "SkinMedica", price: 66, benefit: "100% Physical · Matt Finish", usage: "1 pump - last step before sun", image: "https://static.wixstatic.com/media/11a6e1_d2faad5c91134e0589fb5538c8f76d86~mv2.webp" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "spf-powder", name: "SPF Powder Brush", brand: "ColorScience", price: 93.90, benefit: "Easy Reapply · Sun Protection", usage: "Brush over face &amp; neck every 2 hours", image: "https://static.wixstatic.com/media/11a6e1_02ac891ebdc24945ad2bb305d9be5579~mv2.jpg" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "lumivive-night", name: "Lumivive - Night", brand: "SkinMedica", price: 285, benefit: "Night Repair · Antioxidant", usage: "1 pump - apply to face &amp; neck", image: "https://static.wixstatic.com/media/11a6e1_b12de65e4f8d4240ab28bdeecda8f811~mv2.webp" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "retinol", name: "Retinol", brand: "Skinceuticals", price: 66, benefit: "Cell Turnover · Improves Tone", usage: "Start 2 nights/week, build tolerance", image: "https://static.wixstatic.com/media/11a6e1_4f3763842728442482947369cfee0b18~mv2.png" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "ce-ferulic", name: "CE Ferulic", brand: "Skinceuticals", price: 182, benefit: "Vitamin C Antioxidant", usage: "4-5 drops in the morning", image: "" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "clarify-cleanser", name: "Clarify Cleanser", brand: "FNL", price: 50, benefit: "Antibacterial · Regulates Sebum", usage: "Pea size - cleanse face &amp; neck", image: "https://static.wixstatic.com/media/11a6e1_964680bfdf1b4efa9039db6f52428325~mv2.webp" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "exfoliating-pad", name: "Exfoliating Pad 10%", brand: "FNL", price: 88, benefit: "Minimizes Blackheads &amp; Acne Scars", usage: "Wipe face gently", image: "https://static.wixstatic.com/media/11a6e1_c4491a22e89846ba84ef28f5820ff427~mv2.webp" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "silymarin", name: "Silymarin", brand: "Skinceuticals", price: 220, benefit: "Antioxidant for Acne-Prone Skin", usage: "1 pump - apply to face", image: "https://static.wixstatic.com/media/11a6e1_8868dfe199c3466dafa239c238115433~mv2.webp" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "glycolic-lotion", name: "Glycolic Lotion 10%", brand: "FNL", price: 98, benefit: "Improves Texture · Prevents Blackheads", usage: "Pea size - apply to face &amp; neck", image: "https://static.wixstatic.com/media/11a6e1_74ebb016820f45008058763526dfad76~mv2.webp" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "exo-gf", name: "Exo-GF Serum", brand: "FNL", price: 275, benefit: "Regenerates · Reduces Inflammation", usage: "1 pump - apply to face &amp; neck", image: "https://static.wixstatic.com/media/11a6e1_62da2e3f71ff44229d4e90fc5289cf18~mv2.jpg" },</p>
+<p class="p1"><span class="Apple-converted-space">            </span>{ id: "retinol-fnl", name: "Retinol", brand: "FNL", price: 115, benefit: "Cell Turnover · Improves Skin Tone", usage: "1 pump - start 2x/week", image: "https://static.wixstatic.com/media/11a6e1_c1094fd984f449a6bdd6a96bf13623ac~mv2.webp" }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>];</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// ==================== PRESET ROUTINES ====================</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let savedRoutines = {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>"fnl-acne": {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>name: "FNL Acne Management",</p>
+<p class="p1"><span class="Apple-converted-space">                </span>morning: ["clarify-cleanser", "exfoliating-pad", "silymarin", "glycolic-lotion", "spf50", "spf-powder"],</p>
+<p class="p1"><span class="Apple-converted-space">                </span>evening: ["clarify-cleanser", "exo-gf", "retinol-fnl", "glycolic-lotion"]</p>
+<p class="p1"><span class="Apple-converted-space">            </span>},</p>
+<p class="p1"><span class="Apple-converted-space">            </span>"sm-acne-pigment": {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>name: "SC - SM Acne &amp; Pigment",</p>
+<p class="p1"><span class="Apple-converted-space">                </span>morning: ["cleanser", "lytera", "ha5", "moisturizer", "spf50"],</p>
+<p class="p1"><span class="Apple-converted-space">                </span>evening: ["cleanser", "lytera", "retinol", "ha5", "moisturizer"]</p>
+<p class="p1"><span class="Apple-converted-space">            </span>},</p>
+<p class="p1"><span class="Apple-converted-space">            </span>"fnl-pigmentation": {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>name: "SC - FNL Pigmentation",</p>
+<p class="p1"><span class="Apple-converted-space">                </span>morning: ["clarify-cleanser", "lytera", "silymarin", "spf50"],</p>
+<p class="p1"><span class="Apple-converted-space">                </span>evening: ["clarify-cleanser", "exo-gf", "lytera", "retinol-fnl"]</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>let currentRoutineId = "fnl-acne";</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let morningProducts = [], eveningProducts = [];</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let currentBrand = "all";</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Helper Functions</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function getProductById(id) { return productsData.find(p =&gt; p.id === id); }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 6); }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function escapeHtml(str) { if (!str) return ''; return str.replace(/[&amp;&lt;&gt;]/g, function(m) { if(m==='&amp;') return '&amp;amp;'; if(m==='&lt;') return '&amp;lt;'; if(m==='&gt;') return '&amp;gt;'; return m; }); }</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function loadRoutine(routineId) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let routine = savedRoutines[routineId];</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (routine) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>currentRoutineId = routineId;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>morningProducts = routine.morning.map(pid =&gt; ({ productId: pid, time: "morning" }));</p>
+<p class="p1"><span class="Apple-converted-space">                </span>eveningProducts = routine.evening.map(pid =&gt; ({ productId: pid, time: "evening" }));</p>
+<p class="p1"><span class="Apple-converted-space">                </span>renderRoutines();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>updateTotalPrice();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>highlightActiveRoutine();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function highlightActiveRoutine() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.querySelectorAll('.routine-btn').forEach(btn =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (btn.dataset.id === currentRoutineId) btn.classList.add('active');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>else btn.classList.remove('active');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function saveCurrentAsStandardRoutine() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let name = prompt("Enter a name for this new Standard Routine:", "My Custom Routine");</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!name || name.trim() === "") return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let newId = "standard-" + Date.now();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>savedRoutines[newId] = {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>name: name.trim(),</p>
+<p class="p1"><span class="Apple-converted-space">                </span>morning: morningProducts.map(p =&gt; p.productId),</p>
+<p class="p1"><span class="Apple-converted-space">                </span>evening: eveningProducts.map(p =&gt; p.productId)</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p1"><span class="Apple-converted-space">            </span>renderRoutineButtons();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>loadRoutine(newId);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>alert(`"${name}" has been saved as a Standard Routine!`);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function updateCurrentRoutine() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>savedRoutines[currentRoutineId] = {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>name: savedRoutines[currentRoutineId].name,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>morning: morningProducts.map(p =&gt; p.productId),</p>
+<p class="p1"><span class="Apple-converted-space">                </span>evening: eveningProducts.map(p =&gt; p.productId)</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function renameCurrentRoutine(newName) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (savedRoutines[currentRoutineId]) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>savedRoutines[currentRoutineId].name = newName;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>renderRoutineButtons();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>highlightActiveRoutine();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function deleteCurrentRoutine() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (currentRoutineId === "fnl-acne" || currentRoutineId === "sm-acne-pigment" || currentRoutineId === "fnl-pigmentation") {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>alert("Cannot delete preset routines");</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (confirm(`Delete "${savedRoutines[currentRoutineId]?.name}"?`)) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>delete savedRoutines[currentRoutineId];</p>
+<p class="p1"><span class="Apple-converted-space">                </span>let firstKey = Object.keys(savedRoutines)[0];</p>
+<p class="p1"><span class="Apple-converted-space">                </span>loadRoutine(firstKey);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>renderRoutineButtons();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function renderRoutineButtons() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let container = document.getElementById('routineButtons');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!container) return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>container.innerHTML = Object.entries(savedRoutines).map(([id, r]) =&gt;<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>`&lt;button class="routine-btn ${id === currentRoutineId ? 'active' : ''}" data-id="${id}"&gt;${escapeHtml(r.name)}&lt;/button&gt;`</p>
+<p class="p1"><span class="Apple-converted-space">            </span>).join('');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.querySelectorAll('.routine-btn').forEach(btn =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>btn.onclick = () =&gt; loadRoutine(btn.dataset.id);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function getUniqueProductsTotal() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let ids = new Set();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>morningProducts.forEach(i =&gt; ids.add(i.productId));</p>
+<p class="p1"><span class="Apple-converted-space">            </span>eveningProducts.forEach(i =&gt; ids.add(i.productId));</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let total = 0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>ids.forEach(id =&gt; { let p = getProductById(id); if(p) total += p.price; });</p>
+<p class="p1"><span class="Apple-converted-space">            </span>return total;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function updateTotalPrice() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let span = document.getElementById('totalPrice');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (span) span.innerText = getUniqueProductsTotal().toFixed(2);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Rendering Functions</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function renderBrandProducts() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let container = document.getElementById('brandProductsContainer');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!container) return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let filtered = currentBrand === "all" ? productsData : productsData.filter(p =&gt; p.brand === currentBrand);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>container.innerHTML = filtered.map(p =&gt; `</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="library-item" draggable="true" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}" data-product-benefit="${escapeHtml(p.benefit || '')}" data-product-usage="${escapeHtml(p.usage || '')}" data-product-image="${p.image || ''}"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>${escapeHtml(p.name)} &lt;span class="library-price"&gt;$${p.price}&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;span class="edit-icon" data-id="${p.id}" title="Edit"&gt;<span class="s5">✎</span>&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>`).join('');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>attachDragEvents();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>attachEditEvents();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function attachDragEvents() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.querySelectorAll('.library-item').forEach(el =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>el.setAttribute('draggable', 'true');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>el.addEventListener('dragstart', (e) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>let data = {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>id: el.dataset.productId, name: el.dataset.productName,</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>price: parseFloat(el.dataset.productPrice), benefit: el.dataset.productBenefit,</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>usage: el.dataset.productUsage, image: el.dataset.productImage</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>};</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>e.dataTransfer.setData('text/plain', JSON.stringify(data));</p>
+<p class="p1"><span class="Apple-converted-space">                </span>});</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function attachEditEvents() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.querySelectorAll('.edit-icon').forEach(icon =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>icon.onclick = (e) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>e.stopPropagation();</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>let product = getProductById(icon.dataset.id);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (product) openEditForm(product);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>};</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function openEditForm(product) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('productName').value = product.name;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('productBrand').value = product.brand;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('productPrice').value = product.price;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('productBenefit').value = product.benefit || '';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('productUsage').value = product.usage || '';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('productImage').value = product.image || '';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('editProductId').value = product.id;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('productForm').classList.add('show');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('toggleAddBtn').style.display = 'none';</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function saveProduct() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let name = document.getElementById('productName').value.trim();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!name) { alert("Enter product name"); return; }</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let newProduct = {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>id: document.getElementById('editProductId').value || generateId(),</p>
+<p class="p1"><span class="Apple-converted-space">                </span>name: name,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>brand: document.getElementById('productBrand').value,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>price: parseFloat(document.getElementById('productPrice').value) || 0,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>benefit: document.getElementById('productBenefit').value,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>usage: document.getElementById('productUsage').value,</p>
+<p class="p1"><span class="Apple-converted-space">                </span>image: document.getElementById('productImage').value</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let existing = productsData.findIndex(p =&gt; p.id === newProduct.id);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (existing &gt;= 0) productsData[existing] = newProduct;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>else productsData.push(newProduct);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>closeForm();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>renderBrandProducts();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>renderRoutines();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>updateTotalPrice();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function closeForm() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('productForm').classList.remove('show');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('toggleAddBtn').style.display = '';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('productName').value = '';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('editProductId').value = '';</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function renderRoutines() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let morningContainer = document.getElementById('morningList');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let eveningContainer = document.getElementById('eveningList');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (morningContainer) morningContainer.innerHTML = morningProducts.map((item, idx) =&gt; renderCard(item.productId, idx, 'morning')).join('');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (eveningContainer) eveningContainer.innerHTML = eveningProducts.map((item, idx) =&gt; renderCard(item.productId, idx, 'evening')).join('');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>attachDropEvents('morningList', 'morning');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>attachDropEvents('eveningList', 'evening');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>attachDeleteEvents();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function renderCard(pid, idx, time) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let p = getProductById(pid);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!p) return '';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>return `&lt;div class="product-card" data-product-id="${p.id}" data-index="${idx}" data-time="${time}" draggable="true"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;button class="delete-btn" data-time="${time}" data-index="${idx}"&gt;<span class="s4">✕</span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="product-image"&gt;&lt;img src="${p.image || 'https://via.placeholder.com/52/f1e8e0/8f7e6b?text=Product'}" alt="${escapeHtml(p.name)}"&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="product-info"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="product-name"&gt;${escapeHtml(p.name)} &lt;span class="product-price"&gt;$${p.price}&lt;/span&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="benefit"&gt;${escapeHtml(p.benefit || '')}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="usage"&gt;&lt;i class="icon-hand"&gt;&lt;/i&gt; ${escapeHtml((p.usage || '').substring(0, 55))}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;`;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function attachDropEvents(containerId, time) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let container = document.getElementById(containerId);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!container) return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>container.ondragover = (e) =&gt; e.preventDefault();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>container.ondrop = (e) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>e.preventDefault();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>let targetCard = e.target.closest('.product-card');</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (!targetCard) return;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>let targetIdx = parseInt(targetCard.dataset.index);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>let dragData = JSON.parse(e.dataTransfer.getData('text/plain'));</p>
+<p class="p1"><span class="Apple-converted-space">                </span>if (dragData &amp;&amp; dragData.id) {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (time === 'morning' &amp;&amp; morningProducts[targetIdx]) morningProducts[targetIdx] = { productId: dragData.id, time: 'morning' };</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (time === 'evening' &amp;&amp; eveningProducts[targetIdx]) eveningProducts[targetIdx] = { productId: dragData.id, time: 'evening' };</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>updateCurrentRoutine();</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>renderRoutines();</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>updateTotalPrice();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>};</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function attachDeleteEvents() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.querySelectorAll('.delete-btn').forEach(btn =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>btn.onclick = (e) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>e.stopPropagation();</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>let time = btn.dataset.time, idx = parseInt(btn.dataset.index);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>if (time === 'morning') morningProducts.splice(idx, 1);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>else eveningProducts.splice(idx, 1);</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>updateCurrentRoutine();</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>renderRoutines();</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>updateTotalPrice();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>};</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function printRoutine() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let uniqueMorning = morningProducts.filter((item, idx, self) =&gt; self.findIndex(i =&gt; i.productId === item.productId) === idx);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let uniqueEvening = eveningProducts.filter((item, idx, self) =&gt; self.findIndex(i =&gt; i.productId === item.productId) === idx);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let win = window.open('', '_blank');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>win.document.write(`&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;&lt;title&gt;Skincare Routine&lt;/title&gt;&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>body{font-family:'Inter',sans-serif;padding:0.5in;margin:0;}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>.print-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>.print-column{border:1px solid #ddd;border-radius:16px;padding:20px;}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>.print-product{display:flex;gap:12px;margin-bottom:15px;page-break-inside:avoid;}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>img{width:48px;height:48px;border-radius:50%;object-fit:cover;}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>.print-product-name{font-weight:600;}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>.print-product-benefit{font-size:11px;color:#666;margin-top:3px;}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>h2{text-align:center;margin-bottom:20px;color:#5f5347;}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>h3{color:#8f7e6b;margin-bottom:15px;}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/style&gt;&lt;/head&gt;&lt;body&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;h2&gt;${escapeHtml(savedRoutines[currentRoutineId]?.name || 'Skincare Routine')}&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="print-grid"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="print-column"&gt;&lt;h3&gt;MORNING <span class="s1">☀️</span>&lt;/h3&gt;${uniqueMorning.map(i =&gt; { let p=getProductById(i.productId); return p?`&lt;div class="print-product"&gt;&lt;img src="${p.image||''}"&gt;&lt;div&gt;&lt;div class="print-product-name"&gt;${escapeHtml(p.name)}&lt;/div&gt;&lt;div class="print-product-benefit"&gt;${escapeHtml(p.benefit||'')}&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;`:''; }).join('')}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>&lt;div class="print-column"&gt;&lt;h3&gt;EVENING <span class="s1">🌙</span>&lt;/h3&gt;${uniqueEvening.map(i =&gt; { let p=getProductById(i.productId); return p?`&lt;div class="print-product"&gt;&lt;img src="${p.image||''}"&gt;&lt;div&gt;&lt;div class="print-product-name"&gt;${escapeHtml(p.name)}&lt;/div&gt;&lt;div class="print-product-benefit"&gt;${escapeHtml(p.benefit||'')}&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;`:''; }).join('')}&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/body&gt;&lt;/html&gt;`);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>win.document.close();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>win.print();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function renderBrandTabs() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let brands = ["all", "SkinMedica", "Skinceuticals", "FNL", "ColorScience", "Others"];</p>
+<p class="p1"><span class="Apple-converted-space">            </span>let container = document.getElementById('brandTabs');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (!container) return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>container.innerHTML = brands.map(b =&gt; `&lt;button class="brand-tab ${b === currentBrand ? 'active' : ''}" data-brand="${b}"&gt;${b === 'all' ? 'All' : b}&lt;/button&gt;`).join('');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.querySelectorAll('.brand-tab').forEach(tab =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>tab.onclick = () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>currentBrand = tab.dataset.brand;</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>renderBrandTabs();</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>renderBrandProducts();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>};</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Event Bindings</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('toggleAddBtn').onclick = () =&gt; { document.getElementById('editProductId').value = ''; closeForm(); document.getElementById('productForm').classList.add('show'); document.getElementById('toggleAddBtn').style.display = 'none'; };</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('cancelFormBtn').onclick = closeForm;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('saveProductBtn').onclick = saveProduct;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('printBtn').onclick = printRoutine;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('saveStandardBtn').onclick = saveCurrentAsStandardRoutine;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('editRoutineBtn').onclick = () =&gt; { let newName = prompt("Edit routine name:", savedRoutines[currentRoutineId]?.name); if(newName) renameCurrentRoutine(newName); };</p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('deleteRoutineBtn').onclick = deleteCurrentRoutine;</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Initialize</p>
+<p class="p1"><span class="Apple-converted-space">        </span>renderBrandTabs();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>renderBrandProducts();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>renderRoutineButtons();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>loadRoutine("fnl-acne");</p>
+<p class="p1"><span class="Apple-converted-space">    </span>})();</p>
+<p class="p1">&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
