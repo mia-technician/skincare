@@ -15,17 +15,18 @@
         .ritual-header h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 1.8rem; color: #7f6e5d; text-transform: uppercase; }
         .auth-section { background: #fff9f2; border-radius: 24px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid #e7dbd0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         .auth-status { font-size: 0.85rem; color: #8f7e6b; }
-        .auth-btn { background: #b99f87; color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; }
+        .auth-btn { background: #b99f87; color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
+        .auth-btn-outline { background: transparent; border: 1px solid #d2c0b0; color: #5f5347; }
         .routine-selector-bar { background: #fff9f2; border-radius: 24px; padding: 1.2rem 1.5rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
         .selector-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
         .selector-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
         .selector-actions { display: flex; gap: 0.8rem; }
         .manage-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.4rem 1rem; border-radius: 40px; cursor: pointer; font-size: 0.75rem; }
         .routine-buttons { display: flex; flex-wrap: wrap; gap: 0.8rem; }
-        .routine-btn { background: #e9dfd4; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; }
+        .routine-btn { background: #e9dfd4; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
         .routine-btn.active { background: #b99f87; color: white; }
         .product-library { background: #fff9f2; border-radius: 24px; padding: 1.2rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
-        .library-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .library-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
         .library-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
         .toggle-add-btn { background: #e9dfd4; border: none; padding: 0.4rem 1.2rem; border-radius: 40px; cursor: pointer; }
         .brand-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #e7dbd0; padding-bottom: 0.8rem; }
@@ -40,29 +41,32 @@
         .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
         .form-group { display: flex; flex-direction: column; }
         .form-group label { font-size: 0.7rem; font-weight: 600; color: #8f7e6b; margin-bottom: 0.3rem; }
-        .form-group input, .form-group select, .form-group textarea { padding: 0.6rem; border: 1px solid #e2d4c6; border-radius: 14px; background: white; }
+        .form-group input, .form-group select, .form-group textarea { padding: 0.6rem; border: 1px solid #e2d4c6; border-radius: 14px; background: white; font-size: 0.8rem; }
         .form-actions { display: flex; gap: 1rem; justify-content: flex-end; }
         .btn-save { background: #b99f87; color: white; padding: 0.5rem 1.5rem; border-radius: 40px; border: none; cursor: pointer; }
         .btn-cancel { background: #e9dfd4; padding: 0.5rem 1.5rem; border-radius: 40px; border: none; cursor: pointer; }
         .routine-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .column { background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.4rem; border: 1px solid #e7dbd0; }
-        .column-title { font-family: 'Montserrat', sans-serif; font-size: 1.2rem; color: #8f7e6b; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; }
+        .column-title { font-family: 'Montserrat', sans-serif; font-size: 1.2rem; color: #8f7e6b; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; display: flex; justify-content: space-between; }
         .product-list { display: flex; flex-direction: column; gap: 0.9rem; min-height: 320px; }
         .product-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; }
-        .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; }
+        .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px; }
         .product-image { width: 52px; height: 52px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; }
         .product-image img { width: 100%; height: 100%; object-fit: cover; }
-        .product-name { font-size: 0.9rem; font-weight: 600; }
-        .product-price { font-size: 0.75rem; color: #b99f87; }
-        .benefit { font-size: 0.7rem; color: #b7a99a; }
-        .usage { font-size: 0.65rem; color: #8e7e6e; display: flex; align-items: center; gap: 4px; }
+        .product-info { flex: 1; }
+        .product-name { font-size: 0.9rem; font-weight: 600; color: #5f5347; }
+        .product-price { font-size: 0.75rem; color: #b99f87; margin-left: 0.3rem; }
+        .benefit { font-size: 0.7rem; color: #b7a99a; margin-top: 2px; }
+        .usage { font-size: 0.65rem; color: #8e7e6e; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
         .morning-icon .icon-hand::before { content: "☀️"; font-size: 0.8rem; margin-right: 3px; }
         .evening-icon .icon-hand::before { content: "☾"; font-size: 0.8rem; margin-right: 3px; }
         .total-bar { padding: 1rem 1.3rem; background: #e9dfd4; border-radius: 20px; margin: 1.5rem 0 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .total-label { font-weight: 500; color: #5f5347; }
         .total-amount { font-size: 1.8rem; font-weight: 600; color: #8f7e6b; }
-        .action-buttons { display: flex; justify-content: flex-end; gap: 1rem; }
-        .print-btn, .save-standard-btn, .sync-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; }
+        .action-buttons { display: flex; justify-content: flex-end; gap: 1rem; flex-wrap: wrap; }
+        .print-btn, .save-standard-btn, .sync-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; font-size: 0.8rem; }
         .save-standard-btn { background: #b99f87; color: white; border-color: #b99f87; }
+        .sync-btn { background: #e9dfd4; }
         .footnote { margin-top: 1.5rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
         @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } }
     </style>
@@ -79,7 +83,7 @@
             <div class="auth-status" id="authStatus">Loading...</div>
             <div>
                 <button id="loginBtn" class="auth-btn" style="display:none">Sign In with Google</button>
-                <button id="logoutBtn" class="auth-btn" style="background:transparent;border:1px solid #d2c0b0;color:#5f5347;display:none">Sign Out</button>
+                <button id="logoutBtn" class="auth-btn auth-btn-outline" style="display:none">Sign Out</button>
             </div>
         </div>
 
@@ -87,8 +91,8 @@
             <div class="selector-header">
                 <div class="selector-title">📋 SELECT ROUTINE</div>
                 <div class="selector-actions">
-                    <button id="editRoutineBtn" class="manage-btn">✏️ Edit Name</button>
-                    <button id="deleteRoutineBtn" class="manage-btn">🗑️ Delete</button>
+                    <button id="editRoutineBtn" class="manage-btn">✏️ Edit Routine Name</button>
+                    <button id="deleteRoutineBtn" class="manage-btn">🗑️ Delete Routine</button>
                 </div>
             </div>
             <div class="routine-buttons" id="routineButtons"></div>
@@ -103,7 +107,7 @@
             <div id="brandProductsContainer" class="brand-products"></div>
             <div id="productForm" class="product-form">
                 <div class="form-row">
-                    <div class="form-group"><label>Product Name</label><input type="text" id="productName"></div>
+                    <div class="form-group"><label>Product Name *</label><input type="text" id="productName" placeholder="e.g., Vitamin C"></div>
                     <div class="form-group"><label>Brand</label><select id="productBrand"><option>SkinMedica</option><option>Skinceuticals</option><option>FNL</option><option>ColorScience</option><option>Others</option></select></div>
                     <div class="form-group"><label>Price ($)</label><input type="number" id="productPrice" step="0.01"></div>
                 </div>
@@ -118,8 +122,14 @@
         </div>
 
         <div class="routine-grid">
-            <div class="column morning-icon"><div class="column-title">MORNING <span>AM</span></div><div class="product-list" id="morningList"></div></div>
-            <div class="column evening-icon"><div class="column-title">EVENING <span>PM</span></div><div class="product-list" id="eveningList"></div></div>
+            <div class="column morning-icon">
+                <div class="column-title">MORNING <span>AM</span></div>
+                <div class="product-list" id="morningList"></div>
+            </div>
+            <div class="column evening-icon">
+                <div class="column-title">EVENING <span>PM</span></div>
+                <div class="product-list" id="eveningList"></div>
+            </div>
         </div>
 
         <div class="total-bar">
@@ -128,10 +138,10 @@
         </div>
         <div class="action-buttons">
             <button class="sync-btn" id="syncBtn">🔄 Sync to Cloud</button>
-            <button class="print-btn" id="printBtn">🖨️ PRINT</button>
-            <button class="save-standard-btn" id="saveStandardBtn">💾 Save as New Routine</button>
+            <button class="print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
+            <button class="save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
         </div>
-        <div class="footnote">✦ Sign in with Google to sync across devices ✦ Drag products from library to replace ✦</div>
+        <div class="footnote">✦ Sign in with Google to sync across devices ✦ Drag from library to replace any product ✦</div>
     </div>
 </div>
 
@@ -207,11 +217,11 @@ async function loadFromCloud() {
 }
 
 async function syncToCloud() {
-    if (!isAuthenticated) { alert("Please sign in"); return; }
+    if (!isAuthenticated) { alert("Please sign in first"); return; }
     try {
         for (const p of productsData) await supabase.from('products').upsert({ ...p, user_id: currentUserId });
         for (const [id, r] of Object.entries(savedRoutines)) await supabase.from('routines').upsert({ id, name: r.name, morning: r.morning, evening: r.evening, user_id: currentUserId });
-        alert("Synced!");
+        alert("Synced to cloud!");
     } catch (e) { alert("Sync failed: " + e.message); }
 }
 
@@ -234,12 +244,13 @@ function highlightActiveRoutine() {
 }
 
 function saveCurrentAsStandardRoutine() {
-    let name = prompt("Enter a name:", "My Custom Routine");
-    if (!name) return;
+    let name = prompt("Enter a name for this new Standard Routine:", "My Custom Routine");
+    if (!name || name.trim() === "") return;
     let newId = "standard-" + Date.now();
     savedRoutines[newId] = { name: name.trim(), morning: morningProducts.map(p => p.productId), evening: eveningProducts.map(p => p.productId) };
     saveToLocalStorage(); renderRoutineButtons(); loadRoutine(newId);
     if (isAuthenticated) syncToCloud();
+    alert('"' + name + '" has been saved!');
 }
 
 function updateCurrentRoutine() { savedRoutines[currentRoutineId] = { name: savedRoutines[currentRoutineId].name, morning: morningProducts.map(p => p.productId), evening: eveningProducts.map(p => p.productId) }; saveToLocalStorage(); if (isAuthenticated) syncToCloud(); }
@@ -260,7 +271,7 @@ function renderBrandProducts() {
     let container = document.getElementById('brandProductsContainer');
     if (!container) return;
     let filtered = currentBrand === "all" ? productsData : productsData.filter(p => p.brand === currentBrand);
-    container.innerHTML = filtered.map(p => `<div class="library-item" draggable="true" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}" data-product-benefit="${escapeHtml(p.benefit || '')}" data-product-usage="${escapeHtml(p.usage || '')}" data-product-image="${p.image || ''}">${escapeHtml(p.name)} <span class="library-price">$${p.price}</span><span class="edit-icon" data-id="${p.id}">✎</span></div>`).join('');
+    container.innerHTML = filtered.map(p => `<div class="library-item" draggable="true" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}" data-product-benefit="${escapeHtml(p.benefit || '')}" data-product-usage="${escapeHtml(p.usage || '')}" data-product-image="${p.image || ''}">${escapeHtml(p.name)} <span class="library-price">$${p.price}</span><span class="edit-icon" data-id="${p.id}" title="Edit">✎</span></div>`).join('');
     attachDragEvents(); attachEditEvents();
 }
 function attachDragEvents() { document.querySelectorAll('.library-item').forEach(el => { el.setAttribute('draggable', 'true'); el.addEventListener('dragstart', (e) => { let data = { id: el.dataset.productId, name: el.dataset.productName, price: parseFloat(el.dataset.productPrice), benefit: el.dataset.productBenefit, usage: el.dataset.productUsage, image: el.dataset.productImage }; e.dataTransfer.setData('text/plain', JSON.stringify(data)); }); }); }
@@ -305,7 +316,7 @@ async function checkAuth() {
 checkAuth();
 supabase.auth.onAuthStateChange((event) => { if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') location.reload(); });
 
-// 绑定按钮
+// 绑定按钮事件
 document.getElementById('toggleAddBtn').onclick = () => { document.getElementById('editProductId').value = ''; closeForm(); document.getElementById('productForm').classList.add('show'); document.getElementById('toggleAddBtn').style.display = 'none'; };
 document.getElementById('cancelFormBtn').onclick = closeForm;
 document.getElementById('saveProductBtn').onclick = saveProduct;
