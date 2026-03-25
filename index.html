@@ -8,30 +8,25 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #f5efe9; font-family: 'Inter', sans-serif; padding: 2rem 1rem; color: #3e3c39; }
-        .skincare-app { max-width: 1400px; margin: 0 auto; background-color: #faf7f2; border-radius: 32px; border: 1px solid #e8dfd4; overflow: hidden; }
+        body { background: #f5efe9; font-family: 'Inter', sans-serif; padding: 2rem 1rem; }
+        .skincare-app { max-width: 1400px; margin: 0 auto; background: #faf7f2; border-radius: 32px; border: 1px solid #e8dfd4; }
         .app-container { padding: 2rem 1.8rem; }
         .ritual-header { text-align: center; margin-bottom: 2rem; }
         .ritual-header h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 1.8rem; color: #7f6e5d; text-transform: uppercase; }
-        
-        /* 认证区域 */
-        .auth-section { background: #fff9f2; border-radius: 24px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid #e7dbd0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .auth-section { background: #fff9f2; border-radius: 24px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid #e7dbd0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         .auth-status { font-size: 0.85rem; color: #8f7e6b; }
-        .auth-btn { background: #b99f87; color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
-        .auth-btn-outline { background: transparent; border: 1px solid #d2c0b0; color: #5f5347; }
-        
+        .auth-btn { background: #b99f87; color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; }
         .routine-selector-bar { background: #fff9f2; border-radius: 24px; padding: 1.2rem 1.5rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
         .selector-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
-        .selector-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; text-transform: uppercase; }
+        .selector-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
         .selector-actions { display: flex; gap: 0.8rem; }
         .manage-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.4rem 1rem; border-radius: 40px; cursor: pointer; font-size: 0.75rem; }
         .routine-buttons { display: flex; flex-wrap: wrap; gap: 0.8rem; }
         .routine-btn { background: #e9dfd4; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; }
         .routine-btn.active { background: #b99f87; color: white; }
-        
         .product-library { background: #fff9f2; border-radius: 24px; padding: 1.2rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
-        .library-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
-        .library-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; text-transform: uppercase; }
+        .library-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .library-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
         .toggle-add-btn { background: #e9dfd4; border: none; padding: 0.4rem 1.2rem; border-radius: 40px; cursor: pointer; }
         .brand-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #e7dbd0; padding-bottom: 0.8rem; }
         .brand-tab { padding: 0.3rem 1rem; background: transparent; border: none; cursor: pointer; border-radius: 30px; font-size: 0.75rem; color: #b7a99a; }
@@ -40,21 +35,18 @@
         .library-item { background: #e9dfd4; padding: 0.45rem 1rem; border-radius: 40px; cursor: grab; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; }
         .library-price { font-size: 0.7rem; color: #b99f87; }
         .edit-icon { cursor: pointer; font-size: 0.7rem; margin-left: 4px; }
-        
         .product-form { background: #f5efe8; border-radius: 20px; padding: 1.2rem; margin-top: 1.2rem; display: none; }
         .product-form.show { display: block; }
         .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
         .form-group { display: flex; flex-direction: column; }
         .form-group label { font-size: 0.7rem; font-weight: 600; color: #8f7e6b; margin-bottom: 0.3rem; }
-        .form-group input, .form-group select, .form-group textarea { padding: 0.6rem; border: 1px solid #e2d4c6; border-radius: 14px; font-size: 0.8rem; background: white; }
-        .form-group textarea { min-height: 60px; }
+        .form-group input, .form-group select, .form-group textarea { padding: 0.6rem; border: 1px solid #e2d4c6; border-radius: 14px; background: white; }
         .form-actions { display: flex; gap: 1rem; justify-content: flex-end; }
         .btn-save { background: #b99f87; color: white; padding: 0.5rem 1.5rem; border-radius: 40px; border: none; cursor: pointer; }
         .btn-cancel { background: #e9dfd4; padding: 0.5rem 1.5rem; border-radius: 40px; border: none; cursor: pointer; }
-        
         .routine-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .column { background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.4rem; border: 1px solid #e7dbd0; }
-        .column-title { font-family: 'Montserrat', sans-serif; font-size: 1.2rem; color: #8f7e6b; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; display: flex; justify-content: space-between; }
+        .column-title { font-family: 'Montserrat', sans-serif; font-size: 1.2rem; color: #8f7e6b; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; }
         .product-list { display: flex; flex-direction: column; gap: 0.9rem; min-height: 320px; }
         .product-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; }
         .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; }
@@ -62,22 +54,17 @@
         .product-image img { width: 100%; height: 100%; object-fit: cover; }
         .product-name { font-size: 0.9rem; font-weight: 600; }
         .product-price { font-size: 0.75rem; color: #b99f87; }
-        .benefit { font-size: 0.7rem; color: #b7a99a; margin-top: 2px; }
-        .usage { font-size: 0.65rem; color: #8e7e6e; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+        .benefit { font-size: 0.7rem; color: #b7a99a; }
+        .usage { font-size: 0.65rem; color: #8e7e6e; display: flex; align-items: center; gap: 4px; }
         .morning-icon .icon-hand::before { content: "☀️"; font-size: 0.8rem; margin-right: 3px; }
         .evening-icon .icon-hand::before { content: "☾"; font-size: 0.8rem; margin-right: 3px; }
-        
-        .footer-actions { margin-top: 1.5rem; }
-        .total-bar { padding: 1rem 1.3rem; background: #e9dfd4; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .total-bar { padding: 1rem 1.3rem; background: #e9dfd4; border-radius: 20px; margin: 1.5rem 0 1rem; display: flex; justify-content: space-between; align-items: center; }
         .total-amount { font-size: 1.8rem; font-weight: 600; color: #8f7e6b; }
-        .action-buttons { display: flex; justify-content: flex-end; gap: 1.2rem; margin-top: 1rem; flex-wrap: wrap; }
-        .print-btn, .save-standard-btn, .sync-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.8rem; border-radius: 50px; cursor: pointer; font-family: 'Montserrat', sans-serif; }
+        .action-buttons { display: flex; justify-content: flex-end; gap: 1rem; }
+        .print-btn, .save-standard-btn, .sync-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; }
         .save-standard-btn { background: #b99f87; color: white; border-color: #b99f87; }
-        .sync-btn { background: #e9dfd4; }
-        .footnote { margin-top: 1.5rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; border-top: 1px solid #e1d4c6; padding-top: 1rem; }
-        
+        .footnote { margin-top: 1.5rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
         @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } }
-        @media print { .auth-section, .product-library, .routine-selector-bar, .print-btn, .sync-btn, .delete-btn, .total-bar, .action-buttons { display: none !important; } }
     </style>
 </head>
 <body>
@@ -85,15 +72,14 @@
     <div class="app-container">
         <div class="ritual-header">
             <h1>Skincare Routine Builder</h1>
-            <p>cloud sync · multi-device</p>
+            <p>cloud sync · sign in to save across devices</p>
         </div>
 
-        <!-- 登录区域 -->
-        <div class="auth-section" id="authSection">
+        <div class="auth-section">
             <div class="auth-status" id="authStatus">Loading...</div>
             <div>
-                <button id="loginBtn" class="auth-btn" style="display:none">Sign In / Sign Up</button>
-                <button id="logoutBtn" class="auth-btn auth-btn-outline" style="display:none">Sign Out</button>
+                <button id="loginBtn" class="auth-btn" style="display:none">Sign In with Google</button>
+                <button id="logoutBtn" class="auth-btn" style="background:transparent;border:1px solid #d2c0b0;color:#5f5347;display:none">Sign Out</button>
             </div>
         </div>
 
@@ -101,8 +87,8 @@
             <div class="selector-header">
                 <div class="selector-title">📋 SELECT ROUTINE</div>
                 <div class="selector-actions">
-                    <button id="editRoutineBtn" class="manage-btn">✏️ Edit Routine Name</button>
-                    <button id="deleteRoutineBtn" class="manage-btn">🗑️ Delete Routine</button>
+                    <button id="editRoutineBtn" class="manage-btn">✏️ Edit Name</button>
+                    <button id="deleteRoutineBtn" class="manage-btn">🗑️ Delete</button>
                 </div>
             </div>
             <div class="routine-buttons" id="routineButtons"></div>
@@ -117,7 +103,7 @@
             <div id="brandProductsContainer" class="brand-products"></div>
             <div id="productForm" class="product-form">
                 <div class="form-row">
-                    <div class="form-group"><label>Product Name *</label><input type="text" id="productName" placeholder="e.g., Vitamin C"></div>
+                    <div class="form-group"><label>Product Name</label><input type="text" id="productName"></div>
                     <div class="form-group"><label>Brand</label><select id="productBrand"><option>SkinMedica</option><option>Skinceuticals</option><option>FNL</option><option>ColorScience</option><option>Others</option></select></div>
                     <div class="form-group"><label>Price ($)</label><input type="number" id="productPrice" step="0.01"></div>
                 </div>
@@ -132,34 +118,25 @@
         </div>
 
         <div class="routine-grid">
-            <div class="column morning-icon">
-                <div class="column-title">MORNING <span>AM</span></div>
-                <div class="product-list" id="morningList"></div>
-            </div>
-            <div class="column evening-icon">
-                <div class="column-title">EVENING <span>PM</span></div>
-                <div class="product-list" id="eveningList"></div>
-            </div>
+            <div class="column morning-icon"><div class="column-title">MORNING <span>AM</span></div><div class="product-list" id="morningList"></div></div>
+            <div class="column evening-icon"><div class="column-title">EVENING <span>PM</span></div><div class="product-list" id="eveningList"></div></div>
         </div>
 
-        <div class="footer-actions">
-            <div class="total-bar">
-                <div class="total-label">TOTAL VALUE (Unique Products)</div>
-                <div class="total-amount">$<span id="totalPrice">0.00</span></div>
-            </div>
-            <div class="action-buttons">
-                <button class="sync-btn" id="syncBtn">🔄 Sync to Cloud</button>
-                <button class="print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
-                <button class="save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
-            </div>
+        <div class="total-bar">
+            <div class="total-label">TOTAL VALUE (Unique Products)</div>
+            <div class="total-amount">$<span id="totalPrice">0.00</span></div>
         </div>
-        <div class="footnote">✦ Sign in to sync across devices ✦ All changes auto-save ✦ Drag from library to replace ✦</div>
+        <div class="action-buttons">
+            <button class="sync-btn" id="syncBtn">🔄 Sync to Cloud</button>
+            <button class="print-btn" id="printBtn">🖨️ PRINT</button>
+            <button class="save-standard-btn" id="saveStandardBtn">💾 Save as New Routine</button>
+        </div>
+        <div class="footnote">✦ Sign in with Google to sync across devices ✦ Drag products from library to replace ✦</div>
     </div>
 </div>
 
 <script>
 // ==================== SUPABASE 配置 ====================
-// 请替换为您的实际值
 const SUPABASE_URL = "https://dmrskyskryrdclknezt.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
 
@@ -191,87 +168,60 @@ const DEFAULT_ROUTINES = {
     "fnl-pigmentation": { name: "SC - FNL Pigmentation", morning: ["clarify-cleanser", "lytera", "silymarin", "spf50"], evening: ["clarify-cleanser", "exo-gf", "lytera", "retinol-fnl"] }
 };
 
-// 全局变量
-let productsData = [];
-let savedRoutines = {};
-let currentRoutineId = "fnl-acne";
-let morningProducts = [], eveningProducts = [];
-let currentBrand = "all";
-let isAuthenticated = false;
-let currentUserId = null;
+let productsData = [], savedRoutines = {}, currentRoutineId = "fnl-acne", morningProducts = [], eveningProducts = [], currentBrand = "all";
+let isAuthenticated = false, currentUserId = null;
 
-// 辅助函数
 function getProductById(id) { return productsData.find(p => p.id === id); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
 function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m; }); }
 
-// 加载云端数据
+function saveToLocalStorage() {
+    localStorage.setItem('skincare_products', JSON.stringify(productsData));
+    localStorage.setItem('skincare_routines', JSON.stringify(savedRoutines));
+    localStorage.setItem('skincare_current', currentRoutineId);
+}
+
+function loadFromLocalStorage() {
+    const savedProducts = localStorage.getItem('skincare_products');
+    const savedRoutinesData = localStorage.getItem('skincare_routines');
+    const savedCurrent = localStorage.getItem('skincare_current');
+    if (savedProducts) productsData = JSON.parse(savedProducts);
+    else productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+    if (savedRoutinesData) savedRoutines = JSON.parse(savedRoutinesData);
+    else savedRoutines = JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
+    if (savedCurrent && savedRoutines[savedCurrent]) currentRoutineId = savedCurrent;
+    else currentRoutineId = Object.keys(savedRoutines)[0];
+}
+
 async function loadFromCloud() {
     if (!isAuthenticated) return false;
     try {
-        const { data: products, error: pError } = await supabase.from('products').select('*');
-        if (pError) throw pError;
-        
-        const { data: routines, error: rError } = await supabase.from('routines').select('*');
-        if (rError) throw rError;
-        
-        const { data: state, error: sError } = await supabase.from('user_state').select('current_routine_id').maybeSingle();
-        
-        if (products && products.length > 0) {
-            productsData = products;
-        } else {
-            productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
-            for (const p of productsData) {
-                await supabase.from('products').insert({ ...p, user_id: currentUserId });
-            }
-        }
-        
-        if (routines && routines.length > 0) {
-            savedRoutines = {};
-            routines.forEach(r => { savedRoutines[r.id] = { name: r.name, morning: r.morning, evening: r.evening }; });
-        } else {
-            savedRoutines = JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
-            for (const [id, r] of Object.entries(savedRoutines)) {
-                await supabase.from('routines').insert({ id, name: r.name, morning: r.morning, evening: r.evening, user_id: currentUserId });
-            }
-        }
-        
-        currentRoutineId = state?.current_routine_id || "fnl-acne";
-        if (!savedRoutines[currentRoutineId]) currentRoutineId = Object.keys(savedRoutines)[0];
-        
+        const { data: products } = await supabase.from('products').select('*');
+        const { data: routines } = await supabase.from('routines').select('*');
+        if (products && products.length > 0) productsData = products;
+        else { productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS)); for (const p of productsData) await supabase.from('products').insert({ ...p, user_id: currentUserId }); }
+        if (routines && routines.length > 0) { savedRoutines = {}; routines.forEach(r => { savedRoutines[r.id] = { name: r.name, morning: r.morning, evening: r.evening }; }); }
+        else { savedRoutines = JSON.parse(JSON.stringify(DEFAULT_ROUTINES)); for (const [id, r] of Object.entries(savedRoutines)) await supabase.from('routines').insert({ id, name: r.name, morning: r.morning, evening: r.evening, user_id: currentUserId }); }
         return true;
-    } catch (e) {
-        console.error('Cloud load error:', e);
-        return false;
-    }
+    } catch (e) { console.error(e); return false; }
 }
 
-// 同步到云端
 async function syncToCloud() {
-    if (!isAuthenticated) { alert("Please sign in first"); return false; }
+    if (!isAuthenticated) { alert("Please sign in"); return; }
     try {
-        for (const p of productsData) {
-            await supabase.from('products').upsert({ ...p, user_id: currentUserId });
-        }
-        for (const [id, r] of Object.entries(savedRoutines)) {
-            await supabase.from('routines').upsert({ id, name: r.name, morning: r.morning, evening: r.evening, user_id: currentUserId });
-        }
-        await supabase.from('user_state').upsert({ current_routine_id: currentRoutineId, user_id: currentUserId });
-        alert("Synced to cloud!");
-        return true;
-    } catch (e) { console.error(e); alert("Sync failed"); return false; }
+        for (const p of productsData) await supabase.from('products').upsert({ ...p, user_id: currentUserId });
+        for (const [id, r] of Object.entries(savedRoutines)) await supabase.from('routines').upsert({ id, name: r.name, morning: r.morning, evening: r.evening, user_id: currentUserId });
+        alert("Synced!");
+    } catch (e) { alert("Sync failed: " + e.message); }
 }
 
-// 本地操作函数
 function loadRoutine(routineId) {
     let routine = savedRoutines[routineId];
     if (routine) {
         currentRoutineId = routineId;
         morningProducts = routine.morning.map(pid => ({ productId: pid, time: "morning" }));
         eveningProducts = routine.evening.map(pid => ({ productId: pid, time: "evening" }));
-        renderRoutines();
-        updateTotalPrice();
-        highlightActiveRoutine();
+        renderRoutines(); updateTotalPrice(); highlightActiveRoutine(); saveToLocalStorage();
         if (isAuthenticated) syncToCloud();
     }
 }
@@ -288,210 +238,49 @@ function saveCurrentAsStandardRoutine() {
     if (!name) return;
     let newId = "standard-" + Date.now();
     savedRoutines[newId] = { name: name.trim(), morning: morningProducts.map(p => p.productId), evening: eveningProducts.map(p => p.productId) };
-    renderRoutineButtons();
-    loadRoutine(newId);
+    saveToLocalStorage(); renderRoutineButtons(); loadRoutine(newId);
     if (isAuthenticated) syncToCloud();
 }
 
-function updateCurrentRoutine() {
-    savedRoutines[currentRoutineId] = { name: savedRoutines[currentRoutineId].name, morning: morningProducts.map(p => p.productId), evening: eveningProducts.map(p => p.productId) };
-    if (isAuthenticated) syncToCloud();
-}
-
-function renameCurrentRoutine(newName) {
-    if (savedRoutines[currentRoutineId]) {
-        savedRoutines[currentRoutineId].name = newName;
-        renderRoutineButtons();
-        highlightActiveRoutine();
-        if (isAuthenticated) syncToCloud();
-    }
-}
-
-function deleteCurrentRoutine() {
-    if (currentRoutineId === "fnl-acne" || currentRoutineId === "sm-acne-pigment" || currentRoutineId === "fnl-pigmentation") {
-        alert("Cannot delete preset routines");
-        return;
-    }
-    if (confirm('Delete "' + savedRoutines[currentRoutineId]?.name + '"?')) {
-        delete savedRoutines[currentRoutineId];
-        let firstKey = Object.keys(savedRoutines)[0];
-        loadRoutine(firstKey);
-        renderRoutineButtons();
-        if (isAuthenticated) syncToCloud();
-    }
-}
-
+function updateCurrentRoutine() { savedRoutines[currentRoutineId] = { name: savedRoutines[currentRoutineId].name, morning: morningProducts.map(p => p.productId), evening: eveningProducts.map(p => p.productId) }; saveToLocalStorage(); if (isAuthenticated) syncToCloud(); }
+function renameCurrentRoutine(newName) { if (savedRoutines[currentRoutineId]) { savedRoutines[currentRoutineId].name = newName; renderRoutineButtons(); highlightActiveRoutine(); saveToLocalStorage(); if (isAuthenticated) syncToCloud(); } }
+function deleteCurrentRoutine() { 
+    if (currentRoutineId === "fnl-acne" || currentRoutineId === "sm-acne-pigment" || currentRoutineId === "fnl-pigmentation") { alert("Cannot delete preset routines"); return; }
+    if (confirm('Delete "' + savedRoutines[currentRoutineId]?.name + '"?')) { delete savedRoutines[currentRoutineId]; let firstKey = Object.keys(savedRoutines)[0]; loadRoutine(firstKey); renderRoutineButtons(); saveToLocalStorage(); if (isAuthenticated) syncToCloud(); } }
 function renderRoutineButtons() {
     let container = document.getElementById('routineButtons');
     if (!container) return;
     container.innerHTML = Object.entries(savedRoutines).map(([id, r]) => `<button class="routine-btn ${id === currentRoutineId ? 'active' : ''}" data-id="${id}">${escapeHtml(r.name)}</button>`).join('');
     document.querySelectorAll('.routine-btn').forEach(btn => { btn.onclick = () => loadRoutine(btn.dataset.id); });
 }
+function getUniqueProductsTotal() { let ids = new Set(); morningProducts.forEach(i => ids.add(i.productId)); eveningProducts.forEach(i => ids.add(i.productId)); let total = 0; ids.forEach(id => { let p = getProductById(id); if(p) total += p.price; }); return total; }
+function updateTotalPrice() { let span = document.getElementById('totalPrice'); if (span) span.innerText = getUniqueProductsTotal().toFixed(2); }
 
-function getUniqueProductsTotal() {
-    let ids = new Set();
-    morningProducts.forEach(i => ids.add(i.productId));
-    eveningProducts.forEach(i => ids.add(i.productId));
-    let total = 0;
-    ids.forEach(id => { let p = getProductById(id); if(p) total += p.price; });
-    return total;
-}
-
-function updateTotalPrice() {
-    let span = document.getElementById('totalPrice');
-    if (span) span.innerText = getUniqueProductsTotal().toFixed(2);
-}
-
-// UI 渲染函数
 function renderBrandProducts() {
     let container = document.getElementById('brandProductsContainer');
     if (!container) return;
     let filtered = currentBrand === "all" ? productsData : productsData.filter(p => p.brand === currentBrand);
-    container.innerHTML = filtered.map(p => `<div class="library-item" draggable="true" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}" data-product-benefit="${escapeHtml(p.benefit || '')}" data-product-usage="${escapeHtml(p.usage || '')}" data-product-image="${p.image || ''}">${escapeHtml(p.name)} <span class="library-price">$${p.price}</span><span class="edit-icon" data-id="${p.id}" title="Edit">✎</span></div>`).join('');
-    attachDragEvents();
-    attachEditEvents();
+    container.innerHTML = filtered.map(p => `<div class="library-item" draggable="true" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}" data-product-benefit="${escapeHtml(p.benefit || '')}" data-product-usage="${escapeHtml(p.usage || '')}" data-product-image="${p.image || ''}">${escapeHtml(p.name)} <span class="library-price">$${p.price}</span><span class="edit-icon" data-id="${p.id}">✎</span></div>`).join('');
+    attachDragEvents(); attachEditEvents();
 }
-
-function attachDragEvents() {
-    document.querySelectorAll('.library-item').forEach(el => {
-        el.setAttribute('draggable', 'true');
-        el.addEventListener('dragstart', (e) => {
-            let data = { id: el.dataset.productId, name: el.dataset.productName, price: parseFloat(el.dataset.productPrice), benefit: el.dataset.productBenefit, usage: el.dataset.productUsage, image: el.dataset.productImage };
-            e.dataTransfer.setData('text/plain', JSON.stringify(data));
-        });
-    });
-}
-
-function attachEditEvents() {
-    document.querySelectorAll('.edit-icon').forEach(icon => {
-        icon.onclick = (e) => {
-            e.stopPropagation();
-            let product = getProductById(icon.dataset.id);
-            if (product) openEditForm(product);
-        };
-    });
-}
-
-function openEditForm(product) {
-    document.getElementById('productName').value = product.name;
-    document.getElementById('productBrand').value = product.brand;
-    document.getElementById('productPrice').value = product.price;
-    document.getElementById('productBenefit').value = product.benefit || '';
-    document.getElementById('productUsage').value = product.usage || '';
-    document.getElementById('productImage').value = product.image || '';
-    document.getElementById('editProductId').value = product.id;
-    document.getElementById('productForm').classList.add('show');
-    document.getElementById('toggleAddBtn').style.display = 'none';
-}
-
-function saveProduct() {
-    let name = document.getElementById('productName').value.trim();
-    if (!name) { alert("Enter product name"); return; }
-    let newProduct = {
-        id: document.getElementById('editProductId').value || generateId(),
-        name: name,
-        brand: document.getElementById('productBrand').value,
-        price: parseFloat(document.getElementById('productPrice').value) || 0,
-        benefit: document.getElementById('productBenefit').value,
-        usage: document.getElementById('productUsage').value,
-        image: document.getElementById('productImage').value
-    };
-    let existing = productsData.findIndex(p => p.id === newProduct.id);
-    if (existing >= 0) productsData[existing] = newProduct;
-    else productsData.push(newProduct);
-    closeForm();
-    renderBrandProducts();
-    renderRoutines();
-    updateTotalPrice();
-    if (isAuthenticated) syncToCloud();
-}
-
-function closeForm() {
-    document.getElementById('productForm').classList.remove('show');
-    document.getElementById('toggleAddBtn').style.display = '';
-    document.getElementById('productName').value = '';
-    document.getElementById('editProductId').value = '';
-}
-
-function renderRoutines() {
-    let morningContainer = document.getElementById('morningList'), eveningContainer = document.getElementById('eveningList');
-    if (morningContainer) morningContainer.innerHTML = morningProducts.map((item, idx) => renderCard(item.productId, idx, 'morning')).join('');
-    if (eveningContainer) eveningContainer.innerHTML = eveningProducts.map((item, idx) => renderCard(item.productId, idx, 'evening')).join('');
-    attachDropEvents('morningList', 'morning');
-    attachDropEvents('eveningList', 'evening');
-    attachDeleteEvents();
-}
-
-function renderCard(pid, idx, time) {
-    let p = getProductById(pid);
-    if (!p) return '';
-    return `<div class="product-card" data-product-id="${p.id}" data-index="${idx}" data-time="${time}" draggable="true"><button class="delete-btn" data-time="${time}" data-index="${idx}">✕</button><div class="product-image"><img src="${p.image || 'https://via.placeholder.com/52/f1e8e0/8f7e6b?text=Product'}" alt="${escapeHtml(p.name)}"></div><div class="product-info"><div class="product-name">${escapeHtml(p.name)} <span class="product-price">$${p.price}</span></div><div class="benefit">${escapeHtml(p.benefit || '')}</div><div class="usage"><i class="icon-hand"></i> ${escapeHtml((p.usage || '').substring(0, 55))}</div></div></div>`;
-}
-
-function attachDropEvents(containerId, time) {
-    let container = document.getElementById(containerId);
-    if (!container) return;
-    container.ondragover = (e) => e.preventDefault();
-    container.ondrop = (e) => {
-        e.preventDefault();
-        let targetCard = e.target.closest('.product-card');
-        if (!targetCard) return;
-        let targetIdx = parseInt(targetCard.dataset.index);
-        let dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
-        if (dragData && dragData.id) {
-            if (time === 'morning' && morningProducts[targetIdx]) morningProducts[targetIdx] = { productId: dragData.id, time: 'morning' };
-            if (time === 'evening' && eveningProducts[targetIdx]) eveningProducts[targetIdx] = { productId: dragData.id, time: 'evening' };
-            updateCurrentRoutine();
-            renderRoutines();
-            updateTotalPrice();
-            if (isAuthenticated) syncToCloud();
-        }
-    };
-}
-
-function attachDeleteEvents() {
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.onclick = (e) => {
-            e.stopPropagation();
-            let time = btn.dataset.time, idx = parseInt(btn.dataset.index);
-            if (time === 'morning') morningProducts.splice(idx, 1);
-            else eveningProducts.splice(idx, 1);
-            updateCurrentRoutine();
-            renderRoutines();
-            updateTotalPrice();
-            if (isAuthenticated) syncToCloud();
-        };
-    });
-}
-
-function printRoutine() {
-    let uniqueMorning = morningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx);
-    let uniqueEvening = eveningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx);
-    let win = window.open('', '_blank');
-    win.document.write(`<!DOCTYPE html><html><head><title>Skincare Routine</title><style>body{font-family:'Inter',sans-serif;padding:0.5in;} .print-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;} .print-column{border:1px solid #ddd;border-radius:16px;padding:20px;} .print-product{display:flex;gap:12px;margin-bottom:15px;} img{width:48px;height:48px;border-radius:50%;object-fit:cover;}</style></head><body><h2 style="text-align:center">${escapeHtml(savedRoutines[currentRoutineId]?.name || 'Skincare Routine')}</h2><div class="print-grid"><div class="print-column"><h3>MORNING ☀️</h3>${uniqueMorning.map(i => { let p=getProductById(i.productId); return p?`<div class="print-product"><img src="${p.image||''}"><div><b>${escapeHtml(p.name)}</b><br><small>${escapeHtml(p.benefit||'')}</small></div></div>`:''; }).join('')}</div><div class="print-column"><h3>EVENING 🌙</h3>${uniqueEvening.map(i => { let p=getProductById(i.productId); return p?`<div class="print-product"><img src="${p.image||''}"><div><b>${escapeHtml(p.name)}</b><br><small>${escapeHtml(p.benefit||'')}</small></div></div>`:''; }).join('')}</div></div></body></html>`);
-    win.document.close();
-    win.print();
-}
-
-function renderBrandTabs() {
-    let brands = ["all", "SkinMedica", "Skinceuticals", "FNL", "ColorScience", "Others"];
-    let container = document.getElementById('brandTabs');
-    if (!container) return;
-    container.innerHTML = brands.map(b => `<button class="brand-tab ${b === currentBrand ? 'active' : ''}" data-brand="${b}">${b === 'all' ? 'All' : b}</button>`).join('');
-    document.querySelectorAll('.brand-tab').forEach(tab => { tab.onclick = () => { currentBrand = tab.dataset.brand; renderBrandTabs(); renderBrandProducts(); }; });
-}
+function attachDragEvents() { document.querySelectorAll('.library-item').forEach(el => { el.setAttribute('draggable', 'true'); el.addEventListener('dragstart', (e) => { let data = { id: el.dataset.productId, name: el.dataset.productName, price: parseFloat(el.dataset.productPrice), benefit: el.dataset.productBenefit, usage: el.dataset.productUsage, image: el.dataset.productImage }; e.dataTransfer.setData('text/plain', JSON.stringify(data)); }); }); }
+function attachEditEvents() { document.querySelectorAll('.edit-icon').forEach(icon => { icon.onclick = (e) => { e.stopPropagation(); let product = getProductById(icon.dataset.id); if (product) openEditForm(product); }; }); }
+function openEditForm(product) { document.getElementById('productName').value = product.name; document.getElementById('productBrand').value = product.brand; document.getElementById('productPrice').value = product.price; document.getElementById('productBenefit').value = product.benefit || ''; document.getElementById('productUsage').value = product.usage || ''; document.getElementById('productImage').value = product.image || ''; document.getElementById('editProductId').value = product.id; document.getElementById('productForm').classList.add('show'); document.getElementById('toggleAddBtn').style.display = 'none'; }
+function saveProduct() { let name = document.getElementById('productName').value.trim(); if (!name) { alert("Enter product name"); return; } let newProduct = { id: document.getElementById('editProductId').value || generateId(), name: name, brand: document.getElementById('productBrand').value, price: parseFloat(document.getElementById('productPrice').value) || 0, benefit: document.getElementById('productBenefit').value, usage: document.getElementById('productUsage').value, image: document.getElementById('productImage').value }; let existing = productsData.findIndex(p => p.id === newProduct.id); if (existing >= 0) productsData[existing] = newProduct; else productsData.push(newProduct); closeForm(); renderBrandProducts(); renderRoutines(); updateTotalPrice(); saveToLocalStorage(); if (isAuthenticated) syncToCloud(); }
+function closeForm() { document.getElementById('productForm').classList.remove('show'); document.getElementById('toggleAddBtn').style.display = ''; document.getElementById('productName').value = ''; document.getElementById('editProductId').value = ''; }
+function renderRoutines() { let morningContainer = document.getElementById('morningList'), eveningContainer = document.getElementById('eveningList'); if (morningContainer) morningContainer.innerHTML = morningProducts.map((item, idx) => renderCard(item.productId, idx, 'morning')).join(''); if (eveningContainer) eveningContainer.innerHTML = eveningProducts.map((item, idx) => renderCard(item.productId, idx, 'evening')).join(''); attachDropEvents('morningList', 'morning'); attachDropEvents('eveningList', 'evening'); attachDeleteEvents(); }
+function renderCard(pid, idx, time) { let p = getProductById(pid); if (!p) return ''; return `<div class="product-card" data-product-id="${p.id}" data-index="${idx}" data-time="${time}" draggable="true"><button class="delete-btn" data-time="${time}" data-index="${idx}">✕</button><div class="product-image"><img src="${p.image || 'https://via.placeholder.com/52/f1e8e0/8f7e6b?text=Product'}" alt="${escapeHtml(p.name)}"></div><div class="product-info"><div class="product-name">${escapeHtml(p.name)} <span class="product-price">$${p.price}</span></div><div class="benefit">${escapeHtml(p.benefit || '')}</div><div class="usage"><i class="icon-hand"></i> ${escapeHtml((p.usage || '').substring(0, 55))}</div></div></div>`; }
+function attachDropEvents(containerId, time) { let container = document.getElementById(containerId); if (!container) return; container.ondragover = (e) => e.preventDefault(); container.ondrop = (e) => { e.preventDefault(); let targetCard = e.target.closest('.product-card'); if (!targetCard) return; let targetIdx = parseInt(targetCard.dataset.index); let dragData = JSON.parse(e.dataTransfer.getData('text/plain')); if (dragData && dragData.id) { if (time === 'morning' && morningProducts[targetIdx]) morningProducts[targetIdx] = { productId: dragData.id, time: 'morning' }; if (time === 'evening' && eveningProducts[targetIdx]) eveningProducts[targetIdx] = { productId: dragData.id, time: 'evening' }; updateCurrentRoutine(); renderRoutines(); updateTotalPrice(); saveToLocalStorage(); if (isAuthenticated) syncToCloud(); } }; }
+function attachDeleteEvents() { document.querySelectorAll('.delete-btn').forEach(btn => { btn.onclick = (e) => { e.stopPropagation(); let time = btn.dataset.time, idx = parseInt(btn.dataset.index); if (time === 'morning') morningProducts.splice(idx, 1); else eveningProducts.splice(idx, 1); updateCurrentRoutine(); renderRoutines(); updateTotalPrice(); saveToLocalStorage(); if (isAuthenticated) syncToCloud(); }; }); }
+function printRoutine() { let uniqueMorning = morningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx); let uniqueEvening = eveningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx); let win = window.open('', '_blank'); win.document.write(`<!DOCTYPE html><html><head><title>Skincare Routine</title><style>body{font-family:'Inter',sans-serif;padding:0.5in;} .print-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;} .print-column{border:1px solid #ddd;border-radius:16px;padding:20px;} .print-product{display:flex;gap:12px;margin-bottom:15px;} img{width:48px;height:48px;border-radius:50%;object-fit:cover;}</style></head><body><h2 style="text-align:center">${escapeHtml(savedRoutines[currentRoutineId]?.name || 'Skincare Routine')}</h2><div class="print-grid"><div class="print-column"><h3>MORNING ☀️</h3>${uniqueMorning.map(i => { let p=getProductById(i.productId); return p?`<div class="print-product"><img src="${p.image||''}"><div><b>${escapeHtml(p.name)}</b><br><small>${escapeHtml(p.benefit||'')}</small></div></div>`:''; }).join('')}</div><div class="print-column"><h3>EVENING 🌙</h3>${uniqueEvening.map(i => { let p=getProductById(i.productId); return p?`<div class="print-product"><img src="${p.image||''}"><div><b>${escapeHtml(p.name)}</b><br><small>${escapeHtml(p.benefit||'')}</small></div></div>`:''; }).join('')}</div></div></body></html>`); win.document.close(); win.print(); }
+function renderBrandTabs() { let brands = ["all", "SkinMedica", "Skinceuticals", "FNL", "ColorScience", "Others"]; let container = document.getElementById('brandTabs'); if (!container) return; container.innerHTML = brands.map(b => `<button class="brand-tab ${b === currentBrand ? 'active' : ''}" data-brand="${b}">${b === 'all' ? 'All' : b}</button>`).join(''); document.querySelectorAll('.brand-tab').forEach(tab => { tab.onclick = () => { currentBrand = tab.dataset.brand; renderBrandTabs(); renderBrandProducts(); }; }); }
 
 // 认证函数
 async function handleLogin() {
     const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
-    if (error) console.error(error);
+    if (error) console.error('Login error:', error);
 }
-
-async function handleLogout() {
-    await supabase.auth.signOut();
-    location.reload();
-}
-
+async function handleLogout() { await supabase.auth.signOut(); location.reload(); }
 async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
@@ -501,22 +290,14 @@ async function checkAuth() {
         document.getElementById('loginBtn').style.display = 'none';
         document.getElementById('logoutBtn').style.display = 'inline-block';
         await loadFromCloud();
-        renderBrandTabs();
-        renderBrandProducts();
-        renderRoutineButtons();
-        loadRoutine(currentRoutineId);
+        renderBrandTabs(); renderBrandProducts(); renderRoutineButtons(); loadRoutine(currentRoutineId);
     } else {
         isAuthenticated = false;
-        document.getElementById('authStatus').innerHTML = `🔓 Sign in to sync across devices`;
+        document.getElementById('authStatus').innerHTML = `🔓 Sign in with Google to sync across devices`;
         document.getElementById('loginBtn').style.display = 'inline-block';
         document.getElementById('logoutBtn').style.display = 'none';
-        productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
-        savedRoutines = JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
-        currentRoutineId = "fnl-acne";
-        renderBrandTabs();
-        renderBrandProducts();
-        renderRoutineButtons();
-        loadRoutine(currentRoutineId);
+        loadFromLocalStorage();
+        renderBrandTabs(); renderBrandProducts(); renderRoutineButtons(); loadRoutine(currentRoutineId);
     }
 }
 
