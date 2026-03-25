@@ -77,11 +77,11 @@
         .total-label { font-weight: 500; color: #5f5347; }
         .total-amount { font-size: 1.8rem; font-weight: 600; color: #8f7e6b; }
         .action-buttons-bottom { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin: 1.5rem 0 1rem; }
-        .update-btn, .delete-current-btn, .print-btn, .save-standard-btn, .refresh-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
+        .update-btn, .delete-current-btn, .print-btn, .save-standard-btn, .sync-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
         .update-btn { background: #b99f87; color: white; border-color: #b99f87; }
         .delete-current-btn { background: #e9dfd4; color: #5f5347; }
         .save-standard-btn { background: #b99f87; color: white; border-color: #b99f87; }
-        .refresh-btn { background: #e9dfd4; }
+        .sync-btn { background: #e9dfd4; }
         .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
         @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } }
     </style>
@@ -155,10 +155,10 @@
             <button class="update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
             <button class="delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
             <button class="save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
-            <button class="refresh-btn" id="refreshFromCloudBtn">🔄 Refresh from Cloud</button>
+            <button class="sync-btn" id="syncBtn">☁️ Sync to Cloud</button>
             <button class="print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
         </div>
-        <div class="footnote">✦ All data stored in Supabase cloud ✦ Changes are saved automatically when you click Update/Save ✦ Click Refresh to load latest data ✦</div>
+        <div class="footnote">✦ All data stored in Supabase cloud ✦ Click "Sync to Cloud" to upload your latest changes ✦ Changes are automatically visible on all devices after sync ✦</div>
     </div>
 </div>
 
@@ -202,7 +202,7 @@ let productsData = [], savedRoutines = {};
 let currentMorningProducts = [], currentEveningProducts = [];
 let currentRoutineId = null;
 let currentBrand = "all";
-let isLoading = false; // 防止循环加载
+let isLoading = false;
 
 function getProductById(id) { return productsData.find(p => p.id === id); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
@@ -267,8 +267,11 @@ async function loadFromCloud() {
     }
 }
 
-async function saveToCloud() {
-    if (!supabaseClient || !isAuthenticated) return false;
+async function syncToCloud() {
+    if (!supabaseClient || !isAuthenticated) {
+        alert("Please sign in first to sync to cloud.");
+        return false;
+    }
     try {
         // 保存产品
         for (const p of productsData) {
@@ -282,9 +285,11 @@ async function saveToCloud() {
         if (currentRoutineId) {
             await supabaseClient.from('user_state').upsert({ current_routine_id: currentRoutineId, user_id: currentUserId });
         }
+        alert("✓ Data synced to cloud successfully!");
         return true;
     } catch (e) {
-        console.error('Save to cloud error:', e);
+        console.error('Sync error:', e);
+        alert("Sync failed: " + e.message);
         return false;
     }
 }
@@ -299,7 +304,6 @@ async function loadRoutine(routineId) {
         renderRoutines();
         updateTotalPrice();
         highlightActiveRoutine();
-        await saveToCloud(); // 保存当前选中的 Routine 到云端
     }
 }
 
@@ -320,14 +324,10 @@ async function updateCurrentRoutine() {
         morning: currentMorningProducts.map(p => p.productId), 
         evening: currentEveningProducts.map(p => p.productId) 
     };
-    const success = await saveToCloud();
-    if (success) {
-        alert(`Routine "${savedRoutines[currentRoutineId].name}" updated!`);
-        renderRoutineButtons();
-        highlightActiveRoutine();
-    } else {
-        alert("Failed to save to cloud. Please check your connection.");
-    }
+    renderRoutineButtons();
+    highlightActiveRoutine();
+    await syncToCloud();
+    alert(`Routine "${savedRoutines[currentRoutineId].name}" updated and synced!`);
 }
 
 async function deleteCurrentRoutine() {
@@ -351,8 +351,8 @@ async function deleteCurrentRoutine() {
             updateTotalPrice();
         }
         renderRoutineButtons();
-        await saveToCloud();
-        alert("Routine deleted.");
+        await syncToCloud();
+        alert("Routine deleted and synced.");
     }
 }
 
@@ -369,9 +369,9 @@ async function saveCurrentAsNewRoutine() {
         Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
     );
     renderRoutineButtons();
-    await saveToCloud();
     await loadRoutine(newId);
-    alert('"' + name + '" saved!');
+    await syncToCloud();
+    alert('"' + name + '" saved and synced!');
 }
 
 async function renameCurrentRoutine(newName) {
@@ -382,7 +382,7 @@ async function renameCurrentRoutine(newName) {
         );
         renderRoutineButtons();
         highlightActiveRoutine();
-        await saveToCloud();
+        await syncToCloud();
     }
 }
 
@@ -444,7 +444,7 @@ async function deleteProduct(productId) {
             renderRoutineButtons();
             renderRoutines();
             updateTotalPrice();
-            await saveToCloud();
+            await syncToCloud();
         }
     }
 }
@@ -510,7 +510,7 @@ async function saveProduct() {
     renderBrandProducts(); 
     renderRoutines(); 
     updateTotalPrice(); 
-    await saveToCloud();
+    await syncToCloud();
 }
 
 function closeForm() { 
@@ -551,7 +551,7 @@ function attachReorderDrag(containerId, itemsArray, updateCallback) {
                 itemsArray.splice(dropIndex, 0, draggedItem);
                 updateCallback();
                 renderRoutines();
-                await saveToCloud();
+                await syncToCloud();
             }
         });
     });
@@ -621,7 +621,7 @@ function attachEmptySlotEvents() {
                 }
                 renderRoutines();
                 updateTotalPrice();
-                await saveToCloud();
+                await syncToCloud();
             }
         };
     });
@@ -642,7 +642,7 @@ function attachDropEvents(containerId, time) {
             if (time === 'evening' && currentEveningProducts[targetIdx]) currentEveningProducts[targetIdx] = { productId: dragData.id, time: 'evening' }; 
             renderRoutines();
             updateTotalPrice();
-            await saveToCloud();
+            await syncToCloud();
         } 
     }; 
 }
@@ -656,7 +656,7 @@ function attachDeleteEvents() {
             else currentEveningProducts.splice(idx, 1); 
             renderRoutines();
             updateTotalPrice();
-            await saveToCloud();
+            await syncToCloud();
         }; 
     }); 
 }
@@ -712,7 +712,7 @@ async function checkAuth() {
         document.getElementById('loginBtn').style.display = 'inline-block';
         document.getElementById('logoutBtn').style.display = 'none';
         
-        // 未登录时显示空状态，提示登录
+        // 未登录时显示空状态
         productsData = [];
         savedRoutines = {};
         currentMorningProducts = [];
@@ -748,14 +748,12 @@ document.getElementById('saveProductBtn').onclick = saveProduct;
 document.getElementById('printBtn').onclick = printRoutine;
 document.getElementById('saveStandardBtn').onclick = saveCurrentAsNewRoutine;
 document.getElementById('editRoutineBtn').onclick = () => { let newName = prompt("Edit routine name:", savedRoutines[currentRoutineId]?.name); if(newName) renameCurrentRoutine(newName); };
-document.getElementById('refreshFromCloudBtn').onclick = async () => {
+document.getElementById('syncBtn').onclick = async () => {
     if (!isAuthenticated) {
         alert("Please sign in first.");
         return;
     }
-    await loadFromCloud();
-    refreshUI();
-    alert("Data refreshed from cloud!");
+    await syncToCloud();
 };
 document.getElementById('loginBtn').onclick = handleLogin;
 document.getElementById('logoutBtn').onclick = handleLogout;
