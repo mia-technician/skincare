@@ -205,9 +205,31 @@ const DEFAULT_PRODUCTS = [
 ].sort((a, b) => a.name.localeCompare(b.name));
 
 const INITIAL_ROUTINES = {
-    "fnl-acne": { name: "FNL Acne Management", morning: ["clarify-cleanser", "exfoliating-pad", "silymarin", "glycolic-lotion", "spf50", "spf-powder"], evening: ["clarify-cleanser", "exo-gf", "retinol-fnl", "glycolic-lotion"] },
-    "sm-acne-pigment": { name: "SC - SM Acne & Pigment", morning: ["cleanser", "lytera", "ha5", "moisturizer", "spf50"], evening: ["cleanser", "lytera", "retinol", "ha5", "moisturizer"] },
-    "fnl-pigmentation": { name: "SC - FNL Pigmentation", morning: ["clarify-cleanser", "lytera", "silymarin", "spf50"], evening: ["clarify-cleanser", "exo-gf", "lytera", "retinol-fnl"] }
+    "standard-1774409503226": { 
+        name: "FNL Acne", 
+        morning: ["clarify-cleanser", "exfoliating-pad", "silymarin", "glycolic-lotion", "spf50", "spf-powder"], 
+        evening: ["clarify-cleanser", "exo-gf", "retinol-fnl", "glycolic-lotion"] 
+    },
+    "fnl-pigmentation": { 
+        name: "FNL Pigment", 
+        morning: ["clarify-cleanser", "lytera", "silymarin", "spf50"], 
+        evening: ["clarify-cleanser", "exo-gf", "lytera", "retinol-fnl"] 
+    },
+    "standard-1774423030345": { 
+        name: "My New Routine", 
+        morning: [], 
+        evening: [] 
+    },
+    "standard-1774407153349": { 
+        name: "SM Acne & Pigment", 
+        morning: ["cleanser", "lytera", "ha5", "moisturizer", "spf50"], 
+        evening: ["cleanser", "lytera", "retinol", "ha5", "moisturizer"] 
+    },
+    "standard-1774409269378": { 
+        name: "SM Age & Pigment", 
+        morning: ["cleanser", "tns", "lumivive-day", "lytera", "ha5", "moisturizer", "spf50"], 
+        evening: ["cleanser", "lumivive-night", "lytera", "retinol", "ha5", "moisturizer"] 
+    }
 };
 
 // 全局变量
