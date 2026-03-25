@@ -91,6 +91,7 @@
             font-size: 0.8rem;
             min-height: 70px;
             transition: all 0.2s;
+            margin-bottom: 0.9rem;
         }
         .empty-slot.drag-over { background: #e9dfd4; border-color: #b99f87; }
         .empty-slot:hover { background: #e9dfd4; }
@@ -209,7 +210,7 @@
             <button class="print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
             <button class="save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
         </div>
-        <div class="footnote">✦ Drag products to reorder ✦ Drag from library to add ✦ Click ✎ to edit product ✦ Click 🗑️ to delete product from library ✦</div>
+        <div class="footnote">✦ Drag products to reorder ✦ Drag from library to add at top ✦ Click ✎ to edit product ✦ Click 🗑️ to delete product from library ✦</div>
     </div>
 </div>
 
@@ -602,15 +603,25 @@ function renderRoutines() {
     let morningContainer = document.getElementById('morningList'), eveningContainer = document.getElementById('eveningList');
     
     if (morningContainer) {
-        let morningHtml = currentMorningProducts.map((item, idx) => renderCard(item.productId, idx, 'morning')).join('');
-        morningHtml += `<div class="empty-slot" data-time="morning" data-index="${currentMorningProducts.length}">+ Drop product here to add</div>`;
+        // 空槽位放在顶部（第一个产品上面）
+        let morningHtml = `<div class="empty-slot" data-time="morning" data-index="0">+ Drop product here to add at top</div>`;
+        morningHtml += currentMorningProducts.map((item, idx) => renderCard(item.productId, idx, 'morning')).join('');
         morningContainer.innerHTML = morningHtml;
     }
     if (eveningContainer) {
-        let eveningHtml = currentEveningProducts.map((item, idx) => renderCard(item.productId, idx, 'evening')).join('');
-        eveningHtml += `<div class="empty-slot" data-time="evening" data-index="${currentEveningProducts.length}">+ Drop product here to add</div>`;
+        // 空槽位放在顶部（第一个产品上面）
+        let eveningHtml = `<div class="empty-slot" data-time="evening" data-index="0">+ Drop product here to add at top</div>`;
+        eveningHtml += currentEveningProducts.map((item, idx) => renderCard(item.productId, idx, 'evening')).join('');
         eveningContainer.innerHTML = eveningHtml;
     }
+    
+    // 重新索引产品卡片的 data-index（因为空槽位占用了 index 0）
+    document.querySelectorAll('#morningList .product-card').forEach((card, newIdx) => {
+        card.dataset.index = newIdx;
+    });
+    document.querySelectorAll('#eveningList .product-card').forEach((card, newIdx) => {
+        card.dataset.index = newIdx;
+    });
     
     // 设置排序拖拽
     setupReorderDrag('morningList', currentMorningProducts, () => {
@@ -649,13 +660,13 @@ function attachEmptySlotEvents() {
             e.preventDefault();
             slot.classList.remove('drag-over');
             const time = slot.dataset.time;
-            const newIndex = parseInt(slot.dataset.index);
+            const targetIndex = parseInt(slot.dataset.index);
             let dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
             if (dragData && dragData.id) {
                 if (time === 'morning') {
-                    currentMorningProducts.splice(newIndex, 0, { productId: dragData.id, time: 'morning' });
+                    currentMorningProducts.splice(targetIndex, 0, { productId: dragData.id, time: 'morning' });
                 } else {
-                    currentEveningProducts.splice(newIndex, 0, { productId: dragData.id, time: 'evening' });
+                    currentEveningProducts.splice(targetIndex, 0, { productId: dragData.id, time: 'evening' });
                 }
                 updateCurrentRoutine();
             }
