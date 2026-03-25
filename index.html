@@ -255,7 +255,8 @@ const DEFAULT_PRODUCTS = [
     { id: "tns", name: "TNS+ Serum", brand: "SkinMedica", price: 330, benefit: "Lifting · Anti-aging", usage: "1 pump - apply to face", image: "https://static.wixstatic.com/media/11a6e1_8eb00266d932471483652b5a40828272~mv2.jpg" }
 ].sort((a, b) => a.name.localeCompare(b.name));
 
-const DEFAULT_ROUTINES = {
+// 初始预设 Routines（可以被删除）
+const INITIAL_ROUTINES = {
     "fnl-acne": { name: "FNL Acne Management", morning: ["clarify-cleanser", "exfoliating-pad", "silymarin", "glycolic-lotion", "spf50", "spf-powder"], evening: ["clarify-cleanser", "exo-gf", "retinol-fnl", "glycolic-lotion"] },
     "sm-acne-pigment": { name: "SC - SM Acne & Pigment", morning: ["cleanser", "lytera", "ha5", "moisturizer", "spf50"], evening: ["cleanser", "lytera", "retinol", "ha5", "moisturizer"] },
     "fnl-pigmentation": { name: "SC - FNL Pigmentation", morning: ["clarify-cleanser", "lytera", "silymarin", "spf50"], evening: ["clarify-cleanser", "exo-gf", "lytera", "retinol-fnl"] }
@@ -266,7 +267,7 @@ let productsData = [], savedRoutines = {};
 let currentMorningProducts = [], currentEveningProducts = [];
 let currentRoutineId = null;
 let currentBrand = "all";
-let isDefaultEmptyState = true; // 默认空状态
+let isDefaultEmptyState = true;
 
 function getProductById(id) { return productsData.find(p => p.id === id); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
@@ -315,7 +316,7 @@ function loadSavedRoutinesFromLocalStorage() {
     if (saved) {
         savedRoutines = JSON.parse(saved);
     } else {
-        savedRoutines = JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
+        savedRoutines = JSON.parse(JSON.stringify(INITIAL_ROUTINES));
     }
     savedRoutines = Object.fromEntries(
         Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
@@ -448,26 +449,38 @@ function updateCurrentRoutine() {
     highlightActiveRoutine();
 }
 
-// 删除当前 Routine 并返回默认空状态
+// 删除当前 Routine（允许删除所有，包括预设的）
 function deleteCurrentRoutineAndReset() {
     if (!currentRoutineId) {
         alert("No routine selected to delete.");
         return;
     }
-    if (currentRoutineId === "fnl-acne" || currentRoutineId === "sm-acne-pigment" || currentRoutineId === "fnl-pigmentation") { 
-        alert("Cannot delete preset routines."); 
-        return; 
-    }
-    if (confirm(`Delete routine "${savedRoutines[currentRoutineId]?.name}" and return to empty state?`)) { 
+    if (confirm(`Delete routine "${savedRoutines[currentRoutineId]?.name}"? This action cannot be undone.`)) { 
         delete savedRoutines[currentRoutineId];
+        // 重新排序
         savedRoutines = Object.fromEntries(
             Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
         );
         saveSavedRoutinesToLocalStorage();
+        
+        // 重置到空状态
         resetToEmptyState();
+        
+        // 重新渲染 Routine 按钮
         renderRoutineButtons();
-        renderRoutines();
-        updateTotalPrice();
+        
+        // 如果有剩余 Routine，选中第一个；否则保持空状态
+        const remainingKeys = Object.keys(savedRoutines);
+        if (remainingKeys.length > 0) {
+            loadRoutine(remainingKeys[0]);
+        } else {
+            // 没有 Routine 了，确保空状态
+            currentRoutineId = null;
+            renderRoutines();
+            updateTotalPrice();
+        }
+        
+        alert("Routine deleted. You can create a new one by adding products and using 'Save Current as New Routine'.");
     }
 }
 
