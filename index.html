@@ -296,34 +296,67 @@ function initApp() {
     function printRoutine() { let uniqueMorning = morningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx); let uniqueEvening = eveningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx); let win = window.open('', '_blank'); win.document.write(`<!DOCTYPE html><html><head><title>Skincare Routine</title><style>body{font-family:'Inter',sans-serif;padding:0.5in;} .print-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;} .print-column{border:1px solid #ddd;border-radius:16px;padding:20px;} .print-product{display:flex;gap:12px;margin-bottom:15px;} img{width:48px;height:48px;border-radius:50%;object-fit:cover;}</style></head><body><h2 style="text-align:center">${escapeHtml(savedRoutines[currentRoutineId]?.name || 'Skincare Routine')}</h2><div class="print-grid"><div class="print-column"><h3>MORNING ☀️</h3>${uniqueMorning.map(i => { let p=getProductById(i.productId); return p?`<div class="print-product"><img src="${p.image||''}"><div><b>${escapeHtml(p.name)}</b><br><small>${escapeHtml(p.benefit||'')}</small></div></div>`:''; }).join('')}</div><div class="print-column"><h3>EVENING 🌙</h3>${uniqueEvening.map(i => { let p=getProductById(i.productId); return p?`<div class="print-product"><img src="${p.image||''}"><div><b>${escapeHtml(p.name)}</b><br><small>${escapeHtml(p.benefit||'')}</small></div></div>`:''; }).join('')}</div></div></body></html>`); win.document.close(); win.print(); }
     function renderBrandTabs() { let brands = ["all", "SkinMedica", "Skinceuticals", "FNL", "ColorScience", "Others"]; let container = document.getElementById('brandTabs'); if (!container) return; container.innerHTML = brands.map(b => `<button class="brand-tab ${b === currentBrand ? 'active' : ''}" data-brand="${b}">${b === 'all' ? 'All' : b}</button>`).join(''); document.querySelectorAll('.brand-tab').forEach(tab => { tab.onclick = () => { currentBrand = tab.dataset.brand; renderBrandTabs(); renderBrandProducts(); }; }); }
 
-    // 认证函数
-    async function handleLogin() {
-        const { error } = await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
-        if (error) console.error('Login error:', error);
-    }
-    async function handleLogout() { await supabaseClient.auth.signOut(); location.reload(); }
-    async function checkAuth() {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) {
-            isAuthenticated = true;
-            currentUserId = session.user.id;
-            document.getElementById('authStatus').innerHTML = `✅ Signed in as ${session.user.email}`;
-            document.getElementById('loginBtn').style.display = 'none';
-            document.getElementById('logoutBtn').style.display = 'inline-block';
-            await loadFromCloud();
-            renderBrandTabs(); renderBrandProducts(); renderRoutineButtons(); loadRoutine(currentRoutineId);
-        } else {
-            isAuthenticated = false;
-            document.getElementById('authStatus').innerHTML = `🔓 Sign in with Google to sync across devices`;
-            document.getElementById('loginBtn').style.display = 'inline-block';
-            document.getElementById('logoutBtn').style.display = 'none';
-            loadFromLocalStorage();
-            renderBrandTabs(); renderBrandProducts(); renderRoutineButtons(); loadRoutine(currentRoutineId);
-        }
-    }
+// 认证函数
+async function handleLogin() {
+    const { error } = await supabaseClient.auth.signInWithOAuth({ 
+        provider: 'google', 
+        options: { redirectTo: window.location.href }
+    });
+    if (error) console.error('Login error:', error);
+}
 
-    // 初始化
-    checkAuth();
+async function handleLogout() { 
+    await supabaseClient.auth.signOut(); 
+    localStorage.clear();
+    location.reload();
+}
+
+async function checkAuth() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+        isAuthenticated = true;
+        currentUserId = session.user.id;
+        document.getElementById('authStatus').innerHTML = `✅ Signed in as ${session.user.email}`;
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('logoutBtn').style.display = 'inline-block';
+        await loadFromCloud();
+        renderBrandTabs(); 
+        renderBrandProducts(); 
+        renderRoutineButtons(); 
+        loadRoutine(currentRoutineId);
+    } else {
+        isAuthenticated = false;
+        document.getElementById('authStatus').innerHTML = `🔓 Sign in with Google to sync across devices`;
+        document.getElementById('loginBtn').style.display = 'inline-block';
+        document.getElementById('logoutBtn').style.display = 'none';
+        
+        // 从本地存储加载数据
+        const savedProducts = localStorage.getItem('skincare_products');
+        const savedRoutinesData = localStorage.getItem('skincare_routines');
+        const savedCurrent = localStorage.getItem('skincare_current');
+        
+        if (savedProducts) productsData = JSON.parse(savedProducts);
+        else productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+        
+        if (savedRoutinesData) savedRoutines = JSON.parse(savedRoutinesData);
+        else savedRoutines = JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
+        
+        if (savedCurrent && savedRoutines[savedCurrent]) currentRoutineId = savedCurrent;
+        else currentRoutineId = Object.keys(savedRoutines)[0];
+        
+        renderBrandTabs(); 
+        renderBrandProducts(); 
+        renderRoutineButtons(); 
+        loadRoutine(currentRoutineId);
+    }
+}
+
+// 初始化
+checkAuth();
+// 注释掉这行，避免无限刷新
+// supabaseClient.auth.onAuthStateChange((event) => { if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') location.reload(); });
+
+// 绑定按钮事件...
     supabaseClient.auth.onAuthStateChange((event) => { if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') location.reload(); });
 
     // 绑定按钮
