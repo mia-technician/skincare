@@ -33,10 +33,23 @@
         .brand-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #e7dbd0; padding-bottom: 0.8rem; }
         .brand-tab { padding: 0.3rem 1rem; background: transparent; border: none; cursor: pointer; border-radius: 30px; font-size: 0.75rem; color: #b7a99a; }
         .brand-tab.active { background: #e9dfd4; color: #5f5347; }
-        .brand-products { display: flex; flex-wrap: wrap; gap: 0.7rem; max-height: 180px; overflow-y: auto; padding: 0.3rem 0; }
-        .library-item { background: #e9dfd4; padding: 0.45rem 1rem; border-radius: 40px; cursor: grab; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; }
+        .brand-products { display: flex; flex-wrap: wrap; gap: 0.7rem; max-height: 200px; overflow-y: auto; padding: 0.3rem 0; }
+        .library-item { 
+            background: #e9dfd4; 
+            padding: 0.45rem 0.8rem; 
+            border-radius: 40px; 
+            cursor: grab; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            font-size: 0.75rem;
+            position: relative;
+        }
         .library-price { font-size: 0.7rem; color: #b99f87; }
-        .edit-icon { cursor: pointer; font-size: 0.7rem; margin-left: 4px; }
+        .library-actions { display: inline-flex; gap: 0.3rem; margin-left: 0.3rem; }
+        .edit-icon, .delete-product-icon { cursor: pointer; font-size: 0.7rem; opacity: 0.6; transition: opacity 0.2s; }
+        .edit-icon:hover, .delete-product-icon:hover { opacity: 1; }
+        .delete-product-icon { color: #b99f87; }
         .product-form { background: #f5efe8; border-radius: 20px; padding: 1.2rem; margin-top: 1.2rem; display: none; }
         .product-form.show { display: block; }
         .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
@@ -50,8 +63,21 @@
         .column { background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.4rem; border: 1px solid #e7dbd0; }
         .column-title { font-family: 'Montserrat', sans-serif; font-size: 1.2rem; color: #8f7e6b; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; display: flex; justify-content: space-between; }
         .product-list { display: flex; flex-direction: column; gap: 0.9rem; min-height: 320px; }
-        .product-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; }
+        .product-card { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.9rem; 
+            padding: 0.7rem; 
+            background: white; 
+            border-radius: 18px; 
+            border: 1px solid #e7dbd0; 
+            position: relative;
+            cursor: grab;
+            transition: all 0.2s;
+        }
+        .product-card:active { cursor: grabbing; }
         .product-card.drag-over { border: 2px dashed #b99f87; background: #fef7ef; }
+        .product-card.dragging { opacity: 0.4; }
         .empty-slot { 
             display: flex; 
             align-items: center; 
@@ -64,19 +90,42 @@
             color: #b7a99a; 
             font-size: 0.8rem;
             min-height: 70px;
-            cursor: pointer;
             transition: all 0.2s;
         }
         .empty-slot.drag-over { background: #e9dfd4; border-color: #b99f87; }
         .empty-slot:hover { background: #e9dfd4; }
-        .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px; }
-        .product-image { width: 52px; height: 52px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; }
+        .delete-btn { 
+            position: absolute; 
+            top: 6px; 
+            right: 6px; 
+            width: 22px; 
+            height: 22px; 
+            border-radius: 50%; 
+            background: #e9dfd4; 
+            border: none; 
+            cursor: pointer; 
+            font-size: 12px;
+            z-index: 10;
+        }
+        .delete-btn:hover { background: #d2c0b0; color: white; }
+        .product-image { width: 52px; height: 52px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; flex-shrink: 0; }
         .product-image img { width: 100%; height: 100%; object-fit: cover; }
         .product-info { flex: 1; }
         .product-name { font-size: 0.9rem; font-weight: 600; color: #5f5347; }
         .product-price { font-size: 0.75rem; color: #b99f87; margin-left: 0.3rem; }
         .benefit { font-size: 0.7rem; color: #b7a99a; margin-top: 2px; }
         .usage { font-size: 0.65rem; color: #8e7e6e; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+        .drag-handle { 
+            width: 24px; 
+            height: 24px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            color: #d2c0b0;
+            cursor: grab;
+            flex-shrink: 0;
+        }
+        .drag-handle:active { cursor: grabbing; }
         .morning-icon .icon-hand::before { content: "☀️"; font-size: 0.8rem; margin-right: 3px; }
         .evening-icon .icon-hand::before { content: "☾"; font-size: 0.8rem; margin-right: 3px; }
         .total-bar { padding: 1rem 1.3rem; background: #e9dfd4; border-radius: 20px; margin: 1.5rem 0 1rem; display: flex; justify-content: space-between; align-items: center; }
@@ -95,7 +144,7 @@
     <div class="app-container">
         <div class="ritual-header">
             <h1>Skincare Routine Builder</h1>
-            <p>local storage + cloud sync</p>
+            <p>drag to reorder · drag from library to add</p>
         </div>
 
         <div class="auth-section">
@@ -142,11 +191,11 @@
 
         <div class="routine-grid">
             <div class="column morning-icon">
-                <div class="column-title">CURRENT MORNING ROUTINE <span>AM</span></div>
+                <div class="column-title">MORNING ROUTINE <span>AM</span></div>
                 <div class="product-list" id="morningList"></div>
             </div>
             <div class="column evening-icon">
-                <div class="column-title">CURRENT EVENING ROUTINE <span>PM</span></div>
+                <div class="column-title">EVENING ROUTINE <span>PM</span></div>
                 <div class="product-list" id="eveningList"></div>
             </div>
         </div>
@@ -160,7 +209,7 @@
             <button class="print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
             <button class="save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
         </div>
-        <div class="footnote">✦ Sign in to sync across devices ✦ Drag from library to replace or add ✦ Changes to current routine are auto-saved, but saved routines are preserved separately ✦</div>
+        <div class="footnote">✦ Drag products to reorder ✦ Drag from library to add ✦ Click ✎ to edit product ✦ Click 🗑️ to delete product from library ✦</div>
     </div>
 </div>
 
@@ -204,13 +253,13 @@ let productsData = [], savedRoutines = {};
 let currentMorningProducts = [], currentEveningProducts = [];
 let currentRoutineId = null;
 let currentBrand = "all";
-let isDirty = false; // 标记当前流程是否有未保存的修改
+let draggedItem = null;
 
 function getProductById(id) { return productsData.find(p => p.id === id); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
 function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m; }); }
 
-// 保存当前流程到本地存储（不保存到 savedRoutines）
+// 保存当前流程到本地存储
 function saveCurrentToLocalStorage() {
     localStorage.setItem('skincare_products', JSON.stringify(productsData));
     localStorage.setItem('skincare_current_morning', JSON.stringify(currentMorningProducts.map(p => p.productId)));
@@ -238,7 +287,6 @@ function loadCurrentFromLocalStorage() {
     }
 }
 
-// 加载保存的 Routines（按字母排序）
 function loadSavedRoutinesFromLocalStorage() {
     const saved = localStorage.getItem('skincare_saved_routines');
     if (saved) {
@@ -246,7 +294,6 @@ function loadSavedRoutinesFromLocalStorage() {
     } else {
         savedRoutines = JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
     }
-    // 按名称字母排序
     savedRoutines = Object.fromEntries(
         Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
     );
@@ -258,6 +305,30 @@ function saveSavedRoutinesToLocalStorage() {
 
 function sortProductsByName(arr) {
     return [...arr].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+// 删除产品
+function deleteProduct(productId) {
+    if (confirm('Delete this product from library? It will be removed from all routines.')) {
+        const index = productsData.findIndex(p => p.id === productId);
+        if (index !== -1) {
+            productsData.splice(index, 1);
+            // 从所有 routine 中移除该产品
+            for (let routineId in savedRoutines) {
+                savedRoutines[routineId].morning = savedRoutines[routineId].morning.filter(id => id !== productId);
+                savedRoutines[routineId].evening = savedRoutines[routineId].evening.filter(id => id !== productId);
+            }
+            // 从当前流程中移除
+            currentMorningProducts = currentMorningProducts.filter(item => item.productId !== productId);
+            currentEveningProducts = currentEveningProducts.filter(item => item.productId !== productId);
+            saveSavedRoutinesToLocalStorage();
+            saveCurrentToLocalStorage();
+            renderBrandProducts();
+            renderRoutineButtons();
+            renderRoutines();
+            updateTotalPrice();
+        }
+    }
 }
 
 // 云端操作
@@ -322,7 +393,6 @@ function highlightActiveRoutine() {
     });
 }
 
-// 保存当前流程为新的 Routine（不自动更新原有 Routine）
 function saveCurrentAsStandardRoutine() {
     let name = prompt("Enter a name for this new Standard Routine:", "My Custom Routine");
     if (!name || name.trim() === "") return;
@@ -332,7 +402,6 @@ function saveCurrentAsStandardRoutine() {
         morning: currentMorningProducts.map(p => p.productId), 
         evening: currentEveningProducts.map(p => p.productId) 
     };
-    // 重新排序
     savedRoutines = Object.fromEntries(
         Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
     );
@@ -342,7 +411,6 @@ function saveCurrentAsStandardRoutine() {
     alert('"' + name + '" has been saved!');
 }
 
-// 更新当前流程（拖拽/删除后自动保存）
 function updateCurrentRoutine() {
     saveCurrentToLocalStorage();
     updateTotalPrice();
@@ -352,7 +420,6 @@ function updateCurrentRoutine() {
 function renameCurrentRoutine(newName) {
     if (currentRoutineId && savedRoutines[currentRoutineId]) {
         savedRoutines[currentRoutineId].name = newName;
-        // 重新排序
         savedRoutines = Object.fromEntries(
             Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
         );
@@ -370,7 +437,6 @@ function deleteCurrentRoutine() {
     }
     if (confirm('Delete "' + savedRoutines[currentRoutineId]?.name + '"?')) { 
         delete savedRoutines[currentRoutineId];
-        // 重新排序
         savedRoutines = Object.fromEntries(
             Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
         );
@@ -402,14 +468,31 @@ function updateTotalPrice() {
     if (span) span.innerText = getUniqueProductsTotal().toFixed(2); 
 }
 
-// 渲染函数
+// 产品库渲染
 function renderBrandProducts() {
     let container = document.getElementById('brandProductsContainer');
     if (!container) return;
     let filtered = currentBrand === "all" ? productsData : productsData.filter(p => p.brand === currentBrand);
     filtered = sortProductsByName(filtered);
-    container.innerHTML = filtered.map(p => `<div class="library-item" draggable="true" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}" data-product-benefit="${escapeHtml(p.benefit || '')}" data-product-usage="${escapeHtml(p.usage || '')}" data-product-image="${p.image || ''}">${escapeHtml(p.name)} <span class="library-price">$${p.price}</span><span class="edit-icon" data-id="${p.id}" title="Edit">✎</span></div>`).join('');
-    attachDragEvents(); attachEditEvents();
+    container.innerHTML = filtered.map(p => `<div class="library-item" draggable="true" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}" data-product-benefit="${escapeHtml(p.benefit || '')}" data-product-usage="${escapeHtml(p.usage || '')}" data-product-image="${p.image || ''}">
+        ${escapeHtml(p.name)} <span class="library-price">$${p.price}</span>
+        <span class="library-actions">
+            <span class="edit-icon" data-id="${p.id}" title="Edit">✎</span>
+            <span class="delete-product-icon" data-id="${p.id}" title="Delete from library">🗑️</span>
+        </span>
+    </div>`).join('');
+    attachDragEvents(); 
+    attachEditEvents();
+    attachProductDeleteEvents();
+}
+
+function attachProductDeleteEvents() {
+    document.querySelectorAll('.delete-product-icon').forEach(icon => {
+        icon.onclick = (e) => {
+            e.stopPropagation();
+            deleteProduct(icon.dataset.id);
+        };
+    });
 }
 
 function attachDragEvents() { 
@@ -418,6 +501,7 @@ function attachDragEvents() {
         el.addEventListener('dragstart', (e) => { 
             let data = { id: el.dataset.productId, name: el.dataset.productName, price: parseFloat(el.dataset.productPrice), benefit: el.dataset.productBenefit, usage: el.dataset.productUsage, image: el.dataset.productImage }; 
             e.dataTransfer.setData('text/plain', JSON.stringify(data)); 
+            e.dataTransfer.effectAllowed = 'copy';
         }); 
     }); 
 }
@@ -474,18 +558,68 @@ function closeForm() {
     document.getElementById('editProductId').value = ''; 
 }
 
+// 排序拖拽功能
+function setupReorderDrag(containerId, itemsArray, updateCallback) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    let dragSrcIndex = null;
+    
+    container.querySelectorAll('.product-card').forEach(card => {
+        card.setAttribute('draggable', 'true');
+        
+        card.addEventListener('dragstart', (e) => {
+            dragSrcIndex = parseInt(card.dataset.index);
+            e.dataTransfer.setData('text/plain', dragSrcIndex);
+            e.dataTransfer.effectAllowed = 'move';
+            card.classList.add('dragging');
+        });
+        
+        card.addEventListener('dragend', (e) => {
+            card.classList.remove('dragging');
+            dragSrcIndex = null;
+        });
+        
+        card.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+        
+        card.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const targetIndex = parseInt(card.dataset.index);
+            if (dragSrcIndex !== null && dragSrcIndex !== targetIndex) {
+                const draggedItem = itemsArray[dragSrcIndex];
+                itemsArray.splice(dragSrcIndex, 1);
+                itemsArray.splice(targetIndex, 0, draggedItem);
+                updateCallback();
+            }
+        });
+    });
+}
+
 function renderRoutines() {
     let morningContainer = document.getElementById('morningList'), eveningContainer = document.getElementById('eveningList');
+    
     if (morningContainer) {
         let morningHtml = currentMorningProducts.map((item, idx) => renderCard(item.productId, idx, 'morning')).join('');
-        morningHtml += `<div class="empty-slot" data-time="morning" data-index="${currentMorningProducts.length}" draggable="false">+ Drop product here to add</div>`;
+        morningHtml += `<div class="empty-slot" data-time="morning" data-index="${currentMorningProducts.length}">+ Drop product here to add</div>`;
         morningContainer.innerHTML = morningHtml;
     }
     if (eveningContainer) {
         let eveningHtml = currentEveningProducts.map((item, idx) => renderCard(item.productId, idx, 'evening')).join('');
-        eveningHtml += `<div class="empty-slot" data-time="evening" data-index="${currentEveningProducts.length}" draggable="false">+ Drop product here to add</div>`;
+        eveningHtml += `<div class="empty-slot" data-time="evening" data-index="${currentEveningProducts.length}">+ Drop product here to add</div>`;
         eveningContainer.innerHTML = eveningHtml;
     }
+    
+    // 设置排序拖拽
+    setupReorderDrag('morningList', currentMorningProducts, () => {
+        updateCurrentRoutine();
+    });
+    setupReorderDrag('eveningList', currentEveningProducts, () => {
+        updateCurrentRoutine();
+    });
+    
     attachDropEvents('morningList', 'morning');
     attachDropEvents('eveningList', 'evening');
     attachDeleteEvents();
@@ -495,7 +629,16 @@ function renderRoutines() {
 function renderCard(pid, idx, time) { 
     let p = getProductById(pid); 
     if (!p) return ''; 
-    return `<div class="product-card" data-product-id="${p.id}" data-index="${idx}" data-time="${time}" draggable="true"><button class="delete-btn" data-time="${time}" data-index="${idx}">✕</button><div class="product-image"><img src="${p.image || 'https://via.placeholder.com/52/f1e8e0/8f7e6b?text=Product'}" alt="${escapeHtml(p.name)}"></div><div class="product-info"><div class="product-name">${escapeHtml(p.name)} <span class="product-price">$${p.price}</span></div><div class="benefit">${escapeHtml(p.benefit || '')}</div><div class="usage"><i class="icon-hand"></i> ${escapeHtml((p.usage || '').substring(0, 55))}</div></div></div>`; 
+    return `<div class="product-card" data-product-id="${p.id}" data-index="${idx}" data-time="${time}" draggable="true">
+        <div class="drag-handle">⋮⋮</div>
+        <button class="delete-btn" data-time="${time}" data-index="${idx}">✕</button>
+        <div class="product-image"><img src="${p.image || 'https://via.placeholder.com/52/f1e8e0/8f7e6b?text=Product'}" alt="${escapeHtml(p.name)}"></div>
+        <div class="product-info">
+            <div class="product-name">${escapeHtml(p.name)} <span class="product-price">$${p.price}</span></div>
+            <div class="benefit">${escapeHtml(p.benefit || '')}</div>
+            <div class="usage"><i class="icon-hand"></i> ${escapeHtml((p.usage || '').substring(0, 55))}</div>
+        </div>
+    </div>`; 
 }
 
 function attachEmptySlotEvents() {
@@ -630,7 +773,6 @@ loadSavedRoutinesFromLocalStorage();
 renderBrandTabs();
 renderBrandProducts();
 renderRoutineButtons();
-// 加载第一个 routine 或恢复当前显示
 if (currentRoutineId && savedRoutines[currentRoutineId]) {
     loadRoutine(currentRoutineId);
 } else {
