@@ -91,6 +91,7 @@
             font-size: 0.8rem;
             min-height: 70px;
             transition: all 0.2s;
+            margin-bottom: 0.9rem;
         }
         .empty-slot.drag-over { background: #e9dfd4; border-color: #b99f87; }
         .empty-slot:hover { background: #e9dfd4; }
@@ -222,7 +223,7 @@
             <button class="sync-btn" id="syncBtn">☁️ Sync to Cloud</button>
             <button class="print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
         </div>
-        <div class="footnote">✦ Select a routine to edit ✦ Drag products to reorder ✦ Drag from library to add at top ✦ Click "Update Current Routine" to save changes to selected routine ✦</div>
+        <div class="footnote">✦ Drag products by the handle ⋮⋮ to reorder ✦ Drag from library to add at top ✦ Click "Update Current Routine" to save changes ✦</div>
     </div>
 </div>
 
@@ -235,7 +236,7 @@ let supabaseClient = null;
 let isAuthenticated = false;
 let currentUserId = null;
 
-// ==================== 默认数据（按字母排序）====================
+// ==================== 默认数据 ====================
 const DEFAULT_PRODUCTS = [
     { id: "clarify-cleanser", name: "Clarify Cleanser", brand: "FNL", price: 50, benefit: "Antibacterial", usage: "Pea size - cleanse", image: "https://static.wixstatic.com/media/11a6e1_964680bfdf1b4efa9039db6f52428325~mv2.webp" },
     { id: "cleanser", name: "Cleanser", brand: "SkinMedica", price: 46, benefit: "Cleans · Removes SPF", usage: "Pea size - add water - cleanse", image: "https://static.wixstatic.com/media/11a6e1_cd31f58211984ecabef518ed158ea4dc~mv2.webp" },
@@ -255,7 +256,6 @@ const DEFAULT_PRODUCTS = [
     { id: "tns", name: "TNS+ Serum", brand: "SkinMedica", price: 330, benefit: "Lifting · Anti-aging", usage: "1 pump - apply to face", image: "https://static.wixstatic.com/media/11a6e1_8eb00266d932471483652b5a40828272~mv2.jpg" }
 ].sort((a, b) => a.name.localeCompare(b.name));
 
-// 初始预设 Routines（可以被删除）
 const INITIAL_ROUTINES = {
     "fnl-acne": { name: "FNL Acne Management", morning: ["clarify-cleanser", "exfoliating-pad", "silymarin", "glycolic-lotion", "spf50", "spf-powder"], evening: ["clarify-cleanser", "exo-gf", "retinol-fnl", "glycolic-lotion"] },
     "sm-acne-pigment": { name: "SC - SM Acne & Pigment", morning: ["cleanser", "lytera", "ha5", "moisturizer", "spf50"], evening: ["cleanser", "lytera", "retinol", "ha5", "moisturizer"] },
@@ -273,7 +273,6 @@ function getProductById(id) { return productsData.find(p => p.id === id); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
 function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m; }); }
 
-// 保存当前流程到本地存储
 function saveCurrentToLocalStorage() {
     localStorage.setItem('skincare_products', JSON.stringify(productsData));
     localStorage.setItem('skincare_current_morning', JSON.stringify(currentMorningProducts.map(p => p.productId)));
@@ -331,7 +330,6 @@ function sortProductsByName(arr) {
     return [...arr].sort((a, b) => a.name.localeCompare(b.name));
 }
 
-// 重置到默认空状态
 function resetToEmptyState() {
     currentMorningProducts = [];
     currentEveningProducts = [];
@@ -343,7 +341,6 @@ function resetToEmptyState() {
     highlightActiveRoutine();
 }
 
-// 删除产品
 function deleteProduct(productId) {
     if (confirm('Delete this product from library? It will be removed from all routines.')) {
         const index = productsData.findIndex(p => p.id === productId);
@@ -406,7 +403,6 @@ async function loadFromCloud() {
     }
 }
 
-// 页面操作函数
 function loadRoutine(routineId) {
     let routine = savedRoutines[routineId];
     if (routine) {
@@ -428,7 +424,6 @@ function highlightActiveRoutine() {
     });
 }
 
-// 更新当前选中的 Routine
 function updateCurrentRoutine() {
     if (!currentRoutineId) {
         alert("No routine selected. Please select a routine from the list first.");
@@ -449,7 +444,6 @@ function updateCurrentRoutine() {
     highlightActiveRoutine();
 }
 
-// 删除当前 Routine（允许删除所有，包括预设的）
 function deleteCurrentRoutineAndReset() {
     if (!currentRoutineId) {
         alert("No routine selected to delete.");
@@ -457,29 +451,20 @@ function deleteCurrentRoutineAndReset() {
     }
     if (confirm(`Delete routine "${savedRoutines[currentRoutineId]?.name}"? This action cannot be undone.`)) { 
         delete savedRoutines[currentRoutineId];
-        // 重新排序
         savedRoutines = Object.fromEntries(
             Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
         );
         saveSavedRoutinesToLocalStorage();
-        
-        // 重置到空状态
         resetToEmptyState();
-        
-        // 重新渲染 Routine 按钮
         renderRoutineButtons();
-        
-        // 如果有剩余 Routine，选中第一个；否则保持空状态
         const remainingKeys = Object.keys(savedRoutines);
         if (remainingKeys.length > 0) {
             loadRoutine(remainingKeys[0]);
         } else {
-            // 没有 Routine 了，确保空状态
             currentRoutineId = null;
             renderRoutines();
             updateTotalPrice();
         }
-        
         alert("Routine deleted. You can create a new one by adding products and using 'Save Current as New Routine'.");
     }
 }
@@ -625,26 +610,36 @@ function closeForm() {
     document.getElementById('editProductId').value = ''; 
 }
 
-// 排序拖拽功能
-function setupReorderDrag(containerId, itemsArray, updateCallback) {
+// ==================== 修复拖拽排序功能 ====================
+function attachReorderDrag(containerId, itemsArray, updateCallback) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
-    let dragSrcIndex = null;
+    let dragStartIndex = null;
     
-    container.querySelectorAll('.product-card').forEach(card => {
+    // 移除现有的事件监听，重新绑定
+    const cards = container.querySelectorAll('.product-card');
+    cards.forEach(card => {
+        // 移除现有监听器（通过替换方式）
+        const newCard = card.cloneNode(true);
+        card.parentNode.replaceChild(newCard, card);
+    });
+    
+    // 重新获取卡片并绑定事件
+    const newCards = container.querySelectorAll('.product-card');
+    newCards.forEach(card => {
         card.setAttribute('draggable', 'true');
         
         card.addEventListener('dragstart', (e) => {
-            dragSrcIndex = parseInt(card.dataset.index);
-            e.dataTransfer.setData('text/plain', dragSrcIndex);
+            dragStartIndex = parseInt(card.dataset.index);
+            e.dataTransfer.setData('text/plain', dragStartIndex);
             e.dataTransfer.effectAllowed = 'move';
-            card.classList.add('dragging');
+            card.style.opacity = '0.4';
         });
         
         card.addEventListener('dragend', (e) => {
-            card.classList.remove('dragging');
-            dragSrcIndex = null;
+            card.style.opacity = '';
+            dragStartIndex = null;
         });
         
         card.addEventListener('dragover', (e) => {
@@ -654,12 +649,18 @@ function setupReorderDrag(containerId, itemsArray, updateCallback) {
         
         card.addEventListener('drop', (e) => {
             e.preventDefault();
-            const targetIndex = parseInt(card.dataset.index);
-            if (dragSrcIndex !== null && dragSrcIndex !== targetIndex) {
-                const draggedItem = itemsArray[dragSrcIndex];
-                itemsArray.splice(dragSrcIndex, 1);
-                itemsArray.splice(targetIndex, 0, draggedItem);
+            const dragIndex = dragStartIndex;
+            const dropIndex = parseInt(card.dataset.index);
+            
+            if (dragIndex !== null && dragIndex !== dropIndex) {
+                // 重新排序数组
+                const draggedItem = itemsArray[dragIndex];
+                itemsArray.splice(dragIndex, 1);
+                itemsArray.splice(dropIndex, 0, draggedItem);
+                
+                // 更新界面和数据
                 updateCallback();
+                renderRoutines(); // 重新渲染以更新索引
             }
         });
     });
@@ -687,11 +688,12 @@ function renderRoutines() {
         card.dataset.index = newIdx;
     });
     
-    setupReorderDrag('morningList', currentMorningProducts, () => {
+    // 绑定拖拽排序
+    attachReorderDrag('morningList', currentMorningProducts, () => {
         saveCurrentToLocalStorage();
         updateTotalPrice();
     });
-    setupReorderDrag('eveningList', currentEveningProducts, () => {
+    attachReorderDrag('eveningList', currentEveningProducts, () => {
         saveCurrentToLocalStorage();
         updateTotalPrice();
     });
@@ -831,7 +833,6 @@ async function checkAuth() {
     }
 }
 
-// 初始化 Supabase
 function initSupabase() {
     if (typeof supabase === 'undefined') {
         setTimeout(initSupabase, 500);
