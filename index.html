@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* 样式保持不变，为节省篇幅省略，请使用之前完整的样式 */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f5efe9; font-family: 'Inter', sans-serif; padding: 2rem 1rem; }
         .skincare-app { max-width: 1400px; margin: 0 auto; background: #faf7f2; border-radius: 32px; border: 1px solid #e8dfd4; }
@@ -34,17 +35,7 @@
         .brand-tab { padding: 0.3rem 1rem; background: transparent; border: none; cursor: pointer; border-radius: 30px; font-size: 0.75rem; color: #b7a99a; }
         .brand-tab.active { background: #e9dfd4; color: #5f5347; }
         .brand-products { display: flex; flex-wrap: wrap; gap: 0.7rem; max-height: 200px; overflow-y: auto; padding: 0.3rem 0; }
-        .library-item { 
-            background: #e9dfd4; 
-            padding: 0.45rem 0.8rem; 
-            border-radius: 40px; 
-            cursor: grab; 
-            display: inline-flex; 
-            align-items: center; 
-            gap: 0.5rem; 
-            font-size: 0.75rem;
-            position: relative;
-        }
+        .library-item { background: #e9dfd4; padding: 0.45rem 0.8rem; border-radius: 40px; cursor: grab; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; position: relative; }
         .library-price { font-size: 0.7rem; color: #b99f87; }
         .library-actions { display: inline-flex; gap: 0.3rem; margin-left: 0.3rem; }
         .edit-icon, .delete-product-icon { cursor: pointer; font-size: 0.7rem; opacity: 0.6; transition: opacity 0.2s; }
@@ -63,51 +54,14 @@
         .column { background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.4rem; border: 1px solid #e7dbd0; }
         .column-title { font-family: 'Montserrat', sans-serif; font-size: 1.2rem; color: #8f7e6b; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; display: flex; justify-content: space-between; }
         .product-list { display: flex; flex-direction: column; gap: 0.9rem; min-height: 320px; }
-        .product-card { 
-            display: flex; 
-            align-items: center; 
-            gap: 0.9rem; 
-            padding: 0.7rem; 
-            background: white; 
-            border-radius: 18px; 
-            border: 1px solid #e7dbd0; 
-            position: relative;
-            cursor: grab;
-            transition: all 0.2s;
-        }
+        .product-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; cursor: grab; transition: all 0.2s; }
         .product-card:active { cursor: grabbing; }
         .product-card.drag-over { border: 2px dashed #b99f87; background: #fef7ef; }
         .product-card.dragging { opacity: 0.4; }
-        .empty-slot { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 0.9rem; 
-            padding: 0.7rem; 
-            background: rgba(233, 223, 212, 0.5); 
-            border-radius: 18px; 
-            border: 2px dashed #d2c0b0; 
-            color: #b7a99a; 
-            font-size: 0.8rem;
-            min-height: 70px;
-            transition: all 0.2s;
-            margin-bottom: 0.9rem;
-        }
+        .empty-slot { display: flex; align-items: center; justify-content: center; gap: 0.9rem; padding: 0.7rem; background: rgba(233, 223, 212, 0.5); border-radius: 18px; border: 2px dashed #d2c0b0; color: #b7a99a; font-size: 0.8rem; min-height: 70px; transition: all 0.2s; margin-bottom: 0.9rem; }
         .empty-slot.drag-over { background: #e9dfd4; border-color: #b99f87; }
         .empty-slot:hover { background: #e9dfd4; }
-        .delete-btn { 
-            position: absolute; 
-            top: 6px; 
-            right: 6px; 
-            width: 22px; 
-            height: 22px; 
-            border-radius: 50%; 
-            background: #e9dfd4; 
-            border: none; 
-            cursor: pointer; 
-            font-size: 12px;
-            z-index: 10;
-        }
+        .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px; z-index: 10; }
         .delete-btn:hover { background: #d2c0b0; color: white; }
         .product-image { width: 52px; height: 52px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; flex-shrink: 0; }
         .product-image img { width: 100%; height: 100%; object-fit: cover; }
@@ -116,16 +70,7 @@
         .product-price { font-size: 0.75rem; color: #b99f87; margin-left: 0.3rem; }
         .benefit { font-size: 0.7rem; color: #b7a99a; margin-top: 2px; }
         .usage { font-size: 0.65rem; color: #8e7e6e; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
-        .drag-handle { 
-            width: 24px; 
-            height: 24px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            color: #d2c0b0;
-            cursor: grab;
-            flex-shrink: 0;
-        }
+        .drag-handle { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #d2c0b0; cursor: grab; flex-shrink: 0; }
         .drag-handle:active { cursor: grabbing; }
         .morning-icon .icon-hand::before { content: "☀️"; font-size: 0.8rem; margin-right: 3px; }
         .evening-icon .icon-hand::before { content: "☾"; font-size: 0.8rem; margin-right: 3px; }
@@ -134,19 +79,12 @@
         .total-amount { font-size: 1.8rem; font-weight: 600; color: #8f7e6b; }
         .action-buttons { display: flex; justify-content: flex-end; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
         .action-buttons-bottom { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin: 1.5rem 0 1rem; }
-        .update-btn, .delete-current-btn, .print-btn, .save-standard-btn, .sync-btn { 
-            background: transparent; 
-            border: 1px solid #d2c0b0; 
-            padding: 0.7rem 1.5rem; 
-            border-radius: 50px; 
-            cursor: pointer; 
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
+        .update-btn, .delete-current-btn, .print-btn, .save-standard-btn, .sync-btn, .refresh-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
         .update-btn { background: #b99f87; color: white; border-color: #b99f87; }
         .delete-current-btn { background: #e9dfd4; color: #5f5347; }
         .save-standard-btn { background: #b99f87; color: white; border-color: #b99f87; }
         .sync-btn { background: #e9dfd4; }
+        .refresh-btn { background: #e9dfd4; }
         .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
         @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } }
     </style>
@@ -221,9 +159,10 @@
             <button class="delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
             <button class="save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
             <button class="sync-btn" id="syncBtn">☁️ Sync to Cloud</button>
+            <button class="refresh-btn" id="refreshFromCloudBtn">🔄 Refresh from Cloud</button>
             <button class="print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
         </div>
-        <div class="footnote">✦ Drag products by the handle ⋮⋮ to reorder ✦ Drag from library to add at top ✦ Click "Update Current Routine" to save changes ✦</div>
+        <div class="footnote">✦ Select a routine to edit ✦ Drag products by the handle ⋮⋮ to reorder ✦ Click "Sync to Cloud" to save changes to cloud ✦ Click "Refresh from Cloud" to load latest data ✦</div>
     </div>
 </div>
 
@@ -362,16 +301,22 @@ function deleteProduct(productId) {
     }
 }
 
-// 云端操作
+// ==================== 云端操作（修复：确保刷新后加载最新数据）====================
 async function syncToCloud() {
     if (!supabaseClient) { alert("Supabase not initialized. Please refresh and try again."); return; }
     if (!isAuthenticated) { alert("Please sign in first to sync to cloud"); return; }
     try {
+        // 上传产品数据
         for (const p of productsData) {
             await supabaseClient.from('products').upsert({ ...p, user_id: currentUserId });
         }
+        // 上传 Routine 数据
         for (const [id, r] of Object.entries(savedRoutines)) {
             await supabaseClient.from('routines').upsert({ id, name: r.name, morning: r.morning, evening: r.evening, user_id: currentUserId });
+        }
+        // 上传当前选中的 Routine ID
+        if (currentRoutineId) {
+            await supabaseClient.from('user_state').upsert({ current_routine_id: currentRoutineId, user_id: currentUserId });
         }
         alert("✓ Synced to cloud successfully!");
     } catch (e) {
@@ -383,26 +328,76 @@ async function syncToCloud() {
 async function loadFromCloud() {
     if (!supabaseClient || !isAuthenticated) return false;
     try {
-        const { data: products } = await supabaseClient.from('products').select('*');
-        const { data: routines } = await supabaseClient.from('routines').select('*');
-        if (products && products.length > 0) productsData = products;
+        // 从云端加载产品
+        const { data: products, error: pError } = await supabaseClient.from('products').select('*');
+        if (pError) throw pError;
+        
+        // 从云端加载 Routines
+        const { data: routines, error: rError } = await supabaseClient.from('routines').select('*');
+        if (rError) throw rError;
+        
+        // 从云端加载用户状态
+        const { data: state, error: sError } = await supabaseClient.from('user_state').select('current_routine_id').maybeSingle();
+        
+        // 更新产品数据
+        if (products && products.length > 0) {
+            productsData = products;
+        } else {
+            productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+        }
+        productsData = sortProductsByName(productsData);
+        
+        // 更新 Routine 数据
         if (routines && routines.length > 0) {
             savedRoutines = {};
             routines.forEach(r => { savedRoutines[r.id] = { name: r.name, morning: r.morning, evening: r.evening }; });
             savedRoutines = Object.fromEntries(
                 Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
             );
+        } else {
+            savedRoutines = JSON.parse(JSON.stringify(INITIAL_ROUTINES));
         }
-        productsData = sortProductsByName(productsData);
+        
+        // 更新当前选中的 Routine
+        if (state && state.current_routine_id && savedRoutines[state.current_routine_id]) {
+            currentRoutineId = state.current_routine_id;
+        } else {
+            const firstKey = Object.keys(savedRoutines)[0];
+            currentRoutineId = firstKey || null;
+        }
+        
+        // 加载当前选中的 Routine 的产品列表
+        if (currentRoutineId && savedRoutines[currentRoutineId]) {
+            currentMorningProducts = savedRoutines[currentRoutineId].morning.map(pid => ({ productId: pid, time: "morning" }));
+            currentEveningProducts = savedRoutines[currentRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
+            isDefaultEmptyState = false;
+        } else {
+            currentMorningProducts = [];
+            currentEveningProducts = [];
+            isDefaultEmptyState = true;
+        }
+        
+        // 保存到本地存储
         saveSavedRoutinesToLocalStorage();
         saveCurrentToLocalStorage();
+        
+        // 重新渲染页面
+        renderBrandTabs();
+        renderBrandProducts();
+        renderRoutineButtons();
+        renderRoutines();
+        updateTotalPrice();
+        highlightActiveRoutine();
+        
         return true;
     } catch (e) {
         console.error('Cloud load error:', e);
+        alert("Failed to load from cloud: " + e.message);
         return false;
     }
 }
 
+// 页面操作函数
 function loadRoutine(routineId) {
     let routine = savedRoutines[routineId];
     if (routine) {
@@ -610,24 +605,15 @@ function closeForm() {
     document.getElementById('editProductId').value = ''; 
 }
 
-// ==================== 修复拖拽排序功能 ====================
+// ==================== 拖拽排序功能 ====================
 function attachReorderDrag(containerId, itemsArray, updateCallback) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
     let dragStartIndex = null;
     
-    // 移除现有的事件监听，重新绑定
     const cards = container.querySelectorAll('.product-card');
     cards.forEach(card => {
-        // 移除现有监听器（通过替换方式）
-        const newCard = card.cloneNode(true);
-        card.parentNode.replaceChild(newCard, card);
-    });
-    
-    // 重新获取卡片并绑定事件
-    const newCards = container.querySelectorAll('.product-card');
-    newCards.forEach(card => {
         card.setAttribute('draggable', 'true');
         
         card.addEventListener('dragstart', (e) => {
@@ -653,14 +639,11 @@ function attachReorderDrag(containerId, itemsArray, updateCallback) {
             const dropIndex = parseInt(card.dataset.index);
             
             if (dragIndex !== null && dragIndex !== dropIndex) {
-                // 重新排序数组
                 const draggedItem = itemsArray[dragIndex];
                 itemsArray.splice(dragIndex, 1);
                 itemsArray.splice(dropIndex, 0, draggedItem);
-                
-                // 更新界面和数据
                 updateCallback();
-                renderRoutines(); // 重新渲染以更新索引
+                renderRoutines();
             }
         });
     });
@@ -688,7 +671,6 @@ function renderRoutines() {
         card.dataset.index = newIdx;
     });
     
-    // 绑定拖拽排序
     attachReorderDrag('morningList', currentMorningProducts, () => {
         saveCurrentToLocalStorage();
         updateTotalPrice();
@@ -818,18 +800,25 @@ async function checkAuth() {
         document.getElementById('authStatus').innerHTML = `✅ Signed in as ${session.user.email}`;
         document.getElementById('loginBtn').style.display = 'none';
         document.getElementById('logoutBtn').style.display = 'inline-block';
-        await loadFromCloud();
-        renderBrandTabs(); renderBrandProducts(); renderRoutineButtons(); 
-        if (currentRoutineId && savedRoutines[currentRoutineId]) {
-            loadRoutine(currentRoutineId);
-        }
-        renderRoutines();
-        updateTotalPrice();
+        await loadFromCloud();  // 登录后立即从云端加载数据
     } else {
         isAuthenticated = false;
         document.getElementById('authStatus').innerHTML = `🔓 Sign in to sync across devices`;
         document.getElementById('loginBtn').style.display = 'inline-block';
         document.getElementById('logoutBtn').style.display = 'none';
+        // 未登录时使用本地存储
+        loadCurrentFromLocalStorage();
+        loadSavedRoutinesFromLocalStorage();
+        renderBrandTabs();
+        renderBrandProducts();
+        renderRoutineButtons();
+        renderRoutines();
+        updateTotalPrice();
+        if (currentRoutineId && savedRoutines[currentRoutineId]) {
+            loadRoutine(currentRoutineId);
+        } else if (Object.keys(savedRoutines).length > 0) {
+            loadRoutine(Object.keys(savedRoutines)[0]);
+        }
     }
 }
 
@@ -851,22 +840,20 @@ document.getElementById('printBtn').onclick = printRoutine;
 document.getElementById('saveStandardBtn').onclick = saveCurrentAsStandardRoutine;
 document.getElementById('editRoutineBtn').onclick = () => { let newName = prompt("Edit routine name:", savedRoutines[currentRoutineId]?.name); if(newName) renameCurrentRoutine(newName); };
 document.getElementById('syncBtn').onclick = syncToCloud;
+document.getElementById('refreshFromCloudBtn').onclick = async () => {
+    if (!isAuthenticated) {
+        alert("Please sign in first to load from cloud.");
+        return;
+    }
+    await loadFromCloud();
+    alert("Data refreshed from cloud!");
+};
 document.getElementById('loginBtn').onclick = handleLogin;
 document.getElementById('logoutBtn').onclick = handleLogout;
 document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
 document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutineAndReset;
 
 // 启动应用
-loadCurrentFromLocalStorage();
-loadSavedRoutinesFromLocalStorage();
-renderBrandTabs();
-renderBrandProducts();
-renderRoutineButtons();
-renderRoutines();
-updateTotalPrice();
-if (currentRoutineId && savedRoutines[currentRoutineId]) {
-    loadRoutine(currentRoutineId);
-}
 initSupabase();
 </script>
 </body>
