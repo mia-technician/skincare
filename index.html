@@ -91,7 +91,6 @@
             font-size: 0.8rem;
             min-height: 70px;
             transition: all 0.2s;
-            margin-bottom: 0.9rem;
         }
         .empty-slot.drag-over { background: #e9dfd4; border-color: #b99f87; }
         .empty-slot:hover { background: #e9dfd4; }
@@ -132,11 +131,22 @@
         .total-bar { padding: 1rem 1.3rem; background: #e9dfd4; border-radius: 20px; margin: 1.5rem 0 1rem; display: flex; justify-content: space-between; align-items: center; }
         .total-label { font-weight: 500; color: #5f5347; }
         .total-amount { font-size: 1.8rem; font-weight: 600; color: #8f7e6b; }
-        .action-buttons { display: flex; justify-content: flex-end; gap: 1rem; flex-wrap: wrap; }
-        .print-btn, .save-standard-btn, .sync-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; font-size: 0.8rem; }
+        .action-buttons { display: flex; justify-content: flex-end; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+        .action-buttons-bottom { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin: 1.5rem 0 1rem; }
+        .update-btn, .delete-current-btn, .print-btn, .save-standard-btn, .sync-btn { 
+            background: transparent; 
+            border: 1px solid #d2c0b0; 
+            padding: 0.7rem 1.5rem; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .update-btn { background: #b99f87; color: white; border-color: #b99f87; }
+        .delete-current-btn { background: #e9dfd4; color: #5f5347; }
         .save-standard-btn { background: #b99f87; color: white; border-color: #b99f87; }
         .sync-btn { background: #e9dfd4; }
-        .footnote { margin-top: 1.5rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
+        .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
         @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -161,7 +171,6 @@
                 <div class="selector-title">📋 SELECT ROUTINE</div>
                 <div class="selector-actions">
                     <button id="editRoutineBtn" class="manage-btn">✏️ Edit Routine Name</button>
-                    <button id="deleteRoutineBtn" class="manage-btn">🗑️ Delete Routine</button>
                 </div>
             </div>
             <div class="routine-buttons" id="routineButtons"></div>
@@ -192,11 +201,11 @@
 
         <div class="routine-grid">
             <div class="column morning-icon">
-                <div class="column-title">MORNING ROUTINE <span>AM</span></div>
+                <div class="column-title">CURRENT MORNING ROUTINE <span>AM</span></div>
                 <div class="product-list" id="morningList"></div>
             </div>
             <div class="column evening-icon">
-                <div class="column-title">EVENING ROUTINE <span>PM</span></div>
+                <div class="column-title">CURRENT EVENING ROUTINE <span>PM</span></div>
                 <div class="product-list" id="eveningList"></div>
             </div>
         </div>
@@ -205,12 +214,15 @@
             <div class="total-label">TOTAL VALUE (Unique Products)</div>
             <div class="total-amount">$<span id="totalPrice">0.00</span></div>
         </div>
-        <div class="action-buttons">
+        
+        <div class="action-buttons-bottom">
+            <button class="update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
+            <button class="delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
+            <button class="save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
             <button class="sync-btn" id="syncBtn">☁️ Sync to Cloud</button>
             <button class="print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
-            <button class="save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
         </div>
-        <div class="footnote">✦ Drag products to reorder ✦ Drag from library to add at top ✦ Click ✎ to edit product ✦ Click 🗑️ to delete product from library ✦</div>
+        <div class="footnote">✦ Select a routine to edit ✦ Drag products to reorder ✦ Drag from library to add at top ✦ Click "Update Current Routine" to save changes to selected routine ✦</div>
     </div>
 </div>
 
@@ -254,7 +266,7 @@ let productsData = [], savedRoutines = {};
 let currentMorningProducts = [], currentEveningProducts = [];
 let currentRoutineId = null;
 let currentBrand = "all";
-let draggedItem = null;
+let isDefaultEmptyState = true; // 默认空状态
 
 function getProductById(id) { return productsData.find(p => p.id === id); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
@@ -265,26 +277,36 @@ function saveCurrentToLocalStorage() {
     localStorage.setItem('skincare_products', JSON.stringify(productsData));
     localStorage.setItem('skincare_current_morning', JSON.stringify(currentMorningProducts.map(p => p.productId)));
     localStorage.setItem('skincare_current_evening', JSON.stringify(currentEveningProducts.map(p => p.productId)));
+    localStorage.setItem('skincare_current_routine_id', currentRoutineId || '');
 }
 
 function loadCurrentFromLocalStorage() {
     const savedProducts = localStorage.getItem('skincare_products');
     const savedMorning = localStorage.getItem('skincare_current_morning');
     const savedEvening = localStorage.getItem('skincare_current_evening');
+    const savedRoutineId = localStorage.getItem('skincare_current_routine_id');
     
     if (savedProducts) productsData = JSON.parse(savedProducts);
     else productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
     
-    if (savedMorning) {
+    if (savedMorning && JSON.parse(savedMorning).length > 0) {
         currentMorningProducts = JSON.parse(savedMorning).map(pid => ({ productId: pid, time: "morning" }));
+        isDefaultEmptyState = false;
     } else {
-        currentMorningProducts = DEFAULT_ROUTINES["fnl-acne"].morning.map(pid => ({ productId: pid, time: "morning" }));
+        currentMorningProducts = [];
+        isDefaultEmptyState = true;
     }
     
-    if (savedEvening) {
+    if (savedEvening && JSON.parse(savedEvening).length > 0) {
         currentEveningProducts = JSON.parse(savedEvening).map(pid => ({ productId: pid, time: "evening" }));
     } else {
-        currentEveningProducts = DEFAULT_ROUTINES["fnl-acne"].evening.map(pid => ({ productId: pid, time: "evening" }));
+        currentEveningProducts = [];
+    }
+    
+    if (savedRoutineId && savedRoutines[savedRoutineId]) {
+        currentRoutineId = savedRoutineId;
+    } else {
+        currentRoutineId = null;
     }
 }
 
@@ -308,18 +330,28 @@ function sortProductsByName(arr) {
     return [...arr].sort((a, b) => a.name.localeCompare(b.name));
 }
 
+// 重置到默认空状态
+function resetToEmptyState() {
+    currentMorningProducts = [];
+    currentEveningProducts = [];
+    currentRoutineId = null;
+    isDefaultEmptyState = true;
+    saveCurrentToLocalStorage();
+    renderRoutines();
+    updateTotalPrice();
+    highlightActiveRoutine();
+}
+
 // 删除产品
 function deleteProduct(productId) {
     if (confirm('Delete this product from library? It will be removed from all routines.')) {
         const index = productsData.findIndex(p => p.id === productId);
         if (index !== -1) {
             productsData.splice(index, 1);
-            // 从所有 routine 中移除该产品
             for (let routineId in savedRoutines) {
                 savedRoutines[routineId].morning = savedRoutines[routineId].morning.filter(id => id !== productId);
                 savedRoutines[routineId].evening = savedRoutines[routineId].evening.filter(id => id !== productId);
             }
-            // 从当前流程中移除
             currentMorningProducts = currentMorningProducts.filter(item => item.productId !== productId);
             currentEveningProducts = currentEveningProducts.filter(item => item.productId !== productId);
             saveSavedRoutinesToLocalStorage();
@@ -380,6 +412,7 @@ function loadRoutine(routineId) {
         currentRoutineId = routineId;
         currentMorningProducts = routine.morning.map(pid => ({ productId: pid, time: "morning" }));
         currentEveningProducts = routine.evening.map(pid => ({ productId: pid, time: "evening" }));
+        isDefaultEmptyState = false;
         saveCurrentToLocalStorage();
         renderRoutines();
         updateTotalPrice();
@@ -392,6 +425,50 @@ function highlightActiveRoutine() {
         if (btn.dataset.id === currentRoutineId) btn.classList.add('active');
         else btn.classList.remove('active');
     });
+}
+
+// 更新当前选中的 Routine
+function updateCurrentRoutine() {
+    if (!currentRoutineId) {
+        alert("No routine selected. Please select a routine from the list first.");
+        return;
+    }
+    if (!savedRoutines[currentRoutineId]) {
+        alert("Selected routine not found.");
+        return;
+    }
+    savedRoutines[currentRoutineId] = { 
+        name: savedRoutines[currentRoutineId].name, 
+        morning: currentMorningProducts.map(p => p.productId), 
+        evening: currentEveningProducts.map(p => p.productId) 
+    };
+    saveSavedRoutinesToLocalStorage();
+    alert(`Routine "${savedRoutines[currentRoutineId].name}" has been updated!`);
+    renderRoutineButtons();
+    highlightActiveRoutine();
+}
+
+// 删除当前 Routine 并返回默认空状态
+function deleteCurrentRoutineAndReset() {
+    if (!currentRoutineId) {
+        alert("No routine selected to delete.");
+        return;
+    }
+    if (currentRoutineId === "fnl-acne" || currentRoutineId === "sm-acne-pigment" || currentRoutineId === "fnl-pigmentation") { 
+        alert("Cannot delete preset routines."); 
+        return; 
+    }
+    if (confirm(`Delete routine "${savedRoutines[currentRoutineId]?.name}" and return to empty state?`)) { 
+        delete savedRoutines[currentRoutineId];
+        savedRoutines = Object.fromEntries(
+            Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
+        );
+        saveSavedRoutinesToLocalStorage();
+        resetToEmptyState();
+        renderRoutineButtons();
+        renderRoutines();
+        updateTotalPrice();
+    }
 }
 
 function saveCurrentAsStandardRoutine() {
@@ -412,12 +489,6 @@ function saveCurrentAsStandardRoutine() {
     alert('"' + name + '" has been saved!');
 }
 
-function updateCurrentRoutine() {
-    saveCurrentToLocalStorage();
-    updateTotalPrice();
-    renderRoutines();
-}
-
 function renameCurrentRoutine(newName) {
     if (currentRoutineId && savedRoutines[currentRoutineId]) {
         savedRoutines[currentRoutineId].name = newName;
@@ -427,24 +498,6 @@ function renameCurrentRoutine(newName) {
         saveSavedRoutinesToLocalStorage();
         renderRoutineButtons();
         highlightActiveRoutine();
-    }
-}
-
-function deleteCurrentRoutine() {
-    if (!currentRoutineId) { alert("No routine selected"); return; }
-    if (currentRoutineId === "fnl-acne" || currentRoutineId === "sm-acne-pigment" || currentRoutineId === "fnl-pigmentation") { 
-        alert("Cannot delete preset routines"); 
-        return; 
-    }
-    if (confirm('Delete "' + savedRoutines[currentRoutineId]?.name + '"?')) { 
-        delete savedRoutines[currentRoutineId];
-        savedRoutines = Object.fromEntries(
-            Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
-        );
-        saveSavedRoutinesToLocalStorage();
-        let firstKey = Object.keys(savedRoutines)[0];
-        loadRoutine(firstKey);
-        renderRoutineButtons();
     }
 }
 
@@ -603,19 +656,17 @@ function renderRoutines() {
     let morningContainer = document.getElementById('morningList'), eveningContainer = document.getElementById('eveningList');
     
     if (morningContainer) {
-        // 空槽位放在顶部（第一个产品上面）
         let morningHtml = `<div class="empty-slot" data-time="morning" data-index="0">+ Drop product here to add at top</div>`;
         morningHtml += currentMorningProducts.map((item, idx) => renderCard(item.productId, idx, 'morning')).join('');
         morningContainer.innerHTML = morningHtml;
     }
     if (eveningContainer) {
-        // 空槽位放在顶部（第一个产品上面）
         let eveningHtml = `<div class="empty-slot" data-time="evening" data-index="0">+ Drop product here to add at top</div>`;
         eveningHtml += currentEveningProducts.map((item, idx) => renderCard(item.productId, idx, 'evening')).join('');
         eveningContainer.innerHTML = eveningHtml;
     }
     
-    // 重新索引产品卡片的 data-index（因为空槽位占用了 index 0）
+    // 重新索引产品卡片的 data-index
     document.querySelectorAll('#morningList .product-card').forEach((card, newIdx) => {
         card.dataset.index = newIdx;
     });
@@ -623,12 +674,13 @@ function renderRoutines() {
         card.dataset.index = newIdx;
     });
     
-    // 设置排序拖拽
     setupReorderDrag('morningList', currentMorningProducts, () => {
-        updateCurrentRoutine();
+        saveCurrentToLocalStorage();
+        updateTotalPrice();
     });
     setupReorderDrag('eveningList', currentEveningProducts, () => {
-        updateCurrentRoutine();
+        saveCurrentToLocalStorage();
+        updateTotalPrice();
     });
     
     attachDropEvents('morningList', 'morning');
@@ -668,7 +720,10 @@ function attachEmptySlotEvents() {
                 } else {
                     currentEveningProducts.splice(targetIndex, 0, { productId: dragData.id, time: 'evening' });
                 }
-                updateCurrentRoutine();
+                isDefaultEmptyState = false;
+                saveCurrentToLocalStorage();
+                renderRoutines();
+                updateTotalPrice();
             }
         };
     });
@@ -687,7 +742,10 @@ function attachDropEvents(containerId, time) {
         if (dragData && dragData.id) { 
             if (time === 'morning' && currentMorningProducts[targetIdx]) currentMorningProducts[targetIdx] = { productId: dragData.id, time: 'morning' }; 
             if (time === 'evening' && currentEveningProducts[targetIdx]) currentEveningProducts[targetIdx] = { productId: dragData.id, time: 'evening' }; 
-            updateCurrentRoutine();
+            isDefaultEmptyState = false;
+            saveCurrentToLocalStorage();
+            renderRoutines();
+            updateTotalPrice();
         } 
     }; 
 }
@@ -699,7 +757,12 @@ function attachDeleteEvents() {
             let time = btn.dataset.time, idx = parseInt(btn.dataset.index); 
             if (time === 'morning') currentMorningProducts.splice(idx, 1); 
             else currentEveningProducts.splice(idx, 1); 
-            updateCurrentRoutine();
+            if (currentMorningProducts.length === 0 && currentEveningProducts.length === 0) {
+                isDefaultEmptyState = true;
+            }
+            saveCurrentToLocalStorage();
+            renderRoutines();
+            updateTotalPrice();
         }; 
     }); 
 }
@@ -744,9 +807,9 @@ async function checkAuth() {
         renderBrandTabs(); renderBrandProducts(); renderRoutineButtons(); 
         if (currentRoutineId && savedRoutines[currentRoutineId]) {
             loadRoutine(currentRoutineId);
-        } else {
-            loadRoutine(Object.keys(savedRoutines)[0]);
         }
+        renderRoutines();
+        updateTotalPrice();
     } else {
         isAuthenticated = false;
         document.getElementById('authStatus').innerHTML = `🔓 Sign in to sync across devices`;
@@ -773,10 +836,11 @@ document.getElementById('saveProductBtn').onclick = saveProduct;
 document.getElementById('printBtn').onclick = printRoutine;
 document.getElementById('saveStandardBtn').onclick = saveCurrentAsStandardRoutine;
 document.getElementById('editRoutineBtn').onclick = () => { let newName = prompt("Edit routine name:", savedRoutines[currentRoutineId]?.name); if(newName) renameCurrentRoutine(newName); };
-document.getElementById('deleteRoutineBtn').onclick = deleteCurrentRoutine;
 document.getElementById('syncBtn').onclick = syncToCloud;
 document.getElementById('loginBtn').onclick = handleLogin;
 document.getElementById('logoutBtn').onclick = handleLogout;
+document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
+document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutineAndReset;
 
 // 启动应用
 loadCurrentFromLocalStorage();
@@ -784,11 +848,10 @@ loadSavedRoutinesFromLocalStorage();
 renderBrandTabs();
 renderBrandProducts();
 renderRoutineButtons();
+renderRoutines();
+updateTotalPrice();
 if (currentRoutineId && savedRoutines[currentRoutineId]) {
     loadRoutine(currentRoutineId);
-} else {
-    let firstKey = Object.keys(savedRoutines)[0];
-    if (firstKey) loadRoutine(firstKey);
 }
 initSupabase();
 </script>
