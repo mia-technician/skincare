@@ -77,11 +77,10 @@
         .total-label { font-weight: 500; color: #5f5347; }
         .total-amount { font-size: 1.8rem; font-weight: 600; color: #8f7e6b; }
         .action-buttons-bottom { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin: 1.5rem 0 1rem; }
-        .update-btn, .delete-current-btn, .print-btn, .save-standard-btn, .sync-btn, .refresh-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
+        .update-btn, .delete-current-btn, .print-btn, .save-standard-btn, .refresh-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
         .update-btn { background: #b99f87; color: white; border-color: #b99f87; }
         .delete-current-btn { background: #e9dfd4; color: #5f5347; }
         .save-standard-btn { background: #b99f87; color: white; border-color: #b99f87; }
-        .sync-btn { background: #e9dfd4; }
         .refresh-btn { background: #e9dfd4; }
         .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
         @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } }
@@ -92,11 +91,11 @@
     <div class="app-container">
         <div class="ritual-header">
             <h1>Skincare Routine Builder</h1>
-            <p>drag to reorder · drag from library to add</p>
+            <p>cloud sync · data stored in Supabase</p>
         </div>
 
         <div class="auth-section">
-            <div class="auth-status" id="authStatus">Checking authentication...</div>
+            <div class="auth-status" id="authStatus">Loading...</div>
             <div>
                 <button id="loginBtn" class="auth-btn" style="display:none">Sign In with Google</button>
                 <button id="logoutBtn" class="auth-btn auth-btn-outline" style="display:none">Sign Out</button>
@@ -156,11 +155,10 @@
             <button class="update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
             <button class="delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
             <button class="save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
-            <button class="sync-btn" id="syncBtn">☁️ Sync to Cloud</button>
             <button class="refresh-btn" id="refreshFromCloudBtn">🔄 Refresh from Cloud</button>
             <button class="print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
         </div>
-        <div class="footnote">✦ Login to sync across devices ✦ All data saved to cloud ✦ Click "Refresh from Cloud" after login to load latest data ✦</div>
+        <div class="footnote">✦ All data stored in Supabase cloud ✦ Changes are saved automatically when you click Update/Save ✦ Click Refresh to load latest data ✦</div>
     </div>
 </div>
 
@@ -204,83 +202,20 @@ let productsData = [], savedRoutines = {};
 let currentMorningProducts = [], currentEveningProducts = [];
 let currentRoutineId = null;
 let currentBrand = "all";
+let isLoading = false; // 防止循环加载
 
 function getProductById(id) { return productsData.find(p => p.id === id); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
 function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m; }); }
-
-function saveToLocalStorage() {
-    localStorage.setItem('skincare_products', JSON.stringify(productsData));
-    localStorage.setItem('skincare_routines', JSON.stringify(savedRoutines));
-    localStorage.setItem('skincare_current_morning', JSON.stringify(currentMorningProducts.map(p => p.productId)));
-    localStorage.setItem('skincare_current_evening', JSON.stringify(currentEveningProducts.map(p => p.productId)));
-    localStorage.setItem('skincare_current_routine_id', currentRoutineId || '');
-}
-
-function loadFromLocalStorage() {
-    const savedProducts = localStorage.getItem('skincare_products');
-    const savedRoutinesData = localStorage.getItem('skincare_routines');
-    const savedMorning = localStorage.getItem('skincare_current_morning');
-    const savedEvening = localStorage.getItem('skincare_current_evening');
-    const savedRoutineId = localStorage.getItem('skincare_current_routine_id');
-    
-    if (savedProducts) productsData = JSON.parse(savedProducts);
-    else productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
-    
-    if (savedRoutinesData) savedRoutines = JSON.parse(savedRoutinesData);
-    else savedRoutines = JSON.parse(JSON.stringify(INITIAL_ROUTINES));
-    
-    if (savedMorning && JSON.parse(savedMorning).length > 0) {
-        currentMorningProducts = JSON.parse(savedMorning).map(pid => ({ productId: pid, time: "morning" }));
-    } else {
-        currentMorningProducts = [];
-    }
-    
-    if (savedEvening && JSON.parse(savedEvening).length > 0) {
-        currentEveningProducts = JSON.parse(savedEvening).map(pid => ({ productId: pid, time: "evening" }));
-    } else {
-        currentEveningProducts = [];
-    }
-    
-    if (savedRoutineId && savedRoutines[savedRoutineId]) {
-        currentRoutineId = savedRoutineId;
-    } else {
-        currentRoutineId = Object.keys(savedRoutines)[0] || null;
-    }
-}
 
 function sortProductsByName(arr) {
     return [...arr].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 // ==================== 云端操作 ====================
-async function syncToCloud() {
-    if (!supabaseClient) { alert("Supabase not ready."); return; }
-    if (!isAuthenticated) { alert("Please sign in first."); return; }
-    try {
-        // 上传产品
-        for (const p of productsData) {
-            await supabaseClient.from('products').upsert({ ...p, user_id: currentUserId });
-        }
-        // 上传 Routines
-        for (const [id, r] of Object.entries(savedRoutines)) {
-            await supabaseClient.from('routines').upsert({ id, name: r.name, morning: r.morning, evening: r.evening, user_id: currentUserId });
-        }
-        // 上传当前选中的 Routine
-        if (currentRoutineId) {
-            await supabaseClient.from('user_state').upsert({ current_routine_id: currentRoutineId, user_id: currentUserId });
-        }
-        alert("✓ Synced to cloud!");
-        // 同步后重新加载云端数据，确保显示最新
-        await loadFromCloud();
-        refreshUI();
-    } catch (e) {
-        alert("Sync failed: " + e.message);
-    }
-}
-
 async function loadFromCloud() {
-    if (!supabaseClient || !isAuthenticated) return false;
+    if (!supabaseClient || !isAuthenticated || isLoading) return false;
+    isLoading = true;
     try {
         const { data: products } = await supabaseClient.from('products').select('*');
         const { data: routines } = await supabaseClient.from('routines').select('*');
@@ -290,6 +225,9 @@ async function loadFromCloud() {
             productsData = products;
         } else {
             productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+            for (const p of productsData) {
+                await supabaseClient.from('products').insert({ ...p, user_id: currentUserId });
+            }
         }
         productsData = sortProductsByName(productsData);
         
@@ -301,6 +239,9 @@ async function loadFromCloud() {
             );
         } else {
             savedRoutines = JSON.parse(JSON.stringify(INITIAL_ROUTINES));
+            for (const [id, r] of Object.entries(savedRoutines)) {
+                await supabaseClient.from('routines').insert({ id, name: r.name, morning: r.morning, evening: r.evening, user_id: currentUserId });
+            }
         }
         
         if (state && state.current_routine_id && savedRoutines[state.current_routine_id]) {
@@ -317,34 +258,48 @@ async function loadFromCloud() {
             currentEveningProducts = [];
         }
         
-        saveToLocalStorage();
         return true;
     } catch (e) {
         console.error('Cloud load error:', e);
         return false;
+    } finally {
+        isLoading = false;
     }
 }
 
-function refreshUI() {
-    renderBrandTabs();
-    renderBrandProducts();
-    renderRoutineButtons();
-    renderRoutines();
-    updateTotalPrice();
-    highlightActiveRoutine();
+async function saveToCloud() {
+    if (!supabaseClient || !isAuthenticated) return false;
+    try {
+        // 保存产品
+        for (const p of productsData) {
+            await supabaseClient.from('products').upsert({ ...p, user_id: currentUserId });
+        }
+        // 保存 Routines
+        for (const [id, r] of Object.entries(savedRoutines)) {
+            await supabaseClient.from('routines').upsert({ id, name: r.name, morning: r.morning, evening: r.evening, user_id: currentUserId });
+        }
+        // 保存当前选中的 Routine
+        if (currentRoutineId) {
+            await supabaseClient.from('user_state').upsert({ current_routine_id: currentRoutineId, user_id: currentUserId });
+        }
+        return true;
+    } catch (e) {
+        console.error('Save to cloud error:', e);
+        return false;
+    }
 }
 
 // ==================== UI 渲染函数 ====================
-function loadRoutine(routineId) {
+async function loadRoutine(routineId) {
     let routine = savedRoutines[routineId];
     if (routine) {
         currentRoutineId = routineId;
         currentMorningProducts = routine.morning.map(pid => ({ productId: pid, time: "morning" }));
         currentEveningProducts = routine.evening.map(pid => ({ productId: pid, time: "evening" }));
-        saveToLocalStorage();
         renderRoutines();
         updateTotalPrice();
         highlightActiveRoutine();
+        await saveToCloud(); // 保存当前选中的 Routine 到云端
     }
 }
 
@@ -355,9 +310,9 @@ function highlightActiveRoutine() {
     });
 }
 
-function updateCurrentRoutine() {
+async function updateCurrentRoutine() {
     if (!currentRoutineId) {
-        alert("No routine selected.");
+        alert("No routine selected. Please select a routine from the list first.");
         return;
     }
     savedRoutines[currentRoutineId] = { 
@@ -365,26 +320,29 @@ function updateCurrentRoutine() {
         morning: currentMorningProducts.map(p => p.productId), 
         evening: currentEveningProducts.map(p => p.productId) 
     };
-    saveToLocalStorage();
-    alert(`Routine updated!`);
-    renderRoutineButtons();
-    highlightActiveRoutine();
-    if (isAuthenticated) syncToCloud();
+    const success = await saveToCloud();
+    if (success) {
+        alert(`Routine "${savedRoutines[currentRoutineId].name}" updated!`);
+        renderRoutineButtons();
+        highlightActiveRoutine();
+    } else {
+        alert("Failed to save to cloud. Please check your connection.");
+    }
 }
 
-function deleteCurrentRoutine() {
+async function deleteCurrentRoutine() {
     if (!currentRoutineId) {
         alert("No routine selected.");
         return;
     }
-    if (confirm(`Delete routine "${savedRoutines[currentRoutineId]?.name}"?`)) { 
+    if (confirm(`Delete routine "${savedRoutines[currentRoutineId]?.name}"? This cannot be undone.`)) { 
         delete savedRoutines[currentRoutineId];
         savedRoutines = Object.fromEntries(
             Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
         );
         const firstKey = Object.keys(savedRoutines)[0];
         if (firstKey) {
-            loadRoutine(firstKey);
+            await loadRoutine(firstKey);
         } else {
             currentMorningProducts = [];
             currentEveningProducts = [];
@@ -392,13 +350,13 @@ function deleteCurrentRoutine() {
             renderRoutines();
             updateTotalPrice();
         }
-        saveToLocalStorage();
         renderRoutineButtons();
-        if (isAuthenticated) syncToCloud();
+        await saveToCloud();
+        alert("Routine deleted.");
     }
 }
 
-function saveCurrentAsNewRoutine() {
+async function saveCurrentAsNewRoutine() {
     let name = prompt("Enter a name:", "My Custom Routine");
     if (!name) return;
     let newId = "standard-" + Date.now();
@@ -410,28 +368,31 @@ function saveCurrentAsNewRoutine() {
     savedRoutines = Object.fromEntries(
         Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
     );
-    saveToLocalStorage();
     renderRoutineButtons();
-    loadRoutine(newId);
-    if (isAuthenticated) syncToCloud();
+    await saveToCloud();
+    await loadRoutine(newId);
+    alert('"' + name + '" saved!');
 }
 
-function renameCurrentRoutine(newName) {
+async function renameCurrentRoutine(newName) {
     if (currentRoutineId && savedRoutines[currentRoutineId]) {
         savedRoutines[currentRoutineId].name = newName;
         savedRoutines = Object.fromEntries(
             Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
         );
-        saveToLocalStorage();
         renderRoutineButtons();
         highlightActiveRoutine();
-        if (isAuthenticated) syncToCloud();
+        await saveToCloud();
     }
 }
 
 function renderRoutineButtons() {
     let container = document.getElementById('routineButtons');
     if (!container) return;
+    if (Object.keys(savedRoutines).length === 0) {
+        container.innerHTML = '<div style="color: #b7a99a; padding: 0.5rem;">No routines. Create one by adding products and clicking "Save Current as New Routine"</div>';
+        return;
+    }
     container.innerHTML = Object.entries(savedRoutines).map(([id, r]) => `<button class="routine-btn ${id === currentRoutineId ? 'active' : ''}" data-id="${id}">${escapeHtml(r.name)}</button>`).join('');
     document.querySelectorAll('.routine-btn').forEach(btn => { btn.onclick = () => loadRoutine(btn.dataset.id); });
 }
@@ -450,6 +411,7 @@ function updateTotalPrice() {
     if (span) span.innerText = getUniqueProductsTotal().toFixed(2); 
 }
 
+// 产品库操作
 function renderBrandProducts() {
     let container = document.getElementById('brandProductsContainer');
     if (!container) return;
@@ -467,8 +429,8 @@ function renderBrandProducts() {
     attachProductDeleteEvents();
 }
 
-function deleteProduct(productId) {
-    if (confirm('Delete product from library?')) {
+async function deleteProduct(productId) {
+    if (confirm('Delete product from library? It will be removed from all routines.')) {
         const index = productsData.findIndex(p => p.id === productId);
         if (index !== -1) {
             productsData.splice(index, 1);
@@ -478,21 +440,20 @@ function deleteProduct(productId) {
             }
             currentMorningProducts = currentMorningProducts.filter(item => item.productId !== productId);
             currentEveningProducts = currentEveningProducts.filter(item => item.productId !== productId);
-            saveToLocalStorage();
             renderBrandProducts();
             renderRoutineButtons();
             renderRoutines();
             updateTotalPrice();
-            if (isAuthenticated) syncToCloud();
+            await saveToCloud();
         }
     }
 }
 
 function attachProductDeleteEvents() {
     document.querySelectorAll('.delete-product-icon').forEach(icon => {
-        icon.onclick = (e) => {
+        icon.onclick = async (e) => {
             e.stopPropagation();
-            deleteProduct(icon.dataset.id);
+            await deleteProduct(icon.dataset.id);
         };
     });
 }
@@ -529,7 +490,7 @@ function openEditForm(product) {
     document.getElementById('toggleAddBtn').style.display = 'none'; 
 }
 
-function saveProduct() { 
+async function saveProduct() { 
     let name = document.getElementById('productName').value.trim(); 
     if (!name) { alert("Enter product name"); return; } 
     let newProduct = { 
@@ -549,8 +510,7 @@ function saveProduct() {
     renderBrandProducts(); 
     renderRoutines(); 
     updateTotalPrice(); 
-    saveToLocalStorage(); 
-    if (isAuthenticated) syncToCloud();
+    await saveToCloud();
 }
 
 function closeForm() { 
@@ -560,6 +520,7 @@ function closeForm() {
     document.getElementById('editProductId').value = ''; 
 }
 
+// 拖拽排序
 function attachReorderDrag(containerId, itemsArray, updateCallback) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -580,7 +541,7 @@ function attachReorderDrag(containerId, itemsArray, updateCallback) {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
         });
-        card.addEventListener('drop', (e) => {
+        card.addEventListener('drop', async (e) => {
             e.preventDefault();
             const dragIndex = dragStartIndex;
             const dropIndex = parseInt(card.dataset.index);
@@ -590,6 +551,7 @@ function attachReorderDrag(containerId, itemsArray, updateCallback) {
                 itemsArray.splice(dropIndex, 0, draggedItem);
                 updateCallback();
                 renderRoutines();
+                await saveToCloud();
             }
         });
     });
@@ -614,14 +576,10 @@ function renderRoutines() {
     document.querySelectorAll('#eveningList .product-card').forEach((card, newIdx) => { card.dataset.index = newIdx; });
     
     attachReorderDrag('morningList', currentMorningProducts, () => {
-        saveToLocalStorage();
         updateTotalPrice();
-        if (isAuthenticated) syncToCloud();
     });
     attachReorderDrag('eveningList', currentEveningProducts, () => {
-        saveToLocalStorage();
         updateTotalPrice();
-        if (isAuthenticated) syncToCloud();
     });
     
     attachDropEvents('morningList', 'morning');
@@ -649,7 +607,7 @@ function attachEmptySlotEvents() {
     document.querySelectorAll('.empty-slot').forEach(slot => {
         slot.ondragover = (e) => { e.preventDefault(); slot.classList.add('drag-over'); };
         slot.ondragleave = () => { slot.classList.remove('drag-over'); };
-        slot.ondrop = (e) => {
+        slot.ondrop = async (e) => {
             e.preventDefault();
             slot.classList.remove('drag-over');
             const time = slot.dataset.time;
@@ -661,10 +619,9 @@ function attachEmptySlotEvents() {
                 } else {
                     currentEveningProducts.splice(targetIndex, 0, { productId: dragData.id, time: 'evening' });
                 }
-                saveToLocalStorage();
                 renderRoutines();
                 updateTotalPrice();
-                if (isAuthenticated) syncToCloud();
+                await saveToCloud();
             }
         };
     });
@@ -674,7 +631,7 @@ function attachDropEvents(containerId, time) {
     let container = document.getElementById(containerId); 
     if (!container) return; 
     container.ondragover = (e) => e.preventDefault(); 
-    container.ondrop = (e) => { 
+    container.ondrop = async (e) => { 
         e.preventDefault(); 
         let targetCard = e.target.closest('.product-card'); 
         if (!targetCard) return; 
@@ -683,25 +640,23 @@ function attachDropEvents(containerId, time) {
         if (dragData && dragData.id) { 
             if (time === 'morning' && currentMorningProducts[targetIdx]) currentMorningProducts[targetIdx] = { productId: dragData.id, time: 'morning' }; 
             if (time === 'evening' && currentEveningProducts[targetIdx]) currentEveningProducts[targetIdx] = { productId: dragData.id, time: 'evening' }; 
-            saveToLocalStorage();
             renderRoutines();
             updateTotalPrice();
-            if (isAuthenticated) syncToCloud();
+            await saveToCloud();
         } 
     }; 
 }
 
 function attachDeleteEvents() { 
     document.querySelectorAll('.delete-btn').forEach(btn => { 
-        btn.onclick = (e) => { 
+        btn.onclick = async (e) => { 
             e.stopPropagation(); 
             let time = btn.dataset.time, idx = parseInt(btn.dataset.index); 
             if (time === 'morning') currentMorningProducts.splice(idx, 1); 
             else currentEveningProducts.splice(idx, 1); 
-            saveToLocalStorage();
             renderRoutines();
             updateTotalPrice();
-            if (isAuthenticated) syncToCloud();
+            await saveToCloud();
         }; 
     }); 
 }
@@ -748,20 +703,32 @@ async function checkAuth() {
         document.getElementById('loginBtn').style.display = 'none';
         document.getElementById('logoutBtn').style.display = 'inline-block';
         
-        // 登录后从云端加载数据
         await loadFromCloud();
         refreshUI();
         
     } else {
         isAuthenticated = false;
-        document.getElementById('authStatus').innerHTML = `🔓 Sign in to sync across devices`;
+        document.getElementById('authStatus').innerHTML = `🔓 Please sign in to use the app`;
         document.getElementById('loginBtn').style.display = 'inline-block';
         document.getElementById('logoutBtn').style.display = 'none';
         
-        // 未登录时从本地存储加载
-        loadFromLocalStorage();
+        // 未登录时显示空状态，提示登录
+        productsData = [];
+        savedRoutines = {};
+        currentMorningProducts = [];
+        currentEveningProducts = [];
+        currentRoutineId = null;
         refreshUI();
     }
+}
+
+function refreshUI() {
+    renderBrandTabs();
+    renderBrandProducts();
+    renderRoutineButtons();
+    renderRoutines();
+    updateTotalPrice();
+    if (currentRoutineId) highlightActiveRoutine();
 }
 
 function initSupabase() {
@@ -781,7 +748,6 @@ document.getElementById('saveProductBtn').onclick = saveProduct;
 document.getElementById('printBtn').onclick = printRoutine;
 document.getElementById('saveStandardBtn').onclick = saveCurrentAsNewRoutine;
 document.getElementById('editRoutineBtn').onclick = () => { let newName = prompt("Edit routine name:", savedRoutines[currentRoutineId]?.name); if(newName) renameCurrentRoutine(newName); };
-document.getElementById('syncBtn').onclick = syncToCloud;
 document.getElementById('refreshFromCloudBtn').onclick = async () => {
     if (!isAuthenticated) {
         alert("Please sign in first.");
