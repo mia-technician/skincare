@@ -1,12 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Skincare Routine Builder</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <!-- 使用 unpkg CDN（备用方案） -->
+    
+    <!-- Supabase SDK - 关键！ -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- 备用加载脚本 -->
+    <script>
+        // 如果主 CDN 失败，尝试备用 CDN
+        setTimeout(function() {
+            if (typeof supabase === 'undefined') {
+                console.log('Primary CDN failed, loading fallback...');
+                var fallback = document.createElement('script');
+                fallback.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+                document.head.appendChild(fallback);
+            }
+        }, 2000);
+    </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f5efe9; font-family: 'Inter', sans-serif; padding: 2rem 1rem; }
