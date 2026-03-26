@@ -923,14 +923,13 @@ async function handleLogin() {
     }
     
     try {
-        // 先登出确保干净状态
-        await supabaseClient.auth.signOut();
+        // 获取当前完整 URL 作为重定向地址
+        const redirectUrl = window.location.href;
         
-        // 重新登录
         const { error } = await supabaseClient.auth.signInWithOAuth({ 
             provider: 'google',
             options: { 
-                redirectTo: window.location.href,
+                redirectTo: redirectUrl,
                 queryParams: {
                     access_type: 'offline',
                     prompt: 'consent'
@@ -955,12 +954,87 @@ async function handleLogout() {
         }
         localStorage.clear();
         sessionStorage.clear();
-        location.reload();
+        // 清除 URL 中的 hash
+        window.location.href = window.location.pathname;
     } catch (e) {
         console.error('Logout error:', e);
-        location.reload();
+        window.location.href = window.location.pathname;
     }
 }
+
+// 检查认证状态（增强版）
+async function checkAuth() {
+    if (!supabaseClient) return;
+    
+    try {
+        // 首先检查 URL 中是否有认证信息
+        const hash = window.location.hash;
+        if (hash && (hash.includes('access_token') || hash.includes('#access_token'))) {
+            console.log('Auth callback detected, processing...');
+            // 等待 Supabase 处理
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        
+        if (error) {
+            console.error('Auth check error:', error);
+            isAuthenticated = false;
+        } else if (session) {
+            isAuthenticated = true;
+            currentUserId = session.user.id;
+            document.getElementById('authStatus').innerHTML = `✅ Signed in as ${session.user.email}`;
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+            
+            // 登录成功后清除 URL 中的 hash
+            if (window.location.hash) {
+                window.history.replaceState(null, '', window.location.pathname);
+            }
+            
+            await loadFromCloud();
+        } else {
+            isAuthenticated = false;
+            document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
+            document.getElementById('loginBtn').style.display = 'inline-block';
+            document.getElementById('logoutBtn').style.display = 'none';
+        }
+        
+        refreshUI();
+    } catch (e) {
+        console.error('Auth check exception:', e);
+        isAuthenticated = false;
+        document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
+        document.getElementById('loginBtn').style.display = 'inline-block';
+        document.getElementById('logoutBtn').style.display = 'none';
+        refreshUI();
+    }
+}
+
+// 监听认证状态变化
+function setupAuthListener() {
+    if (!supabaseClient) return;
+    
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        
+        if (event === 'SIGNED_IN') {
+            console.log('User signed in, reloading...');
+            window.location.href = window.location.pathname;
+        }
+        if (event === 'SIGNED_OUT') {
+            console.log('User signed out, reloading...');
+            window.location.href = window.location.pathname;
+        }
+    });
+}
+
+// 启动时设置监听器
+setTimeout(() => {
+    if (supabaseClient) {
+        setupAuthListener();
+    }
+}, 1000);
 
 // 检查认证状态
 async function checkAuth() {
