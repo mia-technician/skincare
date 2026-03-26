@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-<!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Skincare Routine Builder</title>
     
-    <!-- ========== 关键：添加 Supabase SDK ========== -->
+    <!-- ==================== Supabase SDK（必须！）==================== -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <!-- ========================================= -->
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -29,7 +26,6 @@
         .selector-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
         .selector-actions { display: flex; gap: 0.8rem; }
         .manage-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.4rem 1rem; border-radius: 40px; cursor: pointer; font-size: 0.75rem; }
-        .manage-btn.hidden { display: none; }
         .routine-buttons { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1rem; }
         .routine-btn { background: #e9dfd4; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
         .routine-btn.active { background: #b99f87; color: white; }
@@ -319,7 +315,7 @@ function loadFromLocalStorage() {
 
 // ==================== 云端操作 ====================
 async function loadFromCloud() {
-    if (!supabaseClient || !isAuthenticated || isLoading) return false;
+    if (!supabaseClient || isLoading) return false;
     isLoading = true;
     try {
         const { data: products } = await supabaseClient.from('products').select('*');
@@ -958,7 +954,7 @@ async function checkAuth() {
             document.getElementById('logoutBtn').style.display = 'none';
         }
         
-        // 关键修改：无论登录与否，都从云端加载数据
+        // 无论登录与否，都从云端加载数据
         await loadFromCloud();
         refreshUI();
         
