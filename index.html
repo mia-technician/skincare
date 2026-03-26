@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -101,7 +100,7 @@
     <div class="app-container">
         <div class="ritual-header">
             <h1>Skincare Routine Builder</h1>
-            <p>cloud sync · data stored in Supabase</p>
+            <p>cloud sync · click "Update" to save to cloud</p>
         </div>
 
         <div class="auth-section">
@@ -168,10 +167,11 @@
         <div class="action-buttons-bottom">
             <button class="update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
             <button class="delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
+            <button class="save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
             <button class="sync-btn" id="syncBtn">☁️ Sync to Cloud</button>
             <button class="print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
         </div>
-        <div class="footnote">✦ All data stored in Supabase cloud ✦ Click "Sync to Cloud" to upload your latest changes ✦</div>
+        <div class="footnote">✦ Changes are saved locally only ✦ Click "Update Current Routine" to save to cloud ✦ New routine names must be unique ✦</div>
     </div>
 </div>
 
@@ -238,6 +238,7 @@ let currentMorningProducts = [], currentEveningProducts = [];
 let currentRoutineId = null;
 let currentBrand = "all";
 let isLoading = false;
+let hasLocalChanges = false; // 标记是否有本地未保存的修改
 
 function getProductById(id) { return productsData.find(p => p.id === id); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
@@ -245,6 +246,70 @@ function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, fun
 
 function sortProductsByName(arr) {
     return [...arr].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+// 检查 Routine 名称是否已存在
+function isRoutineNameExists(name, excludeId = null) {
+    return Object.entries(savedRoutines).some(([id, r]) => {
+        if (excludeId && id === excludeId) return false;
+        return r.name.toLowerCase() === name.toLowerCase();
+    });
+}
+
+// 保存到本地存储（仅本地缓存，不同步云端）
+function saveToLocalStorage() {
+    localStorage.setItem('skincare_products', JSON.stringify(productsData));
+    localStorage.setItem('skincare_routines', JSON.stringify(savedRoutines));
+    localStorage.setItem('skincare_current_morning', JSON.stringify(currentMorningProducts.map(p => p.productId)));
+    localStorage.setItem('skincare_current_evening', JSON.stringify(currentEveningProducts.map(p => p.productId)));
+    localStorage.setItem('skincare_current_routine_id', currentRoutineId || '');
+    console.log('Data saved to localStorage (local only)');
+}
+
+function loadFromLocalStorage() {
+    const savedProducts = localStorage.getItem('skincare_products');
+    const savedRoutinesData = localStorage.getItem('skincare_routines');
+    const savedMorning = localStorage.getItem('skincare_current_morning');
+    const savedEvening = localStorage.getItem('skincare_current_evening');
+    const savedRoutineId = localStorage.getItem('skincare_current_routine_id');
+    
+    if (savedProducts) productsData = JSON.parse(savedProducts);
+    else productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+    
+    if (savedRoutinesData) savedRoutines = JSON.parse(savedRoutinesData);
+    else savedRoutines = JSON.parse(JSON.stringify(INITIAL_ROUTINES));
+    
+    if (savedMorning && JSON.parse(savedMorning).length > 0) {
+        currentMorningProducts = JSON.parse(savedMorning).map(pid => ({ productId: pid, time: "morning" }));
+    } else if (savedRoutineId && savedRoutines[savedRoutineId]) {
+        currentMorningProducts = savedRoutines[savedRoutineId].morning.map(pid => ({ productId: pid, time: "morning" }));
+    } else {
+        const firstKey = Object.keys(savedRoutines)[0];
+        if (firstKey && savedRoutines[firstKey]) {
+            currentMorningProducts = savedRoutines[firstKey].morning.map(pid => ({ productId: pid, time: "morning" }));
+        } else {
+            currentMorningProducts = [];
+        }
+    }
+    
+    if (savedEvening && JSON.parse(savedEvening).length > 0) {
+        currentEveningProducts = JSON.parse(savedEvening).map(pid => ({ productId: pid, time: "evening" }));
+    } else if (savedRoutineId && savedRoutines[savedRoutineId]) {
+        currentEveningProducts = savedRoutines[savedRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
+    } else {
+        const firstKey = Object.keys(savedRoutines)[0];
+        if (firstKey && savedRoutines[firstKey]) {
+            currentEveningProducts = savedRoutines[firstKey].evening.map(pid => ({ productId: pid, time: "evening" }));
+        } else {
+            currentEveningProducts = [];
+        }
+    }
+    
+    if (savedRoutineId && savedRoutines[savedRoutineId]) {
+        currentRoutineId = savedRoutineId;
+    } else {
+        currentRoutineId = Object.keys(savedRoutines)[0] || null;
+    }
 }
 
 // ==================== 云端操作 ====================
@@ -293,6 +358,8 @@ async function loadFromCloud() {
             currentEveningProducts = [];
         }
         
+        saveToLocalStorage();
+        hasLocalChanges = false;
         return true;
     } catch (e) {
         console.error('Cloud load error:', e);
@@ -302,8 +369,52 @@ async function loadFromCloud() {
     }
 }
 
-async function syncToCloud(silent = true) {
-    if (!supabaseClient || !isAuthenticated) return false;
+// 仅保存当前选中的 Routine 到云端（Update Current Routine 按钮调用）
+async function saveCurrentRoutineToCloud() {
+    if (!supabaseClient || !isAuthenticated) {
+        alert("Please sign in to save to cloud.");
+        return false;
+    }
+    if (!currentRoutineId) {
+        alert("No routine selected.");
+        return false;
+    }
+    try {
+        // 更新 savedRoutines 中的当前 Routine
+        savedRoutines[currentRoutineId] = { 
+            name: savedRoutines[currentRoutineId].name, 
+            morning: currentMorningProducts.map(p => p.productId), 
+            evening: currentEveningProducts.map(p => p.productId) 
+        };
+        
+        // 保存到 Supabase
+        await supabaseClient.from('routines').upsert({ 
+            id: currentRoutineId, 
+            name: savedRoutines[currentRoutineId].name, 
+            morning: savedRoutines[currentRoutineId].morning, 
+            evening: savedRoutines[currentRoutineId].evening, 
+            user_id: currentUserId 
+        });
+        
+        // 保存当前选中的 Routine ID
+        await supabaseClient.from('user_state').upsert({ current_routine_id: currentRoutineId, user_id: currentUserId });
+        
+        saveToLocalStorage();
+        hasLocalChanges = false;
+        return true;
+    } catch (e) {
+        console.error('Save to cloud error:', e);
+        alert("Save failed: " + e.message);
+        return false;
+    }
+}
+
+// 手动同步所有数据到云端
+async function syncAllToCloud() {
+    if (!supabaseClient || !isAuthenticated) {
+        alert("Please sign in first.");
+        return false;
+    }
     try {
         for (const p of productsData) {
             await supabaseClient.from('products').upsert({ ...p, user_id: currentUserId });
@@ -314,19 +425,19 @@ async function syncToCloud(silent = true) {
         if (currentRoutineId) {
             await supabaseClient.from('user_state').upsert({ current_routine_id: currentRoutineId, user_id: currentUserId });
         }
-        if (!silent) {
-            alert("✓ Data synced to cloud!");
-        }
+        saveToLocalStorage();
+        hasLocalChanges = false;
+        alert("✓ All data synced to cloud!");
         return true;
     } catch (e) {
         console.error('Sync error:', e);
-        if (!silent) alert("Sync failed: " + e.message);
+        alert("Sync failed: " + e.message);
         return false;
     }
 }
 
 // ==================== UI 渲染函数 ====================
-async function loadRoutine(routineId) {
+function loadRoutine(routineId) {
     let routine = savedRoutines[routineId];
     if (routine) {
         currentRoutineId = routineId;
@@ -335,7 +446,8 @@ async function loadRoutine(routineId) {
         renderRoutines();
         updateTotalPrice();
         highlightActiveRoutine();
-        await syncToCloud(true);
+        saveToLocalStorage();
+        hasLocalChanges = false;
     }
 }
 
@@ -351,15 +463,12 @@ async function updateCurrentRoutine() {
         alert("No routine selected. Please select a routine from the list first.");
         return;
     }
-    savedRoutines[currentRoutineId] = { 
-        name: savedRoutines[currentRoutineId].name, 
-        morning: currentMorningProducts.map(p => p.productId), 
-        evening: currentEveningProducts.map(p => p.productId) 
-    };
-    renderRoutineButtons();
-    highlightActiveRoutine();
-    await syncToCloud(true);
-    alert(`Routine "${savedRoutines[currentRoutineId].name}" updated!`);
+    const success = await saveCurrentRoutineToCloud();
+    if (success) {
+        alert(`Routine "${savedRoutines[currentRoutineId].name}" saved to cloud!`);
+        renderRoutineButtons();
+        highlightActiveRoutine();
+    }
 }
 
 async function deleteCurrentRoutine() {
@@ -367,14 +476,19 @@ async function deleteCurrentRoutine() {
         alert("No routine selected.");
         return;
     }
-    if (confirm(`Delete routine "${savedRoutines[currentRoutineId]?.name}"? This cannot be undone.`)) { 
+    if (confirm(`Delete routine "${savedRoutines[currentRoutineId]?.name}"? This will also delete from cloud.`)) { 
+        // 从云端删除
+        if (isAuthenticated && supabaseClient) {
+            await supabaseClient.from('routines').delete().eq('id', currentRoutineId);
+        }
+        // 从本地删除
         delete savedRoutines[currentRoutineId];
         savedRoutines = Object.fromEntries(
             Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
         );
         const firstKey = Object.keys(savedRoutines)[0];
         if (firstKey) {
-            await loadRoutine(firstKey);
+            loadRoutine(firstKey);
         } else {
             currentMorningProducts = [];
             currentEveningProducts = [];
@@ -383,7 +497,7 @@ async function deleteCurrentRoutine() {
             updateTotalPrice();
         }
         renderRoutineButtons();
-        await syncToCloud(true);
+        saveToLocalStorage();
         alert("Routine deleted.");
     }
 }
@@ -391,6 +505,12 @@ async function deleteCurrentRoutine() {
 async function createFromTemplate(templateId, isBlank) {
     let name = prompt("Enter a name for your new routine:", isBlank ? "My New Routine" : `Copy of ${savedRoutines[templateId]?.name || "Routine"}`);
     if (!name) return;
+    
+    // 检查名称是否已存在
+    if (isRoutineNameExists(name)) {
+        alert(`A routine named "${name}" already exists. Please choose a different name.`);
+        return;
+    }
     
     let newId = "standard-" + Date.now();
     let morningList = [];
@@ -409,10 +529,22 @@ async function createFromTemplate(templateId, isBlank) {
     savedRoutines = Object.fromEntries(
         Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
     );
+    
+    // 如果已登录，保存到云端
+    if (isAuthenticated && supabaseClient) {
+        await supabaseClient.from('routines').insert({ 
+            id: newId, 
+            name: name.trim(), 
+            morning: morningList, 
+            evening: eveningList, 
+            user_id: currentUserId 
+        });
+    }
+    
     renderRoutineButtons();
-    await loadRoutine(newId);
-    await syncToCloud(true);
-    alert(`New routine "${name}" created! You can now edit it.`);
+    loadRoutine(newId);
+    saveToLocalStorage();
+    alert(`New routine "${name}" created! You can now edit it. Click "Update Current Routine" to save to cloud.`);
 }
 
 function updateCreateNewSelectOptions() {
@@ -442,16 +574,28 @@ async function handleCreateNewSelect() {
 }
 
 async function renameCurrentRoutine(newName) {
-    if (currentRoutineId && savedRoutines[currentRoutineId]) {
-        savedRoutines[currentRoutineId].name = newName;
-        savedRoutines = Object.fromEntries(
-            Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
-        );
-        renderRoutineButtons();
-        highlightActiveRoutine();
-        await syncToCloud(true);
-        updateCreateNewSelectOptions();
+    if (!currentRoutineId || !savedRoutines[currentRoutineId]) return;
+    
+    // 检查新名称是否已存在（排除当前 Routine）
+    if (isRoutineNameExists(newName, currentRoutineId)) {
+        alert(`A routine named "${newName}" already exists. Please choose a different name.`);
+        return;
     }
+    
+    savedRoutines[currentRoutineId].name = newName;
+    savedRoutines = Object.fromEntries(
+        Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
+    );
+    
+    // 如果已登录，更新云端
+    if (isAuthenticated && supabaseClient) {
+        await supabaseClient.from('routines').update({ name: newName }).eq('id', currentRoutineId);
+    }
+    
+    renderRoutineButtons();
+    highlightActiveRoutine();
+    saveToLocalStorage();
+    updateCreateNewSelectOptions();
 }
 
 function renderRoutineButtons() {
@@ -480,7 +624,7 @@ function updateTotalPrice() {
     if (span) span.innerText = getUniqueProductsTotal().toFixed(2); 
 }
 
-// 产品库操作
+// 产品库操作 - 所有修改只保存到本地
 function renderBrandProducts() {
     let container = document.getElementById('brandProductsContainer');
     if (!container) return;
@@ -513,7 +657,8 @@ async function deleteProduct(productId) {
             renderRoutineButtons();
             renderRoutines();
             updateTotalPrice();
-            await syncToCloud(true);
+            saveToLocalStorage();
+            hasLocalChanges = true;
         }
     }
 }
@@ -579,7 +724,8 @@ async function saveProduct() {
     renderBrandProducts(); 
     renderRoutines(); 
     updateTotalPrice(); 
-    await syncToCloud(true);
+    saveToLocalStorage(); 
+    hasLocalChanges = true;
 }
 
 function closeForm() { 
@@ -589,7 +735,7 @@ function closeForm() {
     document.getElementById('editProductId').value = ''; 
 }
 
-// 拖拽排序
+// 拖拽排序 - 只保存到本地
 function attachReorderDrag(containerId, itemsArray, updateCallback) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -620,7 +766,8 @@ function attachReorderDrag(containerId, itemsArray, updateCallback) {
                 itemsArray.splice(dropIndex, 0, draggedItem);
                 updateCallback();
                 renderRoutines();
-                await syncToCloud(true);
+                saveToLocalStorage();
+                hasLocalChanges = true;
             }
         });
     });
@@ -690,7 +837,8 @@ function attachEmptySlotEvents() {
                 }
                 renderRoutines();
                 updateTotalPrice();
-                await syncToCloud(true);
+                saveToLocalStorage();
+                hasLocalChanges = true;
             }
         };
     });
@@ -711,7 +859,8 @@ function attachDropEvents(containerId, time) {
             if (time === 'evening' && currentEveningProducts[targetIdx]) currentEveningProducts[targetIdx] = { productId: dragData.id, time: 'evening' }; 
             renderRoutines();
             updateTotalPrice();
-            await syncToCloud(true);
+            saveToLocalStorage();
+            hasLocalChanges = true;
         } 
     }; 
 }
@@ -725,7 +874,8 @@ function attachDeleteEvents() {
             else currentEveningProducts.splice(idx, 1); 
             renderRoutines();
             updateTotalPrice();
-            await syncToCloud(true);
+            saveToLocalStorage();
+            hasLocalChanges = true;
         }; 
     }); 
 }
@@ -781,11 +931,7 @@ async function checkAuth() {
         document.getElementById('loginBtn').style.display = 'inline-block';
         document.getElementById('logoutBtn').style.display = 'none';
         
-        productsData = [];
-        savedRoutines = {};
-        currentMorningProducts = [];
-        currentEveningProducts = [];
-        currentRoutineId = null;
+        loadFromLocalStorage();
         refreshUI();
     }
 }
@@ -820,12 +966,42 @@ document.getElementById('syncBtn').onclick = async () => {
         alert("Please sign in first.");
         return;
     }
-    await syncToCloud(false);
+    await syncAllToCloud();
 };
 document.getElementById('loginBtn').onclick = handleLogin;
 document.getElementById('logoutBtn').onclick = handleLogout;
 document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
 document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutine;
+document.getElementById('saveStandardBtn').onclick = () => {
+    let name = prompt("Enter a name for your new routine:");
+    if (!name) return;
+    if (isRoutineNameExists(name)) {
+        alert(`A routine named "${name}" already exists. Please choose a different name.`);
+        return;
+    }
+    let newId = "standard-" + Date.now();
+    savedRoutines[newId] = { 
+        name: name.trim(), 
+        morning: currentMorningProducts.map(p => p.productId), 
+        evening: currentEveningProducts.map(p => p.productId) 
+    };
+    savedRoutines = Object.fromEntries(
+        Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
+    );
+    if (isAuthenticated && supabaseClient) {
+        supabaseClient.from('routines').insert({ 
+            id: newId, 
+            name: name.trim(), 
+            morning: currentMorningProducts.map(p => p.productId), 
+            evening: currentEveningProducts.map(p => p.productId), 
+            user_id: currentUserId 
+        });
+    }
+    renderRoutineButtons();
+    loadRoutine(newId);
+    saveToLocalStorage();
+    alert(`New routine "${name}" created!`);
+};
 document.getElementById('createNewSelect').onchange = handleCreateNewSelect;
 
 // 启动应用
