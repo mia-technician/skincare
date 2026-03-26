@@ -156,12 +156,16 @@
             <div class="total-amount">$<span id="totalPrice">0.00</span></div>
         </div>
         
-        <div class="action-buttons-bottom" id="actionButtons">
-            <button class="action-btn update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
-            <button class="action-btn delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
-            <button class="action-btn save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
-            <button class="action-btn sync-all-btn" id="syncAllBtn">☁️ Force Sync All to Cloud</button>
-            <button class="action-btn print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
+        <div class="action-buttons-bottom">
+    <!-- 这些按钮只有登录时显示 -->
+    <div id="authButtons" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <button class="action-btn update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
+        <button class="action-btn delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
+        <button class="action-btn save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
+        <button class="action-btn sync-all-btn" id="syncAllBtn">☁️ Force Sync All to Cloud</button>
+    </div>
+    <!-- 打印按钮始终显示 -->
+    <button class="action-btn print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
         </div>
         <div class="footnote">✦ All editing tools available without login ✦ Login to sync changes to cloud ✦ Data saved locally until synced ✦</div>
     </div>
@@ -624,8 +628,13 @@ function updateUIBasedOnAuth() {
     const editBtn = document.getElementById('editRoutineBtn');
     if (editBtn) editBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
     
-    const actionButtons = document.getElementById('actionButtons');
-    if (actionButtons) actionButtons.style.display = isLoggedIn ? 'flex' : 'none';
+    // 控制登录相关按钮的显示/隐藏
+    const authButtons = document.getElementById('authButtons');
+    if (authButtons) {
+        authButtons.style.display = isLoggedIn ? 'flex' : 'none';
+    }
+    
+    // 打印按钮始终显示，不需要控制
 }
 
 function renderBrandProducts() {
