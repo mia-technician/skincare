@@ -915,59 +915,89 @@ function renderBrandTabs() {
     document.querySelectorAll('.brand-tab').forEach(tab => { tab.onclick = () => { currentBrand = tab.dataset.brand; renderBrandTabs(); renderBrandProducts(); }; }); 
 }
 
-// ==================== 认证函数 ====================
+// ==================== 认证函数（修复版）====================
 async function handleLogin() {
-    if (!supabaseClient) { alert("Supabase not ready."); return; }
-    const { error } = await supabaseClient.auth.signInWithOAuth({ 
-        provider: 'google', 
-        options: { redirectTo: window.location.href }
-    });
-    if (error) alert('Login error: ' + error.message);
+    if (!supabaseClient) { 
+        alert("Supabase not ready. Please refresh the page.");
+        return;
+    }
+    
+    try {
+        // 先登出确保干净状态
+        await supabaseClient.auth.signOut();
+        
+        // 重新登录
+        const { error } = await supabaseClient.auth.signInWithOAuth({ 
+            provider: 'google',
+            options: { 
+                redirectTo: window.location.href,
+                queryParams: {
+                    access_type: 'offline',
+                    prompt: 'consent'
+                }
+            }
+        });
+        
+        if (error) {
+            console.error('Login error:', error);
+            alert('Login error: ' + error.message);
+        }
+    } catch (e) {
+        console.error('Login exception:', e);
+        alert('Login failed: ' + e.message);
+    }
 }
 
 async function handleLogout() { 
-    if (supabaseClient) await supabaseClient.auth.signOut(); 
-    location.reload();
+    try {
+        if (supabaseClient) {
+            await supabaseClient.auth.signOut();
+        }
+        localStorage.clear();
+        sessionStorage.clear();
+        location.reload();
+    } catch (e) {
+        console.error('Logout error:', e);
+        location.reload();
+    }
 }
 
+// 检查认证状态
 async function checkAuth() {
     if (!supabaseClient) return;
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session) {
-        isAuthenticated = true;
-        currentUserId = session.user.id;
-        document.getElementById('authStatus').innerHTML = `✅ Signed in as ${session.user.email}`;
-        document.getElementById('loginBtn').style.display = 'none';
-        document.getElementById('logoutBtn').style.display = 'inline-block';
-    } else {
+    
+    try {
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        
+        if (error) {
+            console.error('Auth check error:', error);
+            isAuthenticated = false;
+            document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
+            document.getElementById('loginBtn').style.display = 'inline-block';
+            document.getElementById('logoutBtn').style.display = 'none';
+        } else if (session) {
+            isAuthenticated = true;
+            currentUserId = session.user.id;
+            document.getElementById('authStatus').innerHTML = `✅ Signed in as ${session.user.email}`;
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+            await loadFromCloud();
+        } else {
+            isAuthenticated = false;
+            document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
+            document.getElementById('loginBtn').style.display = 'inline-block';
+            document.getElementById('logoutBtn').style.display = 'none';
+        }
+        
+        refreshUI();
+    } catch (e) {
+        console.error('Auth check exception:', e);
         isAuthenticated = false;
         document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
         document.getElementById('loginBtn').style.display = 'inline-block';
         document.getElementById('logoutBtn').style.display = 'none';
+        refreshUI();
     }
-    
-    // 无论登录与否，都从云端加载数据
-    await loadFromCloud();
-    refreshUI();
-}
-
-function refreshUI() {
-    renderBrandTabs();
-    renderBrandProducts();
-    renderRoutineButtons();
-    renderRoutines();
-    updateTotalPrice();
-    if (currentRoutineId) highlightActiveRoutine();
-}
-
-function initSupabase() {
-    if (typeof supabase === 'undefined') {
-        setTimeout(initSupabase, 500);
-        return;
-    }
-    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('Supabase initialized');
-    checkAuth();
 }
 
 // ==================== 按钮绑定 ====================
