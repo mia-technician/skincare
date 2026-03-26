@@ -946,7 +946,6 @@ async function checkAuth() {
             document.getElementById('authStatus').innerHTML = `✅ Signed in as ${session.user.email}`;
             document.getElementById('loginBtn').style.display = 'none';
             document.getElementById('logoutBtn').style.display = 'inline-block';
-            await loadFromCloud();
         } else {
             isAuthenticated = false;
             document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
@@ -954,13 +953,19 @@ async function checkAuth() {
             document.getElementById('logoutBtn').style.display = 'none';
         }
         
+        // 关键修改：无论登录与否，都从云端加载数据
+        await loadFromCloud();
         refreshUI();
+        
     } catch (e) {
         console.error('Auth check exception:', e);
         isAuthenticated = false;
         document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
         document.getElementById('loginBtn').style.display = 'inline-block';
         document.getElementById('logoutBtn').style.display = 'none';
+        
+        // 如果云端加载失败，才使用本地存储
+        loadFromLocalStorage();
         refreshUI();
     }
 }
