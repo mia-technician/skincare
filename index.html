@@ -183,6 +183,37 @@ function initSupabase() {
     }
     supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     console.log('Supabase initialized successfully');
+
+// 处理登录回调
+async function handleAuthRedirect() {
+    const hash = window.location.hash;
+    if (hash && (hash.includes('access_token') || hash === '#')) {
+        console.log('Processing auth redirect...');
+        
+        // 等待 Supabase 处理
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+            console.log('Auth successful:', session.user.email);
+            // 清除 URL 中的 hash，重新加载
+            window.location.href = window.location.pathname;
+        }
+    }
+}
+
+// 在 initSupabase 中调用
+function initSupabase() {
+    if (typeof supabase === 'undefined') {
+        setTimeout(initSupabase, 500);
+        return;
+    }
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log('Supabase initialized');
+    
+    // 检查是否有认证回调
+    handleAuthRedirect();
+    
     checkAuth();
 }
 
