@@ -23,15 +23,7 @@
         .selector-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
         .selector-actions { display: flex; gap: 0.8rem; }
         .manage-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.4rem 1rem; border-radius: 40px; cursor: pointer; font-size: 0.75rem; }
-        .create-new-select { 
-            padding: 0.4rem 1rem; 
-            border-radius: 40px; 
-            border: 1px solid #d2c0b0; 
-            background: white; 
-            font-size: 0.75rem; 
-            color: #5f5347;
-            cursor: pointer;
-        }
+        .manage-btn.hidden { display: none; }
         .routine-buttons { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1rem; }
         .routine-btn { background: #e9dfd4; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
         .routine-btn.active { background: #b99f87; color: white; }
@@ -86,11 +78,13 @@
         .total-label { font-weight: 500; color: #5f5347; }
         .total-amount { font-size: 1.8rem; font-weight: 600; color: #8f7e6b; }
         .action-buttons-bottom { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 1rem; }
-        .update-btn, .delete-current-btn, .print-btn, .save-standard-btn, .sync-all-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
+        .action-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
         .update-btn { background: #b99f87; color: white; border-color: #b99f87; }
         .delete-current-btn { background: #e9dfd4; color: #5f5347; }
         .save-standard-btn { background: #b99f87; color: white; border-color: #b99f87; }
         .sync-all-btn { background: #b99f87; color: white; border-color: #b99f87; }
+        .print-btn { background: #e9dfd4; }
+        .action-buttons-bottom.hidden { display: none; }
         .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
         @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } }
     </style>
@@ -100,7 +94,7 @@
     <div class="app-container">
         <div class="ritual-header">
             <h1>Skincare Routine Builder</h1>
-            <p>cloud sync · click buttons to save to cloud</p>
+            <p>drag to customize · login to save to cloud</p>
         </div>
 
         <div class="auth-section">
@@ -115,10 +109,6 @@
             <div class="selector-header">
                 <div class="selector-title">📋 SELECT ROUTINE</div>
                 <div class="selector-actions">
-                    <select id="createNewSelect" class="create-new-select">
-                        <option value="">Create a New Routine From...</option>
-                        <option value="blank">✨ Blank (Start from empty)</option>
-                    </select>
                     <button id="editRoutineBtn" class="manage-btn">✏️ Edit Routine Name</button>
                 </div>
             </div>
@@ -127,7 +117,7 @@
 
         <div class="product-library">
             <div class="library-header">
-                <div class="library-title">📦 PRODUCT LIBRARY · drag to replace or add</div>
+                <div class="library-title">📦 PRODUCT LIBRARY · drag to add or replace</div>
                 <button class="toggle-add-btn" id="toggleAddBtn">+ Add Product</button>
             </div>
             <div class="brand-tabs" id="brandTabs"></div>
@@ -164,14 +154,14 @@
             <div class="total-amount">$<span id="totalPrice">0.00</span></div>
         </div>
         
-        <div class="action-buttons-bottom">
-            <button class="update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
-            <button class="delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
-            <button class="save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
-            <button class="sync-all-btn" id="syncAllBtn">☁️ Force Sync All to Cloud</button>
-            <button class="print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
+        <div class="action-buttons-bottom" id="actionButtons">
+            <button class="action-btn update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
+            <button class="action-btn delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
+            <button class="action-btn save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
+            <button class="action-btn sync-all-btn" id="syncAllBtn">☁️ Force Sync All to Cloud</button>
+            <button class="action-btn print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
         </div>
-        <div class="footnote">✦ Force Sync All to Cloud: uploads ALL local data (products + routines) to cloud ✦ Use this to sync your current state to other devices ✦</div>
+        <div class="footnote">✦ All editing tools available without login ✦ Login to sync changes to cloud ✦ Data saved locally until synced ✦</div>
     </div>
 </div>
 
@@ -262,63 +252,20 @@ function saveToLocalStorage() {
     localStorage.setItem('skincare_current_routine_id', currentRoutineId || '');
 }
 
-function loadFromLocalStorage() {
-    const savedProducts = localStorage.getItem('skincare_products');
-    const savedRoutinesData = localStorage.getItem('skincare_routines');
-    const savedMorning = localStorage.getItem('skincare_current_morning');
-    const savedEvening = localStorage.getItem('skincare_current_evening');
-    const savedRoutineId = localStorage.getItem('skincare_current_routine_id');
-    
-    if (savedProducts) productsData = JSON.parse(savedProducts);
-    else productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
-    
-    if (savedRoutinesData) savedRoutines = JSON.parse(savedRoutinesData);
-    else savedRoutines = JSON.parse(JSON.stringify(INITIAL_ROUTINES));
-    
-    if (savedMorning && JSON.parse(savedMorning).length > 0) {
-        currentMorningProducts = JSON.parse(savedMorning).map(pid => ({ productId: pid, time: "morning" }));
-    } else if (savedRoutineId && savedRoutines[savedRoutineId]) {
-        currentMorningProducts = savedRoutines[savedRoutineId].morning.map(pid => ({ productId: pid, time: "morning" }));
-    } else {
-        const firstKey = Object.keys(savedRoutines)[0];
-        if (firstKey && savedRoutines[firstKey]) {
-            currentMorningProducts = savedRoutines[firstKey].morning.map(pid => ({ productId: pid, time: "morning" }));
-        } else {
-            currentMorningProducts = [];
-        }
-    }
-    
-    if (savedEvening && JSON.parse(savedEvening).length > 0) {
-        currentEveningProducts = JSON.parse(savedEvening).map(pid => ({ productId: pid, time: "evening" }));
-    } else if (savedRoutineId && savedRoutines[savedRoutineId]) {
-        currentEveningProducts = savedRoutines[savedRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
-    } else {
-        const firstKey = Object.keys(savedRoutines)[0];
-        if (firstKey && savedRoutines[firstKey]) {
-            currentEveningProducts = savedRoutines[firstKey].evening.map(pid => ({ productId: pid, time: "evening" }));
-        } else {
-            currentEveningProducts = [];
-        }
-    }
-    
-    if (savedRoutineId && savedRoutines[savedRoutineId]) {
-        currentRoutineId = savedRoutineId;
-    } else {
-        currentRoutineId = Object.keys(savedRoutines)[0] || null;
-    }
-}
-
 // ==================== 云端操作 ====================
 async function loadFromCloud() {
-    if (!supabaseClient || !isAuthenticated || isLoading) return false;
+    if (!supabaseClient || isLoading) return false;
     isLoading = true;
     try {
         const { data: products } = await supabaseClient.from('products').select('*');
         const { data: routines } = await supabaseClient.from('routines').select('*');
         const { data: state } = await supabaseClient.from('user_state').select('current_routine_id').maybeSingle();
         
-        if (products && products.length > 0) productsData = products;
-        else productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+        if (products && products.length > 0) {
+            productsData = products;
+        } else {
+            productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+        }
         productsData = sortProductsByName(productsData);
         
         if (routines && routines.length > 0) {
@@ -355,7 +302,6 @@ async function loadFromCloud() {
     }
 }
 
-// 强制同步所有本地数据到云端
 async function forceSyncAllToCloud() {
     if (!supabaseClient || !isAuthenticated) {
         alert("Please sign in first.");
@@ -363,33 +309,26 @@ async function forceSyncAllToCloud() {
     }
     
     try {
-        // 获取当前本地数据
         const products = JSON.parse(localStorage.getItem('skincare_products') || '[]');
         const routines = JSON.parse(localStorage.getItem('skincare_routines') || '{}');
         const currentRoutineId = localStorage.getItem('skincare_current_routine_id');
         
-        console.log('Force syncing all data to cloud...');
-        
-        // 同步产品
         for (const p of products) {
             await supabaseClient.from('products').upsert({ ...p, user_id: currentUserId });
         }
         
-        // 同步 Routines
         for (const [id, r] of Object.entries(routines)) {
             await supabaseClient.from('routines').upsert({ id, name: r.name, morning: r.morning, evening: r.evening, user_id: currentUserId });
         }
         
-        // 同步当前选中的 Routine
         if (currentRoutineId) {
             await supabaseClient.from('user_state').upsert({ current_routine_id: currentRoutineId, user_id: currentUserId });
         }
         
-        // 同时更新内存中的数据
         productsData = products;
         savedRoutines = routines;
         
-        alert("✓ All local data synced to cloud! Other devices can now see your updates.");
+        alert("✓ All local data synced to cloud!");
         return true;
     } catch (e) {
         console.error('Force sync error:', e);
@@ -398,7 +337,6 @@ async function forceSyncAllToCloud() {
     }
 }
 
-// 保存当前 Routine 到云端
 async function saveCurrentRoutineToCloud() {
     if (!supabaseClient || !isAuthenticated) {
         alert("Please sign in to save to cloud.");
@@ -567,76 +505,12 @@ async function saveAsNewRoutine() {
     await saveAsNewRoutineToCloud();
 }
 
-async function createFromTemplate(templateId, isBlank) {
-    let name = prompt("Enter a name for your new routine:", isBlank ? "My New Routine" : `Copy of ${savedRoutines[templateId]?.name || "Routine"}`);
-    if (!name) return;
-    
-    if (isRoutineNameExists(name)) {
-        alert(`A routine named "${name}" already exists. Please choose a different name.`);
-        return;
-    }
-    
-    let newId = "standard-" + Date.now();
-    let morningList = [];
-    let eveningList = [];
-    
-    if (!isBlank && templateId && savedRoutines[templateId]) {
-        morningList = [...savedRoutines[templateId].morning];
-        eveningList = [...savedRoutines[templateId].evening];
-    }
-    
-    savedRoutines[newId] = { 
-        name: name.trim(), 
-        morning: morningList, 
-        evening: eveningList 
-    };
-    savedRoutines = Object.fromEntries(
-        Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
-    );
-    
-    if (isAuthenticated && supabaseClient) {
-        await supabaseClient.from('routines').insert({ 
-            id: newId, 
-            name: name.trim(), 
-            morning: morningList, 
-            evening: eveningList, 
-            user_id: currentUserId 
-        });
-    }
-    
-    renderRoutineButtons();
-    await loadRoutine(newId);
-    saveToLocalStorage();
-    alert(`New routine "${name}" created!`);
-}
-
-function updateCreateNewSelectOptions() {
-    const select = document.getElementById('createNewSelect');
-    if (!select) return;
-    let options = '<option value="">Create a New Routine From...</option>';
-    options += '<option value="blank">✨ Blank (Start from empty)</option>';
-    Object.entries(savedRoutines).forEach(([id, r]) => {
-        options += `<option value="${id}">📋 ${escapeHtml(r.name)}</option>`;
-    });
-    select.innerHTML = options;
-    select.value = "";
-}
-
-async function handleCreateNewSelect() {
-    const select = document.getElementById('createNewSelect');
-    const selectedValue = select.value;
-    if (!selectedValue) return;
-    
-    if (selectedValue === "blank") {
-        await createFromTemplate(null, true);
-    } else {
-        await createFromTemplate(selectedValue, false);
-    }
-    select.value = "";
-}
-
 async function renameCurrentRoutine(newName) {
     if (!currentRoutineId || !savedRoutines[currentRoutineId]) return;
+    if (!isAuthenticated) {
+        alert("Please sign in to rename routines.");
+        return;
+    }
     
     if (isRoutineNameExists(newName, currentRoutineId)) {
         alert(`A routine named "${newName}" already exists. Please choose a different name.`);
@@ -655,7 +529,6 @@ async function renameCurrentRoutine(newName) {
     renderRoutineButtons();
     highlightActiveRoutine();
     saveToLocalStorage();
-    updateCreateNewSelectOptions();
     alert(`Routine renamed to "${newName}"!`);
 }
 
@@ -663,12 +536,11 @@ function renderRoutineButtons() {
     let container = document.getElementById('routineButtons');
     if (!container) return;
     if (Object.keys(savedRoutines).length === 0) {
-        container.innerHTML = '<div style="color: #b7a99a; padding: 0.5rem;">No routines. Create one using the dropdown above.</div>';
+        container.innerHTML = '<div style="color: #b7a99a; padding: 0.5rem;">No routines available.</div>';
         return;
     }
     container.innerHTML = Object.entries(savedRoutines).map(([id, r]) => `<button class="routine-btn ${id === currentRoutineId ? 'active' : ''}" data-id="${id}">${escapeHtml(r.name)}</button>`).join('');
     document.querySelectorAll('.routine-btn').forEach(btn => { btn.onclick = () => loadRoutine(btn.dataset.id); });
-    updateCreateNewSelectOptions();
 }
 
 function getUniqueProductsTotal() { 
@@ -685,7 +557,42 @@ function updateTotalPrice() {
     if (span) span.innerText = getUniqueProductsTotal().toFixed(2); 
 }
 
-// 产品库渲染函数（简化版，保持原有功能）
+// 根据登录状态更新 UI 显示
+function updateUIBasedOnAuth() {
+    const isLoggedIn = isAuthenticated;
+    
+    // 编辑 Routine 名称按钮 - 仅登录可见
+    const editBtn = document.getElementById('editRoutineBtn');
+    if (editBtn) {
+        editBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
+    }
+    
+    // 底部操作按钮区域 - 仅登录可见
+    const actionButtons = document.getElementById('actionButtons');
+    if (actionButtons) {
+        actionButtons.style.display = isLoggedIn ? 'flex' : 'none';
+    }
+    
+    // 添加产品按钮 - 始终可见
+    const addBtn = document.getElementById('toggleAddBtn');
+    if (addBtn) {
+        addBtn.style.display = 'inline-block';
+    }
+    
+    // 产品库中的编辑和删除图标 - 始终可用
+    document.querySelectorAll('.edit-icon, .delete-product-icon').forEach(icon => {
+        icon.classList.remove('disabled');
+        icon.style.pointerEvents = 'auto';
+        icon.style.opacity = '0.6';
+    });
+    
+    // 产品库项的可拖拽性 - 始终可用
+    document.querySelectorAll('.library-item').forEach(item => {
+        item.setAttribute('draggable', 'true');
+        item.style.cursor = 'grab';
+    });
+}
+
 function renderBrandProducts() {
     let container = document.getElementById('brandProductsContainer');
     if (!container) return;
@@ -701,6 +608,7 @@ function renderBrandProducts() {
     attachDragEvents(); 
     attachEditEvents();
     attachProductDeleteEvents();
+    updateUIBasedOnAuth();
 }
 
 async function deleteProduct(productId) {
@@ -976,19 +884,16 @@ async function checkAuth() {
         document.getElementById('authStatus').innerHTML = `✅ Signed in as ${session.user.email}`;
         document.getElementById('loginBtn').style.display = 'none';
         document.getElementById('logoutBtn').style.display = 'inline-block';
-        
-        await loadFromCloud();
-        refreshUI();
-        
     } else {
         isAuthenticated = false;
-        document.getElementById('authStatus').innerHTML = `🔓 Please sign in to use the app`;
+        document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
         document.getElementById('loginBtn').style.display = 'inline-block';
         document.getElementById('logoutBtn').style.display = 'none';
-        
-        loadFromLocalStorage();
-        refreshUI();
     }
+    
+    // 无论登录与否，都从云端加载数据
+    await loadFromCloud();
+    refreshUI();
 }
 
 function refreshUI() {
@@ -1011,18 +916,26 @@ function initSupabase() {
 }
 
 // ==================== 按钮绑定 ====================
-document.getElementById('toggleAddBtn').onclick = () => { document.getElementById('editProductId').value = ''; closeForm(); document.getElementById('productForm').classList.add('show'); document.getElementById('toggleAddBtn').style.display = 'none'; };
+document.getElementById('toggleAddBtn').onclick = () => { 
+    document.getElementById('editProductId').value = ''; 
+    closeForm(); 
+    document.getElementById('productForm').classList.add('show'); 
+    document.getElementById('toggleAddBtn').style.display = 'none'; 
+};
 document.getElementById('cancelFormBtn').onclick = closeForm;
 document.getElementById('saveProductBtn').onclick = saveProduct;
 document.getElementById('printBtn').onclick = printRoutine;
-document.getElementById('editRoutineBtn').onclick = () => { let newName = prompt("Edit routine name:", savedRoutines[currentRoutineId]?.name); if(newName) renameCurrentRoutine(newName); };
+document.getElementById('editRoutineBtn').onclick = () => { 
+    if (!isAuthenticated) { alert("Please sign in to rename routines."); return; }
+    let newName = prompt("Edit routine name:", savedRoutines[currentRoutineId]?.name); 
+    if(newName) renameCurrentRoutine(newName); 
+};
 document.getElementById('loginBtn').onclick = handleLogin;
 document.getElementById('logoutBtn').onclick = handleLogout;
 document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
 document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutine;
 document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
 document.getElementById('syncAllBtn').onclick = forceSyncAllToCloud;
-document.getElementById('createNewSelect').onchange = handleCreateNewSelect;
 
 // 启动应用
 initSupabase();
