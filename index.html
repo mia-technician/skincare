@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Skincare Routine Builder</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- 使用 unpkg CDN（备用方案） -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -109,7 +110,7 @@
             <div class="selector-header">
                 <div class="selector-title">📋 SELECT ROUTINE</div>
                 <div class="selector-actions">
-                    <button id="editRoutineBtn" class="manage-btn">✏️ Edit Routine Name</button>
+                    <button id="editRoutineBtn" class="manage-btn" style="display:none">✏️ Edit Routine Name</button>
                 </div>
             </div>
             <div class="routine-buttons" id="routineButtons"></div>
@@ -174,7 +175,7 @@ let supabaseClient = null;
 let isAuthenticated = false;
 let currentUserId = null;
 
-// 等待 Supabase SDK 加载完成
+// 等待 Supabase SDK 加载
 function initSupabase() {
     if (typeof supabase === 'undefined') {
         console.log('Waiting for Supabase SDK...');
@@ -182,83 +183,10 @@ function initSupabase() {
         return;
     }
     supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log('Supabase initialized successfully');
-
-// 处理登录回调
-async function handleAuthRedirect() {
-    const hash = window.location.hash;
-    if (hash && (hash.includes('access_token') || hash === '#')) {
-        console.log('Processing auth redirect...');
-        
-        // 等待 Supabase 处理
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) {
-            console.log('Auth successful:', session.user.email);
-            // 清除 URL 中的 hash，重新加载
-            window.location.href = window.location.pathname;
-        }
-    }
-}
-
-// 在 initSupabase 中调用
-function initSupabase() {
-    if (typeof supabase === 'undefined') {
-        setTimeout(initSupabase, 500);
-        return;
-    }
-    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.supabaseClient = supabaseClient;
     console.log('Supabase initialized');
-    
-    // 检查是否有认证回调
-    handleAuthRedirect();
-    
     checkAuth();
 }
-
-// 检查认证状态
-async function checkAuth() {
-    if (!supabaseClient) return;
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session) {
-        isAuthenticated = true;
-        currentUserId = session.user.id;
-        document.getElementById('authStatus').innerHTML = `✅ Signed in as ${session.user.email}`;
-        document.getElementById('loginBtn').style.display = 'none';
-        document.getElementById('logoutBtn').style.display = 'inline-block';
-    } else {
-        isAuthenticated = false;
-        document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
-        document.getElementById('loginBtn').style.display = 'inline-block';
-        document.getElementById('logoutBtn').style.display = 'none';
-    }
-    
-    await loadFromCloud();
-    refreshUI();
-}
-
-// 登录函数
-async function handleLogin() {
-    if (!supabaseClient) { alert("Supabase not ready. Please refresh."); return; }
-    const { error } = await supabaseClient.auth.signInWithOAuth({ 
-        provider: 'google', 
-        options: { redirectTo: window.location.href }
-    });
-    if (error) {
-        console.error('Login error:', error);
-        alert('Login error: ' + error.message);
-    }
-}
-
-// 登出函数
-async function handleLogout() { 
-    if (supabaseClient) await supabaseClient.auth.signOut(); 
-    location.reload();
-}
-
-// 启动 Supabase
-initSupabase();
 
 // ==================== 默认数据 ====================
 const DEFAULT_PRODUCTS = [
@@ -338,9 +266,55 @@ function saveToLocalStorage() {
     localStorage.setItem('skincare_current_routine_id', currentRoutineId || '');
 }
 
+function loadFromLocalStorage() {
+    const savedProducts = localStorage.getItem('skincare_products');
+    const savedRoutinesData = localStorage.getItem('skincare_routines');
+    const savedMorning = localStorage.getItem('skincare_current_morning');
+    const savedEvening = localStorage.getItem('skincare_current_evening');
+    const savedRoutineId = localStorage.getItem('skincare_current_routine_id');
+    
+    if (savedProducts) productsData = JSON.parse(savedProducts);
+    else productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+    
+    if (savedRoutinesData) savedRoutines = JSON.parse(savedRoutinesData);
+    else savedRoutines = JSON.parse(JSON.stringify(INITIAL_ROUTINES));
+    
+    if (savedMorning && JSON.parse(savedMorning).length > 0) {
+        currentMorningProducts = JSON.parse(savedMorning).map(pid => ({ productId: pid, time: "morning" }));
+    } else if (savedRoutineId && savedRoutines[savedRoutineId]) {
+        currentMorningProducts = savedRoutines[savedRoutineId].morning.map(pid => ({ productId: pid, time: "morning" }));
+    } else {
+        const firstKey = Object.keys(savedRoutines)[0];
+        if (firstKey && savedRoutines[firstKey]) {
+            currentMorningProducts = savedRoutines[firstKey].morning.map(pid => ({ productId: pid, time: "morning" }));
+        } else {
+            currentMorningProducts = [];
+        }
+    }
+    
+    if (savedEvening && JSON.parse(savedEvening).length > 0) {
+        currentEveningProducts = JSON.parse(savedEvening).map(pid => ({ productId: pid, time: "evening" }));
+    } else if (savedRoutineId && savedRoutines[savedRoutineId]) {
+        currentEveningProducts = savedRoutines[savedRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
+    } else {
+        const firstKey = Object.keys(savedRoutines)[0];
+        if (firstKey && savedRoutines[firstKey]) {
+            currentEveningProducts = savedRoutines[firstKey].evening.map(pid => ({ productId: pid, time: "evening" }));
+        } else {
+            currentEveningProducts = [];
+        }
+    }
+    
+    if (savedRoutineId && savedRoutines[savedRoutineId]) {
+        currentRoutineId = savedRoutineId;
+    } else {
+        currentRoutineId = Object.keys(savedRoutines)[0] || null;
+    }
+}
+
 // ==================== 云端操作 ====================
 async function loadFromCloud() {
-    if (!supabaseClient || isLoading) return false;
+    if (!supabaseClient || !isAuthenticated || isLoading) return false;
     isLoading = true;
     try {
         const { data: products } = await supabaseClient.from('products').select('*');
@@ -643,40 +617,14 @@ function updateTotalPrice() {
     if (span) span.innerText = getUniqueProductsTotal().toFixed(2); 
 }
 
-// 根据登录状态更新 UI 显示
 function updateUIBasedOnAuth() {
     const isLoggedIn = isAuthenticated;
     
-    // 编辑 Routine 名称按钮 - 仅登录可见
     const editBtn = document.getElementById('editRoutineBtn');
-    if (editBtn) {
-        editBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
-    }
+    if (editBtn) editBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
     
-    // 底部操作按钮区域 - 仅登录可见
     const actionButtons = document.getElementById('actionButtons');
-    if (actionButtons) {
-        actionButtons.style.display = isLoggedIn ? 'flex' : 'none';
-    }
-    
-    // 添加产品按钮 - 始终可见
-    const addBtn = document.getElementById('toggleAddBtn');
-    if (addBtn) {
-        addBtn.style.display = 'inline-block';
-    }
-    
-    // 产品库中的编辑和删除图标 - 始终可用
-    document.querySelectorAll('.edit-icon, .delete-product-icon').forEach(icon => {
-        icon.classList.remove('disabled');
-        icon.style.pointerEvents = 'auto';
-        icon.style.opacity = '0.6';
-    });
-    
-    // 产品库项的可拖拽性 - 始终可用
-    document.querySelectorAll('.library-item').forEach(item => {
-        item.setAttribute('draggable', 'true');
-        item.style.cursor = 'grab';
-    });
+    if (actionButtons) actionButtons.style.display = isLoggedIn ? 'flex' : 'none';
 }
 
 function renderBrandProducts() {
@@ -788,7 +736,6 @@ function closeForm() {
     document.getElementById('editProductId').value = ''; 
 }
 
-// 拖拽排序
 function attachReorderDrag(containerId, itemsArray, updateCallback) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -946,7 +893,7 @@ function renderBrandTabs() {
     document.querySelectorAll('.brand-tab').forEach(tab => { tab.onclick = () => { currentBrand = tab.dataset.brand; renderBrandTabs(); renderBrandProducts(); }; }); 
 }
 
-// ==================== 认证函数（修复版）====================
+// ==================== 认证函数 ====================
 async function handleLogin() {
     if (!supabaseClient) { 
         alert("Supabase not ready. Please refresh the page.");
@@ -954,17 +901,10 @@ async function handleLogin() {
     }
     
     try {
-        // 获取当前完整 URL 作为重定向地址
-        const redirectUrl = window.location.href;
-        
         const { error } = await supabaseClient.auth.signInWithOAuth({ 
             provider: 'google',
             options: { 
-                redirectTo: redirectUrl,
-                queryParams: {
-                    access_type: 'offline',
-                    prompt: 'consent'
-                }
+                redirectTo: window.location.href
             }
         });
         
@@ -984,90 +924,13 @@ async function handleLogout() {
             await supabaseClient.auth.signOut();
         }
         localStorage.clear();
-        sessionStorage.clear();
-        // 清除 URL 中的 hash
-        window.location.href = window.location.pathname;
+        location.reload();
     } catch (e) {
         console.error('Logout error:', e);
-        window.location.href = window.location.pathname;
+        location.reload();
     }
 }
 
-// 检查认证状态（增强版）
-async function checkAuth() {
-    if (!supabaseClient) return;
-    
-    try {
-        // 首先检查 URL 中是否有认证信息
-        const hash = window.location.hash;
-        if (hash && (hash.includes('access_token') || hash.includes('#access_token'))) {
-            console.log('Auth callback detected, processing...');
-            // 等待 Supabase 处理
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-        
-        const { data: { session }, error } = await supabaseClient.auth.getSession();
-        
-        if (error) {
-            console.error('Auth check error:', error);
-            isAuthenticated = false;
-        } else if (session) {
-            isAuthenticated = true;
-            currentUserId = session.user.id;
-            document.getElementById('authStatus').innerHTML = `✅ Signed in as ${session.user.email}`;
-            document.getElementById('loginBtn').style.display = 'none';
-            document.getElementById('logoutBtn').style.display = 'inline-block';
-            
-            // 登录成功后清除 URL 中的 hash
-            if (window.location.hash) {
-                window.history.replaceState(null, '', window.location.pathname);
-            }
-            
-            await loadFromCloud();
-        } else {
-            isAuthenticated = false;
-            document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
-            document.getElementById('loginBtn').style.display = 'inline-block';
-            document.getElementById('logoutBtn').style.display = 'none';
-        }
-        
-        refreshUI();
-    } catch (e) {
-        console.error('Auth check exception:', e);
-        isAuthenticated = false;
-        document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
-        document.getElementById('loginBtn').style.display = 'inline-block';
-        document.getElementById('logoutBtn').style.display = 'none';
-        refreshUI();
-    }
-}
-
-// 监听认证状态变化
-function setupAuthListener() {
-    if (!supabaseClient) return;
-    
-    supabaseClient.auth.onAuthStateChange((event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        
-        if (event === 'SIGNED_IN') {
-            console.log('User signed in, reloading...');
-            window.location.href = window.location.pathname;
-        }
-        if (event === 'SIGNED_OUT') {
-            console.log('User signed out, reloading...');
-            window.location.href = window.location.pathname;
-        }
-    });
-}
-
-// 启动时设置监听器
-setTimeout(() => {
-    if (supabaseClient) {
-        setupAuthListener();
-    }
-}, 1000);
-
-// 检查认证状态
 async function checkAuth() {
     if (!supabaseClient) return;
     
@@ -1077,9 +940,6 @@ async function checkAuth() {
         if (error) {
             console.error('Auth check error:', error);
             isAuthenticated = false;
-            document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
-            document.getElementById('loginBtn').style.display = 'inline-block';
-            document.getElementById('logoutBtn').style.display = 'none';
         } else if (session) {
             isAuthenticated = true;
             currentUserId = session.user.id;
@@ -1105,7 +965,17 @@ async function checkAuth() {
     }
 }
 
-// ==================== 按钮绑定 ====================
+function refreshUI() {
+    renderBrandTabs();
+    renderBrandProducts();
+    renderRoutineButtons();
+    renderRoutines();
+    updateTotalPrice();
+    if (currentRoutineId) highlightActiveRoutine();
+    updateUIBasedOnAuth();
+}
+
+// 按钮绑定
 document.getElementById('toggleAddBtn').onclick = () => { 
     document.getElementById('editProductId').value = ''; 
     closeForm(); 
@@ -1128,6 +998,8 @@ document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
 document.getElementById('syncAllBtn').onclick = forceSyncAllToCloud;
 
 // 启动应用
+loadFromLocalStorage();
+refreshUI();
 initSupabase();
 </script>
 </body>
