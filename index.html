@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Skincare Routine Builder</title>
-    <!-- 用于解析 Word 文档 (.docx) -->
-<script src="https://cdn.jsdelivr.net/npm/mammoth@1.4.2/mammoth.browser.min.js"></script>
     
-    <!-- ==================== Supabase SDK（必须！）==================== -->
+    <!-- 用于解析 Word 文档 (.docx) -->
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.4.2/mammoth.browser.min.js"></script>
+    
+    <!-- Supabase SDK -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -91,42 +92,190 @@
         .action-buttons-bottom.hidden { display: none; }
         .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
         @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } }
+        
         /* Tab 导航样式 */
-.tab-bar {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    border-bottom: 1px solid #e7dbd0;
-    padding-bottom: 0.5rem;
-    flex-wrap: wrap;
-}
-.tab-btn {
-    background: transparent;
-    border: none;
-    padding: 0.8rem 1.8rem;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #b7a99a;
-    cursor: pointer;
-    border-radius: 40px;
-    transition: all 0.2s;
-}
-.tab-btn:hover {
-    background: #e9dfd4;
-    color: #5f5347;
-}
-.tab-btn.active {
-    background: #b99f87;
-    color: white;
-}
-.tab-content {
-    display: none;
-}
-.tab-content.active {
-    display: block;
-}
+        .tab-bar {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e7dbd0;
+            padding-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 0.8rem 1.8rem;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #b7a99a;
+            cursor: pointer;
+            border-radius: 40px;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover {
+            background: #e9dfd4;
+            color: #5f5347;
+        }
+        .tab-btn.active {
+            background: #b99f87;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Pre & Post Care 页面样式 */
+        .care-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+            min-height: 500px;
+        }
+        .care-sidebar {
+            background: #fff9f2;
+            border-radius: 24px;
+            padding: 1.2rem;
+            border: 1px solid #e7dbd0;
+        }
+        .care-sidebar h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #8f7e6b;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e2d4c6;
+        }
+        .care-procedures {
+            list-style: none;
+        }
+        .care-procedure-item {
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.5rem;
+            background: #f5efe8;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #5f5347;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .care-procedure-item:hover {
+            background: #e9dfd4;
+            transform: translateX(4px);
+        }
+        .care-procedure-item.active {
+            background: #b99f87;
+            color: white;
+        }
+        .procedure-delete {
+            color: #b7a99a;
+            cursor: pointer;
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+        .procedure-delete:hover {
+            opacity: 1;
+            color: #d2c0b0;
+        }
+        .add-procedure-btn {
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.6rem;
+            background: #e9dfd4;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #5f5347;
+        }
+        .care-content {
+            background: #fff9f2;
+            border-radius: 24px;
+            padding: 1.5rem;
+            border: 1px solid #e7dbd0;
+        }
+        .care-title-input {
+            width: 100%;
+            font-size: 1.5rem;
+            font-weight: 500;
+            font-family: 'Montserrat', sans-serif;
+            border: none;
+            background: transparent;
+            color: #5f5347;
+            padding: 0.5rem 0;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e2d4c6;
+            outline: none;
+        }
+        .care-section {
+            margin-bottom: 1.5rem;
+        }
+        .care-section h4 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #8f7e6b;
+            margin-bottom: 0.5rem;
+        }
+        .care-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 0.8rem;
+            border: 1px solid #e2d4c6;
+            border-radius: 16px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            resize: vertical;
+            background: white;
+        }
+        .care-textarea:focus {
+            outline: none;
+            border-color: #b99f87;
+        }
+        .care-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+        .care-save-btn, .care-print-btn {
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .care-save-btn {
+            background: #b99f87;
+            color: white;
+        }
+        .care-print-btn {
+            background: #e9dfd4;
+            color: #5f5347;
+        }
+        .care-note {
+            font-size: 0.7rem;
+            color: #b7a99a;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        @media (max-width: 750px) {
+            .care-layout {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -138,118 +287,110 @@
         </div>
 
         <!-- Tab 导航 -->
-<div class="tab-bar">
-    <button class="tab-btn active" data-tab="builder">✨ Routine Builder</button>
-    <button class="tab-btn" data-tab="prepost">📋 Pre & Post Care</button>
-</div>  
-<div class="tab-content active" id="builder-tab">
-
-    <div class="auth-section">
-            <div class="auth-status" id="authStatus">Loading...</div>
-            <div>
-                <button id="loginBtn" class="auth-btn" style="display:none">Sign In with Google</button>
-                <button id="logoutBtn" class="auth-btn auth-btn-outline" style="display:none">Sign Out</button>
-            </div>
+        <div class="tab-bar">
+            <button class="tab-btn active" data-tab="builder">✨ Routine Builder</button>
+            <button class="tab-btn" data-tab="prepost">📋 Pre & Post Care</button>
         </div>
 
-        <div class="routine-selector-bar">
-            <div class="selector-header">
-                <div class="selector-title">📋 SELECT ROUTINE</div>
-                <div class="selector-actions">
-                    <button id="editRoutineBtn" class="manage-btn" style="display:none">✏️ Edit Routine Name</button>
+        <!-- ========== 第一个 Tab：Routine Builder ========== -->
+        <div class="tab-content active" id="builder-tab">
+            <div class="auth-section">
+                <div class="auth-status" id="authStatus">Loading...</div>
+                <div>
+                    <button id="loginBtn" class="auth-btn" style="display:none">Sign In with Google</button>
+                    <button id="logoutBtn" class="auth-btn auth-btn-outline" style="display:none">Sign Out</button>
                 </div>
             </div>
-            <div class="routine-buttons" id="routineButtons"></div>
+
+            <div class="routine-selector-bar">
+                <div class="selector-header">
+                    <div class="selector-title">📋 SELECT ROUTINE</div>
+                    <div class="selector-actions">
+                        <button id="editRoutineBtn" class="manage-btn" style="display:none">✏️ Edit Routine Name</button>
+                    </div>
+                </div>
+                <div class="routine-buttons" id="routineButtons"></div>
+            </div>
+
+            <div class="product-library">
+                <div class="library-header">
+                    <div class="library-title">📦 PRODUCT LIBRARY · drag to add or replace</div>
+                    <button class="toggle-add-btn" id="toggleAddBtn">+ Add Product</button>
+                </div>
+                <div class="brand-tabs" id="brandTabs"></div>
+                <div id="brandProductsContainer" class="brand-products"></div>
+                <div id="productForm" class="product-form">
+                    <div class="form-row">
+                        <div class="form-group"><label>Product Name *</label><input type="text" id="productName" placeholder="e.g., Vitamin C"></div>
+                        <div class="form-group"><label>Brand</label><select id="productBrand"><option>SkinMedica</option><option>Skinceuticals</option><option>FNL</option><option>ColorScience</option><option>Others</option></select></div>
+                        <div class="form-group"><label>Price ($)</label><input type="number" id="productPrice" step="0.01"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Benefit</label><input type="text" id="productBenefit"></div>
+                        <div class="form-group"><label>Image URL</label><input type="text" id="productImage"></div>
+                    </div>
+                    <div class="form-group"><label>Usage</label><textarea id="productUsage" rows="2"></textarea></div>
+                    <div class="form-actions"><button class="btn-cancel" id="cancelFormBtn">Cancel</button><button class="btn-save" id="saveProductBtn">Save</button></div>
+                    <input type="hidden" id="editProductId">
+                </div>
+            </div>
+
+            <div class="routine-grid">
+                <div class="column morning-icon">
+                    <div class="column-title">CURRENT MORNING ROUTINE <span>AM</span></div>
+                    <div class="product-list" id="morningList"></div>
+                </div>
+                <div class="column evening-icon">
+                    <div class="column-title">CURRENT EVENING ROUTINE <span>PM</span></div>
+                    <div class="product-list" id="eveningList"></div>
+                </div>
+            </div>
+
+            <div class="total-bar">
+                <div class="total-label">TOTAL VALUE (Unique Products)</div>
+                <div class="total-amount">$<span id="totalPrice">0.00</span></div>
+            </div>
+            
+            <div class="action-buttons-bottom">
+                <div id="authButtons" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="action-btn update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
+                    <button class="action-btn delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
+                    <button class="action-btn save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
+                    <button class="action-btn sync-all-btn" id="syncAllBtn">☁️ Force Sync All to Cloud</button>
+                </div>
+                <button class="action-btn print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
+            </div>
+            <div class="footnote">✦ All editing tools available without login ✦ Login to sync changes to cloud ✦ Data saved locally until synced ✦</div>
         </div>
 
-        <div class="product-library">
-            <div class="library-header">
-                <div class="library-title">📦 PRODUCT LIBRARY · drag to add or replace</div>
-                <button class="toggle-add-btn" id="toggleAddBtn">+ Add Product</button>
-            </div>
-            <div class="brand-tabs" id="brandTabs"></div>
-            <div id="brandProductsContainer" class="brand-products"></div>
-            <div id="productForm" class="product-form">
-                <div class="form-row">
-                    <div class="form-group"><label>Product Name *</label><input type="text" id="productName" placeholder="e.g., Vitamin C"></div>
-                    <div class="form-group"><label>Brand</label><select id="productBrand"><option>SkinMedica</option><option>Skinceuticals</option><option>FNL</option><option>ColorScience</option><option>Others</option></select></div>
-                    <div class="form-group"><label>Price ($)</label><input type="number" id="productPrice" step="0.01"></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label>Benefit</label><input type="text" id="productBenefit"></div>
-                    <div class="form-group"><label>Image URL</label><input type="text" id="productImage"></div>
-                </div>
-                <div class="form-group"><label>Usage</label><textarea id="productUsage" rows="2"></textarea></div>
-                <div class="form-actions"><button class="btn-cancel" id="cancelFormBtn">Cancel</button><button class="btn-save" id="saveProductBtn">Save</button></div>
-                <input type="hidden" id="editProductId">
-            </div>
-        </div>
-
-        <div class="routine-grid">
-            <div class="column morning-icon">
-                <div class="column-title">CURRENT MORNING ROUTINE <span>AM</span></div>
-                <div class="product-list" id="morningList"></div>
-            </div>
-            <div class="column evening-icon">
-                <div class="column-title">CURRENT EVENING ROUTINE <span>PM</span></div>
-                <div class="product-list" id="eveningList"></div>
-            </div>
-        </div>
-
-        <div class="total-bar">
-            <div class="total-label">TOTAL VALUE (Unique Products)</div>
-            <div class="total-amount">$<span id="totalPrice">0.00</span></div>
-        </div>
-        
-        <div class="action-buttons-bottom">
-    <!-- 这些按钮只有登录时显示 -->
-    <div id="authButtons" style="display: flex; gap: 1rem; flex-wrap: wrap;">
-        <button class="action-btn update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
-        <button class="action-btn delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
-        <button class="action-btn save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
-        <button class="action-btn sync-all-btn" id="syncAllBtn">☁️ Force Sync All to Cloud</button>
-    </div>
-    <!-- 打印按钮始终显示 -->
-    <button class="action-btn print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
-        </div>
-        <div class="footnote">✦ All editing tools available without login ✦ Login to sync changes to cloud ✦ Data saved locally until synced ✦</div>
-    </div>
-                </div>
-        <!-- 第一个 Tab 结束 -->
-        
         <!-- ========== 第二个 Tab：Pre & Post Care ========== -->
-<!-- ========== 第二个 Tab：Pre & Post Care ========== -->
-<div class="tab-content" id="prepost-tab">
-    <div class="care-layout">
-        <!-- 左侧：文档列表 -->
-        <div class="care-sidebar">
-            <h3>📄 DOCUMENTS</h3>
-            <div id="docList" class="care-procedures"></div>
-            <button class="add-procedure-btn" id="uploadDocBtn">📎 Upload Word Document</button>
-            <input type="file" id="wordFileInput" accept=".docx,.doc,.txt" style="display: none;">
-        </div>
-        
-        <!-- 右侧：文档编辑器 -->
-        <div class="care-content">
-            <input type="text" id="docTitle" class="care-title-input" placeholder="Document Title">
-            
-            <div class="care-section">
-                <h4>📝 CONTENT (Editable)</h4>
-                <textarea id="docContent" class="care-textarea" style="min-height: 400px;" placeholder="Document content will appear here..."></textarea>
+        <div class="tab-content" id="prepost-tab">
+            <div class="care-layout">
+                <div class="care-sidebar">
+                    <h3>📄 DOCUMENTS</h3>
+                    <div id="docList" class="care-procedures"></div>
+                    <button class="add-procedure-btn" id="uploadDocBtn">📎 Upload Word Document</button>
+                    <input type="file" id="wordFileInput" accept=".docx,.doc,.txt" style="display: none;">
+                </div>
+                
+                <div class="care-content">
+                    <input type="text" id="docTitle" class="care-title-input" placeholder="Document Title">
+                    
+                    <div class="care-section">
+                        <h4>📝 CONTENT (Editable)</h4>
+                        <textarea id="docContent" class="care-textarea" style="min-height: 400px;" placeholder="Document content will appear here..."></textarea>
+                    </div>
+                    
+                    <div class="care-actions">
+                        <button class="care-save-btn" id="saveDocBtn">💾 Save to Browser</button>
+                        <button class="care-print-btn" id="printDocBtn">🖨️ Print / Save as PDF</button>
+                        <button class="care-print-btn" id="emailDocBtn">📧 Email as PDF</button>
+                    </div>
+                    <div class="care-note">
+                        ✦ Edits are temporary ✦ Click "Save to Browser" to keep changes locally ✦ Original document remains unchanged ✦
+                    </div>
+                </div>
             </div>
-            
-            <div class="care-actions">
-                <button class="care-save-btn" id="saveDocBtn">💾 Save to Browser</button>
-                <button class="care-print-btn" id="printDocBtn">🖨️ Print / Save as PDF</button>
-                <button class="care-print-btn" id="emailDocBtn">📧 Email as PDF</button>
-            </div>
-            <div class="care-note" style="margin-top: 1rem; font-size: 0.7rem; color: #b7a99a; text-align: center;">
-                ✦ Edits are temporary ✦ Click "Save to Browser" to keep changes locally ✦ Original document remains unchanged ✦
-            </div>
-        </div>
-    </div>
-</div>
-            
         </div>
     </div>
 </div>
@@ -711,13 +852,10 @@ function updateUIBasedOnAuth() {
     const editBtn = document.getElementById('editRoutineBtn');
     if (editBtn) editBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
     
-    // 控制登录相关按钮的显示/隐藏
     const authButtons = document.getElementById('authButtons');
     if (authButtons) {
         authButtons.style.display = isLoggedIn ? 'flex' : 'none';
     }
-    
-    // 打印按钮始终显示，不需要控制
 }
 
 function renderBrandProducts() {
@@ -980,182 +1118,57 @@ function printRoutine() {
         <meta charset="UTF-8">
         <title>Skincare Routine</title>
         <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            body {
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                padding: 0.5in;
-                background: white;
-                color: #3e3c39;
-                line-height: 1.5;
-            }
-            .print-header {
-                text-align: center;
-                margin-bottom: 30px;
-                border-bottom: 2px solid #e2d4c6;
-                padding-bottom: 15px;
-            }
-            .print-header h1 {
-                font-family: 'Montserrat', sans-serif;
-                font-weight: 300;
-                font-size: 28px;
-                color: #7f6e5d;
-                margin-bottom: 8px;
-            }
-            .print-header p {
-                font-size: 12px;
-                color: #b7a99a;
-            }
-            .print-date {
-                font-size: 11px;
-                color: #ccbeaf;
-                margin-top: 5px;
-            }
-            .print-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 30px;
-                margin-top: 20px;
-            }
-            .print-column {
-                border: 1px solid #e7dbd0;
-                border-radius: 16px;
-                padding: 20px;
-                background: #fefcf8;
-            }
-            .print-column h2 {
-                font-family: 'Montserrat', sans-serif;
-                font-size: 20px;
-                font-weight: 400;
-                color: #8f7e6b;
-                border-bottom: 1px solid #e2d4c6;
-                padding-bottom: 10px;
-                margin-bottom: 15px;
-            }
-            .print-product {
-                display: flex;
-                gap: 12px;
-                margin-bottom: 18px;
-                padding-bottom: 12px;
-                border-bottom: 1px dashed #e7dbd0;
-                page-break-inside: avoid;
-                break-inside: avoid;
-            }
-            .print-product:last-child {
-                border-bottom: none;
-                margin-bottom: 0;
-                padding-bottom: 0;
-            }
-            .print-product-image {
-                width: 50px;
-                height: 50px;
-                border-radius: 50%;
-                background: #f1e8e0;
-                border: 1px solid #dacbbb;
-                overflow: hidden;
-                flex-shrink: 0;
-            }
-            .print-product-image img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-            .print-product-info {
-                flex: 1;
-            }
-            .print-product-name {
-                font-family: 'Montserrat', sans-serif;
-                font-weight: 600;
-                font-size: 14px;
-                color: #5f5347;
-                margin-bottom: 4px;
-            }
-            .print-product-benefit {
-                font-size: 11px;
-                color: #b7a99a;
-                margin-top: 3px;
-                font-style: italic;
-            }
-            .print-product-usage {
-                font-size: 10px;
-                color: #8e7e6e;
-                margin-top: 5px;
-                line-height: 1.4;
-            }
-            .print-footer {
-                margin-top: 30px;
-                text-align: center;
-                font-size: 10px;
-                color: #ccbeaf;
-                border-top: 1px solid #e7dbd0;
-                padding-top: 15px;
-            }
-            @media print {
-                body {
-                    padding: 0;
-                }
-                .print-product {
-                    break-inside: avoid;
-                    page-break-inside: avoid;
-                }
-            }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Inter', sans-serif; padding: 0.5in; background: white; }
+            .print-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2d4c6; padding-bottom: 15px; }
+            .print-header h1 { font-family: 'Montserrat', sans-serif; font-size: 28px; color: #7f6e5d; }
+            .print-date { font-size: 11px; color: #ccbeaf; margin-top: 5px; }
+            .print-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+            .print-column { border: 1px solid #e7dbd0; border-radius: 16px; padding: 20px; background: #fefcf8; }
+            .print-column h2 { font-family: 'Montserrat', sans-serif; font-size: 20px; color: #8f7e6b; border-bottom: 1px solid #e2d4c6; padding-bottom: 10px; margin-bottom: 15px; }
+            .print-product { display: flex; gap: 12px; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px dashed #e7dbd0; }
+            .print-product-image { width: 50px; height: 50px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; }
+            .print-product-image img { width: 100%; height: 100%; object-fit: cover; }
+            .print-product-info { flex: 1; }
+            .print-product-name { font-weight: 600; font-size: 14px; color: #5f5347; }
+            .print-product-benefit { font-size: 11px; color: #b7a99a; font-style: italic; }
+            .print-product-usage { font-size: 10px; color: #8e7e6e; margin-top: 5px; }
+            .print-footer { margin-top: 30px; text-align: center; font-size: 10px; color: #ccbeaf; border-top: 1px solid #e7dbd0; padding-top: 15px; }
+            @media print { body { padding: 0; } }
         </style>
     </head>
     <body>
         <div class="print-header">
             <h1>${escapeHtml(savedRoutines[currentRoutineId]?.name || 'Skincare Routine')}</h1>
-            <p>Personalized Skincare Routine</p>
             <div class="print-date">Printed on ${new Date().toLocaleDateString()}</div>
         </div>
-        
         <div class="print-grid">
             <div class="print-column">
                 <h2>MORNING ROUTINE ☀️</h2>
-                ${uniqueMorning.map(i => { 
-                    let p = getProductById(i.productId); 
-                    return p ? `
-                    <div class="print-product">
-                        <div class="print-product-image">
-                            <img src="${p.image || ''}" alt="${escapeHtml(p.name)}">
-                        </div>
-                        <div class="print-product-info">
-                            <div class="print-product-name">${escapeHtml(p.name)}</div>
-                            <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
-                            <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions provided')}</div>
-                        </div>
+                ${uniqueMorning.map(i => { let p = getProductById(i.productId); return p ? `
+                <div class="print-product">
+                    <div class="print-product-image"><img src="${p.image || ''}"></div>
+                    <div class="print-product-info">
+                        <div class="print-product-name">${escapeHtml(p.name)}</div>
+                        <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
+                        <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions')}</div>
                     </div>
-                    ` : '';
-                }).join('')}
-                ${uniqueMorning.length === 0 ? '<div style="color: #b7a99a; text-align: center; padding: 20px;">No products in morning routine</div>' : ''}
+                </div>` : ''; }).join('')}
             </div>
-            
             <div class="print-column">
                 <h2>EVENING ROUTINE 🌙</h2>
-                ${uniqueEvening.map(i => { 
-                    let p = getProductById(i.productId); 
-                    return p ? `
-                    <div class="print-product">
-                        <div class="print-product-image">
-                            <img src="${p.image || ''}" alt="${escapeHtml(p.name)}">
-                        </div>
-                        <div class="print-product-info">
-                            <div class="print-product-name">${escapeHtml(p.name)}</div>
-                            <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
-                            <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions provided')}</div>
-                        </div>
+                ${uniqueEvening.map(i => { let p = getProductById(i.productId); return p ? `
+                <div class="print-product">
+                    <div class="print-product-image"><img src="${p.image || ''}"></div>
+                    <div class="print-product-info">
+                        <div class="print-product-name">${escapeHtml(p.name)}</div>
+                        <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
+                        <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions')}</div>
                     </div>
-                    ` : '';
-                }).join('')}
-                ${uniqueEvening.length === 0 ? '<div style="color: #b7a99a; text-align: center; padding: 20px;">No products in evening routine</div>' : ''}
+                </div>` : ''; }).join('')}
             </div>
         </div>
-        
-        <div class="print-footer">
-            ✦ ${savedRoutines[currentRoutineId]?.name || 'Skincare Routine'} ✦
-        </div>
+        <div class="print-footer">✦ ${savedRoutines[currentRoutineId]?.name || 'Skincare Routine'} ✦</div>
     </body>
     </html>`); 
     win.document.close(); 
@@ -1176,15 +1189,11 @@ async function handleLogin() {
         alert("Supabase not ready. Please refresh the page.");
         return;
     }
-    
     try {
         const { error } = await supabaseClient.auth.signInWithOAuth({ 
             provider: 'google',
-            options: { 
-                redirectTo: window.location.href
-            }
+            options: { redirectTo: window.location.href }
         });
-        
         if (error) {
             console.error('Login error:', error);
             alert('Login error: ' + error.message);
@@ -1197,9 +1206,7 @@ async function handleLogin() {
 
 async function handleLogout() { 
     try {
-        if (supabaseClient) {
-            await supabaseClient.auth.signOut();
-        }
+        if (supabaseClient) await supabaseClient.auth.signOut();
         localStorage.clear();
         location.reload();
     } catch (e) {
@@ -1210,10 +1217,8 @@ async function handleLogout() {
 
 async function checkAuth() {
     if (!supabaseClient) return;
-    
     try {
         const { data: { session }, error } = await supabaseClient.auth.getSession();
-        
         if (error) {
             console.error('Auth check error:', error);
             isAuthenticated = false;
@@ -1229,19 +1234,14 @@ async function checkAuth() {
             document.getElementById('loginBtn').style.display = 'inline-block';
             document.getElementById('logoutBtn').style.display = 'none';
         }
-        
-        // 无论登录与否，都从云端加载数据
         await loadFromCloud();
         refreshUI();
-        
     } catch (e) {
         console.error('Auth check exception:', e);
         isAuthenticated = false;
         document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
         document.getElementById('loginBtn').style.display = 'inline-block';
         document.getElementById('logoutBtn').style.display = 'none';
-        
-        // 如果云端加载失败，才使用本地存储
         loadFromLocalStorage();
         refreshUI();
     }
@@ -1257,57 +1257,25 @@ function refreshUI() {
     updateUIBasedOnAuth();
 }
 
-// 按钮绑定
-document.getElementById('toggleAddBtn').onclick = () => { 
-    document.getElementById('editProductId').value = ''; 
-    closeForm(); 
-    document.getElementById('productForm').classList.add('show'); 
-    document.getElementById('toggleAddBtn').style.display = 'none'; 
-};
-document.getElementById('cancelFormBtn').onclick = closeForm;
-document.getElementById('saveProductBtn').onclick = saveProduct;
-document.getElementById('printBtn').onclick = printRoutine;
-document.getElementById('editRoutineBtn').onclick = () => { 
-    if (!isAuthenticated) { alert("Please sign in to rename routines."); return; }
-    let newName = prompt("Edit routine name:", savedRoutines[currentRoutineId]?.name); 
-    if(newName) renameCurrentRoutine(newName); 
-};
-document.getElementById('loginBtn').onclick = handleLogin;
-document.getElementById('logoutBtn').onclick = handleLogout;
-document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
-document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutine;
-document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
-document.getElementById('syncAllBtn').onclick = forceSyncAllToCloud;
-
-// 启动应用
-loadFromLocalStorage();
-refreshUI();
-    // ==================== Word 文档管理 ====================
+// ==================== Pre & Post Care 文档管理 ====================
 let savedDocuments = [];
 let currentDocId = null;
 
-// 从本地存储加载文档
 function loadDocuments() {
     const saved = localStorage.getItem('skincare_documents');
     if (saved) {
         savedDocuments = JSON.parse(saved);
     } else {
-        // 默认示例文档
         savedDocuments = [
             {
                 id: "sample-1",
                 name: "Laser Hair Removal Guide",
-                content: "LASER HAIR REMOVAL - PRE & POST CARE\n\nPRE-CARE:\n• Shave the area 24-48 hours before treatment\n• Avoid sun exposure for 2 weeks\n• No waxing or plucking for 4 weeks\n• Clean skin, no lotions or makeup\n• Stop using retinoids 1 week prior\n\nPOST-CARE:\n• Apply cool compresses for 10-15 minutes\n• Use soothing aloe vera gel\n• Use SPF 50+ diligently\n• No hot showers or saunas for 48 hours\n• Gentle cleansing only\n\nWHAT TO AVOID:\n• No waxing or plucking between sessions\n• Avoid exfoliating for 1 week\n• No tanning or self-tanner\n• Avoid tight clothing\n\nTIMELINE:\n• Redness subsides in 1-3 hours\n• Hair sheds in 5-14 days\n• Next session in 4-6 weeks\n• Full results after 6-8 sessions"
+                content: "LASER HAIR REMOVAL - PRE & POST CARE\n\nPRE-CARE:\n• Shave the area 24-48 hours before treatment\n• Avoid sun exposure for 2 weeks\n• No waxing or plucking for 4 weeks\n\nPOST-CARE:\n• Apply cool compresses\n• Use SPF 50+ diligently\n• No hot showers for 48 hours"
             },
             {
                 id: "sample-2",
                 name: "Microneedling / SkinPen",
-                content: "MICRONEEDLING - PRE & POST CARE\n\nPRE-CARE:\n• Stop retinol/vitamin A 5 days before\n• No sun exposure for 1 week\n• No active acne or cold sores\n• Arrive with clean skin, no makeup\n\nPOST-CARE:\n• Use gentle cleanser only\n• Apply hyaluronic acid serum\n• Use SPF 50+ diligently\n• Sleep on clean pillowcase\n\nWHAT TO AVOID:\n• No makeup for 24 hours\n• No exfoliating for 1 week\n• No swimming or saunas for 3 days\n• Do not pick at peeling skin\n\nTIMELINE:\n• Redness 24-72 hours\n• Peeling days 3-5\n• Collagen production up to 6 months"
-            },
-            {
-                id: "sample-3",
-                name: "Chemical Peel Guide",
-                content: "CHEMICAL PEEL - PRE & POST CARE\n\nPRE-CARE:\n• Stop retinoids 1 week before\n• Use gentle cleanser only\n• No waxing or lasers 2 weeks prior\n• Avoid sun exposure\n\nPOST-CARE:\n• Use gentle cleanser\n• Apply prescribed ointment\n• Keep skin hydrated\n• Do NOT pick at peeling skin\n\nWHAT TO AVOID:\n• No exfoliating for 2 weeks\n• No sun exposure\n• No sauna or heavy exercise\n• Avoid makeup until peeling stops\n\nTIMELINE:\n• Peeling days 3-5\n• New skin appears days 5-7\n• Full results in 2-3 weeks"
+                content: "MICRONEEDLING - PRE & POST CARE\n\nPRE-CARE:\n• Stop retinol 5 days before\n• No sun exposure for 1 week\n\nPOST-CARE:\n• Use gentle cleanser\n• Apply hyaluronic acid serum\n• Use SPF 50+"
             }
         ];
         localStorage.setItem('skincare_documents', JSON.stringify(savedDocuments));
@@ -1356,11 +1324,7 @@ function loadDocument(docId) {
 function saveCurrentDocument() {
     const name = document.getElementById('docTitle').value.trim();
     const content = document.getElementById('docContent').value;
-    
-    if (!name) {
-        alert('Please enter a document title');
-        return;
-    }
+    if (!name) { alert('Please enter a document title'); return; }
     
     if (currentDocId) {
         const doc = savedDocuments.find(d => d.id === currentDocId);
@@ -1369,18 +1333,13 @@ function saveCurrentDocument() {
             doc.content = content;
         }
     } else {
-        const newDoc = {
-            id: Date.now().toString(),
-            name: name,
-            content: content
-        };
+        const newDoc = { id: Date.now().toString(), name: name, content: content };
         savedDocuments.push(newDoc);
         currentDocId = newDoc.id;
     }
-    
     localStorage.setItem('skincare_documents', JSON.stringify(savedDocuments));
     renderDocList();
-    alert('Document saved to browser!');
+    alert('Document saved!');
 }
 
 function deleteDocument(docId) {
@@ -1388,12 +1347,8 @@ function deleteDocument(docId) {
         savedDocuments = savedDocuments.filter(d => d.id !== docId);
         if (currentDocId === docId) {
             currentDocId = null;
-            if (savedDocuments.length > 0) {
-                loadDocument(savedDocuments[0].id);
-            } else {
-                document.getElementById('docTitle').value = '';
-                document.getElementById('docContent').value = '';
-            }
+            if (savedDocuments.length > 0) loadDocument(savedDocuments[0].id);
+            else { document.getElementById('docTitle').value = ''; document.getElementById('docContent').value = ''; }
         }
         localStorage.setItem('skincare_documents', JSON.stringify(savedDocuments));
         renderDocList();
@@ -1408,156 +1363,43 @@ function addNewDocument() {
     document.getElementById('docTitle').focus();
 }
 
-// 上传 Word 文档（.docx 文件）
-async function uploadWordDocument(file) {
-    const fileName = file.name.replace(/\.docx?$/, '');
-    
-    try {
-        // 读取文件内容
-        const arrayBuffer = await file.arrayBuffer();
-        
-        // 检查是否有 mammoth 库（用于解析 .docx）
-        if (typeof mammoth === 'undefined') {
-            // 如果 mammoth 未加载，先加载
-            await loadMammothLibrary();
-        }
-        
-        // 使用 mammoth 解析 .docx 文件
-        const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
-        const text = result.value;
-        
-        // 创建新文档
-        const newDoc = {
-            id: Date.now().toString(),
-            name: fileName,
-            content: text
-        };
-        savedDocuments.push(newDoc);
-        localStorage.setItem('skincare_documents', JSON.stringify(savedDocuments));
-        renderDocList();
-        loadDocument(newDoc.id);
-        alert(`Document "${fileName}" uploaded successfully!`);
-        
-    } catch (error) {
-        console.error('Error parsing Word document:', error);
-        alert('Unable to parse Word document. Please save as .txt file instead.');
-    }
-}
-
-// 加载 mammoth 库（用于解析 .docx）
-function loadMammothLibrary() {
-    return new Promise((resolve, reject) => {
-        if (typeof mammoth !== 'undefined') {
-            resolve();
-            return;
-        }
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/mammoth@1.4.2/mammoth.browser.min.js';
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
-}
-
-// 处理文本文件上传
-function uploadTextFile(file) {
+function handleFileUpload(file) {
     const reader = new FileReader();
     reader.onload = function(e) {
         const content = e.target.result;
         const fileName = file.name.replace(/\.txt$/, '');
-        
-        const newDoc = {
-            id: Date.now().toString(),
-            name: fileName,
-            content: content
-        };
+        const newDoc = { id: Date.now().toString(), name: fileName, content: content };
         savedDocuments.push(newDoc);
         localStorage.setItem('skincare_documents', JSON.stringify(savedDocuments));
         renderDocList();
         loadDocument(newDoc.id);
-        alert(`Document "${fileName}" uploaded successfully!`);
+        alert(`Document "${fileName}" uploaded!`);
     };
     reader.readAsText(file);
 }
 
-// 处理文件上传
-function handleFileUpload(file) {
-    if (file.name.endsWith('.docx')) {
-        uploadWordDocument(file);
-    } else if (file.name.endsWith('.txt')) {
-        uploadTextFile(file);
-    } else {
-        alert('Please upload .docx or .txt files only');
-    }
-}
-
-// 打印/保存 PDF
 function printDocumentAsPDF() {
     const title = document.getElementById('docTitle').value.trim() || 'Document';
     const content = document.getElementById('docContent').value || 'No content';
-    
     const win = window.open('', '_blank');
     win.document.write(`
         <!DOCTYPE html>
         <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>${escapeHtml(title)}</title>
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body {
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    padding: 0.5in;
-                    background: white;
-                    color: #3e3c39;
-                    line-height: 1.6;
-                }
-                .print-header {
-                    text-align: center;
-                    margin-bottom: 30px;
-                    border-bottom: 2px solid #e2d4c6;
-                    padding-bottom: 20px;
-                }
-                .print-header h1 {
-                    font-family: 'Montserrat', sans-serif;
-                    font-weight: 400;
-                    font-size: 28px;
-                    color: #7f6e5d;
-                    margin-bottom: 8px;
-                }
-                .print-date {
-                    font-size: 11px;
-                    color: #ccbeaf;
-                    margin-top: 5px;
-                }
-                .print-content {
-                    white-space: pre-wrap;
-                    font-size: 12px;
-                    line-height: 1.6;
-                    margin-top: 20px;
-                }
-                .print-footer {
-                    margin-top: 40px;
-                    text-align: center;
-                    font-size: 10px;
-                    color: #ccbeaf;
-                    border-top: 1px solid #e7dbd0;
-                    padding-top: 15px;
-                }
-                @media print {
-                    body { padding: 0; }
-                }
-            </style>
+        <head><meta charset="UTF-8"><title>${escapeHtml(title)}</title>
+        <style>
+            body { font-family: 'Inter', sans-serif; padding: 0.5in; background: white; line-height: 1.6; }
+            .print-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2d4c6; padding-bottom: 20px; }
+            .print-header h1 { font-size: 28px; color: #7f6e5d; }
+            .print-date { font-size: 11px; color: #ccbeaf; margin-top: 5px; }
+            .print-content { white-space: pre-wrap; font-size: 12px; margin-top: 20px; }
+            .print-footer { margin-top: 40px; text-align: center; font-size: 10px; color: #ccbeaf; border-top: 1px solid #e7dbd0; padding-top: 15px; }
+            @media print { body { padding: 0; } }
+        </style>
         </head>
         <body>
-            <div class="print-header">
-                <h1>${escapeHtml(title)}</h1>
-                <div class="print-date">Printed on ${new Date().toLocaleDateString()}</div>
-            </div>
+            <div class="print-header"><h1>${escapeHtml(title)}</h1><div class="print-date">Printed on ${new Date().toLocaleDateString()}</div></div>
             <div class="print-content">${escapeHtml(content).replace(/\n/g, '<br>')}</div>
-            <div class="print-footer">
-                ✦ Skincare Routine Builder ✦
-            </div>
+            <div class="print-footer">✦ Skincare Routine Builder ✦</div>
         </body>
         </html>
     `);
@@ -1565,51 +1407,31 @@ function printDocumentAsPDF() {
     win.print();
 }
 
-// 邮件 PDF（打开邮件客户端）
 function emailDocumentAsPDF() {
     const title = document.getElementById('docTitle').value.trim() || 'Document';
     const content = document.getElementById('docContent').value || 'No content';
-    
-    // 创建邮件链接
     const subject = encodeURIComponent(`Skincare Document: ${title}`);
-    const body = encodeURIComponent(`
-${title}
-Printed on: ${new Date().toLocaleDateString()}
----
-${content}
----
-Generated by Skincare Routine Builder
-    `);
-    
+    const body = encodeURIComponent(`${title}\n\n${content}\n\n---\nGenerated by Skincare Routine Builder`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
 }
 
-// 初始化
 function initCareModule() {
     loadDocuments();
-    
     const uploadBtn = document.getElementById('uploadDocBtn');
     const fileInput = document.getElementById('wordFileInput');
     const saveBtn = document.getElementById('saveDocBtn');
     const printBtn = document.getElementById('printDocBtn');
     const emailBtn = document.getElementById('emailDocBtn');
     
-    if (uploadBtn) {
-        uploadBtn.onclick = () => fileInput.click();
-    }
-    if (fileInput) {
-        fileInput.onchange = (e) => {
-            if (e.target.files && e.target.files[0]) {
-                handleFileUpload(e.target.files[0]);
-            }
-            fileInput.value = '';
-        };
-    }
+    if (uploadBtn) uploadBtn.onclick = () => fileInput.click();
+    if (fileInput) fileInput.onchange = (e) => {
+        if (e.target.files && e.target.files[0]) handleFileUpload(e.target.files[0]);
+        fileInput.value = '';
+    };
     if (saveBtn) saveBtn.onclick = saveCurrentDocument;
     if (printBtn) printBtn.onclick = printDocumentAsPDF;
     if (emailBtn) emailBtn.onclick = emailDocumentAsPDF;
     
-    // 添加"新建文档"按钮
     const sidebar = document.querySelector('.care-sidebar');
     if (sidebar && !document.getElementById('newDocBtn')) {
         const newBtn = document.createElement('button');
@@ -1622,15 +1444,33 @@ function initCareModule() {
     }
 }
 
-// 需要添加 mammoth 库的引用到 head
-function addMammothLibrary() {
-    if (!document.querySelector('script[src*="mammoth"]')) {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/mammoth@1.4.2/mammoth.browser.min.js';
-        document.head.appendChild(script);
-    }
-}
+// 按钮绑定
+document.getElementById('toggleAddBtn').onclick = () => { 
+    document.getElementById('editProductId').value = ''; 
+    closeForm(); 
+    document.getElementById('productForm').classList.add('show'); 
+    document.getElementById('toggleAddBtn').style.display = 'none'; 
+};
+document.getElementById('cancelFormBtn').onclick = closeForm;
+document.getElementById('saveProductBtn').onclick = saveProduct;
+document.getElementById('printBtn').onclick = printRoutine;
+document.getElementById('editRoutineBtn').onclick = () => { 
+    if (!isAuthenticated) { alert("Please sign in to rename routines."); return; }
+    let newName = prompt("Edit routine name:", savedRoutines[currentRoutineId]?.name); 
+    if(newName) renameCurrentRoutine(newName); 
+};
+document.getElementById('loginBtn').onclick = handleLogin;
+document.getElementById('logoutBtn').onclick = handleLogout;
+document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
+document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutine;
+document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
+document.getElementById('syncAllBtn').onclick = forceSyncAllToCloud;
+
+// 启动应用
+loadFromLocalStorage();
+refreshUI();
 initSupabase();
+initCareModule();
 </script>
 </body>
 </html>
