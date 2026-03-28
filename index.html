@@ -89,6 +89,42 @@
         .action-buttons-bottom.hidden { display: none; }
         .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
         @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } }
+        /* Tab 导航样式 */
+.tab-bar {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #e7dbd0;
+    padding-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+.tab-btn {
+    background: transparent;
+    border: none;
+    padding: 0.8rem 1.8rem;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #b7a99a;
+    cursor: pointer;
+    border-radius: 40px;
+    transition: all 0.2s;
+}
+.tab-btn:hover {
+    background: #e9dfd4;
+    color: #5f5347;
+}
+.tab-btn.active {
+    background: #b99f87;
+    color: white;
+}
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
     </style>
 </head>
 <body>
