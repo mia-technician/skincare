@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pre & Post Care - Treatment Documents</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f5efe9; font-family: 'Inter', sans-serif; padding: 2rem 1rem; }
+        .app { max-width: 1400px; margin: 0 auto; background: #faf7f2; border-radius: 32px; border: 1px solid #e8dfd4; padding: 2rem; }
+        h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 1.8rem; color: #7f6e5d; text-align: center; margin-bottom: 2rem; text-transform: uppercase; }
+        
+        /* 两列布局 */
+        .two-columns { display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; min-height: 600px; }
+        
+        /* 左侧文档列表 */
+        .doc-sidebar { background: #fff9f2; border-radius: 24px; padding: 1.2rem; border: 1px solid #e7dbd0; }
+        .doc-sidebar h3 { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; color: #8f7e6b; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; }
+        .doc-list { list-style: none; max-height: 500px; overflow-y: auto; }
+        .doc-item { padding: 0.8rem 1rem; margin-bottom: 0.5rem; background: #f5efe8; border-radius: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
+        .doc-item:hover { background: #e9dfd4; transform: translateX(4px); }
+        .doc-item.active { background: #b99f87; color: white; }
+        .doc-name { font-size: 0.85rem; font-weight: 500; }
+        .doc-delete { color: #b7a99a; cursor: pointer; font-size: 0.8rem; opacity: 0.6; }
+        .doc-delete:hover { opacity: 1; color: #d2c0b0; }
+        .btn-sidebar { width: 100%; margin-top: 1rem; padding: 0.6rem; background: #e9dfd4; border: none; border-radius: 40px; cursor: pointer; font-size: 0.75rem; font-weight: 500; transition: all 0.2s; }
+        .btn-sidebar:hover { background: #dacbbb; }
+        
+        /* 右侧编辑器 */
+        .doc-editor { background: #fff9f2; border-radius: 24px; padding: 1.5rem; border: 1px solid #e7dbd0; }
+        .doc-title { width: 100%; font-size: 1.5rem; font-family: 'Montserrat', sans-serif; font-weight: 500; border: none; background: transparent; border-bottom: 2px solid #e2d4c6; margin-bottom: 1.5rem; padding: 0.5rem 0; outline: none; color: #5f5347; }
+        .sections { display: flex; flex-direction: column; gap: 1rem; }
+        .section { background: #fefcf8; border-radius: 16px; border: 1px solid #e7dbd0; overflow: hidden; }
+        .section-header { background: #f5efe8; padding: 0.5rem 1rem; font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 600; color: #b99f87; border-bottom: 1px solid #e7dbd0; }
+        .section-textarea { width: 100%; min-height: 100px; padding: 0.8rem; border: none; font-family: 'Inter', monospace; font-size: 0.8rem; line-height: 1.5; resize: vertical; background: white; outline: none; }
+        .section-textarea:focus { background: #fffdf9; }
+        .editor-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; }
+        .btn { padding: 0.5rem 1.2rem; border-radius: 40px; border: none; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s; }
+        .btn-save { background: #b99f87; color: white; }
+        .btn-print { background: #e9dfd4; color: #5f5347; }
+        .btn-email { background: #e9dfd4; color: #5f5347; }
+        .login-prompt { margin-top: 1rem; padding: 0.5rem; background: #f5efe8; border-radius: 12px; text-align: center; font-size: 0.7rem; color: #b7a99a; }
+        .auth-buttons { display: flex; gap: 0.8rem; margin-top: 1rem; flex-wrap: wrap; }
+        
+        @media (max-width: 750px) {
+            .two-columns { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <h1>📋 Pre & Post Care</h1>
+    
+    <div class="two-columns">
+        <!-- 左侧文档列表 -->
+        <div class="doc-sidebar">
+            <h3>📄 TREATMENT DOCUMENTS</h3>
+            <div id="docList" class="doc-list"></div>
+            <div id="authButtons" style="display: none;">
+                <button class="btn-sidebar" id="newDocBtn">✨ New Document</button>
+                <button class="btn-sidebar" id="updateDocBtn" style="margin-top: 0.5rem;">💾 Update Document</button>
+                <button class="btn-sidebar" id="deleteDocBtn" style="margin-top: 0.5rem; background: #e9dfd4;">🗑️ Delete Document</button>
+            </div>
+            <div id="loginPrompt" class="login-prompt">
+                🔒 Sign in to add/edit/delete documents
+            </div>
+        </div>
+        
+        <!-- 右侧编辑器 -->
+        <div class="doc-editor">
+            <input type="text" id="docTitle" class="doc-title" placeholder="Document Title">
+            
+            <div class="sections">
+                <div class="section">
+                    <div class="section-header">📋 RESULT & PLANS</div>
+                    <textarea id="resultPlans" class="section-textarea" placeholder="Expected results and treatment plan..."></textarea>
+                </div>
+                <div class="section">
+                    <div class="section-header">🩺 PRE TREATMENT</div>
+                    <textarea id="preTreatment" class="section-textarea" placeholder="Preparation before treatment..."></textarea>
+                </div>
+                <div class="section">
+                    <div class="section-header">⚠️ SIDE EFFECTS & WHAT TO DO</div>
+                    <textarea id="sideEffects" class="section-textarea" placeholder="Possible side effects and how to manage..."></textarea>
+                </div>
+                <div class="section">
+                    <div class="section-header">🌸 POST CARE - DO</div>
+                    <textarea id="postDo" class="section-textarea" placeholder="What to do after treatment..."></textarea>
+                </div>
+                <div class="section">
+                    <div class="section-header">🚫 POST CARE - AVOID</div>
+                    <textarea id="postAvoid" class="section-textarea" placeholder="What to avoid after treatment..."></textarea>
+                </div>
+            </div>
+            
+            <div class="editor-actions">
+                <button class="btn btn-save" id="saveLocalBtn">💾 Save to Browser</button>
+                <button class="btn btn-print" id="printDocBtn">🖨️ Print / PDF</button>
+                <button class="btn btn-email" id="emailDocBtn">📧 Email</button>
+            </div>
+        </div>
+    </div>
+    <div style="margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf;">
+        ✦ All changes auto-save to browser ✦ Sign in to create/edit/delete documents ✦
+    </div>
+</div>
+
+<script>
+// ==================== 文档数据 ====================
+let documents = [];
+let currentId = null;
+let isAuthenticated = false;
+
+// 默认英文文档
+const defaultDocs = [
+    { id: "1", name: "Laser Hair Removal", resultPlans: "✅ Expected Results: Significant hair reduction\n📅 Schedule: Every 4-6 weeks, 6-8 sessions", preTreatment: "• Shave 24-48 hours before\n• Avoid sun for 2 weeks\n• No waxing/plucking 4 weeks prior", sideEffects: "• Mild redness: Cold compress\n• Tingling: 1-2 hours\n• Hyperpigmentation: Avoid sun", postDo: "• Cold compress 10-15 min\n• Aloe vera gel\n• SPF50+ sunscreen", postAvoid: "• No hot showers 48h\n• No waxing/plucking\n• No exfoliating 1 week" },
+    { id: "2", name: "Microneedling / SkinPen", resultPlans: "✅ Improves fine lines, scars, pores\n📅 Schedule: Every 4-6 weeks, 3-4 sessions", preTreatment: "• Stop retinoids 5 days prior\n• Avoid sun 1 week\n• No active acne", sideEffects: "• Redness: 24-72 hours\n• Dryness/peeling: Days 3-5\n• Pinpoint bleeding", postDo: "• Gentle cleansing 24h\n• Hyaluronic acid serum\n• SPF50+ sunscreen", postAvoid: "• No makeup 24h\n• No exfoliating 1 week\n• No swimming 3 days" },
+    { id: "3", name: "Chemical Peel", resultPlans: "✅ Brightens skin, fades spots\n📅 Schedule: Every 3-4 weeks, 3-6 sessions", preTreatment: "• Stop retinoids 1 week\n• Stop brightening products 3 days\n• Avoid sun 2 weeks", sideEffects: "• Redness: Normal\n• Peeling: Days 3-5\n• Temporary hyperpigmentation", postDo: "• Gentle cleansing\n• Healing cream\n• SPF50+ sunscreen", postAvoid: "• Do not pick peeling\n• No exfoliating 2 weeks\n• Avoid sun" },
+    { id: "4", name: "Botox / Dysport", resultPlans: "✅ Smooths dynamic wrinkles\n📅 Schedule: Every 3-4 months", preTreatment: "• Stop blood thinners 1 week\n• No alcohol 24 hours\n• No makeup", sideEffects: "• Redness at sites: Hours\n• Mild bruising: 3-7 days\n• Headache: 24 hours", postDo: "• Stay upright 4 hours\n• Gently move treated area\n• No massage 24h", postAvoid: "• No strenuous exercise 24h\n• Do not press sites\n• Avoid high heat" },
+    { id: "5", name: "Dermal Fillers", resultPlans: "✅ Restores volume, enhances contours\n📅 Schedule: Every 6-18 months", preTreatment: "• Stop blood thinners 1 week\n• No alcohol 2 days\n• Inform of allergies", sideEffects: "• Swelling, bruising: 3-7 days\n• Redness: Hours\n• Lumps: Can be massaged", postDo: "• Cold compress 24h\n• Keep areas clean\n• Gentle skincare", postAvoid: "• No strenuous exercise 1 week\n• Avoid high heat 2 weeks\n• Do not massage" }
+];
+
+// 加载数据
+function loadDocs() {
+    const saved = localStorage.getItem('prepost_documents');
+    if (saved) {
+        try { documents = JSON.parse(saved); } catch(e) { documents = []; }
+    }
+    if (documents.length === 0) {
+        documents = defaultDocs;
+        localStorage.setItem('prepost_documents', JSON.stringify(documents));
+    }
+    renderDocList();
+    if (documents.length > 0 && !currentId) {
+        loadDoc(documents[0].id);
+    }
+}
+
+function saveDocs() {
+    localStorage.setItem('prepost_documents', JSON.stringify(documents));
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m);
+}
+
+function renderDocList() {
+    const container = document.getElementById('docList');
+    if (!container) return;
+    container.innerHTML = documents.map(doc => `
+        <div class="doc-item ${currentId === doc.id ? 'active' : ''}" data-id="${doc.id}">
+            <span class="doc-name">📄 ${escapeHtml(doc.name)}</span>
+            <span class="doc-delete" data-id="${doc.id}" title="Delete">🗑️</span>
+        </div>
+    `).join('');
+    
+    // 点击文档
+    document.querySelectorAll('.doc-item').forEach(el => {
+        el.addEventListener('click', (e) => {
+            if (e.target.classList.contains('doc-delete')) return;
+            loadDoc(el.dataset.id);
+        });
+    });
+    
+    // 删除文档（需要登录）
+    document.querySelectorAll('.doc-delete').forEach(el => {
+        el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = el.dataset.id;
+            if (!isAuthenticated) { alert('Please sign in to delete documents'); return; }
+            if (confirm('Delete this document?')) {
+                deleteDoc(id);
+            }
+        });
+    });
+}
+
+function loadDoc(id) {
+    const doc = documents.find(d => d.id === id);
+    if (doc) {
+        currentId = id;
+        document.getElementById('docTitle').value = doc.name;
+        document.getElementById('resultPlans').value = doc.resultPlans || '';
+        document.getElementById('preTreatment').value = doc.preTreatment || '';
+        document.getElementById('sideEffects').value = doc.sideEffects || '';
+        document.getElementById('postDo').value = doc.postDo || '';
+        document.getElementById('postAvoid').value = doc.postAvoid || '';
+        renderDocList();
+    }
+}
+
+function saveCurrentDoc() {
+    const name = document.getElementById('docTitle').value.trim();
+    if (!name) { alert('Please enter a document title'); return; }
+    
+    const docData = {
+        name: name,
+        resultPlans: document.getElementById('resultPlans').value,
+        preTreatment: document.getElementById('preTreatment').value,
+        sideEffects: document.getElementById('sideEffects').value,
+        postDo: document.getElementById('postDo').value,
+        postAvoid: document.getElementById('postAvoid').value
+    };
+    
+    if (currentId) {
+        const doc = documents.find(d => d.id === currentId);
+        if (doc) Object.assign(doc, docData);
+    } else {
+        const newId = Date.now().toString();
+        documents.push({ id: newId, ...docData });
+        currentId = newId;
+    }
+    saveDocs();
+    renderDocList();
+    alert('✅ Document saved to browser!');
+}
+
+function newDoc() {
+    if (!isAuthenticated) { alert('Please sign in to create new documents'); return; }
+    const name = prompt('Document title:', 'New Document');
+    if (!name) return;
+    const newId = Date.now().toString();
+    documents.push({ id: newId, name: name, resultPlans: '', preTreatment: '', sideEffects: '', postDo: '', postAvoid: '' });
+    saveDocs();
+    loadDoc(newId);
+    renderDocList();
+    alert('✅ New document created!');
+}
+
+function updateDoc() {
+    if (!isAuthenticated) { alert('Please sign in to update documents'); return; }
+    saveCurrentDoc();
+}
+
+function deleteDoc(id) {
+    documents = documents.filter(d => d.id !== id);
+    if (currentId === id) {
+        currentId = documents.length > 0 ? documents[0].id : null;
+        if (currentId) loadDoc(currentId);
+        else {
+            document.getElementById('docTitle').value = '';
+            document.getElementById('resultPlans').value = '';
+            document.getElementById('preTreatment').value = '';
+            document.getElementById('sideEffects').value = '';
+            document.getElementById('postDo').value = '';
+            document.getElementById('postAvoid').value = '';
+        }
+    }
+    saveDocs();
+    renderDocList();
+    alert('Document deleted');
+}
+
+function printDoc() {
+    const name = document.getElementById('docTitle').value.trim() || 'Document';
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(name)}</title><style>
+        body{font-family:Inter;padding:0.5in;background:white;line-height:1.5;}
+        h1{color:#7f6e5d;font-size:24px;border-bottom:1px solid #e2d4c6;padding-bottom:10px;}
+        .section{margin:20px 0;}
+        .section h2{color:#b99f87;font-size:16px;margin-bottom:8px;border-left:3px solid #b99f87;padding-left:12px;}
+        .section p{white-space:pre-wrap;font-size:12px;margin-left:15px;}
+    </style></head><body>
+        <h1>${escapeHtml(name)}</h1>
+        <div class="section"><h2>📋 RESULT & PLANS</h2><p>${escapeHtml(document.getElementById('resultPlans').value || '')}</p></div>
+        <div class="section"><h2>🩺 PRE TREATMENT</h2><p>${escapeHtml(document.getElementById('preTreatment').value || '')}</p></div>
+        <div class="section"><h2>⚠️ SIDE EFFECTS</h2><p>${escapeHtml(document.getElementById('sideEffects').value || '')}</p></div>
+        <div class="section"><h2>🌸 POST CARE - DO</h2><p>${escapeHtml(document.getElementById('postDo').value || '')}</p></div>
+        <div class="section"><h2>🚫 POST CARE - AVOID</h2><p>${escapeHtml(document.getElementById('postAvoid').value || '')}</p></div>
+    </body></html>`);
+    win.document.close();
+    win.print();
+}
+
+function emailDoc() {
+    const name = document.getElementById('docTitle').value.trim() || 'Document';
+    let content = `${name}\n\n📋 RESULT & PLANS\n${document.getElementById('resultPlans').value}\n\n🩺 PRE TREATMENT\n${document.getElementById('preTreatment').value}\n\n⚠️ SIDE EFFECTS\n${document.getElementById('sideEffects').value}\n\n🌸 POST CARE - DO\n${document.getElementById('postDo').value}\n\n🚫 POST CARE - AVOID\n${document.getElementById('postAvoid').value}`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(name)}&body=${encodeURIComponent(content)}`;
+}
+
+// 检查登录状态
+function checkLoginStatus() {
+    // 检查是否有 Supabase 全局客户端
+    if (typeof window.supabaseClient !== 'undefined' && window.supabaseClient) {
+        window.supabaseClient.auth.getSession().then(({ data: { session } }) => {
+            isAuthenticated = !!session;
+            updateUIForAuth();
+        }).catch(() => {
+            isAuthenticated = false;
+            updateUIForAuth();
+        });
+    } else {
+        isAuthenticated = false;
+        updateUIForAuth();
+    }
+}
+
+function updateUIForAuth() {
+    const authButtons = document.getElementById('authButtons');
+    const loginPrompt = document.getElementById('loginPrompt');
+    if (authButtons && loginPrompt) {
+        authButtons.style.display = isAuthenticated ? 'block' : 'none';
+        loginPrompt.style.display = isAuthenticated ? 'none' : 'block';
+    }
+}
+
+// 按钮绑定
+document.getElementById('saveLocalBtn').onclick = saveCurrentDoc;
+document.getElementById('printDocBtn').onclick = printDoc;
+document.getElementById('emailDocBtn').onclick = emailDoc;
+document.getElementById('newDocBtn').onclick = newDoc;
+document.getElementById('updateDocBtn').onclick = updateDoc;
+document.getElementById('deleteDocBtn').onclick = () => {
+    if (currentId && isAuthenticated) {
+        if (confirm('Delete current document?')) deleteDoc(currentId);
+    } else {
+        alert('Please sign in to delete documents');
+    }
+};
+
+// 初始化
+loadDocs();
+checkLoginStatus();
+
+// 定期检查登录状态
+setInterval(checkLoginStatus, 2000);
+</script>
+</body>
+</html>
