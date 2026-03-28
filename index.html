@@ -134,12 +134,15 @@
             <h1>Skincare Routine Builder</h1>
             <p>drag to customize · login to save to cloud</p>
         </div>
-<!-- Tab 导航 -->
+
+        <!-- Tab 导航 -->
 <div class="tab-bar">
     <button class="tab-btn active" data-tab="builder">✨ Routine Builder</button>
     <button class="tab-btn" data-tab="prepost">📋 Pre & Post Care</button>
 </div>  
-        <div class="auth-section">
+<div class="tab-content active" id="builder-tab">
+
+    <div class="auth-section">
             <div class="auth-status" id="authStatus">Loading...</div>
             <div>
                 <button id="loginBtn" class="auth-btn" style="display:none">Sign In with Google</button>
@@ -208,6 +211,51 @@
     <button class="action-btn print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
         </div>
         <div class="footnote">✦ All editing tools available without login ✦ Login to sync changes to cloud ✦ Data saved locally until synced ✦</div>
+    </div>
+                </div>
+        <!-- 第一个 Tab 结束 -->
+        
+        <!-- ========== 第二个 Tab：Pre & Post Care ========== -->
+        <div class="tab-content" id="prepost-tab">
+            <div class="care-layout">
+                <!-- 左侧：美容项目列表 -->
+                <div class="care-sidebar">
+                    <h3>📋 TREATMENT LIST</h3>
+                    <div id="procedureList" class="care-procedures"></div>
+                    <button class="add-procedure-btn" id="addProcedureBtn">+ Add New Treatment</button>
+                </div>
+                
+                <!-- 右侧：Pre & Post Care 内容编辑区 -->
+                <div class="care-content">
+                    <input type="text" id="procedureTitle" class="care-title-input" placeholder="Treatment Name">
+                    
+                    <div class="care-section">
+                        <h4>🩺 PRE-CARE (Before Treatment)</h4>
+                        <textarea id="preCare" class="care-textarea" placeholder="Instructions for before the treatment..."></textarea>
+                    </div>
+                    
+                    <div class="care-section">
+                        <h4>🌸 POST-CARE (After Treatment)</h4>
+                        <textarea id="postCare" class="care-textarea" placeholder="Instructions for after the treatment..."></textarea>
+                    </div>
+                    
+                    <div class="care-section">
+                        <h4>⚠️ WHAT TO AVOID</h4>
+                        <textarea id="avoidList" class="care-textarea" placeholder="Things to avoid..."></textarea>
+                    </div>
+                    
+                    <div class="care-section">
+                        <h4>⏱️ EXPECTED TIMELINE</h4>
+                        <textarea id="timeline" class="care-textarea" placeholder="Recovery timeline..."></textarea>
+                    </div>
+                    
+                    <div class="care-actions">
+                        <button class="care-save-btn" id="saveCareBtn">💾 Save Treatment</button>
+                        <button class="care-print-btn" id="printCareBtn">🖨️ Print / Save as PDF</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
