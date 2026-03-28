@@ -889,8 +889,192 @@ function attachDeleteEvents() {
 function printRoutine() { 
     let uniqueMorning = currentMorningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx);
     let uniqueEvening = currentEveningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx);
+    
     let win = window.open('', '_blank'); 
-    win.document.write(`<!DOCTYPE html><html><head><title>Skincare Routine</title><style>body{font-family:'Inter',sans-serif;padding:0.5in;} .print-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;} .print-column{border:1px solid #ddd;border-radius:16px;padding:20px;} .print-product{display:flex;gap:12px;margin-bottom:15px;} img{width:48px;height:48px;border-radius:50%;object-fit:cover;}</style></head><body><h2 style="text-align:center">Current Skincare Routine</h2><div class="print-grid"><div class="print-column"><h3>MORNING ☀️</h3>${uniqueMorning.map(i => { let p=getProductById(i.productId); return p?`<div class="print-product"><img src="${p.image||''}"><div><b>${escapeHtml(p.name)}</b><br><small>${escapeHtml(p.benefit||'')}</small></div></div>`:''; }).join('')}</div><div class="print-column"><h3>EVENING 🌙</h3>${uniqueEvening.map(i => { let p=getProductById(i.productId); return p?`<div class="print-product"><img src="${p.image||''}"><div><b>${escapeHtml(p.name)}</b><br><small>${escapeHtml(p.benefit||'')}</small></div></div>`:''; }).join('')}</div></div></body></html>`); 
+    win.document.write(`<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Skincare Routine</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                padding: 0.5in;
+                background: white;
+                color: #3e3c39;
+                line-height: 1.5;
+            }
+            .print-header {
+                text-align: center;
+                margin-bottom: 30px;
+                border-bottom: 2px solid #e2d4c6;
+                padding-bottom: 15px;
+            }
+            .print-header h1 {
+                font-family: 'Montserrat', sans-serif;
+                font-weight: 300;
+                font-size: 28px;
+                color: #7f6e5d;
+                margin-bottom: 8px;
+            }
+            .print-header p {
+                font-size: 12px;
+                color: #b7a99a;
+            }
+            .print-date {
+                font-size: 11px;
+                color: #ccbeaf;
+                margin-top: 5px;
+            }
+            .print-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+                margin-top: 20px;
+            }
+            .print-column {
+                border: 1px solid #e7dbd0;
+                border-radius: 16px;
+                padding: 20px;
+                background: #fefcf8;
+            }
+            .print-column h2 {
+                font-family: 'Montserrat', sans-serif;
+                font-size: 20px;
+                font-weight: 400;
+                color: #8f7e6b;
+                border-bottom: 1px solid #e2d4c6;
+                padding-bottom: 10px;
+                margin-bottom: 15px;
+            }
+            .print-product {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 18px;
+                padding-bottom: 12px;
+                border-bottom: 1px dashed #e7dbd0;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .print-product:last-child {
+                border-bottom: none;
+                margin-bottom: 0;
+                padding-bottom: 0;
+            }
+            .print-product-image {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background: #f1e8e0;
+                border: 1px solid #dacbbb;
+                overflow: hidden;
+                flex-shrink: 0;
+            }
+            .print-product-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            .print-product-info {
+                flex: 1;
+            }
+            .print-product-name {
+                font-family: 'Montserrat', sans-serif;
+                font-weight: 600;
+                font-size: 14px;
+                color: #5f5347;
+                margin-bottom: 4px;
+            }
+            .print-product-benefit {
+                font-size: 11px;
+                color: #b7a99a;
+                margin-top: 3px;
+                font-style: italic;
+            }
+            .print-product-usage {
+                font-size: 10px;
+                color: #8e7e6e;
+                margin-top: 5px;
+                line-height: 1.4;
+            }
+            .print-footer {
+                margin-top: 30px;
+                text-align: center;
+                font-size: 10px;
+                color: #ccbeaf;
+                border-top: 1px solid #e7dbd0;
+                padding-top: 15px;
+            }
+            @media print {
+                body {
+                    padding: 0;
+                }
+                .print-product {
+                    break-inside: avoid;
+                    page-break-inside: avoid;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="print-header">
+            <h1>${escapeHtml(savedRoutines[currentRoutineId]?.name || 'Skincare Routine')}</h1>
+            <p>Personalized Skincare Routine</p>
+            <div class="print-date">Printed on ${new Date().toLocaleDateString()}</div>
+        </div>
+        
+        <div class="print-grid">
+            <div class="print-column">
+                <h2>MORNING ROUTINE ☀️</h2>
+                ${uniqueMorning.map(i => { 
+                    let p = getProductById(i.productId); 
+                    return p ? `
+                    <div class="print-product">
+                        <div class="print-product-image">
+                            <img src="${p.image || ''}" alt="${escapeHtml(p.name)}">
+                        </div>
+                        <div class="print-product-info">
+                            <div class="print-product-name">${escapeHtml(p.name)}</div>
+                            <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
+                            <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions provided')}</div>
+                        </div>
+                    </div>
+                    ` : '';
+                }).join('')}
+                ${uniqueMorning.length === 0 ? '<div style="color: #b7a99a; text-align: center; padding: 20px;">No products in morning routine</div>' : ''}
+            </div>
+            
+            <div class="print-column">
+                <h2>EVENING ROUTINE 🌙</h2>
+                ${uniqueEvening.map(i => { 
+                    let p = getProductById(i.productId); 
+                    return p ? `
+                    <div class="print-product">
+                        <div class="print-product-image">
+                            <img src="${p.image || ''}" alt="${escapeHtml(p.name)}">
+                        </div>
+                        <div class="print-product-info">
+                            <div class="print-product-name">${escapeHtml(p.name)}</div>
+                            <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
+                            <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions provided')}</div>
+                        </div>
+                    </div>
+                    ` : '';
+                }).join('')}
+                ${uniqueEvening.length === 0 ? '<div style="color: #b7a99a; text-align: center; padding: 20px;">No products in evening routine</div>' : ''}
+            </div>
+        </div>
+        
+        <div class="print-footer">
+            ✦ ${savedRoutines[currentRoutineId]?.name || 'Skincare Routine'} ✦
+        </div>
+    </body>
+    </html>`); 
     win.document.close(); 
     win.print(); 
 }
