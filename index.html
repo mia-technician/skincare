@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Skincare Routine Builder</title>
     
-    <!-- 用于解析 Word 文档 (.docx) -->
-    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.4.2/mammoth.browser.min.js"></script>
-    
     <!-- Supabase SDK -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     
@@ -20,80 +17,8 @@
         .ritual-header { text-align: center; margin-bottom: 2rem; }
         .ritual-header h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 1.8rem; color: #7f6e5d; text-transform: uppercase; }
         .ritual-header p { font-size: 0.85rem; color: #b7a99a; margin-top: 0.5rem; }
-        .auth-section { background: #fff9f2; border-radius: 24px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid #e7dbd0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .auth-status { font-size: 0.85rem; color: #8f7e6b; }
-        .auth-btn { background: #b99f87; color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
-        .auth-btn-outline { background: transparent; border: 1px solid #d2c0b0; color: #5f5347; }
-        .routine-selector-bar { background: #fff9f2; border-radius: 24px; padding: 1.2rem 1.5rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
-        .selector-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
-        .selector-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
-        .selector-actions { display: flex; gap: 0.8rem; }
-        .manage-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.4rem 1rem; border-radius: 40px; cursor: pointer; font-size: 0.75rem; }
-        .routine-buttons { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1rem; }
-        .routine-btn { background: #e9dfd4; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
-        .routine-btn.active { background: #b99f87; color: white; }
-        .product-library { background: #fff9f2; border-radius: 24px; padding: 1.2rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
-        .library-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
-        .library-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
-        .toggle-add-btn { background: #e9dfd4; border: none; padding: 0.4rem 1.2rem; border-radius: 40px; cursor: pointer; }
-        .brand-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #e7dbd0; padding-bottom: 0.8rem; }
-        .brand-tab { padding: 0.3rem 1rem; background: transparent; border: none; cursor: pointer; border-radius: 30px; font-size: 0.75rem; color: #b7a99a; }
-        .brand-tab.active { background: #e9dfd4; color: #5f5347; }
-        .brand-products { display: flex; flex-wrap: wrap; gap: 0.7rem; max-height: 200px; overflow-y: auto; padding: 0.3rem 0; }
-        .library-item { background: #e9dfd4; padding: 0.45rem 0.8rem; border-radius: 40px; cursor: grab; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; position: relative; }
-        .library-price { font-size: 0.7rem; color: #b99f87; }
-        .library-actions { display: inline-flex; gap: 0.3rem; margin-left: 0.3rem; }
-        .edit-icon, .delete-product-icon { cursor: pointer; font-size: 0.7rem; opacity: 0.6; transition: opacity 0.2s; }
-        .edit-icon:hover, .delete-product-icon:hover { opacity: 1; }
-        .delete-product-icon { color: #b99f87; }
-        .product-form { background: #f5efe8; border-radius: 20px; padding: 1.2rem; margin-top: 1.2rem; display: none; }
-        .product-form.show { display: block; }
-        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 0.7rem; font-weight: 600; color: #8f7e6b; margin-bottom: 0.3rem; }
-        .form-group input, .form-group select, .form-group textarea { padding: 0.6rem; border: 1px solid #e2d4c6; border-radius: 14px; background: white; font-size: 0.8rem; }
-        .form-actions { display: flex; gap: 1rem; justify-content: flex-end; }
-        .btn-save { background: #b99f87; color: white; padding: 0.5rem 1.5rem; border-radius: 40px; border: none; cursor: pointer; }
-        .btn-cancel { background: #e9dfd4; padding: 0.5rem 1.5rem; border-radius: 40px; border: none; cursor: pointer; }
-        .routine-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .column { background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.4rem; border: 1px solid #e7dbd0; }
-        .column-title { font-family: 'Montserrat', sans-serif; font-size: 1.2rem; color: #8f7e6b; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; display: flex; justify-content: space-between; }
-        .product-list { display: flex; flex-direction: column; gap: 0.9rem; min-height: 320px; }
-        .product-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; cursor: grab; transition: all 0.2s; }
-        .product-card:active { cursor: grabbing; }
-        .product-card.drag-over { border: 2px dashed #b99f87; background: #fef7ef; }
-        .product-card.dragging { opacity: 0.4; }
-        .empty-slot { display: flex; align-items: center; justify-content: center; gap: 0.9rem; padding: 0.7rem; background: rgba(233, 223, 212, 0.5); border-radius: 18px; border: 2px dashed #d2c0b0; color: #b7a99a; font-size: 0.8rem; min-height: 70px; transition: all 0.2s; margin-bottom: 0.9rem; }
-        .empty-slot.drag-over { background: #e9dfd4; border-color: #b99f87; }
-        .empty-slot:hover { background: #e9dfd4; }
-        .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px; z-index: 10; }
-        .delete-btn:hover { background: #d2c0b0; color: white; }
-        .product-image { width: 52px; height: 52px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; flex-shrink: 0; }
-        .product-image img { width: 100%; height: 100%; object-fit: cover; }
-        .product-info { flex: 1; }
-        .product-name { font-size: 0.9rem; font-weight: 600; color: #5f5347; }
-        .product-price { font-size: 0.75rem; color: #b99f87; margin-left: 0.3rem; }
-        .benefit { font-size: 0.7rem; color: #b7a99a; margin-top: 2px; }
-        .usage { font-size: 0.65rem; color: #8e7e6e; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
-        .drag-handle { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #d2c0b0; cursor: grab; flex-shrink: 0; }
-        .drag-handle:active { cursor: grabbing; }
-        .morning-icon .icon-hand::before { content: "☀️"; font-size: 0.8rem; margin-right: 3px; }
-        .evening-icon .icon-hand::before { content: "☾"; font-size: 0.8rem; margin-right: 3px; }
-        .total-bar { padding: 1rem 1.3rem; background: #e9dfd4; border-radius: 20px; margin: 1.5rem 0 1rem; display: flex; justify-content: space-between; align-items: center; }
-        .total-label { font-weight: 500; color: #5f5347; }
-        .total-amount { font-size: 1.8rem; font-weight: 600; color: #8f7e6b; }
-        .action-buttons-bottom { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 1rem; }
-        .action-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
-        .update-btn { background: #b99f87; color: white; border-color: #b99f87; }
-        .delete-current-btn { background: #e9dfd4; color: #5f5347; }
-        .save-standard-btn { background: #b99f87; color: white; border-color: #b99f87; }
-        .sync-all-btn { background: #b99f87; color: white; border-color: #b99f87; }
-        .print-btn { background: #e9dfd4; }
-        .action-buttons-bottom.hidden { display: none; }
-        .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
-        @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } }
         
-        /* Tab 导航样式 */
+        /* Tab 样式 */
         .tab-bar {
             display: flex;
             justify-content: center;
@@ -130,152 +55,96 @@
             display: block;
         }
         
-        /* Pre & Post Care 页面样式 */
-        .care-layout {
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            gap: 2rem;
-            min-height: 500px;
-        }
-        .care-sidebar {
-            background: #fff9f2;
-            border-radius: 24px;
-            padding: 1.2rem;
-            border: 1px solid #e7dbd0;
-        }
-        .care-sidebar h3 {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1rem;
-            font-weight: 500;
-            color: #8f7e6b;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #e2d4c6;
-        }
-        .care-procedures {
-            list-style: none;
-        }
-        .care-procedure-item {
-            padding: 0.8rem 1rem;
-            margin-bottom: 0.5rem;
-            background: #f5efe8;
-            border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #5f5347;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .care-procedure-item:hover {
-            background: #e9dfd4;
-            transform: translateX(4px);
-        }
-        .care-procedure-item.active {
-            background: #b99f87;
-            color: white;
-        }
-        .procedure-delete {
-            color: #b7a99a;
-            cursor: pointer;
-            font-size: 0.8rem;
-            opacity: 0.6;
-        }
-        .procedure-delete:hover {
-            opacity: 1;
-            color: #d2c0b0;
-        }
-        .add-procedure-btn {
-            width: 100%;
-            margin-top: 1rem;
-            padding: 0.6rem;
-            background: #e9dfd4;
-            border: none;
-            border-radius: 40px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            color: #5f5347;
-        }
-        .care-content {
-            background: #fff9f2;
-            border-radius: 24px;
-            padding: 1.5rem;
-            border: 1px solid #e7dbd0;
-        }
-        .care-title-input {
-            width: 100%;
-            font-size: 1.5rem;
-            font-weight: 500;
-            font-family: 'Montserrat', sans-serif;
-            border: none;
-            background: transparent;
-            color: #5f5347;
-            padding: 0.5rem 0;
-            margin-bottom: 1rem;
-            border-bottom: 2px solid #e2d4c6;
-            outline: none;
-        }
-        .care-section {
-            margin-bottom: 1.5rem;
-        }
-        .care-section h4 {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1rem;
-            font-weight: 500;
-            color: #8f7e6b;
-            margin-bottom: 0.5rem;
-        }
-        .care-textarea {
-            width: 100%;
-            min-height: 200px;
-            padding: 0.8rem;
-            border: 1px solid #e2d4c6;
-            border-radius: 16px;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.85rem;
-            line-height: 1.5;
-            resize: vertical;
-            background: white;
-        }
-        .care-textarea:focus {
-            outline: none;
-            border-color: #b99f87;
-        }
-        .care-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-            margin-top: 1.5rem;
-        }
-        .care-save-btn, .care-print-btn {
-            padding: 0.6rem 1.5rem;
-            border-radius: 40px;
-            border: none;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-        .care-save-btn {
-            background: #b99f87;
-            color: white;
-        }
-        .care-print-btn {
-            background: #e9dfd4;
-            color: #5f5347;
-        }
-        .care-note {
-            font-size: 0.7rem;
-            color: #b7a99a;
-            text-align: center;
-            margin-top: 1rem;
-        }
-        @media (max-width: 750px) {
-            .care-layout {
-                grid-template-columns: 1fr;
-            }
-        }
+        /* Routine Builder 原有样式 */
+        .auth-section { background: #fff9f2; border-radius: 24px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid #e7dbd0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .auth-status { font-size: 0.85rem; color: #8f7e6b; }
+        .auth-btn { background: #b99f87; color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
+        .auth-btn-outline { background: transparent; border: 1px solid #d2c0b0; color: #5f5347; }
+        .routine-selector-bar { background: #fff9f2; border-radius: 24px; padding: 1.2rem 1.5rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
+        .selector-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+        .selector-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
+        .selector-actions { display: flex; gap: 0.8rem; }
+        .manage-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.4rem 1rem; border-radius: 40px; cursor: pointer; font-size: 0.75rem; }
+        .routine-buttons { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1rem; }
+        .routine-btn { background: #e9dfd4; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
+        .routine-btn.active { background: #b99f87; color: white; }
+        .product-library { background: #fff9f2; border-radius: 24px; padding: 1.2rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
+        .library-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+        .library-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
+        .toggle-add-btn { background: #e9dfd4; border: none; padding: 0.4rem 1.2rem; border-radius: 40px; cursor: pointer; }
+        .brand-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #e7dbd0; padding-bottom: 0.8rem; }
+        .brand-tab { padding: 0.3rem 1rem; background: transparent; border: none; cursor: pointer; border-radius: 30px; font-size: 0.75rem; color: #b7a99a; }
+        .brand-tab.active { background: #e9dfd4; color: #5f5347; }
+        .brand-products { display: flex; flex-wrap: wrap; gap: 0.7rem; max-height: 200px; overflow-y: auto; padding: 0.3rem 0; }
+        .library-item { background: #e9dfd4; padding: 0.45rem 0.8rem; border-radius: 40px; cursor: grab; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; }
+        .library-price { font-size: 0.7rem; color: #b99f87; }
+        .library-actions { display: inline-flex; gap: 0.3rem; margin-left: 0.3rem; }
+        .edit-icon, .delete-product-icon { cursor: pointer; font-size: 0.7rem; opacity: 0.6; }
+        .edit-icon:hover, .delete-product-icon:hover { opacity: 1; }
+        .delete-product-icon { color: #b99f87; }
+        .product-form { background: #f5efe8; border-radius: 20px; padding: 1.2rem; margin-top: 1.2rem; display: none; }
+        .product-form.show { display: block; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 0.7rem; font-weight: 600; color: #8f7e6b; margin-bottom: 0.3rem; }
+        .form-group input, .form-group select, .form-group textarea { padding: 0.6rem; border: 1px solid #e2d4c6; border-radius: 14px; background: white; font-size: 0.8rem; }
+        .form-actions { display: flex; gap: 1rem; justify-content: flex-end; }
+        .btn-save { background: #b99f87; color: white; padding: 0.5rem 1.5rem; border-radius: 40px; border: none; cursor: pointer; }
+        .btn-cancel { background: #e9dfd4; padding: 0.5rem 1.5rem; border-radius: 40px; border: none; cursor: pointer; }
+        .routine-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .column { background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.4rem; border: 1px solid #e7dbd0; }
+        .column-title { font-family: 'Montserrat', sans-serif; font-size: 1.2rem; color: #8f7e6b; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; display: flex; justify-content: space-between; }
+        .product-list { display: flex; flex-direction: column; gap: 0.9rem; min-height: 320px; }
+        .product-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; cursor: grab; }
+        .product-card:active { cursor: grabbing; }
+        .empty-slot { display: flex; align-items: center; justify-content: center; gap: 0.9rem; padding: 0.7rem; background: rgba(233, 223, 212, 0.5); border-radius: 18px; border: 2px dashed #d2c0b0; color: #b7a99a; font-size: 0.8rem; min-height: 70px; margin-bottom: 0.9rem; }
+        .empty-slot.drag-over { background: #e9dfd4; border-color: #b99f87; }
+        .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px; z-index: 10; }
+        .delete-btn:hover { background: #d2c0b0; color: white; }
+        .product-image { width: 52px; height: 52px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; flex-shrink: 0; }
+        .product-image img { width: 100%; height: 100%; object-fit: cover; }
+        .product-info { flex: 1; }
+        .product-name { font-size: 0.9rem; font-weight: 600; color: #5f5347; }
+        .product-price { font-size: 0.75rem; color: #b99f87; margin-left: 0.3rem; }
+        .benefit { font-size: 0.7rem; color: #b7a99a; margin-top: 2px; }
+        .usage { font-size: 0.65rem; color: #8e7e6e; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+        .drag-handle { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #d2c0b0; cursor: grab; flex-shrink: 0; }
+        .morning-icon .icon-hand::before { content: "☀️"; font-size: 0.8rem; margin-right: 3px; }
+        .evening-icon .icon-hand::before { content: "☾"; font-size: 0.8rem; margin-right: 3px; }
+        .total-bar { padding: 1rem 1.3rem; background: #e9dfd4; border-radius: 20px; margin: 1.5rem 0 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .total-label { font-weight: 500; color: #5f5347; }
+        .total-amount { font-size: 1.8rem; font-weight: 600; color: #8f7e6b; }
+        .action-buttons-bottom { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 1rem; }
+        .action-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
+        .update-btn { background: #b99f87; color: white; border-color: #b99f87; }
+        .delete-current-btn { background: #e9dfd4; color: #5f5347; }
+        .save-standard-btn { background: #b99f87; color: white; border-color: #b99f87; }
+        .sync-all-btn { background: #b99f87; color: white; border-color: #b99f87; }
+        .print-btn { background: #e9dfd4; }
+        .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
+        @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } }
+        
+        /* Pre & Post Care 样式 */
+        .care-layout { display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; min-height: 500px; }
+        .care-sidebar { background: #fff9f2; border-radius: 20px; padding: 1rem; border: 1px solid #e7dbd0; }
+        .care-sidebar h3 { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; margin-bottom: 0.8rem; border-bottom: 1px solid #e2d4c6; padding-bottom: 0.4rem; }
+        .care-procedures { list-style: none; max-height: 350px; overflow-y: auto; }
+        .doc-list-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.7rem; margin-bottom: 0.4rem; background: #f5efe8; border-radius: 10px; cursor: pointer; font-size: 0.8rem; }
+        .doc-list-item.active { background: #b99f87; color: white; }
+        .add-procedure-btn { width: 100%; padding: 0.5rem; background: #e9dfd4; border: none; border-radius: 30px; cursor: pointer; font-size: 0.75rem; font-weight: 500; }
+        .add-procedure-btn:hover { background: #dacbbb; }
+        .care-content { background: #fff9f2; border-radius: 20px; padding: 1rem; border: 1px solid #e7dbd0; }
+        .care-title-input { width: 100%; font-size: 1.2rem; font-family: 'Montserrat', sans-serif; font-weight: 500; border: none; background: transparent; border-bottom: 2px solid #e2d4c6; margin-bottom: 1rem; padding: 0.3rem 0; outline: none; }
+        .care-sections { display: flex; flex-direction: column; gap: 0.5rem; }
+        .care-section { background: #fefcf8; border-radius: 10px; border: 1px solid #e7dbd0; overflow: hidden; }
+        .section-header { background: #f5efe8; padding: 0.4rem 0.7rem; font-family: 'Montserrat', sans-serif; font-size: 0.7rem; font-weight: 600; color: #b99f87; border-bottom: 1px solid #e7dbd0; }
+        .care-textarea { width: 100%; min-height: 80px; padding: 0.5rem 0.7rem; border: none; font-family: 'Inter', monospace; font-size: 0.75rem; line-height: 1.4; resize: vertical; background: white; outline: none; }
+        .care-textarea:focus { background: #fffdf9; }
+        .care-actions { display: flex; gap: 0.6rem; justify-content: flex-end; margin-top: 0.8rem; }
+        .care-save-btn, .care-print-btn { padding: 0.35rem 0.9rem; border-radius: 30px; border: none; cursor: pointer; font-size: 0.7rem; font-weight: 500; }
+        .care-save-btn { background: #b99f87; color: white; }
+        .care-print-btn { background: #e9dfd4; color: #5f5347; }
+        @media (max-width: 750px) { .care-layout { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -292,7 +161,7 @@
             <button class="tab-btn" data-tab="prepost">📋 Pre & Post Care</button>
         </div>
 
-        <!-- ========== 第一个 Tab：Routine Builder ========== -->
+        <!-- Tab 1: Routine Builder -->
         <div class="tab-content active" id="builder-tab">
             <div class="auth-section">
                 <div class="auth-status" id="authStatus">Loading...</div>
@@ -363,31 +232,34 @@
             <div class="footnote">✦ All editing tools available without login ✦ Login to sync changes to cloud ✦ Data saved locally until synced ✦</div>
         </div>
 
-        <!-- ========== 第二个 Tab：Pre & Post Care ========== -->
+        <!-- Tab 2: Pre & Post Care -->
         <div class="tab-content" id="prepost-tab">
             <div class="care-layout">
                 <div class="care-sidebar">
                     <h3>📄 DOCUMENTS</h3>
                     <div id="docList" class="care-procedures"></div>
-                    <button class="add-procedure-btn" id="uploadDocBtn">📎 Upload Word Document</button>
-                    <input type="file" id="wordFileInput" accept=".docx,.doc,.txt" style="display: none;">
+                    <div id="authRequiredButtons" style="display: none;">
+                        <button class="add-procedure-btn" id="newDocBtn">✨ New Document</button>
+                        <button class="add-procedure-btn" id="updateDocBtn" style="margin-top: 0.5rem;">💾 Update Document</button>
+                        <button class="add-procedure-btn" id="deleteDocBtn" style="margin-top: 0.5rem; background: #e9dfd4;">🗑️ Delete Document</button>
+                    </div>
+                    <div id="loginPrompt" style="margin-top: 1rem; padding: 0.5rem; background: #f5efe8; border-radius: 12px; text-align: center; font-size: 0.7rem; color: #b7a99a;">
+                        🔒 Sign in to add/edit/delete documents
+                    </div>
                 </div>
-                
                 <div class="care-content">
                     <input type="text" id="docTitle" class="care-title-input" placeholder="Document Title">
-                    
-                    <div class="care-section">
-                        <h4>📝 CONTENT (Editable)</h4>
-                        <textarea id="docContent" class="care-textarea" style="min-height: 400px;" placeholder="Document content will appear here..."></textarea>
+                    <div class="care-sections">
+                        <div class="care-section"><div class="section-header">📋 RESULT & PLANS</div><textarea id="resultPlans" class="care-textarea" placeholder="Expected results and treatment plan..."></textarea></div>
+                        <div class="care-section"><div class="section-header">🩺 PRE TREATMENT</div><textarea id="preTreatment" class="care-textarea" placeholder="Preparation before treatment..."></textarea></div>
+                        <div class="care-section"><div class="section-header">⚠️ SIDE EFFECTS & WHAT TO DO</div><textarea id="sideEffects" class="care-textarea" placeholder="Possible side effects and how to manage..."></textarea></div>
+                        <div class="care-section"><div class="section-header">🌸 POST CARE - DO</div><textarea id="postDo" class="care-textarea" placeholder="What to do after treatment..."></textarea></div>
+                        <div class="care-section"><div class="section-header">🚫 POST CARE - AVOID</div><textarea id="postAvoid" class="care-textarea" placeholder="What to avoid after treatment..."></textarea></div>
                     </div>
-                    
                     <div class="care-actions">
-                        <button class="care-save-btn" id="saveDocBtn">💾 Save to Browser</button>
+                        <button class="care-save-btn" id="saveLocalBtn">💾 Save to Browser</button>
                         <button class="care-print-btn" id="printDocBtn">🖨️ Print / Save as PDF</button>
-                        <button class="care-print-btn" id="emailDocBtn">📧 Email as PDF</button>
-                    </div>
-                    <div class="care-note">
-                        ✦ Edits are temporary ✦ Click "Save to Browser" to keep changes locally ✦ Original document remains unchanged ✦
+                        <button class="care-print-btn" id="emailDocBtn">📧 Email</button>
                     </div>
                 </div>
             </div>
@@ -404,10 +276,9 @@ let supabaseClient = null;
 let isAuthenticated = false;
 let currentUserId = null;
 
-// 等待 Supabase SDK 加载
+// ==================== 初始化 Supabase ====================
 function initSupabase() {
     if (typeof supabase === 'undefined') {
-        console.log('Waiting for Supabase SDK...');
         setTimeout(initSupabase, 500);
         return;
     }
@@ -417,1060 +288,223 @@ function initSupabase() {
     checkAuth();
 }
 
-// ==================== 默认数据 ====================
-const DEFAULT_PRODUCTS = [
-    { id: "clarify-cleanser", name: "Clarify Cleanser", brand: "FNL", price: 50, benefit: "Antibacterial", usage: "Pea size - cleanse", image: "https://static.wixstatic.com/media/11a6e1_964680bfdf1b4efa9039db6f52428325~mv2.webp" },
-    { id: "cleanser", name: "Cleanser", brand: "SkinMedica", price: 46, benefit: "Cleans · Removes SPF", usage: "Pea size - add water - cleanse", image: "https://static.wixstatic.com/media/11a6e1_cd31f58211984ecabef518ed158ea4dc~mv2.webp" },
-    { id: "exo-gf", name: "Exo-GF Serum", brand: "FNL", price: 275, benefit: "Regenerates", usage: "1 pump", image: "https://static.wixstatic.com/media/11a6e1_62da2e3f71ff44229d4e90fc5289cf18~mv2.jpg" },
-    { id: "exfoliating-pad", name: "Exfoliating Pad 10%", brand: "FNL", price: 88, benefit: "Minimizes blackheads", usage: "Wipe face gently", image: "https://static.wixstatic.com/media/11a6e1_c4491a22e89846ba84ef28f5820ff427~mv2.webp" },
-    { id: "glycolic-lotion", name: "Glycolic Lotion 10%", brand: "FNL", price: 98, benefit: "Improves texture", usage: "Pea size - apply", image: "https://static.wixstatic.com/media/11a6e1_74ebb016820f45008058763526dfad76~mv2.webp" },
-    { id: "ha5", name: "HA5", brand: "SkinMedica", price: 196, benefit: "Hydrator", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_20f2ce9ce07a4ccaa0b5d5c6631fc0dc~mv2.webp" },
-    { id: "lumivive-day", name: "Lumivive - Day", brand: "SkinMedica", price: 285, benefit: "Antioxidant", usage: "1 pump - face & neck", image: "https://static.wixstatic.com/media/11a6e1_b12de65e4f8d4240ab28bdeecda8f811~mv2.webp" },
-    { id: "lumivive-night", name: "Lumivive - Night", brand: "SkinMedica", price: 285, benefit: "Night Repair", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_b12de65e4f8d4240ab28bdeecda8f811~mv2.webp" },
-    { id: "lytera", name: "Lytera", brand: "SkinMedica", price: 170, benefit: "Brightener", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_daddf6362e3b4bb0871467d485dcc76b~mv2.jpg" },
-    { id: "moisturizer", name: "Moisturizer", brand: "SkinMedica", price: 155, benefit: "Soothing", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_0f0aeb5de10d4a7ca110e93adb057e80~mv2.webp" },
-    { id: "retinol", name: "Retinol", brand: "Skinceuticals", price: 66, benefit: "Cell turnover", usage: "Start 2x/week", image: "https://static.wixstatic.com/media/11a6e1_4f3763842728442482947369cfee0b18~mv2.png" },
-    { id: "retinol-fnl", name: "Retinol (FNL)", brand: "FNL", price: 115, benefit: "Cell turnover", usage: "Start 2x/week", image: "https://static.wixstatic.com/media/11a6e1_c1094fd984f449a6bdd6a96bf13623ac~mv2.webp" },
-    { id: "silymarin", name: "Silymarin", brand: "Skinceuticals", price: 220, benefit: "Antioxidant for acne", usage: "1 pump", image: "https://static.wixstatic.com/media/11a6e1_8868dfe199c3466dafa239c238115433~mv2.webp" },
-    { id: "spf-powder", name: "SPF Powder Brush", brand: "ColorScience", price: 93.90, benefit: "Easy reapply", usage: "Brush over face", image: "https://static.wixstatic.com/media/11a6e1_02ac891ebdc24945ad2bb305d9be5579~mv2.jpg" },
-    { id: "spf50", name: "SPF50 Sheer Physical", brand: "SkinMedica", price: 66, benefit: "Physical SPF", usage: "1 pump - last step", image: "https://static.wixstatic.com/media/11a6e1_d2faad5c91134e0589fb5538c8f76d86~mv2.webp" },
-    { id: "tns", name: "TNS+ Serum", brand: "SkinMedica", price: 330, benefit: "Lifting · Anti-aging", usage: "1 pump - apply to face", image: "https://static.wixstatic.com/media/11a6e1_8eb00266d932471483652b5a40828272~mv2.jpg" }
-].sort((a, b) => a.name.localeCompare(b.name));
-
-const INITIAL_ROUTINES = {
-    "standard-1774409503226": { 
-        name: "FNL Acne", 
-        morning: ["clarify-cleanser", "exfoliating-pad", "silymarin", "glycolic-lotion", "spf50", "spf-powder"], 
-        evening: ["clarify-cleanser", "exo-gf", "retinol-fnl", "glycolic-lotion"] 
-    },
-    "fnl-pigmentation": { 
-        name: "FNL Pigment", 
-        morning: ["clarify-cleanser", "lytera", "silymarin", "spf50"], 
-        evening: ["clarify-cleanser", "exo-gf", "lytera", "retinol-fnl"] 
-    },
-    "standard-1774423030345": { 
-        name: "My New Routine", 
-        morning: [], 
-        evening: [] 
-    },
-    "standard-1774407153349": { 
-        name: "SM Acne & Pigment", 
-        morning: ["cleanser", "lytera", "ha5", "moisturizer", "spf50"], 
-        evening: ["cleanser", "lytera", "retinol", "ha5", "moisturizer"] 
-    },
-    "standard-1774409269378": { 
-        name: "SM Age & Pigment", 
-        morning: ["cleanser", "tns", "lumivive-day", "lytera", "ha5", "moisturizer", "spf50"], 
-        evening: ["cleanser", "lumivive-night", "lytera", "retinol", "ha5", "moisturizer"] 
-    }
-};
-
-// 全局变量
-let productsData = [], savedRoutines = {};
-let currentMorningProducts = [], currentEveningProducts = [];
-let currentRoutineId = null;
-let currentBrand = "all";
-let isLoading = false;
-
-function getProductById(id) { return productsData.find(p => p.id === id); }
-function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
-function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m; }); }
-
-function sortProductsByName(arr) {
-    return [...arr].sort((a, b) => a.name.localeCompare(b.name));
-}
-
-function isRoutineNameExists(name, excludeId = null) {
-    return Object.entries(savedRoutines).some(([id, r]) => {
-        if (excludeId && id === excludeId) return false;
-        return r.name.toLowerCase() === name.toLowerCase();
-    });
-}
-
-function saveToLocalStorage() {
-    localStorage.setItem('skincare_products', JSON.stringify(productsData));
-    localStorage.setItem('skincare_routines', JSON.stringify(savedRoutines));
-    localStorage.setItem('skincare_current_morning', JSON.stringify(currentMorningProducts.map(p => p.productId)));
-    localStorage.setItem('skincare_current_evening', JSON.stringify(currentEveningProducts.map(p => p.productId)));
-    localStorage.setItem('skincare_current_routine_id', currentRoutineId || '');
-}
-
-function loadFromLocalStorage() {
-    const savedProducts = localStorage.getItem('skincare_products');
-    const savedRoutinesData = localStorage.getItem('skincare_routines');
-    const savedMorning = localStorage.getItem('skincare_current_morning');
-    const savedEvening = localStorage.getItem('skincare_current_evening');
-    const savedRoutineId = localStorage.getItem('skincare_current_routine_id');
-    
-    if (savedProducts) productsData = JSON.parse(savedProducts);
-    else productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
-    
-    if (savedRoutinesData) savedRoutines = JSON.parse(savedRoutinesData);
-    else savedRoutines = JSON.parse(JSON.stringify(INITIAL_ROUTINES));
-    
-    if (savedMorning && JSON.parse(savedMorning).length > 0) {
-        currentMorningProducts = JSON.parse(savedMorning).map(pid => ({ productId: pid, time: "morning" }));
-    } else if (savedRoutineId && savedRoutines[savedRoutineId]) {
-        currentMorningProducts = savedRoutines[savedRoutineId].morning.map(pid => ({ productId: pid, time: "morning" }));
-    } else {
-        const firstKey = Object.keys(savedRoutines)[0];
-        if (firstKey && savedRoutines[firstKey]) {
-            currentMorningProducts = savedRoutines[firstKey].morning.map(pid => ({ productId: pid, time: "morning" }));
-        } else {
-            currentMorningProducts = [];
-        }
-    }
-    
-    if (savedEvening && JSON.parse(savedEvening).length > 0) {
-        currentEveningProducts = JSON.parse(savedEvening).map(pid => ({ productId: pid, time: "evening" }));
-    } else if (savedRoutineId && savedRoutines[savedRoutineId]) {
-        currentEveningProducts = savedRoutines[savedRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
-    } else {
-        const firstKey = Object.keys(savedRoutines)[0];
-        if (firstKey && savedRoutines[firstKey]) {
-            currentEveningProducts = savedRoutines[firstKey].evening.map(pid => ({ productId: pid, time: "evening" }));
-        } else {
-            currentEveningProducts = [];
-        }
-    }
-    
-    if (savedRoutineId && savedRoutines[savedRoutineId]) {
-        currentRoutineId = savedRoutineId;
-    } else {
-        currentRoutineId = Object.keys(savedRoutines)[0] || null;
-    }
-}
-
-// ==================== 云端操作 ====================
-async function loadFromCloud() {
-    if (!supabaseClient || isLoading) return false;
-    isLoading = true;
-    try {
-        const { data: products } = await supabaseClient.from('products').select('*');
-        const { data: routines } = await supabaseClient.from('routines').select('*');
-        const { data: state } = await supabaseClient.from('user_state').select('current_routine_id').maybeSingle();
-        
-        if (products && products.length > 0) {
-            productsData = products;
-        } else {
-            productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
-        }
-        productsData = sortProductsByName(productsData);
-        
-        if (routines && routines.length > 0) {
-            savedRoutines = {};
-            routines.forEach(r => { savedRoutines[r.id] = { name: r.name, morning: r.morning, evening: r.evening }; });
-            savedRoutines = Object.fromEntries(
-                Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
-            );
-        } else {
-            savedRoutines = JSON.parse(JSON.stringify(INITIAL_ROUTINES));
-        }
-        
-        if (state && state.current_routine_id && savedRoutines[state.current_routine_id]) {
-            currentRoutineId = state.current_routine_id;
-        } else {
-            currentRoutineId = Object.keys(savedRoutines)[0] || null;
-        }
-        
-        if (currentRoutineId && savedRoutines[currentRoutineId]) {
-            currentMorningProducts = savedRoutines[currentRoutineId].morning.map(pid => ({ productId: pid, time: "morning" }));
-            currentEveningProducts = savedRoutines[currentRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
-        } else {
-            currentMorningProducts = [];
-            currentEveningProducts = [];
-        }
-        
-        saveToLocalStorage();
-        return true;
-    } catch (e) {
-        console.error('Cloud load error:', e);
-        return false;
-    } finally {
-        isLoading = false;
-    }
-}
-
-async function forceSyncAllToCloud() {
-    if (!supabaseClient || !isAuthenticated) {
-        alert("Please sign in first.");
-        return false;
-    }
-    
-    try {
-        const products = JSON.parse(localStorage.getItem('skincare_products') || '[]');
-        const routines = JSON.parse(localStorage.getItem('skincare_routines') || '{}');
-        const currentRoutineId = localStorage.getItem('skincare_current_routine_id');
-        
-        for (const p of products) {
-            await supabaseClient.from('products').upsert({ ...p, user_id: currentUserId });
-        }
-        
-        for (const [id, r] of Object.entries(routines)) {
-            await supabaseClient.from('routines').upsert({ id, name: r.name, morning: r.morning, evening: r.evening, user_id: currentUserId });
-        }
-        
-        if (currentRoutineId) {
-            await supabaseClient.from('user_state').upsert({ current_routine_id: currentRoutineId, user_id: currentUserId });
-        }
-        
-        productsData = products;
-        savedRoutines = routines;
-        
-        alert("✓ All local data synced to cloud!");
-        return true;
-    } catch (e) {
-        console.error('Force sync error:', e);
-        alert("Sync failed: " + e.message);
-        return false;
-    }
-}
-
-async function saveCurrentRoutineToCloud() {
-    if (!supabaseClient || !isAuthenticated) {
-        alert("Please sign in to save to cloud.");
-        return false;
-    }
-    if (!currentRoutineId) {
-        alert("No routine selected.");
-        return false;
-    }
-    try {
-        savedRoutines[currentRoutineId] = { 
-            name: savedRoutines[currentRoutineId].name, 
-            morning: currentMorningProducts.map(p => p.productId), 
-            evening: currentEveningProducts.map(p => p.productId) 
-        };
-        
-        await supabaseClient.from('routines').upsert({ 
-            id: currentRoutineId, 
-            name: savedRoutines[currentRoutineId].name, 
-            morning: savedRoutines[currentRoutineId].morning, 
-            evening: savedRoutines[currentRoutineId].evening, 
-            user_id: currentUserId 
-        });
-        
-        await supabaseClient.from('user_state').upsert({ current_routine_id: currentRoutineId, user_id: currentUserId });
-        
-        saveToLocalStorage();
-        alert(`✓ Routine "${savedRoutines[currentRoutineId].name}" saved to cloud!`);
-        return true;
-    } catch (e) {
-        console.error('Save to cloud error:', e);
-        alert("Save failed: " + e.message);
-        return false;
-    }
-}
-
-async function deleteCurrentRoutineFromCloud() {
-    if (!supabaseClient || !isAuthenticated) {
-        alert("Please sign in to delete from cloud.");
-        return false;
-    }
-    if (!currentRoutineId) {
-        alert("No routine selected.");
-        return false;
-    }
-    try {
-        await supabaseClient.from('routines').delete().eq('id', currentRoutineId);
-        
-        delete savedRoutines[currentRoutineId];
-        savedRoutines = Object.fromEntries(
-            Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
-        );
-        
-        const firstKey = Object.keys(savedRoutines)[0];
-        if (firstKey) {
-            await loadRoutine(firstKey);
-        } else {
-            currentMorningProducts = [];
-            currentEveningProducts = [];
-            currentRoutineId = null;
-            renderRoutines();
-            updateTotalPrice();
-        }
-        
-        renderRoutineButtons();
-        saveToLocalStorage();
-        alert("Routine deleted from cloud!");
-        return true;
-    } catch (e) {
-        console.error('Delete from cloud error:', e);
-        alert("Delete failed: " + e.message);
-        return false;
-    }
-}
-
-async function saveAsNewRoutineToCloud() {
-    if (!supabaseClient || !isAuthenticated) {
-        alert("Please sign in to save to cloud.");
-        return false;
-    }
-    
-    let name = prompt("Enter a name for your new routine:");
-    if (!name) return false;
-    
-    if (isRoutineNameExists(name)) {
-        alert(`A routine named "${name}" already exists. Please choose a different name.`);
-        return false;
-    }
-    
-    let newId = "standard-" + Date.now();
-    let newMorning = currentMorningProducts.map(p => p.productId);
-    let newEvening = currentEveningProducts.map(p => p.productId);
-    
-    try {
-        await supabaseClient.from('routines').insert({ 
-            id: newId, 
-            name: name.trim(), 
-            morning: newMorning, 
-            evening: newEvening, 
-            user_id: currentUserId 
-        });
-        
-        savedRoutines[newId] = { 
-            name: name.trim(), 
-            morning: newMorning, 
-            evening: newEvening 
-        };
-        savedRoutines = Object.fromEntries(
-            Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
-        );
-        
-        renderRoutineButtons();
-        await loadRoutine(newId);
-        saveToLocalStorage();
-        alert(`New routine "${name}" created and saved to cloud!`);
-        return true;
-    } catch (e) {
-        console.error('Save new routine error:', e);
-        alert("Save failed: " + e.message);
-        return false;
-    }
-}
-
-// ==================== UI 渲染函数 ====================
-async function loadRoutine(routineId) {
-    let routine = savedRoutines[routineId];
-    if (routine) {
-        currentRoutineId = routineId;
-        currentMorningProducts = routine.morning.map(pid => ({ productId: pid, time: "morning" }));
-        currentEveningProducts = routine.evening.map(pid => ({ productId: pid, time: "evening" }));
-        renderRoutines();
-        updateTotalPrice();
-        highlightActiveRoutine();
-        saveToLocalStorage();
-    }
-}
-
-function highlightActiveRoutine() {
-    document.querySelectorAll('.routine-btn').forEach(btn => {
-        if (btn.dataset.id === currentRoutineId) btn.classList.add('active');
-        else btn.classList.remove('active');
-    });
-}
-
-async function updateCurrentRoutine() {
-    if (!currentRoutineId) {
-        alert("No routine selected.");
-        return;
-    }
-    await saveCurrentRoutineToCloud();
-    renderRoutineButtons();
-    highlightActiveRoutine();
-}
-
-async function deleteCurrentRoutine() {
-    if (!currentRoutineId) {
-        alert("No routine selected.");
-        return;
-    }
-    if (confirm(`Delete routine "${savedRoutines[currentRoutineId]?.name}"? This will also delete from cloud.`)) { 
-        await deleteCurrentRoutineFromCloud();
-    }
-}
-
-async function saveAsNewRoutine() {
-    await saveAsNewRoutineToCloud();
-}
-
-async function renameCurrentRoutine(newName) {
-    if (!currentRoutineId || !savedRoutines[currentRoutineId]) return;
-    if (!isAuthenticated) {
-        alert("Please sign in to rename routines.");
-        return;
-    }
-    
-    if (isRoutineNameExists(newName, currentRoutineId)) {
-        alert(`A routine named "${newName}" already exists. Please choose a different name.`);
-        return;
-    }
-    
-    savedRoutines[currentRoutineId].name = newName;
-    savedRoutines = Object.fromEntries(
-        Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
-    );
-    
-    if (isAuthenticated && supabaseClient) {
-        await supabaseClient.from('routines').update({ name: newName }).eq('id', currentRoutineId);
-    }
-    
-    renderRoutineButtons();
-    highlightActiveRoutine();
-    saveToLocalStorage();
-    alert(`Routine renamed to "${newName}"!`);
-}
-
-function renderRoutineButtons() {
-    let container = document.getElementById('routineButtons');
-    if (!container) return;
-    if (Object.keys(savedRoutines).length === 0) {
-        container.innerHTML = '<div style="color: #b7a99a; padding: 0.5rem;">No routines available.</div>';
-        return;
-    }
-    container.innerHTML = Object.entries(savedRoutines).map(([id, r]) => `<button class="routine-btn ${id === currentRoutineId ? 'active' : ''}" data-id="${id}">${escapeHtml(r.name)}</button>`).join('');
-    document.querySelectorAll('.routine-btn').forEach(btn => { btn.onclick = () => loadRoutine(btn.dataset.id); });
-}
-
-function getUniqueProductsTotal() { 
-    let ids = new Set(); 
-    currentMorningProducts.forEach(i => ids.add(i.productId)); 
-    currentEveningProducts.forEach(i => ids.add(i.productId)); 
-    let total = 0; 
-    ids.forEach(id => { let p = getProductById(id); if(p) total += p.price; }); 
-    return total; 
-}
-
-function updateTotalPrice() { 
-    let span = document.getElementById('totalPrice'); 
-    if (span) span.innerText = getUniqueProductsTotal().toFixed(2); 
-}
-
-function updateUIBasedOnAuth() {
-    const isLoggedIn = isAuthenticated;
-    
-    const editBtn = document.getElementById('editRoutineBtn');
-    if (editBtn) editBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
-    
-    const authButtons = document.getElementById('authButtons');
-    if (authButtons) {
-        authButtons.style.display = isLoggedIn ? 'flex' : 'none';
-    }
-}
-
-function renderBrandProducts() {
-    let container = document.getElementById('brandProductsContainer');
-    if (!container) return;
-    let filtered = currentBrand === "all" ? productsData : productsData.filter(p => p.brand === currentBrand);
-    filtered = sortProductsByName(filtered);
-    container.innerHTML = filtered.map(p => `<div class="library-item" draggable="true" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}" data-product-benefit="${escapeHtml(p.benefit || '')}" data-product-usage="${escapeHtml(p.usage || '')}" data-product-image="${p.image || ''}">
-        ${escapeHtml(p.name)} <span class="library-price">$${p.price}</span>
-        <span class="library-actions">
-            <span class="edit-icon" data-id="${p.id}" title="Edit">✎</span>
-            <span class="delete-product-icon" data-id="${p.id}" title="Delete">🗑️</span>
-        </span>
-    </div>`).join('');
-    attachDragEvents(); 
-    attachEditEvents();
-    attachProductDeleteEvents();
-    updateUIBasedOnAuth();
-}
-
-async function deleteProduct(productId) {
-    if (confirm('Delete product from library? It will be removed from all routines.')) {
-        const index = productsData.findIndex(p => p.id === productId);
-        if (index !== -1) {
-            productsData.splice(index, 1);
-            for (let id in savedRoutines) {
-                savedRoutines[id].morning = savedRoutines[id].morning.filter(pid => pid !== productId);
-                savedRoutines[id].evening = savedRoutines[id].evening.filter(pid => pid !== productId);
-            }
-            currentMorningProducts = currentMorningProducts.filter(item => item.productId !== productId);
-            currentEveningProducts = currentEveningProducts.filter(item => item.productId !== productId);
-            renderBrandProducts();
-            renderRoutineButtons();
-            renderRoutines();
-            updateTotalPrice();
-            saveToLocalStorage();
-        }
-    }
-}
-
-function attachProductDeleteEvents() {
-    document.querySelectorAll('.delete-product-icon').forEach(icon => {
-        icon.onclick = async (e) => {
-            e.stopPropagation();
-            await deleteProduct(icon.dataset.id);
-        };
-    });
-}
-
-function attachDragEvents() { 
-    document.querySelectorAll('.library-item').forEach(el => { 
-        el.setAttribute('draggable', 'true'); 
-        el.addEventListener('dragstart', (e) => { 
-            let data = { id: el.dataset.productId, name: el.dataset.productName, price: parseFloat(el.dataset.productPrice), benefit: el.dataset.productBenefit, usage: el.dataset.productUsage, image: el.dataset.productImage }; 
-            e.dataTransfer.setData('text/plain', JSON.stringify(data)); 
-        }); 
-    }); 
-}
-
-function attachEditEvents() { 
-    document.querySelectorAll('.edit-icon').forEach(icon => { 
-        icon.onclick = (e) => { 
-            e.stopPropagation(); 
-            let product = getProductById(icon.dataset.id); 
-            if (product) openEditForm(product); 
-        }; 
-    }); 
-}
-
-function openEditForm(product) { 
-    document.getElementById('productName').value = product.name; 
-    document.getElementById('productBrand').value = product.brand; 
-    document.getElementById('productPrice').value = product.price; 
-    document.getElementById('productBenefit').value = product.benefit || ''; 
-    document.getElementById('productUsage').value = product.usage || ''; 
-    document.getElementById('productImage').value = product.image || ''; 
-    document.getElementById('editProductId').value = product.id; 
-    document.getElementById('productForm').classList.add('show'); 
-    document.getElementById('toggleAddBtn').style.display = 'none'; 
-}
-
-async function saveProduct() { 
-    let name = document.getElementById('productName').value.trim(); 
-    if (!name) { alert("Enter product name"); return; } 
-    let newProduct = { 
-        id: document.getElementById('editProductId').value || generateId(), 
-        name: name, 
-        brand: document.getElementById('productBrand').value, 
-        price: parseFloat(document.getElementById('productPrice').value) || 0, 
-        benefit: document.getElementById('productBenefit').value, 
-        usage: document.getElementById('productUsage').value, 
-        image: document.getElementById('productImage').value 
-    }; 
-    let existing = productsData.findIndex(p => p.id === newProduct.id); 
-    if (existing >= 0) productsData[existing] = newProduct; 
-    else productsData.push(newProduct); 
-    productsData = sortProductsByName(productsData); 
-    closeForm(); 
-    renderBrandProducts(); 
-    renderRoutines(); 
-    updateTotalPrice(); 
-    saveToLocalStorage(); 
-}
-
-function closeForm() { 
-    document.getElementById('productForm').classList.remove('show'); 
-    document.getElementById('toggleAddBtn').style.display = ''; 
-    document.getElementById('productName').value = ''; 
-    document.getElementById('editProductId').value = ''; 
-}
-
-function attachReorderDrag(containerId, itemsArray, updateCallback) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    let dragStartIndex = null;
-    container.querySelectorAll('.product-card').forEach(card => {
-        card.setAttribute('draggable', 'true');
-        card.addEventListener('dragstart', (e) => {
-            dragStartIndex = parseInt(card.dataset.index);
-            e.dataTransfer.setData('text/plain', dragStartIndex);
-            e.dataTransfer.effectAllowed = 'move';
-            card.style.opacity = '0.4';
-        });
-        card.addEventListener('dragend', (e) => {
-            card.style.opacity = '';
-            dragStartIndex = null;
-        });
-        card.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-        });
-        card.addEventListener('drop', async (e) => {
-            e.preventDefault();
-            const dragIndex = dragStartIndex;
-            const dropIndex = parseInt(card.dataset.index);
-            if (dragIndex !== null && dragIndex !== dropIndex) {
-                const draggedItem = itemsArray[dragIndex];
-                itemsArray.splice(dragIndex, 1);
-                itemsArray.splice(dropIndex, 0, draggedItem);
-                updateCallback();
-                renderRoutines();
-                saveToLocalStorage();
-            }
-        });
-    });
-}
-
-function renderRoutines() {
-    let morningContainer = document.getElementById('morningList');
-    let eveningContainer = document.getElementById('eveningList');
-    
-    if (morningContainer) {
-        let morningHtml = `<div class="empty-slot" data-time="morning" data-index="0">+ Drop product here to add at top</div>`;
-        morningHtml += currentMorningProducts.map((item, idx) => renderCard(item.productId, idx, 'morning')).join('');
-        morningContainer.innerHTML = morningHtml;
-    }
-    if (eveningContainer) {
-        let eveningHtml = `<div class="empty-slot" data-time="evening" data-index="0">+ Drop product here to add at top</div>`;
-        eveningHtml += currentEveningProducts.map((item, idx) => renderCard(item.productId, idx, 'evening')).join('');
-        eveningContainer.innerHTML = eveningHtml;
-    }
-    
-    document.querySelectorAll('#morningList .product-card').forEach((card, newIdx) => { card.dataset.index = newIdx; });
-    document.querySelectorAll('#eveningList .product-card').forEach((card, newIdx) => { card.dataset.index = newIdx; });
-    
-    attachReorderDrag('morningList', currentMorningProducts, () => {
-        updateTotalPrice();
-    });
-    attachReorderDrag('eveningList', currentEveningProducts, () => {
-        updateTotalPrice();
-    });
-    
-    attachDropEvents('morningList', 'morning');
-    attachDropEvents('eveningList', 'evening');
-    attachDeleteEvents();
-    attachEmptySlotEvents();
-}
-
-function renderCard(pid, idx, time) { 
-    let p = getProductById(pid); 
-    if (!p) return ''; 
-    return `<div class="product-card" data-product-id="${p.id}" data-index="${idx}" data-time="${time}" draggable="true">
-        <div class="drag-handle">⋮⋮</div>
-        <button class="delete-btn" data-time="${time}" data-index="${idx}">✕</button>
-        <div class="product-image"><img src="${p.image || 'https://via.placeholder.com/52/f1e8e0/8f7e6b?text=Product'}" alt="${escapeHtml(p.name)}"></div>
-        <div class="product-info">
-            <div class="product-name">${escapeHtml(p.name)} <span class="product-price">$${p.price}</span></div>
-            <div class="benefit">${escapeHtml(p.benefit || '')}</div>
-            <div class="usage"><i class="icon-hand"></i> ${escapeHtml((p.usage || '').substring(0, 55))}</div>
-        </div>
-    </div>`; 
-}
-
-function attachEmptySlotEvents() {
-    document.querySelectorAll('.empty-slot').forEach(slot => {
-        slot.ondragover = (e) => { e.preventDefault(); slot.classList.add('drag-over'); };
-        slot.ondragleave = () => { slot.classList.remove('drag-over'); };
-        slot.ondrop = async (e) => {
-            e.preventDefault();
-            slot.classList.remove('drag-over');
-            const time = slot.dataset.time;
-            const targetIndex = parseInt(slot.dataset.index);
-            let dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
-            if (dragData && dragData.id) {
-                if (time === 'morning') {
-                    currentMorningProducts.splice(targetIndex, 0, { productId: dragData.id, time: 'morning' });
-                } else {
-                    currentEveningProducts.splice(targetIndex, 0, { productId: dragData.id, time: 'evening' });
-                }
-                renderRoutines();
-                updateTotalPrice();
-                saveToLocalStorage();
-            }
-        };
-    });
-}
-
-function attachDropEvents(containerId, time) { 
-    let container = document.getElementById(containerId); 
-    if (!container) return; 
-    container.ondragover = (e) => e.preventDefault(); 
-    container.ondrop = async (e) => { 
-        e.preventDefault(); 
-        let targetCard = e.target.closest('.product-card'); 
-        if (!targetCard) return; 
-        let targetIdx = parseInt(targetCard.dataset.index); 
-        let dragData = JSON.parse(e.dataTransfer.getData('text/plain')); 
-        if (dragData && dragData.id) { 
-            if (time === 'morning' && currentMorningProducts[targetIdx]) currentMorningProducts[targetIdx] = { productId: dragData.id, time: 'morning' }; 
-            if (time === 'evening' && currentEveningProducts[targetIdx]) currentEveningProducts[targetIdx] = { productId: dragData.id, time: 'evening' }; 
-            renderRoutines();
-            updateTotalPrice();
-            saveToLocalStorage();
-        } 
-    }; 
-}
-
-function attachDeleteEvents() { 
-    document.querySelectorAll('.delete-btn').forEach(btn => { 
-        btn.onclick = async (e) => { 
-            e.stopPropagation(); 
-            let time = btn.dataset.time, idx = parseInt(btn.dataset.index); 
-            if (time === 'morning') currentMorningProducts.splice(idx, 1); 
-            else currentEveningProducts.splice(idx, 1); 
-            renderRoutines();
-            updateTotalPrice();
-            saveToLocalStorage();
-        }; 
-    }); 
-}
-
-function printRoutine() { 
-    let uniqueMorning = currentMorningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx);
-    let uniqueEvening = currentEveningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx);
-    
-    let win = window.open('', '_blank'); 
-    win.document.write(`<!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Skincare Routine</title>
-        <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: 'Inter', sans-serif; padding: 0.5in; background: white; }
-            .print-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2d4c6; padding-bottom: 15px; }
-            .print-header h1 { font-family: 'Montserrat', sans-serif; font-size: 28px; color: #7f6e5d; }
-            .print-date { font-size: 11px; color: #ccbeaf; margin-top: 5px; }
-            .print-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-            .print-column { border: 1px solid #e7dbd0; border-radius: 16px; padding: 20px; background: #fefcf8; }
-            .print-column h2 { font-family: 'Montserrat', sans-serif; font-size: 20px; color: #8f7e6b; border-bottom: 1px solid #e2d4c6; padding-bottom: 10px; margin-bottom: 15px; }
-            .print-product { display: flex; gap: 12px; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px dashed #e7dbd0; }
-            .print-product-image { width: 50px; height: 50px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; }
-            .print-product-image img { width: 100%; height: 100%; object-fit: cover; }
-            .print-product-info { flex: 1; }
-            .print-product-name { font-weight: 600; font-size: 14px; color: #5f5347; }
-            .print-product-benefit { font-size: 11px; color: #b7a99a; font-style: italic; }
-            .print-product-usage { font-size: 10px; color: #8e7e6e; margin-top: 5px; }
-            .print-footer { margin-top: 30px; text-align: center; font-size: 10px; color: #ccbeaf; border-top: 1px solid #e7dbd0; padding-top: 15px; }
-            @media print { body { padding: 0; } }
-        </style>
-    </head>
-    <body>
-        <div class="print-header">
-            <h1>${escapeHtml(savedRoutines[currentRoutineId]?.name || 'Skincare Routine')}</h1>
-            <div class="print-date">Printed on ${new Date().toLocaleDateString()}</div>
-        </div>
-        <div class="print-grid">
-            <div class="print-column">
-                <h2>MORNING ROUTINE ☀️</h2>
-                ${uniqueMorning.map(i => { let p = getProductById(i.productId); return p ? `
-                <div class="print-product">
-                    <div class="print-product-image"><img src="${p.image || ''}"></div>
-                    <div class="print-product-info">
-                        <div class="print-product-name">${escapeHtml(p.name)}</div>
-                        <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
-                        <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions')}</div>
-                    </div>
-                </div>` : ''; }).join('')}
-            </div>
-            <div class="print-column">
-                <h2>EVENING ROUTINE 🌙</h2>
-                ${uniqueEvening.map(i => { let p = getProductById(i.productId); return p ? `
-                <div class="print-product">
-                    <div class="print-product-image"><img src="${p.image || ''}"></div>
-                    <div class="print-product-info">
-                        <div class="print-product-name">${escapeHtml(p.name)}</div>
-                        <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
-                        <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions')}</div>
-                    </div>
-                </div>` : ''; }).join('')}
-            </div>
-        </div>
-        <div class="print-footer">✦ ${savedRoutines[currentRoutineId]?.name || 'Skincare Routine'} ✦</div>
-    </body>
-    </html>`); 
-    win.document.close(); 
-    win.print(); 
-}
-
-function renderBrandTabs() { 
-    let brands = ["all", "SkinMedica", "Skinceuticals", "FNL", "ColorScience", "Others"]; 
-    let container = document.getElementById('brandTabs'); 
-    if (!container) return; 
-    container.innerHTML = brands.map(b => `<button class="brand-tab ${b === currentBrand ? 'active' : ''}" data-brand="${b}">${b === 'all' ? 'All' : b}</button>`).join(''); 
-    document.querySelectorAll('.brand-tab').forEach(tab => { tab.onclick = () => { currentBrand = tab.dataset.brand; renderBrandTabs(); renderBrandProducts(); }; }); 
-}
-
 // ==================== 认证函数 ====================
 async function handleLogin() {
-    if (!supabaseClient) { 
-        alert("Supabase not ready. Please refresh the page.");
-        return;
-    }
-    try {
-        const { error } = await supabaseClient.auth.signInWithOAuth({ 
-            provider: 'google',
-            options: { redirectTo: window.location.href }
-        });
-        if (error) {
-            console.error('Login error:', error);
-            alert('Login error: ' + error.message);
-        }
-    } catch (e) {
-        console.error('Login exception:', e);
-        alert('Login failed: ' + e.message);
-    }
+    if (!supabaseClient) { alert("Supabase not ready."); return; }
+    const { error } = await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+    if (error) alert('Login error: ' + error.message);
 }
 
 async function handleLogout() { 
-    try {
-        if (supabaseClient) await supabaseClient.auth.signOut();
-        localStorage.clear();
-        location.reload();
-    } catch (e) {
-        console.error('Logout error:', e);
-        location.reload();
-    }
+    if (supabaseClient) await supabaseClient.auth.signOut(); 
+    localStorage.clear();
+    location.reload();
 }
 
 async function checkAuth() {
     if (!supabaseClient) return;
-    try {
-        const { data: { session }, error } = await supabaseClient.auth.getSession();
-        if (error) {
-            console.error('Auth check error:', error);
-            isAuthenticated = false;
-        } else if (session) {
-            isAuthenticated = true;
-            currentUserId = session.user.id;
-            document.getElementById('authStatus').innerHTML = `✅ Signed in as ${session.user.email}`;
-            document.getElementById('loginBtn').style.display = 'none';
-            document.getElementById('logoutBtn').style.display = 'inline-block';
-        } else {
-            isAuthenticated = false;
-            document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
-            document.getElementById('loginBtn').style.display = 'inline-block';
-            document.getElementById('logoutBtn').style.display = 'none';
-        }
-        await loadFromCloud();
-        refreshUI();
-    } catch (e) {
-        console.error('Auth check exception:', e);
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+        isAuthenticated = true;
+        currentUserId = session.user.id;
+        document.getElementById('authStatus').innerHTML = `✅ Signed in as ${session.user.email}`;
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('logoutBtn').style.display = 'inline-block';
+    } else {
         isAuthenticated = false;
         document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
         document.getElementById('loginBtn').style.display = 'inline-block';
         document.getElementById('logoutBtn').style.display = 'none';
-        loadFromLocalStorage();
-        refreshUI();
+    }
+    // 更新 Pre & Post Care 的登录状态
+    updateCareLoginStatus();
+}
+
+function updateCareLoginStatus() {
+    const authDiv = document.getElementById('authRequiredButtons');
+    const loginDiv = document.getElementById('loginPrompt');
+    if (authDiv && loginDiv) {
+        authDiv.style.display = isAuthenticated ? 'block' : 'none';
+        loginDiv.style.display = isAuthenticated ? 'none' : 'block';
     }
 }
 
-function refreshUI() {
-    renderBrandTabs();
-    renderBrandProducts();
-    renderRoutineButtons();
-    renderRoutines();
-    updateTotalPrice();
-    if (currentRoutineId) highlightActiveRoutine();
-    updateUIBasedOnAuth();
+// ==================== Tab 切换功能 ====================
+function initTabs() {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetTab = this.dataset.tab;
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            const targetContent = document.getElementById(`${targetTab}-tab`);
+            if (targetContent) targetContent.classList.add('active');
+        });
+    });
+    console.log('Tab切换已初始化');
 }
 
-// ==================== Pre & Post Care 文档管理 ====================
-let savedDocuments = [];
-let currentDocId = null;
+// ==================== Pre & Post Care 功能 ====================
+let careDocs = [];
+let currentCareId = null;
 
-function loadDocuments() {
-    const saved = localStorage.getItem('skincare_documents');
+function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m); }
+
+function loadCareDocuments() {
+    const saved = localStorage.getItem('skincare_documents_v3');
     if (saved) {
-        savedDocuments = JSON.parse(saved);
-    } else {
-        savedDocuments = [
-            {
-                id: "sample-1",
-                name: "Laser Hair Removal Guide",
-                content: "LASER HAIR REMOVAL - PRE & POST CARE\n\nPRE-CARE:\n• Shave the area 24-48 hours before treatment\n• Avoid sun exposure for 2 weeks\n• No waxing or plucking for 4 weeks\n\nPOST-CARE:\n• Apply cool compresses\n• Use SPF 50+ diligently\n• No hot showers for 48 hours"
-            },
-            {
-                id: "sample-2",
-                name: "Microneedling / SkinPen",
-                content: "MICRONEEDLING - PRE & POST CARE\n\nPRE-CARE:\n• Stop retinol 5 days before\n• No sun exposure for 1 week\n\nPOST-CARE:\n• Use gentle cleanser\n• Apply hyaluronic acid serum\n• Use SPF 50+"
-            }
+        try { careDocs = JSON.parse(saved); } catch(e) { careDocs = []; }
+    }
+    if (careDocs.length === 0) {
+        careDocs = [
+            { id: "1", name: "Laser Hair Removal", resultPlans: "✅ Expected Results: Significant hair reduction, smooth skin\n📅 Treatment Plan: Every 4-6 weeks, 6-8 sessions", preTreatment: "• Shave 24-48 hours before\n• Avoid sun exposure for 2 weeks\n• No waxing or plucking 4 weeks prior", sideEffects: "• Mild redness: Cold compress\n• Tingling: Resolves 1-2 hours\n• Hyperpigmentation: Avoid sun", postDo: "• Cold compress 10-15 min\n• Aloe vera gel\n• SPF50+ sunscreen", postAvoid: "• No hot showers 48h\n• No waxing/plucking\n• No exfoliating 1 week" },
+            { id: "2", name: "Microneedling / SkinPen", resultPlans: "✅ Improves fine lines, scars, pores\n📅 Schedule: Every 4-6 weeks, 3-4 sessions", preTreatment: "• Stop retinoids 5 days prior\n• Avoid sun 1 week\n• No active acne", sideEffects: "• Redness: 24-72 hours\n• Dryness/peeling: Days 3-5\n• Pinpoint bleeding", postDo: "• Gentle cleansing 24h\n• Hyaluronic acid serum\n• SPF50+ sunscreen", postAvoid: "• No makeup 24h\n• No exfoliating 1 week\n• No swimming 3 days" },
+            { id: "3", name: "Chemical Peel", resultPlans: "✅ Brightens skin, fades spots\n📅 Schedule: Every 3-4 weeks, 3-6 sessions", preTreatment: "• Stop retinoids 1 week\n• Stop brightening products 3 days\n• Avoid sun 2 weeks", sideEffects: "• Redness: Normal\n• Peeling: Days 3-5\n• Temporary hyperpigmentation", postDo: "• Gentle cleansing\n• Healing cream\n• SPF50+ sunscreen", postAvoid: "• Do not pick peeling\n• No exfoliating 2 weeks\n• Avoid sun" }
         ];
-        localStorage.setItem('skincare_documents', JSON.stringify(savedDocuments));
+        localStorage.setItem('skincare_documents_v3', JSON.stringify(careDocs));
     }
-    renderDocList();
-    if (savedDocuments.length > 0 && !currentDocId) {
-        loadDocument(savedDocuments[0].id);
-    }
+    renderCareList();
+    if (careDocs.length > 0) loadCareDoc(careDocs[0].id);
 }
 
-function renderDocList() {
+function renderCareList() {
     const container = document.getElementById('docList');
     if (!container) return;
-    container.innerHTML = savedDocuments.map(doc => `
-        <div class="care-procedure-item ${currentDocId === doc.id ? 'active' : ''}" data-id="${doc.id}">
-            <span>📄 ${escapeHtml(doc.name)}</span>
-            <span class="procedure-delete" data-id="${doc.id}">🗑️</span>
-        </div>
-    `).join('');
-    
-    document.querySelectorAll('.care-procedure-item').forEach(el => {
-        el.addEventListener('click', (e) => {
-            if (e.target.classList.contains('procedure-delete')) return;
-            loadDocument(el.dataset.id);
-        });
-    });
-    
-    document.querySelectorAll('.procedure-delete').forEach(el => {
-        el.addEventListener('click', (e) => {
-            e.stopPropagation();
-            deleteDocument(el.dataset.id);
-        });
-    });
+    container.innerHTML = careDocs.map(d => `<div class="doc-list-item ${currentCareId === d.id ? 'active' : ''}" data-id="${d.id}"><span>📄 ${escapeHtml(d.name)}</span></div>`).join('');
+    document.querySelectorAll('.doc-list-item').forEach(el => { el.onclick = () => loadCareDoc(el.dataset.id); });
 }
 
-function loadDocument(docId) {
-    const doc = savedDocuments.find(d => d.id === docId);
+function loadCareDoc(id) {
+    const doc = careDocs.find(d => d.id === id);
     if (doc) {
-        currentDocId = docId;
+        currentCareId = id;
         document.getElementById('docTitle').value = doc.name;
-        document.getElementById('docContent').value = doc.content;
-        renderDocList();
+        document.getElementById('resultPlans').value = doc.resultPlans || '';
+        document.getElementById('preTreatment').value = doc.preTreatment || '';
+        document.getElementById('sideEffects').value = doc.sideEffects || '';
+        document.getElementById('postDo').value = doc.postDo || '';
+        document.getElementById('postAvoid').value = doc.postAvoid || '';
+        renderCareList();
     }
 }
 
-function saveCurrentDocument() {
+function saveCareLocal() {
     const name = document.getElementById('docTitle').value.trim();
-    const content = document.getElementById('docContent').value;
-    if (!name) { alert('Please enter a document title'); return; }
-    
-    if (currentDocId) {
-        const doc = savedDocuments.find(d => d.id === currentDocId);
-        if (doc) {
-            doc.name = name;
-            doc.content = content;
-        }
-    } else {
-        const newDoc = { id: Date.now().toString(), name: name, content: content };
-        savedDocuments.push(newDoc);
-        currentDocId = newDoc.id;
+    if (!name) { alert('Enter title'); return; }
+    const doc = careDocs.find(d => d.id === currentCareId);
+    if (doc) {
+        doc.name = name;
+        doc.resultPlans = document.getElementById('resultPlans').value;
+        doc.preTreatment = document.getElementById('preTreatment').value;
+        doc.sideEffects = document.getElementById('sideEffects').value;
+        doc.postDo = document.getElementById('postDo').value;
+        doc.postAvoid = document.getElementById('postAvoid').value;
+        localStorage.setItem('skincare_documents_v3', JSON.stringify(careDocs));
+        renderCareList();
+        alert('✅ Saved');
     }
-    localStorage.setItem('skincare_documents', JSON.stringify(savedDocuments));
-    renderDocList();
-    alert('Document saved!');
 }
 
-function deleteDocument(docId) {
+function newCareDoc() {
+    if (!isAuthenticated) { alert('Please sign in first'); return; }
+    const name = prompt('Document title:', 'New Document');
+    if (!name) return;
+    const newId = Date.now().toString();
+    careDocs.push({ id: newId, name: name, resultPlans: '', preTreatment: '', sideEffects: '', postDo: '', postAvoid: '' });
+    localStorage.setItem('skincare_documents_v3', JSON.stringify(careDocs));
+    loadCareDoc(newId);
+    renderCareList();
+    alert('✅ Created');
+}
+
+function updateCareDoc() {
+    if (!isAuthenticated) { alert('Please sign in first'); return; }
+    const name = document.getElementById('docTitle').value.trim();
+    if (!name) { alert('Enter title'); return; }
+    const doc = careDocs.find(d => d.id === currentCareId);
+    if (doc) {
+        doc.name = name;
+        doc.resultPlans = document.getElementById('resultPlans').value;
+        doc.preTreatment = document.getElementById('preTreatment').value;
+        doc.sideEffects = document.getElementById('sideEffects').value;
+        doc.postDo = document.getElementById('postDo').value;
+        doc.postAvoid = document.getElementById('postAvoid').value;
+        localStorage.setItem('skincare_documents_v3', JSON.stringify(careDocs));
+        renderCareList();
+        alert('✅ Updated');
+    }
+}
+
+function deleteCareDoc() {
+    if (!isAuthenticated) { alert('Please sign in first'); return; }
+    if (!currentCareId) { alert('No document selected'); return; }
     if (confirm('Delete this document?')) {
-        savedDocuments = savedDocuments.filter(d => d.id !== docId);
-        if (currentDocId === docId) {
-            currentDocId = null;
-            if (savedDocuments.length > 0) loadDocument(savedDocuments[0].id);
-            else { document.getElementById('docTitle').value = ''; document.getElementById('docContent').value = ''; }
+        careDocs = careDocs.filter(d => d.id !== currentCareId);
+        if (careDocs.length > 0) loadCareDoc(careDocs[0].id);
+        else {
+            currentCareId = null;
+            document.getElementById('docTitle').value = '';
+            document.getElementById('resultPlans').value = '';
+            document.getElementById('preTreatment').value = '';
+            document.getElementById('sideEffects').value = '';
+            document.getElementById('postDo').value = '';
+            document.getElementById('postAvoid').value = '';
         }
-        localStorage.setItem('skincare_documents', JSON.stringify(savedDocuments));
-        renderDocList();
+        localStorage.setItem('skincare_documents_v3', JSON.stringify(careDocs));
+        renderCareList();
+        alert('✅ Deleted');
     }
 }
 
-function addNewDocument() {
-    currentDocId = null;
-    document.getElementById('docTitle').value = '';
-    document.getElementById('docContent').value = '';
-    renderDocList();
-    document.getElementById('docTitle').focus();
-}
-
-function handleFileUpload(file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const content = e.target.result;
-        const fileName = file.name.replace(/\.txt$/, '');
-        const newDoc = { id: Date.now().toString(), name: fileName, content: content };
-        savedDocuments.push(newDoc);
-        localStorage.setItem('skincare_documents', JSON.stringify(savedDocuments));
-        renderDocList();
-        loadDocument(newDoc.id);
-        alert(`Document "${fileName}" uploaded!`);
-    };
-    reader.readAsText(file);
-}
-
-function printDocumentAsPDF() {
-    const title = document.getElementById('docTitle').value.trim() || 'Document';
-    const content = document.getElementById('docContent').value || 'No content';
+function printCareDoc() {
+    const name = document.getElementById('docTitle').value.trim() || 'Document';
     const win = window.open('', '_blank');
-    win.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head><meta charset="UTF-8"><title>${escapeHtml(title)}</title>
-        <style>
-            body { font-family: 'Inter', sans-serif; padding: 0.5in; background: white; line-height: 1.6; }
-            .print-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2d4c6; padding-bottom: 20px; }
-            .print-header h1 { font-size: 28px; color: #7f6e5d; }
-            .print-date { font-size: 11px; color: #ccbeaf; margin-top: 5px; }
-            .print-content { white-space: pre-wrap; font-size: 12px; margin-top: 20px; }
-            .print-footer { margin-top: 40px; text-align: center; font-size: 10px; color: #ccbeaf; border-top: 1px solid #e7dbd0; padding-top: 15px; }
-            @media print { body { padding: 0; } }
-        </style>
-        </head>
-        <body>
-            <div class="print-header"><h1>${escapeHtml(title)}</h1><div class="print-date">Printed on ${new Date().toLocaleDateString()}</div></div>
-            <div class="print-content">${escapeHtml(content).replace(/\n/g, '<br>')}</div>
-            <div class="print-footer">✦ Skincare Routine Builder ✦</div>
-        </body>
-        </html>
-    `);
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(name)}</title><style>
+        body{font-family:Inter;padding:0.4in;background:white;line-height:1.5;}
+        h1{color:#7f6e5d;font-size:22px;border-bottom:1px solid #e2d4c6;padding-bottom:10px;}
+        .section{margin:15px 0;}
+        .section h2{font-size:14px;color:#b99f87;border-left:3px solid #b99f87;padding-left:10px;}
+        .section p{white-space:pre-wrap;font-size:12px;margin-left:13px;}
+    </style></head><body>
+        <h1>${escapeHtml(name)}</h1>
+        <div class="section"><h2>📋 RESULT & PLANS</h2><p>${escapeHtml(document.getElementById('resultPlans').value || '')}</p></div>
+        <div class="section"><h2>🩺 PRE TREATMENT</h2><p>${escapeHtml(document.getElementById('preTreatment').value || '')}</p></div>
+        <div class="section"><h2>⚠️ SIDE EFFECTS</h2><p>${escapeHtml(document.getElementById('sideEffects').value || '')}</p></div>
+        <div class="section"><h2>🌸 POST CARE - DO</h2><p>${escapeHtml(document.getElementById('postDo').value || '')}</p></div>
+        <div class="section"><h2>🚫 POST CARE - AVOID</h2><p>${escapeHtml(document.getElementById('postAvoid').value || '')}</p></div>
+    </body></html>`);
     win.document.close();
     win.print();
 }
 
-function emailDocumentAsPDF() {
-    const title = document.getElementById('docTitle').value.trim() || 'Document';
-    const content = document.getElementById('docContent').value || 'No content';
-    const subject = encodeURIComponent(`Skincare Document: ${title}`);
-    const body = encodeURIComponent(`${title}\n\n${content}\n\n---\nGenerated by Skincare Routine Builder`);
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+function emailCareDoc() {
+    const name = document.getElementById('docTitle').value.trim() || 'Document';
+    let content = `${name}\n\n📋 RESULT & PLANS\n${document.getElementById('resultPlans').value}\n\n🩺 PRE TREATMENT\n${document.getElementById('preTreatment').value}\n\n⚠️ SIDE EFFECTS\n${document.getElementById('sideEffects').value}\n\n🌸 POST CARE - DO\n${document.getElementById('postDo').value}\n\n🚫 POST CARE - AVOID\n${document.getElementById('postAvoid').value}`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(name)}&body=${encodeURIComponent(content)}`;
 }
 
-function initCareModule() {
-    loadDocuments();
-    const uploadBtn = document.getElementById('uploadDocBtn');
-    const fileInput = document.getElementById('wordFileInput');
-    const saveBtn = document.getElementById('saveDocBtn');
-    const printBtn = document.getElementById('printDocBtn');
-    const emailBtn = document.getElementById('emailDocBtn');
-    
-    if (uploadBtn) uploadBtn.onclick = () => fileInput.click();
-    if (fileInput) fileInput.onchange = (e) => {
-        if (e.target.files && e.target.files[0]) handleFileUpload(e.target.files[0]);
-        fileInput.value = '';
-    };
-    if (saveBtn) saveBtn.onclick = saveCurrentDocument;
-    if (printBtn) printBtn.onclick = printDocumentAsPDF;
-    if (emailBtn) emailBtn.onclick = emailDocumentAsPDF;
-    
-    const sidebar = document.querySelector('.care-sidebar');
-    if (sidebar && !document.getElementById('newDocBtn')) {
-        const newBtn = document.createElement('button');
-        newBtn.id = 'newDocBtn';
-        newBtn.className = 'add-procedure-btn';
-        newBtn.style.marginTop = '0.5rem';
-        newBtn.innerHTML = '✨ New Document';
-        newBtn.onclick = addNewDocument;
-        sidebar.appendChild(newBtn);
-    }
-}
+// 绑定 Pre & Post Care 按钮
+document.getElementById('saveLocalBtn')?.addEventListener('click', saveCareLocal);
+document.getElementById('printDocBtn')?.addEventListener('click', printCareDoc);
+document.getElementById('emailDocBtn')?.addEventListener('click', emailCareDoc);
+document.getElementById('newDocBtn')?.addEventListener('click', newCareDoc);
+document.getElementById('updateDocBtn')?.addEventListener('click', updateCareDoc);
+document.getElementById('deleteDocBtn')?.addEventListener('click', deleteCareDoc);
 
-// 按钮绑定
-document.getElementById('toggleAddBtn').onclick = () => { 
-    document.getElementById('editProductId').value = ''; 
-    closeForm(); 
-    document.getElementById('productForm').classList.add('show'); 
-    document.getElementById('toggleAddBtn').style.display = 'none'; 
-};
-document.getElementById('cancelFormBtn').onclick = closeForm;
-document.getElementById('saveProductBtn').onclick = saveProduct;
-document.getElementById('printBtn').onclick = printRoutine;
-document.getElementById('editRoutineBtn').onclick = () => { 
-    if (!isAuthenticated) { alert("Please sign in to rename routines."); return; }
-    let newName = prompt("Edit routine name:", savedRoutines[currentRoutineId]?.name); 
-    if(newName) renameCurrentRoutine(newName); 
-};
-document.getElementById('loginBtn').onclick = handleLogin;
-document.getElementById('logoutBtn').onclick = handleLogout;
-document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
-document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutine;
-document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
-document.getElementById('syncAllBtn').onclick = forceSyncAllToCloud;
-
-// 启动应用
-loadFromLocalStorage();
-refreshUI();
+// ==================== 启动应用 ====================
+document.addEventListener('DOMContentLoaded', function() {
+    initTabs();
+    loadCareDocuments();
+    updateCareLoginStatus();
+});
 initSupabase();
-initCareModule();
+
+// 定期检查登录状态
+setInterval(updateCareLoginStatus, 2000);
 </script>
 </body>
 </html>
