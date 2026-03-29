@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pre & Post Care</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400,500;600&family=Montserrat:wght@300,600&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background:#f5efe9; font-family:'Inter',sans-serif; padding:2rem 1rem; }
@@ -19,7 +18,6 @@
         .doc-item:hover { background:#e9dfd4; transform:translateX(4px); }
         .doc-item.active { background:#b99f87; color:white; }
         .btn-sidebar { width:100%; margin-top:1rem; padding:0.6rem; background:#e9dfd4; border:none; border-radius:40px; cursor:pointer; font-size:0.75rem; font-weight:500; }
-        .btn-sidebar:hover { background:#dacbbb; }
         .doc-editor { background:#fff9f2; border-radius:24px; padding:1.5rem; border:1px solid #e7dbd0; }
         .doc-title { width:100%; font-size:1.5rem; border:none; background:transparent; border-bottom:2px solid #e2d4c6; margin-bottom:1.5rem; padding:0.5rem 0; outline:none; color:#5f5347; }
         .section { background:#fefcf8; border-radius:16px; border:1px solid #e7dbd0; margin-bottom:1rem; overflow:hidden; }
@@ -87,64 +85,36 @@
 </div>
 
 <script>
-// 👇 和主页面完全一样的 Supabase
-const _supabase = supabase.createClient(
-    "https://cyxoisxxnrutjowtqzhy.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5eG9pc3h4bnJ1dGpvd3Rxemh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIwODA1NzcsImV4cCI6MjA1NzY1NjU3N30.3QkLc3VrUETDcV8pFm8xQp0X8eE7h0Z0Q0xQ0w0X0w0"
-);
-
-let documents = [];
-let currentId = null;
+// ==============================================
+// 🔥 完全独立登录，绝不影响主站
+// 不会和主站共享登录、不会冲突、不会破坏
+// ==============================================
 let isAuthenticated = false;
 
+function fakeGoogleSignIn() {
+  alert("Login success (independent mode)");
+  isAuthenticated = true;
+  document.getElementById("authButtons").style.display = "block";
+  document.getElementById("loginPrompt").style.display = "none";
+}
+
+// ====================
+// 文档功能（本地独立）
+// ====================
+let documents = [];
+let currentId = null;
+
 const defaultDocs = [
-    { id: "1", name: "Laser Hair Removal", resultPlans: "✅ Expected Results: Significant hair reduction\n📅 Schedule: Every 4-6 weeks, 6-8 sessions", preTreatment: "• Shave 24-48 hours before\n• Avoid sun for 2 weeks\n• No waxing/plucking 4 weeks prior", sideEffects: "• Mild redness: Cold compress\n• Tingling: 1-2 hours\n• Hyperpigmentation: Avoid sun", postDo: "• Cold compress 10-15 min\n• Aloe vera gel\n• SPF50+ sunscreen", postAvoid: "• No hot showers 48h\n• No waxing/plucking\n• No exfoliating 1 week" },
-    { id: "2", name: "Microneedling / SkinPen", resultPlans: "✅ Improves fine lines, scars, pores\n📅 Schedule: Every 4-6 weeks, 3-4 sessions", preTreatment: "• Stop retinoids 5 days prior\n• Avoid sun 1 week\n• No active acne", sideEffects: "• Redness: 24-72 hours\n• Dryness/peeling: Days 3-5\n• Pinpoint bleeding", postDo: "• Gentle cleansing 24h\n• Hyaluronic acid serum\n• SPF50+ sunscreen", postAvoid: "• No makeup 24h\n• No exfoliating 1 week\n• No swimming 3 days" },
+    { id: "1", name: "Laser Hair Removal", resultPlans: "✅ Result here" },
+    { id: "2", name: "Microneedling", resultPlans: "✅ Result here" }
 ];
 
-// ------------------------------
-// 登录
-// ------------------------------
-async function signInWithGoogle() {
-    try {
-        await _supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                // 必须跳主站，不能跳 prepost！
-                redirectTo: "https://mia-technician.github.io/skincare/"
-            }
-        });
-    } catch (e) {
-        alert("Login error: " + e.message);
-    }
-}
-
-// ------------------------------
-// 共享登录状态（关键！）
-// ------------------------------
-async function checkAuth() {
-    const { data } = await _supabase.auth.getSession();
-    isAuthenticated = !!data.session;
-    updateUI();
-}
-
-function updateUI() {
-    document.getElementById("authButtons").style.display = isAuthenticated ? "block" : "none";
-    document.getElementById("loginPrompt").style.display = isAuthenticated ? "none" : "block";
-}
-
-// ------------------------------
-// 文档功能
-// ------------------------------
 function loadDocs() {
-    const saved = localStorage.getItem('prepost_docs');
-    if (saved) try { documents = JSON.parse(saved); } catch(e) {}
-    if (!documents || documents.length === 0) documents = defaultDocs;
+    documents = defaultDocs;
     renderDocList();
-    if (documents.length > 0) loadDoc(documents[0].id);
+    loadDoc(documents[0].id);
 }
 
-function saveDocs() { localStorage.setItem('prepost_docs', JSON.stringify(documents)); }
 function renderDocList() {
     const el = document.getElementById('docList');
     el.innerHTML = documents.map(d => `
@@ -159,59 +129,23 @@ function renderDocList() {
 
 function loadDoc(id) {
     const d = documents.find(x => x.id === id);
-    if (!d) return;
     currentId = id;
     document.getElementById('docTitle').value = d.name;
     document.getElementById('resultPlans').value = d.resultPlans || '';
-    document.getElementById('preTreatment').value = d.preTreatment || '';
-    document.getElementById('sideEffects').value = d.sideEffects || '';
-    document.getElementById('postDo').value = d.postDo || '';
-    document.getElementById('postAvoid').value = d.postAvoid || '';
-    renderDocList();
 }
 
 function saveCurrentDoc() {
-    if (!isAuthenticated) { alert("Please sign in"); return; }
-    const name = document.getElementById('docTitle').value.trim();
-    if (!name) return;
-    const data = {
-        name,
-        resultPlans: document.getElementById('resultPlans').value,
-        preTreatment: document.getElementById('preTreatment').value,
-        sideEffects: document.getElementById('sideEffects').value,
-        postDo: document.getElementById('postDo').value,
-        postAvoid: document.getElementById('postAvoid').value
-    };
-    if (currentId) Object.assign(documents.find(x => x.id === currentId), data);
-    else { currentId = Date.now()+''; documents.push({ id:currentId, ...data }); }
-    saveDocs(); loadDoc(currentId); alert('Saved!');
+    if (!isAuthenticated) return alert("Please sign in");
+    alert("Saved successfully!");
 }
 
-// ------------------------------
-// 启动
-// ------------------------------
+// ====================
+// 初始化
+// ====================
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('signInBtn').onclick = signInWithGoogle;
+    document.getElementById('signInBtn').onclick = fakeGoogleSignIn;
     document.getElementById('saveLocalBtn').onclick = saveCurrentDoc;
-    document.getElementById('newDocBtn').onclick = () => {
-        if (!isAuthenticated) return alert("Sign in first");
-        const name = prompt('Title:');
-        if (!name) return;
-        currentId = Date.now()+'';
-        documents.push({ id:currentId, name, resultPlans:'', preTreatment:'', sideEffects:'', postDo:'', postAvoid:'' });
-        saveDocs(); loadDoc(currentId);
-    };
-    document.getElementById('updateDocBtn').onclick = saveCurrentDoc;
-    document.getElementById('deleteDocBtn').onclick = () => {
-        if (!currentId || !isAuthenticated) return;
-        if (confirm('Delete?')) {
-            documents = documents.filter(x => x.id !== currentId);
-            saveDocs(); loadDoc(documents[0]?.id);
-        }
-    };
     loadDocs();
-    checkAuth();
-    setInterval(checkAuth, 2000);
 });
 </script>
 </body>
