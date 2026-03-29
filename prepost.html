@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pre & Post Care</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght:300,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300,400,500,600&family=Montserrat:wght@300,600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background:#f5efe9; font-family:'Inter',sans-serif; padding:2rem 1rem; }
@@ -20,6 +21,9 @@
         .doc-item.active { background:#b99f87; color:white; }
 
         .btn-add { width:100%; padding:0.6rem; background:#b99f87; color:#fff; border:none; border-radius:40px; cursor:pointer; font-size:0.75rem; font-weight:500; margin-bottom:1rem; }
+        .btn-auth-enabled { width:100%; padding:0.6rem; background:#b99f87; color:#fff; border:none; border-radius:40px; cursor:pointer; font-size:0.75rem; font-weight:500; margin-bottom:0.5rem; }
+        .btn-auth-disabled { width:100%; padding:0.6rem; background:#ddd; color:#888; border:none; border-radius:40px; cursor:not-allowed; font-size:0.75rem; font-weight:500; margin-bottom:0.5rem; }
+        .btn-login { width:100%; padding:0.6rem; background:#222; color:#fff; border:none; border-radius:40px; cursor:pointer; font-size:0.75rem; font-weight:500; margin-bottom:1rem; }
 
         .doc-editor { background:#fff9f2; border-radius:24px; padding:1.5rem; border:1px solid #e7dbd0; }
         .doc-title { width:100%; font-size:1.5rem; border:none; background:transparent; border-bottom:2px solid #e2d4c6; margin-bottom:1rem; padding:0.5rem 0; outline:none; color:#5f5347; }
@@ -46,9 +50,9 @@
             padding: 0.4rem 0;
             white-space: pre-wrap;
             line-height:1.5;
-            min-height: 24px;
-            font-size: 13px;
-            color: #333;
+            min-height:24px;
+            font-size:13px;
+            color:#333;
         }
 
         .editor-actions { display:flex; gap:1rem; justify-content:flex-end; margin-top:1rem; }
@@ -56,15 +60,10 @@
         .btn-email { background:#b99f87; color:white; }
         .btn-print { background:#e9dfd4; color:#333; }
 
-        #loginPrompt, #authButtons { display:none; }
-
         @media print {
-            body * { visibility: hidden; }
-            .doc-editor, .doc-editor * { visibility: visible; }
-            .doc-editor {
-                position: absolute;
-                left:0; top:0; width:100%;
-            }
+            body * { visibility:hidden; }
+            .doc-editor, .doc-editor * { visibility:visible; }
+            .doc-editor { position:absolute; left:0; top:0; width:100%; }
             .toolbar, .editor-actions { display:none !important; }
         }
 
@@ -79,6 +78,13 @@
         <div class="doc-sidebar">
             <h3>📄 TREATMENT DOCUMENTS</h3>
             <button class="btn-add" id="addNewBtn">➕ Add New Document</button>
+
+            <button class="btn-login" id="loginBtn">Login / Logout</button>
+
+            <button class="btn-auth-disabled" id="btnSaveNew">Save Current as New Document</button>
+            <button class="btn-auth-disabled" id="btnUpdate">Update Current Document</button>
+            <button class="btn-auth-disabled" id="btnDelete">Delete Current Document</button>
+
             <div id="docList" class="doc-list"></div>
         </div>
 
@@ -91,36 +97,30 @@
 
             <div class="section">
                 <div class="section-header">📋 RESULTS & TREATMENT PLANS</div>
-                <div class="section-content" id="resultPlans" contenteditable></div>
+                <div class="section-content" id="resultPlans" contenteditable="true"></div>
             </div>
-
             <div class="section">
-                <div class="section-header">⚠️ CONTRAINDICATIONS </div>
-                <div class="section-content" id="contraindications" contenteditable></div>
+                <div class="section-header">⚠️ CONTRAINDICATIONS</div>
+                <div class="section-content" id="contraindications" contenteditable="true"></div>
             </div>
-
             <div class="section">
-                <div class="section-header">🩺 PRE TREATMENT CARE </div>
-                <div class="section-content" id="preTreatment" contenteditable></div>
+                <div class="section-header">🩺 PRE TREATMENT CARE</div>
+                <div class="section-content" id="preTreatment" contenteditable="true"></div>
             </div>
-
             <div class="section">
-                <div class="section-header">⚠️ POSSIBLE SIDE EFFECT </div>
-                <div class="section-content" id="sideEffects" contenteditable></div>
+                <div class="section-header">⚠️ POSSIBLE SIDE EFFECT</div>
+                <div class="section-content" id="sideEffects" contenteditable="true"></div>
             </div>
-
             <div class="section">
-                <div class="section-header">🌸 POST CARE - WHAT TO DO </div>
-                <div class="section-content" id="postDo" contenteditable></div>
+                <div class="section-header">🌸 POST CARE - WHAT TO DO</div>
+                <div class="section-content" id="postDo" contenteditable="true"></div>
             </div>
-
             <div class="section">
-                <div class="section-header">🚫 POST CARE - WAT TO AVOID </div>
-                <div class="section-content" id="postAvoid" contenteditable></div>
+                <div class="section-header">🚫 POST CARE - WHAT TO AVOID</div>
+                <div class="section-content" id="postAvoid" contenteditable="true"></div>
             </div>
-
             <div class="section">
-                <div class="section-header">🚫 If you have any unusual reactions or concerns, please contact our office at 604-580-2464 OR infobclaser@dermapure.com </div>
+                <div class="section-header">🚫 If you have any unusual reactions or concerns, please contact our office at 604-580-2464 OR infobclaser@dermapure.com</div>
             </div>
 
             <div class="editor-actions">
@@ -132,30 +132,123 @@
 </div>
 
 <script>
-let documents = [];
-let currentId = null;
-const STORAGE_KEY = "prepost_data_v3";
+const supabase = supabase.createClient(
+    "https://dmrskyskryrdclknezth.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8"
+);
 
 const fieldIds = [
     "resultPlans", "contraindications", "preTreatment",
     "sideEffects", "postDo", "postAvoid"
 ];
 
-function loadFromStorage() {
-    const s = localStorage.getItem(STORAGE_KEY);
-    if (s) { try { documents = JSON.parse(s); } catch (e) { resetDefault(); } }
-    else resetDefault();
+let currentId = null;
+let documents = [];
+let isLoggedIn = false;
+
+supabase.auth.onAuthStateChange(async (event, session) => {
+    isLoggedIn = !!session;
+    updateAuthUI();
+    await loadDocuments();
+});
+
+function updateAuthUI() {
+    const cls = isLoggedIn ? "btn-auth-enabled" : "btn-auth-disabled";
+    document.getElementById("btnSaveNew").className = cls;
+    document.getElementById("btnUpdate").className = cls;
+    document.getElementById("btnDelete").className = cls;
+    document.getElementById("loginBtn").textContent = isLoggedIn ? "Logout" : "Login";
 }
 
-function resetDefault() {
-    documents = [
-        { id: "1", name: "Laser Hair Removal", resultPlans:"", contraindications:"", preTreatment:"", sideEffects:"", postDo:"", postAvoid:"" },
-        { id: "2", name: "Microneedling", resultPlans:"", contraindications:"", preTreatment:"", sideEffects:"", postDo:"", postAvoid:"" }
-    ];
+async function toggleLogin() {
+    if (isLoggedIn) {
+        await supabase.auth.signOut();
+        alert("Logged out");
+    } else {
+        const email = prompt("Email:");
+        const pass = prompt("Password:");
+        if (!email || !pass) return;
+        const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+        if (error) alert(error.message);
+    }
 }
 
-function saveToStorage() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(documents));
+async function loadDocuments() {
+    const { data, error } = await supabase
+        .from("prepost_documents")
+        .select("id, title, result_plans, contraindications, pre_treatment, side_effects, post_do, post_avoid")
+        .order("created_at", { ascending: false });
+
+    if (error) console.error(error);
+    else documents = data.map(item => ({
+        id: item.id,
+        name: item.title,
+        resultPlans: item.result_plans,
+        contraindications: item.contraindications,
+        preTreatment: item.pre_treatment,
+        sideEffects: item.side_effects,
+        postDo: item.post_do,
+        postAvoid: item.post_avoid
+    }));
+    renderDocList();
+}
+
+function getCurrentDoc() {
+    return {
+        title: document.getElementById("docTitle").value.trim() || "Untitled",
+        result_plans: document.getElementById("resultPlans").innerText,
+        contraindications: document.getElementById("contraindications").innerText,
+        pre_treatment: document.getElementById("preTreatment").innerText,
+        side_effects: document.getElementById("sideEffects").innerText,
+        post_do: document.getElementById("postDo").innerText,
+        post_avoid: document.getElementById("postAvoid").innerText
+    };
+}
+
+async function saveNew() {
+    if (!isLoggedIn) return alert("Please login to save to cloud");
+    const { error } = await supabase.from("prepost_documents").insert([getCurrentDoc()]);
+    if (error) alert(error.message); else { alert("Saved to cloud!"); loadDocuments(); }
+}
+
+async function updateCurrent() {
+    if (!isLoggedIn) return alert("Please login to update cloud");
+    if (!currentId) return;
+    const { error } = await supabase.from("prepost_documents").update(getCurrentDoc()).eq("id", currentId);
+    if (error) alert(error.message); else { alert("Updated to cloud!"); loadDocuments(); }
+}
+
+async function deleteCurrent() {
+    if (!isLoggedIn) return alert("Please login to delete");
+    if (!currentId) return;
+    if (!confirm("Delete this document?")) return;
+    const { error } = await supabase.from("prepost_documents").delete().eq("id", currentId);
+    if (error) alert(error.message); else { alert("Deleted!"); clearEditor(); loadDocuments(); }
+}
+
+function clearEditor() {
+    document.getElementById("docTitle").value = "";
+    fieldIds.forEach(id => document.getElementById(id).innerText = "");
+    currentId = null;
+}
+
+function addNewDocument() {
+    clearEditor();
+    document.getElementById("docTitle").value = "New Document";
+}
+
+function loadDoc(id) {
+    const d = documents.find(x => x.id === id);
+    if (!d) return;
+    currentId = id;
+    document.getElementById("docTitle").value = d.name || "";
+    document.getElementById("resultPlans").innerText = d.resultPlans || "";
+    document.getElementById("contraindications").innerText = d.contraindications || "";
+    document.getElementById("preTreatment").innerText = d.preTreatment || "";
+    document.getElementById("sideEffects").innerText = d.sideEffects || "";
+    document.getElementById("postDo").innerText = d.postDo || "";
+    document.getElementById("postAvoid").innerText = d.postAvoid || "";
+    renderDocList();
 }
 
 function renderDocList() {
@@ -170,112 +263,48 @@ function renderDocList() {
     });
 }
 
-function clearEditor() {
-    document.getElementById('docTitle').value = '';
-    fieldIds.forEach(id => document.getElementById(id).innerText = '');
-    currentId = null;
-}
+function formatBold(id) { document.getElementById(id).focus(); document.execCommand('bold'); }
+function formatBullet(id) { document.getElementById(id).focus(); document.execCommand('insertUnorderedList'); }
+function doPrint() { window.print(); }
 
-function addNewDocument() {
-    clearEditor();
-    document.getElementById('docTitle').value = 'New Document';
-    currentId = "new-" + Date.now();
-}
-
-function loadDoc(id) {
-    const d = documents.find(x => x.id === id);
-    if (!d) return;
-    currentId = id;
-    document.getElementById('docTitle').value = d.name || '';
-    fieldIds.forEach(id => document.getElementById(id).innerText = d[id] || '');
-    renderDocList();
-}
-
-function saveCurrent() {
-    const name = document.getElementById('docTitle').value.trim() || 'Untitled';
-    const data = { name };
-    fieldIds.forEach(id => data[id] = document.getElementById(id).innerText);
-    
-    const exist = documents.find(x => x.id === currentId);
-    if (exist) Object.assign(exist, data);
-    else { currentId = "doc-" + Date.now(); documents.push({ id: currentId, ...data }); }
-    
-    saveToStorage();
-    renderDocList();
-    alert("Saved successfully");
-}
-
-function formatBold(fieldId) {
-    const el = document.getElementById(fieldId);
-    el.focus();
-    document.execCommand('bold');
-}
-
-function formatBullet(fieldId) {
-    const el = document.getElementById(fieldId);
-    el.focus();
-    document.execCommand('insertUnorderedList');
-}
-
-function doPrint() {
-    window.print();
-}
-
-// 发送邮件功能
 function sendAsEmail() {
-    const title = document.getElementById('docTitle').value || "Treatment Document";
-    const result = document.getElementById('resultPlans').innerText || "-";
-    const contra = document.getElementById('contraindications').innerText || "-";
-    const pre = document.getElementById('preTreatment').innerText || "-";
-    const side = document.getElementById('sideEffects').innerText || "-";
-    const postDo = document.getElementById('postDo').innerText || "-";
-    const postAvoid = document.getElementById('postAvoid').innerText || "-";
-
+    const title = document.getElementById("docTitle").value || "Treatment Document";
     const body = `
 ${title}
 
 ----------------------------------------
 RESULTS & TREATMENT PLANS:
-${result}
+${document.getElementById("resultPlans").innerText}
 
-----------------------------------------
 CONTRAINDICATIONS:
-${contra}
+${document.getElementById("contraindications").innerText}
 
-----------------------------------------
 PRE TREATMENT CARE:
-${pre}
+${document.getElementById("preTreatment").innerText}
 
-----------------------------------------
 POSSIBLE SIDE EFFECT:
-${side}
+${document.getElementById("sideEffects").innerText}
 
-----------------------------------------
 POST CARE - WHAT TO DO:
-${postDo}
+${document.getElementById("postDo").innerText}
 
-----------------------------------------
 POST CARE - WHAT TO AVOID:
-${postAvoid}
+${document.getElementById("postAvoid").innerText}
 
-----------------------------------------
-If you have any unusual reactions or concerns, please contact our office:
-Phone: 604-580-2464
-Email: infobclaser@dermapure.com
+Contact: 604-580-2464 | infobclaser@dermapure.com
     `;
-
-    const encodedBody = encodeURIComponent(body);
-    const encodedSubject = encodeURIComponent(title);
-    window.location.href = `mailto:?subject=${encodedSubject}&body=${encodedBody}`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('addNewBtn').onclick = addNewDocument;
-    document.getElementById('emailBtn').onclick = sendAsEmail;
-    document.getElementById('printBtn').onclick = doPrint;
-    loadFromStorage();
-    renderDocList();
-    if (documents.length > 0) loadDoc(documents[0].id);
+    document.getElementById("loginBtn").onclick = toggleLogin;
+    document.getElementById("addNewBtn").onclick = addNewDocument;
+    document.getElementById("btnSaveNew").onclick = saveNew;
+    document.getElementById("btnUpdate").onclick = updateCurrent;
+    document.getElementById("btnDelete").onclick = deleteCurrent;
+    document.getElementById("emailBtn").onclick = sendAsEmail;
+    document.getElementById("printBtn").onclick = doPrint;
+    loadDocuments();
 });
 </script>
 </body>
