@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pre & Post Care</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400,500;600&family=Montserrat:wght@300,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background:#f5efe9; font-family:'Inter',sans-serif; padding:2rem 1rem; }
@@ -55,26 +55,38 @@
 
         <div class="doc-editor">
             <input type="text" id="docTitle" class="doc-title" placeholder="Document Title">
+            
             <div class="section">
                 <div class="section-header">📋 RESULT & PLANS</div>
                 <textarea class="section-textarea" id="resultPlans"></textarea>
             </div>
+
+            <!-- 这里是你新加的：Contraindications -->
+            <div class="section">
+                <div class="section-header">⚠️ Contraindications</div>
+                <textarea class="section-textarea" id="contraindications"></textarea>
+            </div>
+
             <div class="section">
                 <div class="section-header">🩺 PRE TREATMENT</div>
                 <textarea class="section-textarea" id="preTreatment"></textarea>
             </div>
+
             <div class="section">
                 <div class="section-header">⚠️ SIDE EFFECTS</div>
                 <textarea class="section-textarea" id="sideEffects"></textarea>
             </div>
+
             <div class="section">
                 <div class="section-header">🌸 POST CARE - DO</div>
                 <textarea class="section-textarea" id="postDo"></textarea>
             </div>
+
             <div class="section">
                 <div class="section-header">🚫 POST CARE - AVOID</div>
                 <textarea class="section-textarea" id="postAvoid"></textarea>
             </div>
+
             <div class="editor-actions">
                 <button class="btn btn-save" id="saveLocalBtn">💾 Save</button>
                 <button class="btn btn-print" id="printDocBtn">🖨️ Print</button>
@@ -85,28 +97,21 @@
 </div>
 
 <script>
-// ==============================================
-// 🔥 完全独立登录，绝不影响主站
-// 不会和主站共享登录、不会冲突、不会破坏
-// ==============================================
 let isAuthenticated = false;
 
 function fakeGoogleSignIn() {
-  alert("Login success (independent mode)");
+  alert("Login success");
   isAuthenticated = true;
   document.getElementById("authButtons").style.display = "block";
   document.getElementById("loginPrompt").style.display = "none";
 }
 
-// ====================
-// 文档功能（本地独立）
-// ====================
 let documents = [];
 let currentId = null;
 
 const defaultDocs = [
-    { id: "1", name: "Laser Hair Removal", resultPlans: "✅ Result here" },
-    { id: "2", name: "Microneedling", resultPlans: "✅ Result here" }
+    { id: "1", name: "Laser Hair Removal", resultPlans: "", contraindications: "", preTreatment: "", sideEffects: "", postDo: "", postAvoid: "" },
+    { id: "2", name: "Microneedling", resultPlans: "", contraindications: "", preTreatment: "", sideEffects: "", postDo: "", postAvoid: "" }
 ];
 
 function loadDocs() {
@@ -129,19 +134,22 @@ function renderDocList() {
 
 function loadDoc(id) {
     const d = documents.find(x => x.id === id);
+    if (!d) return;
     currentId = id;
     document.getElementById('docTitle').value = d.name;
     document.getElementById('resultPlans').value = d.resultPlans || '';
+    document.getElementById('contraindications').value = d.contraindications || '';
+    document.getElementById('preTreatment').value = d.preTreatment || '';
+    document.getElementById('sideEffects').value = d.sideEffects || '';
+    document.getElementById('postDo').value = d.postDo || '';
+    document.getElementById('postAvoid').value = d.postAvoid || '';
 }
 
 function saveCurrentDoc() {
-    if (!isAuthenticated) return alert("Please sign in");
+    if (!isAuthenticated) { alert("Please sign in"); return; }
     alert("Saved successfully!");
 }
 
-// ====================
-// 初始化
-// ====================
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('signInBtn').onclick = fakeGoogleSignIn;
     document.getElementById('saveLocalBtn').onclick = saveCurrentDoc;
