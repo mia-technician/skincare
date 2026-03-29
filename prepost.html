@@ -26,7 +26,7 @@
         .editor-actions { display:flex; gap:1rem; justify-content:flex-end; margin-top:1rem; }
         .btn { padding:0.5rem 1.2rem; border-radius:40px; border:none; cursor:pointer; font-size:0.8rem; }
         .btn-save { background:#b99f87; color:white; }
-        .btn-print, .btn-email { background:#e9dfd4; color:#5f5347; }
+        .btn-print { background:#e9dfd4; color:#5f5347; }
         .login-prompt { margin-top:1rem; padding:0.8rem; background:#f5efe8; border-radius:12px; text-align:center; font-size:0.7rem; color:#888; }
         #signInBtn { margin-top:8px; width:100%; padding:8px; border-radius:20px; border:none; background:#b99f87; color:white; font-size:13px; cursor:pointer; }
         @media (max-width:750px) { .two-columns { grid-template-columns:1fr; } }
@@ -61,7 +61,6 @@
                 <textarea class="section-textarea" id="resultPlans"></textarea>
             </div>
 
-            <!-- 这里是你新加的：Contraindications -->
             <div class="section">
                 <div class="section-header">⚠️ Contraindications</div>
                 <textarea class="section-textarea" id="contraindications"></textarea>
@@ -88,9 +87,8 @@
             </div>
 
             <div class="editor-actions">
-                <button class="btn btn-save" id="saveLocalBtn">💾 Save</button>
-                <button class="btn btn-print" id="printDocBtn">🖨️ Print</button>
-                <button class="btn btn-email" id="emailDocBtn">📧 Email</button>
+                <button class="btn btn-save" id="saveLocalBtn">Save</button>
+                <button class="btn btn-print" id="printDocBtn">Print</button>
             </div>
         </div>
     </div>
@@ -114,10 +112,17 @@ const defaultDocs = [
     { id: "2", name: "Microneedling", resultPlans: "", contraindications: "", preTreatment: "", sideEffects: "", postDo: "", postAvoid: "" }
 ];
 
-function loadDocs() {
-    documents = defaultDocs;
-    renderDocList();
-    loadDoc(documents[0].id);
+function loadFromStorage() {
+    const saved = localStorage.getItem("prepost_data");
+    if (saved) {
+        try { documents = JSON.parse(saved); } catch (e) { documents = defaultDocs; }
+    } else {
+        documents = defaultDocs;
+    }
+}
+
+function saveToStorage() {
+    localStorage.setItem("prepost_data", JSON.stringify(documents));
 }
 
 function renderDocList() {
@@ -143,17 +148,106 @@ function loadDoc(id) {
     document.getElementById('sideEffects').value = d.sideEffects || '';
     document.getElementById('postDo').value = d.postDo || '';
     document.getElementById('postAvoid').value = d.postAvoid || '';
+    renderDocList();
 }
 
 function saveCurrentDoc() {
     if (!isAuthenticated) { alert("Please sign in"); return; }
+    if (!currentId) return;
+    const doc = documents.find(x => x.id === currentId);
+    if (!doc) return;
+    doc.name = document.getElementById('docTitle').value;
+    doc.resultPlans = document.getElementById('resultPlans').value;
+    doc.contraindications = document.getElementById('contraindications').value;
+    doc.preTreatment = document.getElementById('preTreatment').value;
+    doc.sideEffects = document.getElementById('sideEffects').value;
+    doc.postDo = document.getElementById('postDo').value;
+    doc.postAvoid = document.getElementById('postAvoid').value;
+    saveToStorage();
     alert("Saved successfully!");
+    renderDocList();
+}
+
+// ======================
+// Print to PDF (优美格式)
+// ======================
+function printDoc() {
+    const title = document.getElementById('docTitle').value || 'Document';
+    const resultPlans = document.getElementById('resultPlans').value || '-';
+    const contraindications = document.getElementById('contraindications').value || '-';
+    const preTreatment = document.getElementById('preTreatment').value || '-';
+    const sideEffects = document.getElementById('sideEffects').value || '-';
+    const postDo = document.getElementById('postDo').value || '-';
+    const postAvoid = document.getElementById('postAvoid').value || '-';
+
+    const footNote = `If you have any unusual reactions or concerns, please contact our office phone/text:604-580-2464, email: infobclaser@dermapure.com`;
+
+    const w = window.open('', '_blank');
+    w.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height:1.6; padding: 40px; }
+        h1 { color: #222; margin-bottom: 30px; text-align:center; }
+        .section { margin-bottom: 20px; }
+        .label { font-weight: bold; color: #444; margin-bottom:6px; display:block; }
+        .content { white-space: pre-wrap; padding: 10px; background:#f9f9f9; border-radius:8px; }
+        .footnote { margin-top:60px; font-size:12px; color:#666; text-align:center; }
+    </style>
+</head>
+<body>
+    <h1>${title}</h1>
+
+    <div class="section">
+        <span class="label">RESULT & PLANS</span>
+        <div class="content">${resultPlans}</div>
+    </div>
+
+    <div class="section">
+        <span class="label">Contraindications</span>
+        <div class="content">${contraindications}</div>
+    </div>
+
+    <div class="section">
+        <span class="label">PRE TREATMENT</span>
+        <div class="content">${preTreatment}</div>
+    </div>
+
+    <div class="section">
+        <span class="label">SIDE EFFECTS</span>
+        <div class="content">${sideEffects}</div>
+    </div>
+
+    <div class="section">
+        <span class="label">POST CARE - DO</span>
+        <div class="content">${postDo}</div>
+    </div>
+
+    <div class="section">
+        <span class="label">POST CARE - AVOID</span>
+        <div class="content">${postAvoid}</div>
+    </div>
+
+    <div class="footnote">${footNote}</div>
+<script>
+    setTimeout(() => { window.print(); window.close(); }, 500);
+</script>
+</body>
+</html>
+    `);
+    w.document.close();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('signInBtn').onclick = fakeGoogleSignIn;
     document.getElementById('saveLocalBtn').onclick = saveCurrentDoc;
-    loadDocs();
+    document.getElementById('printDocBtn').onclick = printDoc;
+    loadFromStorage();
+    renderDocList();
+    if (documents.length > 0) loadDoc(documents[0].id);
 });
 </script>
 </body>
