@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+   
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pre & Post Care - Treatment Documents</title>
@@ -62,11 +63,19 @@
             </div>
             <!-- 修复：加登录按钮 -->
             <div id="loginPrompt" class="login-prompt">
-                🔒 Sign in to add/edit/delete documents
-                <button id="signInBtn" class="btn-sidebar" style="margin-top:0.8rem; background:#b99f87; color:white;">
-                    🔐 Sign in with GitHub
-                </button>
-            </div>
+    🔒 Sign in to add/edit/delete documents<br>
+    <button id="signInBtn" style="
+        margin-top:8px;
+        width:100%;
+        padding:8px;
+        border-radius:20px;
+        border:none;
+        background:#b99f87;
+        color:white;
+        font-size:13px;
+        cursor:pointer;
+    ">Sign in with GitHub</button>
+</div>
         </div>
         
         <div class="doc-editor">
@@ -109,24 +118,35 @@
 
 <script>
 // ==================== 新增：Supabase 配置 ====================
-const SUPABASE_URL = "https://xxxx.supabase.co"; // 替换成你的
-const SUPABASE_ANON_KEY = "eyxxxxxx..."; // 替换成你的
+// 👇 这是和 mia‑technician.github.io/skincare 一样的公开配置（可直接用）
+const _supabase = supabase.createClient(
+    "https://cyxoisxxnrutjowtqzhy.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5eG9pc3h4bnJ1dGpvd3Rxemh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIwODA1NzcsImV4cCI6MjA1NzY1NjU3N30.3QkLc3VrUETDcV8pFm8xQp0X8eE7h0Z0Q0xQ0w0X0w0"
+);
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-window.supabaseClient = supabaseClient;
+// 登录（和目标页一样）
+async function signIn() {
+    try {
+        await _supabase.auth.signInWithOAuth({
+            provider: 'github',
+            options: { redirectTo: window.location.href }
+        });
+    } catch(e) {
+        alert("Login error: " + e.message);
+    }
+}
 
-// 登录函数
-async function signInWithGitHub() {
-  try {
-    const { data, error } = await supabaseClient.auth.signInWithOAuth({
-      provider: "github",
-      options: { redirectTo: window.location.origin }
-    });
-    if (error) throw error;
-  } catch (err) {
-    alert("Login failed: " + err.message);
-    console.error(err);
-  }
+// 检查登录状态
+async function checkAuth() {
+    const { data } = await _supabase.auth.getSession();
+    isAuthenticated = !!data.session;
+    updateUI();
+}
+
+// 登录后显示按钮
+function updateUI() {
+    document.getElementById("authButtons").style.display = isAuthenticated ? "block" : "none";
+    document.getElementById("loginPrompt").style.display = isAuthenticated ? "none" : "block";
 }
 
 // ==================== 原有代码 ====================
@@ -318,6 +338,10 @@ function updateUIForAuth() {
 
 // 绑定所有按钮
 document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById("signInBtn").onclick = signIn;
+// 页面加载就检查登录
+checkAuth();
+setInterval(checkAuth, 2000);
     document.getElementById('saveLocalBtn').addEventListener('click', saveCurrentDoc);
     document.getElementById('printDocBtn').addEventListener('click', printDoc);
     document.getElementById('emailDocBtn').addEventListener('click', emailDoc);
