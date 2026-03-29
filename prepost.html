@@ -109,7 +109,10 @@ async function signInWithGoogle() {
     try {
         await _supabase.auth.signInWithOAuth({
             provider: 'google',
-            options: { redirectTo: "https://mia-technician.github.io/skincare/prepost.html" }
+            options: {
+                // 必须跳主站，不能跳 prepost！
+                redirectTo: "https://mia-technician.github.io/skincare/"
+            }
         });
     } catch (e) {
         alert("Login error: " + e.message);
