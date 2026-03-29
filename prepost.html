@@ -50,17 +50,12 @@
     <div class="two-columns">
         <div class="doc-sidebar">
             <h3>📄 TREATMENT DOCUMENTS</h3>
-
-            <!-- 左侧：添加新文档按钮 -->
             <button class="btn-add" id="addNewBtn">➕ Add New Document</button>
-
             <div id="docList" class="doc-list"></div>
         </div>
 
         <div class="doc-editor">
             <input type="text" id="docTitle" class="doc-title" placeholder="Document Title">
-
-            <!-- 简易排版工具栏 -->
             <div class="toolbar">
                 <button onclick="formatBold()">Bold</button>
                 <button onclick="formatBullet()">• Bullet</button>
@@ -71,27 +66,22 @@
                 <div class="section-header">📋 RESULT & PLANS</div>
                 <textarea class="section-textarea" id="resultPlans"></textarea>
             </div>
-
             <div class="section">
                 <div class="section-header">⚠️ Contraindications</div>
                 <textarea class="section-textarea" id="contraindications"></textarea>
             </div>
-
             <div class="section">
                 <div class="section-header">🩺 PRE TREATMENT</div>
                 <textarea class="section-textarea" id="preTreatment"></textarea>
             </div>
-
             <div class="section">
                 <div class="section-header">⚠️ SIDE EFFECTS</div>
                 <textarea class="section-textarea" id="sideEffects"></textarea>
             </div>
-
             <div class="section">
                 <div class="section-header">🌸 POST CARE - DO</div>
                 <textarea class="section-textarea" id="postDo"></textarea>
             </div>
-
             <div class="section">
                 <div class="section-header">🚫 POST CARE - AVOID</div>
                 <textarea class="section-textarea" id="postAvoid"></textarea>
@@ -108,25 +98,19 @@
 <script>
 let documents = [];
 let currentId = null;
-
 const STORAGE_KEY = "prepost_data_v2";
 
 function loadFromStorage() {
     const s = localStorage.getItem(STORAGE_KEY);
-    if (s) {
-        try { documents = JSON.parse(s); } catch (e) { resetDefault(); }
-    } else {
-        resetDefault();
-    }
+    if (s) { try { documents = JSON.parse(s); } catch (e) { resetDefault(); } }
+    else resetDefault();
 }
-
 function resetDefault() {
     documents = [
         { id: "1", name: "Laser Hair Removal", resultPlans:"", contraindications:"", preTreatment:"", sideEffects:"", postDo:"", postAvoid:"" },
         { id: "2", name: "Microneedling", resultPlans:"", contraindications:"", preTreatment:"", sideEffects:"", postDo:"", postAvoid:"" }
     ];
 }
-
 function saveToStorage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(documents));
 }
@@ -186,12 +170,8 @@ function saveCurrent() {
         postAvoid: document.getElementById('postAvoid').value
     };
     const exist = documents.find(x => x.id === currentId);
-    if (exist) {
-        Object.assign(exist, data);
-    } else {
-        currentId = "doc-" + Date.now();
-        documents.push({ id: currentId, ...data });
-    }
+    if (exist) Object.assign(exist, data);
+    else { currentId = "doc-" + Date.now(); documents.push({ id: currentId, ...data }); }
     saveToStorage();
     renderDocList();
     alert("Saved successfully");
@@ -203,29 +183,24 @@ function saveCurrent() {
 function formatBold() {
     const t = document.activeElement;
     if (t.tagName === "TEXTAREA") {
-        const s = t.selectionStart;
-        const e = t.selectionEnd;
-        const val = t.value;
-        t.value = val.substring(0, s) + "**" + val.substring(s, e) + "**" + val.substring(e);
+        const s = t.selectionStart, e = t.selectionEnd;
+        t.value = t.value.substring(0,s) + "**" + t.value.substring(s,e) + "**" + t.value.substring(e);
     }
 }
-
 function formatBullet() {
     const t = document.activeElement;
     if (t.tagName === "TEXTAREA") {
         const s = t.selectionStart;
-        const val = t.value;
-        t.value = val.substring(0, s) + "• " + val.substring(s);
+        t.value = t.value.substring(0,s) + "• " + t.value.substring(s);
     }
 }
-
 function formatClear() {
     const t = document.activeElement;
     if (t.tagName === "TEXTAREA") t.value = "";
 }
 
 // ------------------------------
-// Print / PDF / Email
+// 修复版：打印 / PDF / 邮件（完全可用）
 // ------------------------------
 function openPrintPage() {
     const title = document.getElementById('docTitle').value || 'Treatment Document';
@@ -237,16 +212,19 @@ function openPrintPage() {
         { label: "POST CARE - DO", val: document.getElementById('postDo').value },
         { label: "POST CARE - AVOID", val: document.getElementById('postAvoid').value },
     ];
+    const footnote = "If you have any unusual reactions or concerns, please contact our office phone/text: 604-580-2464, email: infobclaser@dermapure.com";
 
-    const footnote = "If you have any unusual reactions or concerns, please contact our office phone/text:604-580-2464, email: infobclaser@dermapure.com";
+    // 1. 打开新窗口
+    const win = window.open("", "_blank");
+    if (!win) { alert("Please allow pop-ups for printing."); return; }
 
-    const w = window.open("", "_blank");
-    w.document.write(`
+    // 2. 写入完整HTML
+    win.document.write(`
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Print / PDF</title>
+<title>${title}</title>
 <style>
 body{font-family:Arial,sans-serif;padding:30px;max-width:800px;margin:0 auto;}
 h1{text-align:center;color:#222;margin-bottom:30px;}
@@ -262,8 +240,8 @@ h1{text-align:center;color:#222;margin-bottom:30px;}
 <body>
 <div class="buttons">
 <button onclick="window.print()">🖨️ Print</button>
-<button class="sec" onclick="savePdf()">💾 Save as PDF</button>
-<button class="sec" onclick="sendEmail()">📧 Send as Email Attachment</button>
+<button class="sec" onclick="saveAsPdf()">💾 Save as PDF</button>
+<button class="sec" onclick="emailPdf()">📧 Email as Attachment</button>
 </div>
 <h1>${title}</h1>
 ${fields.map(f => `
@@ -274,18 +252,21 @@ ${fields.map(f => `
 `).join('')}
 <div class="foot">${footnote}</div>
 <script>
-function savePdf(){
-alert("To save as PDF: select 'Print' → choose 'Save as PDF' in destination.");
-window.print();
-}
-function sendEmail(){
-alert("To send as email attachment: save as PDF first, then attach to your email.");
-}
+function saveAsPdf(){ alert("Choose 'Save as PDF' in the print destination."); window.print(); }
+function emailPdf(){ alert("Save as PDF first, then attach to your email."); }
 </script>
 </body>
 </html>
     `);
-    w.document.close();
+
+    // 3. 关键修复：关闭文档流 + 聚焦 + 延迟打印（兼容所有浏览器）
+    win.document.close();
+    win.focus();
+
+    // 等渲染完再触发打印（解决不弹框）
+    setTimeout(() => {
+        win.print();
+    }, 300);
 }
 
 // ------------------------------
