@@ -11,10 +11,8 @@
         .app { max-width: 1400px; margin: 0 auto; background: #faf7f2; border-radius: 32px; border: 1px solid #e8dfd4; padding: 2rem; }
         h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 1.8rem; color: #7f6e5d; text-align: center; margin-bottom: 2rem; text-transform: uppercase; }
         
-        /* 两列布局 */
         .two-columns { display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; min-height: 600px; }
         
-        /* 左侧文档列表 */
         .doc-sidebar { background: #fff9f2; border-radius: 24px; padding: 1.2rem; border: 1px solid #e7dbd0; }
         .doc-sidebar h3 { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; color: #8f7e6b; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; }
         .doc-list { list-style: none; max-height: 500px; overflow-y: auto; }
@@ -27,7 +25,6 @@
         .btn-sidebar { width: 100%; margin-top: 1rem; padding: 0.6rem; background: #e9dfd4; border: none; border-radius: 40px; cursor: pointer; font-size: 0.75rem; font-weight: 500; transition: all 0.2s; }
         .btn-sidebar:hover { background: #dacbbb; }
         
-        /* 右侧编辑器 */
         .doc-editor { background: #fff9f2; border-radius: 24px; padding: 1.5rem; border: 1px solid #e7dbd0; }
         .doc-title { width: 100%; font-size: 1.5rem; font-family: 'Montserrat', sans-serif; font-weight: 500; border: none; background: transparent; border-bottom: 2px solid #e2d4c6; margin-bottom: 1.5rem; padding: 0.5rem 0; outline: none; color: #5f5347; }
         .sections { display: flex; flex-direction: column; gap: 1rem; }
@@ -53,7 +50,6 @@
     <h1>📋 Pre & Post Care</h1>
     
     <div class="two-columns">
-        <!-- 左侧文档列表 -->
         <div class="doc-sidebar">
             <h3>📄 TREATMENT DOCUMENTS</h3>
             <div id="docList" class="doc-list"></div>
@@ -67,7 +63,6 @@
             </div>
         </div>
         
-        <!-- 右侧编辑器 -->
         <div class="doc-editor">
             <input type="text" id="docTitle" class="doc-title" placeholder="Document Title">
             
@@ -102,17 +97,15 @@
         </div>
     </div>
     <div style="margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf;">
-        ✦ All changes auto-save to browser ✦ Sign in to create/edit/delete documents ✦
+        ✦ All changes saved to browser ✦ Sign in to create/edit/delete documents ✦
     </div>
 </div>
 
 <script>
-// ==================== 文档数据 ====================
 let documents = [];
 let currentId = null;
 let isAuthenticated = false;
 
-// 默认英文文档
 const defaultDocs = [
     { id: "1", name: "Laser Hair Removal", resultPlans: "✅ Expected Results: Significant hair reduction\n📅 Schedule: Every 4-6 weeks, 6-8 sessions", preTreatment: "• Shave 24-48 hours before\n• Avoid sun for 2 weeks\n• No waxing/plucking 4 weeks prior", sideEffects: "• Mild redness: Cold compress\n• Tingling: 1-2 hours\n• Hyperpigmentation: Avoid sun", postDo: "• Cold compress 10-15 min\n• Aloe vera gel\n• SPF50+ sunscreen", postAvoid: "• No hot showers 48h\n• No waxing/plucking\n• No exfoliating 1 week" },
     { id: "2", name: "Microneedling / SkinPen", resultPlans: "✅ Improves fine lines, scars, pores\n📅 Schedule: Every 4-6 weeks, 3-4 sessions", preTreatment: "• Stop retinoids 5 days prior\n• Avoid sun 1 week\n• No active acne", sideEffects: "• Redness: 24-72 hours\n• Dryness/peeling: Days 3-5\n• Pinpoint bleeding", postDo: "• Gentle cleansing 24h\n• Hyaluronic acid serum\n• SPF50+ sunscreen", postAvoid: "• No makeup 24h\n• No exfoliating 1 week\n• No swimming 3 days" },
@@ -121,7 +114,6 @@ const defaultDocs = [
     { id: "5", name: "Dermal Fillers", resultPlans: "✅ Restores volume, enhances contours\n📅 Schedule: Every 6-18 months", preTreatment: "• Stop blood thinners 1 week\n• No alcohol 2 days\n• Inform of allergies", sideEffects: "• Swelling, bruising: 3-7 days\n• Redness: Hours\n• Lumps: Can be massaged", postDo: "• Cold compress 24h\n• Keep areas clean\n• Gentle skincare", postAvoid: "• No strenuous exercise 1 week\n• Avoid high heat 2 weeks\n• Do not massage" }
 ];
 
-// 加载数据
 function loadDocs() {
     const saved = localStorage.getItem('prepost_documents');
     if (saved) {
@@ -143,7 +135,12 @@ function saveDocs() {
 
 function escapeHtml(str) {
     if (!str) return '';
-    return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m);
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 function renderDocList() {
@@ -155,16 +152,14 @@ function renderDocList() {
             <span class="doc-delete" data-id="${doc.id}" title="Delete">🗑️</span>
         </div>
     `).join('');
-    
-    // 点击文档
+
     document.querySelectorAll('.doc-item').forEach(el => {
         el.addEventListener('click', (e) => {
             if (e.target.classList.contains('doc-delete')) return;
             loadDoc(el.dataset.id);
         });
     });
-    
-    // 删除文档（需要登录）
+
     document.querySelectorAll('.doc-delete').forEach(el => {
         el.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -280,21 +275,9 @@ function emailDoc() {
     window.location.href = `mailto:?subject=${encodeURIComponent(name)}&body=${encodeURIComponent(content)}`;
 }
 
-// 检查登录状态
 function checkLoginStatus() {
-    // 检查是否有 Supabase 全局客户端
-    if (typeof window.supabaseClient !== 'undefined' && window.supabaseClient) {
-        window.supabaseClient.auth.getSession().then(({ data: { session } }) => {
-            isAuthenticated = !!session;
-            updateUIForAuth();
-        }).catch(() => {
-            isAuthenticated = false;
-            updateUIForAuth();
-        });
-    } else {
-        isAuthenticated = false;
-        updateUIForAuth();
-    }
+    isAuthenticated = false;
+    updateUIForAuth();
 }
 
 function updateUIForAuth() {
@@ -306,26 +289,21 @@ function updateUIForAuth() {
     }
 }
 
-// 按钮绑定
-document.getElementById('saveLocalBtn').onclick = saveCurrentDoc;
-document.getElementById('printDocBtn').onclick = printDoc;
-document.getElementById('emailDocBtn').onclick = emailDoc;
-document.getElementById('newDocBtn').onclick = newDoc;
-document.getElementById('updateDocBtn').onclick = updateDoc;
-document.getElementById('deleteDocBtn').onclick = () => {
+document.getElementById('saveLocalBtn').addEventListener('click', saveCurrentDoc);
+document.getElementById('printDocBtn').addEventListener('click', printDoc);
+document.getElementById('emailDocBtn').addEventListener('click', emailDoc);
+document.getElementById('newDocBtn').addEventListener('click', newDoc);
+document.getElementById('updateDocBtn').addEventListener('click', updateDoc);
+document.getElementById('deleteDocBtn').addEventListener('click', () => {
     if (currentId && isAuthenticated) {
         if (confirm('Delete current document?')) deleteDoc(currentId);
     } else {
         alert('Please sign in to delete documents');
     }
-};
+});
 
-// 初始化
 loadDocs();
 checkLoginStatus();
-
-// 定期检查登录状态
-setInterval(checkLoginStatus, 2000);
 </script>
 </body>
 </html>
