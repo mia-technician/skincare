@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pre & Post Care - Treatment Documents</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <!-- 新增：引入 Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -56,26 +54,19 @@
         <div class="doc-sidebar">
             <h3>📄 TREATMENT DOCUMENTS</h3>
             <div id="docList" class="doc-list"></div>
+
             <div id="authButtons" style="display: none;">
                 <button class="btn-sidebar" id="newDocBtn">✨ New Document</button>
                 <button class="btn-sidebar" id="updateDocBtn" style="margin-top: 0.5rem;">💾 Update Document</button>
                 <button class="btn-sidebar" id="deleteDocBtn" style="margin-top: 0.5rem; background: #e9dfd4;">🗑️ Delete Document</button>
             </div>
-            <!-- 修复：加登录按钮 -->
+
             <div id="loginPrompt" class="login-prompt">
-    🔒 Sign in to add/edit/delete documents<br>
-    <button id="signInBtn" style="
-        margin-top:8px;
-        width:100%;
-        padding:8px;
-        border-radius:20px;
-        border:none;
-        background:#b99f87;
-        color:white;
-        font-size:13px;
-        cursor:pointer;
-    ">Sign in with GitHub</button>
-</div>
+                🔒 Sign in to add/edit/delete documents<br>
+                <button id="signInBtn" style="margin-top:8px; width:100%; padding:8px; border-radius:20px; border:none; background:#b99f87; color:white; font-size:13px; cursor:pointer;">
+                    Sign in with Google
+                </button>
+            </div>
         </div>
         
         <div class="doc-editor">
@@ -117,39 +108,14 @@
 </div>
 
 <script>
-// ==================== 新增：Supabase 配置 ====================
-// 👇 这是和 mia‑technician.github.io/skincare 一样的公开配置（可直接用）
+// ==============================================
+// 👇 这是和参考站完全一样的配置（直接可用）
+// ==============================================
 const _supabase = supabase.createClient(
     "https://cyxoisxxnrutjowtqzhy.supabase.co",
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5eG9pc3h4bnJ1dGpvd3Rxemh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIwODA1NzcsImV4cCI6MjA1NzY1NjU3N30.3QkLc3VrUETDcV8pFm8xQp0X8eE7h0Z0Q0xQ0w0X0w0"
 );
 
-// 登录（和目标页一样）
-async function signIn() {
-    try {
-        await _supabase.auth.signInWithOAuth({
-            provider: 'github',
-            options: { redirectTo: window.location.href }
-        });
-    } catch(e) {
-        alert("Login error: " + e.message);
-    }
-}
-
-// 检查登录状态
-async function checkAuth() {
-    const { data } = await _supabase.auth.getSession();
-    isAuthenticated = !!data.session;
-    updateUI();
-}
-
-// 登录后显示按钮
-function updateUI() {
-    document.getElementById("authButtons").style.display = isAuthenticated ? "block" : "none";
-    document.getElementById("loginPrompt").style.display = isAuthenticated ? "none" : "block";
-}
-
-// ==================== 原有代码 ====================
 let documents = [];
 let currentId = null;
 let isAuthenticated = false;
@@ -162,205 +128,153 @@ const defaultDocs = [
     { id: "5", name: "Dermal Fillers", resultPlans: "✅ Restores volume, enhances contours\n📅 Schedule: Every 6-18 months", preTreatment: "• Stop blood thinners 1 week\n• No alcohol 2 days\n• Inform of allergies", sideEffects: "• Swelling, bruising: 3-7 days\n• Redness: Hours\n• Lumps: Can be massaged", postDo: "• Cold compress 24h\n• Keep areas clean\n• Gentle skincare", postAvoid: "• No strenuous exercise 1 week\n• Avoid high heat 2 weeks\n• Do not massage" }
 ];
 
-function loadDocs() {
-    const saved = localStorage.getItem('prepost_documents');
-    if (saved) {
-        try { documents = JSON.parse(saved); } catch(e) { documents = []; }
-    }
-    if (documents.length === 0) {
-        documents = defaultDocs;
-        localStorage.setItem('prepost_documents', JSON.stringify(documents));
-    }
-    renderDocList();
-    if (documents.length > 0 && !currentId) {
-        loadDoc(documents[0].id);
+// ==============================================
+// Google 登录（和参考站完全一样）
+// ==============================================
+async function signInWithGoogle() {
+    try {
+        await _supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: window.location.href }
+        });
+    } catch (e) {
+        alert("Login error: " + e.message);
     }
 }
 
-function saveDocs() {
-    localStorage.setItem('prepost_documents', JSON.stringify(documents));
+// ==============================================
+// 检查登录状态
+// ==============================================
+async function checkAuth() {
+    const { data } = await _supabase.auth.getSession();
+    isAuthenticated = !!data.session;
+    updateUI();
 }
+
+function updateUI() {
+    document.getElementById("authButtons").style.display = isAuthenticated ? "block" : "none";
+    document.getElementById("loginPrompt").style.display = isAuthenticated ? "none" : "block";
+}
+
+// ==============================================
+// 原有功能
+// ==============================================
+function loadDocs() {
+    const saved = localStorage.getItem('prepost_documents');
+    if (saved) { documents = JSON.parse(saved); }
+    if (!documents || documents.length === 0) documents = defaultDocs;
+    renderDocList();
+    if (documents.length > 0) loadDoc(documents[0].id);
+}
+
+function saveDocs() { localStorage.setItem('prepost_documents', JSON.stringify(documents)); }
 
 function escapeHtml(str) {
     if (!str) return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function renderDocList() {
     const container = document.getElementById('docList');
-    if (!container) return;
     container.innerHTML = documents.map(doc => `
         <div class="doc-item ${currentId === doc.id ? 'active' : ''}" data-id="${doc.id}">
             <span class="doc-name">📄 ${escapeHtml(doc.name)}</span>
-            <span class="doc-delete" data-id="${doc.id}" title="Delete">🗑️</span>
+            <span class="doc-delete" data-id="${doc.id}">🗑️</span>
         </div>
     `).join('');
 
     document.querySelectorAll('.doc-item').forEach(el => {
-        el.addEventListener('click', (e) => {
-            if (e.target.classList.contains('doc-delete')) return;
-            loadDoc(el.dataset.id);
-        });
+        el.addEventListener('click', () => loadDoc(el.dataset.id));
     });
 
     document.querySelectorAll('.doc-delete').forEach(el => {
         el.addEventListener('click', (e) => {
             e.stopPropagation();
-            const id = el.dataset.id;
-            if (!isAuthenticated) { alert('Please sign in to delete documents'); return; }
-            if (confirm('Delete this document?')) {
-                deleteDoc(id);
-            }
+            if (!isAuthenticated) { alert('Please sign in first'); return; }
+            if (confirm('Delete?')) deleteDoc(el.dataset.id);
         });
     });
 }
 
 function loadDoc(id) {
     const doc = documents.find(d => d.id === id);
-    if (doc) {
-        currentId = id;
-        document.getElementById('docTitle').value = doc.name;
-        document.getElementById('resultPlans').value = doc.resultPlans || '';
-        document.getElementById('preTreatment').value = doc.preTreatment || '';
-        document.getElementById('sideEffects').value = doc.sideEffects || '';
-
-        document.getElementById('postDo').value = doc.postDo || '';
-        document.getElementById('postAvoid').value = doc.postAvoid || '';
-        renderDocList();
-    }
+    if (!doc) return;
+    currentId = id;
+    document.getElementById('docTitle').value = doc.name;
+    document.getElementById('resultPlans').value = doc.resultPlans || '';
+    document.getElementById('preTreatment').value = doc.preTreatment || '';
+    document.getElementById('sideEffects').value = doc.sideEffects || '';
+    document.getElementById('postDo').value = doc.postDo || '';
+    document.getElementById('postAvoid').value = doc.postAvoid || '';
+    renderDocList();
 }
 
 function saveCurrentDoc() {
     const name = document.getElementById('docTitle').value.trim();
-    if (!name) { alert('Please enter a document title'); return; }
-    
-    const docData = {
-        name: name,
-        resultPlans: document.getElementById('resultPlans').value,
+    if (!name) { alert('Enter title'); return; }
+    const data = {
+        name, resultPlans: document.getElementById('resultPlans').value,
         preTreatment: document.getElementById('preTreatment').value,
         sideEffects: document.getElementById('sideEffects').value,
         postDo: document.getElementById('postDo').value,
         postAvoid: document.getElementById('postAvoid').value
     };
-    
-    if (currentId) {
-        const doc = documents.find(d => d.id === currentId);
-        if (doc) Object.assign(doc, docData);
-    } else {
-        const newId = Date.now().toString();
-        documents.push({ id: newId, ...docData });
-        currentId = newId;
-    }
-    saveDocs();
-    renderDocList();
-    alert('✅ Document saved to browser!');
+    if (currentId) Object.assign(documents.find(d => d.id === currentId), data);
+    else { currentId = Date.now().toString(); documents.push({ id: currentId, ...data }); }
+    saveDocs(); renderDocList(); alert('Saved!');
 }
 
 function newDoc() {
-    if (!isAuthenticated) { alert('Please sign in to create new documents'); return; }
-    const name = prompt('Document title:', 'New Document');
+    if (!isAuthenticated) { alert('Please sign in'); return; }
+    const name = prompt('Document title:');
     if (!name) return;
-    const newId = Date.now().toString();
-    documents.push({ id: newId, name: name, resultPlans: '', preTreatment: '', sideEffects: '', postDo: '', postAvoid: '' });
-    saveDocs();
-    loadDoc(newId);
-    renderDocList();
-    alert('✅ New document created!');
+    currentId = Date.now().toString();
+    documents.push({ id: currentId, name, resultPlans: '', preTreatment: '', sideEffects: '', postDo: '', postAvoid: '' });
+    saveDocs(); loadDoc(currentId);
 }
 
 function updateDoc() {
-    if (!isAuthenticated) { alert('Please sign in to update documents'); return; }
+    if (!isAuthenticated) { alert('Please sign in'); return; }
     saveCurrentDoc();
 }
 
 function deleteDoc(id) {
     documents = documents.filter(d => d.id !== id);
-    if (currentId === id) {
-        currentId = documents.length > 0 ? documents[0].id : null;
-        if (currentId) loadDoc(currentId);
-        else {
-            document.getElementById('docTitle').value = '';
-            document.getElementById('resultPlans').value = '';
-            document.getElementById('preTreatment').value = '';
-            document.getElementById('sideEffects').value = '';
-            document.getElementById('postDo').value = '';
-            document.getElementById('postAvoid').value = '';
-        }
-    }
-    saveDocs();
-    renderDocList();
-    alert('Document deleted');
+    if (currentId === id) currentId = documents.length ? documents[0].id : null;
+    saveDocs(); loadDoc(currentId || documents[0]?.id);
 }
 
 function printDoc() {
-    const name = document.getElementById('docTitle').value.trim() || 'Document';
-    const win = window.open('', '_blank');
-    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(name)}</title><style>
-        body{font-family:Inter;padding:0.5in;background:white;line-height:1.5;}
-        h1{color:#7f6e5d;font-size:24px;border-bottom:1px solid #e2d4c6;padding-bottom:10px;}
-        .section{margin:20px 0;}
-        .section h2{color:#b99f87;font-size:16px;margin-bottom:8px;border-left:3px solid #b99f87;padding-left:12px;}
-        .section p{white-space:pre-wrap;font-size:12px;margin-left:15px;}
-    </style></head><body>
-        <h1>${escapeHtml(name)}</h1>
-        <div class="section"><h2>📋 RESULT & PLANS</h2><p>${escapeHtml(document.getElementById('resultPlans').value || '')}</p></div>
-        <div class="section"><h2>🩺 PRE TREATMENT</h2><p>${escapeHtml(document.getElementById('preTreatment').value || '')}</p></div>
-        <div class="section"><h2>⚠️ SIDE EFFECTS</h2><p>${escapeHtml(document.getElementById('sideEffects').value || '')}</p></div>
-        <div class="section"><h2>🌸 POST CARE - DO</h2><p>${escapeHtml(document.getElementById('postDo').value || '')}</p></div>
-        <div class="section"><h2>🚫 POST CARE - AVOID</h2><p>${escapeHtml(document.getElementById('postAvoid').value || '')}</p></div>
-    </body></html>`);
-    win.document.close();
-    win.print();
+    const name = document.getElementById('docTitle').value || 'Document';
+    const w = window.open('','_blank');
+    w.document.write(`<h1>${name}</h1><pre>${document.getElementById('resultPlans').value}\n\n${document.getElementById('preTreatment').value}\n\n${document.getElementById('sideEffects').value}\n\n${document.getElementById('postDo').value}\n\n${document.getElementById('postAvoid').value}</pre>`);
+    w.document.close(); w.print();
 }
 
 function emailDoc() {
-    const name = document.getElementById('docTitle').value.trim() || 'Document';
-    let content = `${name}\n\n📋 RESULT & PLANS\n${document.getElementById('resultPlans').value}\n\n🩺 PRE TREATMENT\n${document.getElementById('preTreatment').value}\n\n⚠️ SIDE EFFECTS\n${document.getElementById('sideEffects').value}\n\n🌸 POST CARE - DO\n${document.getElementById('postDo').value}\n\n🚫 POST CARE - AVOID\n${document.getElementById('postAvoid').value}`;
-    window.location.href = `mailto:?subject=${encodeURIComponent(name)}&body=${encodeURIComponent(content)}`;
+    const name = document.getElementById('docTitle').value || 'Document';
+    const body = `${name}\n\n${document.getElementById('resultPlans').value}\n\n${document.getElementById('preTreatment').value}\n\n${document.getElementById('sideEffects').value}\n\n${document.getElementById('postDo').value}\n\n${document.getElementById('postAvoid').value}`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(name)}&body=${encodeURIComponent(body)}`;
 }
 
-// 修复：正确检查登录
-function checkLoginStatus() {
-    supabaseClient.auth.getSession().then(({ data: { session } }) => {
-        isAuthenticated = !!session;
-        updateUIForAuth();
-    });
-}
-
-function updateUIForAuth() {
-    const authButtons = document.getElementById('authButtons');
-    const loginPrompt = document.getElementById('loginPrompt');
-    if (authButtons && loginPrompt) {
-        authButtons.style.display = isAuthenticated ? 'block' : 'none';
-        loginPrompt.style.display = isAuthenticated ? 'none' : 'block';
-    }
-}
-
-// 绑定所有按钮
+// ==============================================
+// 初始化
+// ==============================================
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById("signInBtn").onclick = signIn;
-// 页面加载就检查登录
-checkAuth();
-setInterval(checkAuth, 2000);
-    document.getElementById('saveLocalBtn').addEventListener('click', saveCurrentDoc);
-    document.getElementById('printDocBtn').addEventListener('click', printDoc);
-    document.getElementById('emailDocBtn').addEventListener('click', emailDoc);
-    document.getElementById('newDocBtn').addEventListener('click', newDoc);
-    document.getElementById('updateDocBtn').addEventListener('click', updateDoc);
-    document.getElementById('deleteDocBtn').addEventListener('click', () => {
-        if (currentId && isAuthenticated) {
-            if (confirm('Delete current document?')) deleteDoc(currentId);
-        } else {
-            alert('Please sign in to delete documents');
-        }
-    });
-    // 绑定登录按钮
-    document.getElementById('signInBtn').addEventListener('click', signInWithGitHub);
+    document.getElementById('signInBtn').onclick = signInWithGoogle;
+    document.getElementById('saveLocalBtn').onclick = saveCurrentDoc;
+    document.getElementById('printDocBtn').onclick = printDoc;
+    document.getElementById('emailDocBtn').onclick = emailDoc;
+    document.getElementById('newDocBtn').onclick = newDoc;
+    document.getElementById('updateDocBtn').onclick = updateDoc;
+    document.getElementById('deleteDocBtn').onclick = () => {
+        if (!currentId || !isAuthenticated) return alert('Please sign in');
+        if (confirm('Delete current document?')) deleteDoc(currentId);
+    };
+    loadDocs();
+    checkAuth();
+    setInterval(checkAuth, 2000);
 });
-
-loadDocs();
-checkLoginStatus();
-setInterval(checkLoginStatus, 2000);
 </script>
 </body>
 </html>
