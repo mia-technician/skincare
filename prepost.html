@@ -42,7 +42,6 @@
             color:#b99f87;
             border: none;
         }
-        /* 🔥 内容字号改小 */
         .section-content {
             padding: 0.4rem 0;
             white-space: pre-wrap;
@@ -54,7 +53,7 @@
 
         .editor-actions { display:flex; gap:1rem; justify-content:flex-end; margin-top:1rem; }
         .btn { padding:0.5rem 1.2rem; border-radius:40px; border:none; cursor:pointer; font-size:0.8rem; }
-        .btn-save { background:#b99f87; color:white; }
+        .btn-email { background:#b99f87; color:white; }
         .btn-print { background:#e9dfd4; color:#333; }
 
         #loginPrompt, #authButtons { display:none; }
@@ -120,12 +119,12 @@
                 <div class="section-content" id="postAvoid" contenteditable></div>
             </div>
 
-                        <div class="section">
+            <div class="section">
                 <div class="section-header">🚫 If you have any unusual reactions or concerns, please contact our office at 604-580-2464 OR infobclaser@dermapure.com </div>
             </div>
 
             <div class="editor-actions">
-                <button class="btn btn-save" id="saveBtn">Save</button>
+                <button class="btn btn-email" id="emailBtn">Send as Email</button>
                 <button class="btn btn-print" id="printBtn">Print / PDF</button>
             </div>
         </div>
@@ -222,9 +221,57 @@ function doPrint() {
     window.print();
 }
 
+// 发送邮件功能
+function sendAsEmail() {
+    const title = document.getElementById('docTitle').value || "Treatment Document";
+    const result = document.getElementById('resultPlans').innerText || "-";
+    const contra = document.getElementById('contraindications').innerText || "-";
+    const pre = document.getElementById('preTreatment').innerText || "-";
+    const side = document.getElementById('sideEffects').innerText || "-";
+    const postDo = document.getElementById('postDo').innerText || "-";
+    const postAvoid = document.getElementById('postAvoid').innerText || "-";
+
+    const body = `
+${title}
+
+----------------------------------------
+RESULTS & TREATMENT PLANS:
+${result}
+
+----------------------------------------
+CONTRAINDICATIONS:
+${contra}
+
+----------------------------------------
+PRE TREATMENT CARE:
+${pre}
+
+----------------------------------------
+POSSIBLE SIDE EFFECT:
+${side}
+
+----------------------------------------
+POST CARE - WHAT TO DO:
+${postDo}
+
+----------------------------------------
+POST CARE - WHAT TO AVOID:
+${postAvoid}
+
+----------------------------------------
+If you have any unusual reactions or concerns, please contact our office:
+Phone: 604-580-2464
+Email: infobclaser@dermapure.com
+    `;
+
+    const encodedBody = encodeURIComponent(body);
+    const encodedSubject = encodeURIComponent(title);
+    window.location.href = `mailto:?subject=${encodedSubject}&body=${encodedBody}`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('addNewBtn').onclick = addNewDocument;
-    document.getElementById('saveBtn').onclick = saveCurrent;
+    document.getElementById('emailBtn').onclick = sendAsEmail;
     document.getElementById('printBtn').onclick = doPrint;
     loadFromStorage();
     renderDocList();
