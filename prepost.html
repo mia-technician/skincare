@@ -8,19 +8,18 @@
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background:#f5efe9; font-family:'Inter',sans-serif; padding:2rem 1rem; }
-        .app { max-width:1400px; margin:0 auto; background:#faf7f2; border-radius:32px; border:1px solid #e8dfd4; padding:2rem; }
+        .app { max-width:1400px; margin:0 auto; background:#faf7f2; border-radius:32px; border:1px solid #e8dfd0; padding:2rem; }
         h1 { font-family:'Montserrat',sans-serif; font-weight:300; font-size:1.8rem; color:#7f6e5d; text-align:center; margin-bottom:2rem; text-transform:uppercase; }
         .two-columns { display:grid; grid-template-columns:280px 1fr; gap:1.5rem; min-height:600px; }
 
         .doc-sidebar { background:#fff9f2; border-radius:24px; padding:1.2rem; border:1px solid #e7dbd0; }
-        .doc-sidebar h3 { font-family:'Montserrat',sans-serif; font-size:1rem; font-weight:600; color:#8f7e6b; margin-bottom:1rem; padding-bottom:0.5rem; border-bottom:1px solid #e2d4c6; }
+        .doc-sidebar h3 { font-family:'Montserrat',sans-serif; font-size:1rem; font-weight:600; color:#8f7e6; margin-bottom:1rem; padding-bottom:0.5rem; border-bottom:1px solid #e2d4c6; }
         .doc-list { list-style:none; max-height:500px; overflow-y:auto; margin-bottom:1rem; }
         .doc-item { padding:0.8rem 1rem; margin-bottom:0.5rem; background:#f5efe8; border-radius:16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all 0.2s; }
         .doc-item:hover { background:#e9dfd4; transform:translateX(4px); }
         .doc-item.active { background:#b99f87; color:white; }
 
         .btn-add { width:100%; padding:0.6rem; background:#b99f87; color:#fff; border:none; border-radius:40px; cursor:pointer; font-size:0.75rem; font-weight:500; margin-bottom:1rem; }
-        .btn-sidebar { width:100%; padding:0.6rem; background:#e9dfd4; border:none; border-radius:40px; cursor:pointer; font-size:0.75rem; font-weight:500; margin-top:0.5rem; }
 
         .doc-editor { background:#fff9f2; border-radius:24px; padding:1.5rem; border:1px solid #e7dbd0; }
         .doc-title { width:100%; font-size:1.5rem; border:none; background:transparent; border-bottom:2px solid #e2d4c6; margin-bottom:1rem; padding:0.5rem 0; outline:none; color:#5f5347; }
@@ -30,33 +29,30 @@
 
         .section { background:#fefcf8; border-radius:16px; border:1px solid #e7dbd0; margin-bottom:1rem; overflow:hidden; }
         .section-header { background:#f5efe8; padding:0.5rem 1rem; font-size:0.75rem; font-weight:600; color:#b99f87; border-bottom:1px solid #e7dbd0; }
-        .section-textarea { width:100%; min-height:100px; padding:0.8rem; border:none; font-size:0.8rem; resize:vertical; outline:none; }
+        
+        /* 🔥 自动高度：不固定，随内容变长 */
+        .section-content {
+            padding: 0.8rem;
+            white-space: pre-wrap;
+            line-height:1.5;
+        }
 
         .editor-actions { display:flex; gap:1rem; justify-content:flex-end; margin-top:1rem; }
         .btn { padding:0.5rem 1.2rem; border-radius:40px; border:none; cursor:pointer; font-size:0.8rem; }
         .btn-save { background:#b99f87; color:white; }
         .btn-print { background:#e9dfd4; color:#333; }
 
-        #loginPrompt { display:none; }
-        #authButtons { display:none; }
+        #loginPrompt, #authButtons { display:none; }
 
-        /* 打印专用样式 */
+        /* 打印样式：只打右侧，自动高度 */
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            .doc-editor, .doc-editor * {
-                visibility: visible;
-            }
+            body * { visibility: hidden; }
+            .doc-editor, .doc-editor * { visibility: visible; }
             .doc-editor {
                 position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
+                left:0; top:0; width:100%;
             }
-            .toolbar, .editor-actions {
-                display: none !important;
-            }
+            .toolbar, .editor-actions { display:none !important; }
         }
 
         @media (max-width:750px) { .two-columns { grid-template-columns:1fr; } }
@@ -76,34 +72,38 @@
         <div class="doc-editor">
             <input type="text" id="docTitle" class="doc-title" placeholder="Document Title">
             <div class="toolbar">
-                <button onclick="formatBold()">Bold</button>
-                <button onclick="formatBullet()">• Bullet</button>
-                <button onclick="formatClear()">Clear</button>
+                <button onclick="formatBold('resultPlans')">Bold</button>
+                <button onclick="formatBullet('resultPlans')">• Bullet</button>
             </div>
 
             <div class="section">
                 <div class="section-header">📋 RESULT & PLANS</div>
-                <textarea class="section-textarea" id="resultPlans"></textarea>
+                <div class="section-content" id="resultPlans" contenteditable></div>
             </div>
+
             <div class="section">
                 <div class="section-header">⚠️ Contraindications</div>
-                <textarea class="section-textarea" id="contraindications"></textarea>
+                <div class="section-content" id="contraindications" contenteditable></div>
             </div>
+
             <div class="section">
                 <div class="section-header">🩺 PRE TREATMENT</div>
-                <textarea class="section-textarea" id="preTreatment"></textarea>
+                <div class="section-content" id="preTreatment" contenteditable></div>
             </div>
+
             <div class="section">
                 <div class="section-header">⚠️ SIDE EFFECTS</div>
-                <textarea class="section-textarea" id="sideEffects"></textarea>
+                <div class="section-content" id="sideEffects" contenteditable></div>
             </div>
+
             <div class="section">
                 <div class="section-header">🌸 POST CARE - DO</div>
-                <textarea class="section-textarea" id="postDo"></textarea>
+                <div class="section-content" id="postDo" contenteditable></div>
             </div>
+
             <div class="section">
                 <div class="section-header">🚫 POST CARE - AVOID</div>
-                <textarea class="section-textarea" id="postAvoid"></textarea>
+                <div class="section-content" id="postAvoid" contenteditable></div>
             </div>
 
             <div class="editor-actions">
@@ -117,19 +117,26 @@
 <script>
 let documents = [];
 let currentId = null;
-const STORAGE_KEY = "prepost_data_v2";
+const STORAGE_KEY = "prepost_data_v3";
+
+const fieldIds = [
+    "resultPlans", "contraindications", "preTreatment",
+    "sideEffects", "postDo", "postAvoid"
+];
 
 function loadFromStorage() {
     const s = localStorage.getItem(STORAGE_KEY);
     if (s) { try { documents = JSON.parse(s); } catch (e) { resetDefault(); } }
     else resetDefault();
 }
+
 function resetDefault() {
     documents = [
         { id: "1", name: "Laser Hair Removal", resultPlans:"", contraindications:"", preTreatment:"", sideEffects:"", postDo:"", postAvoid:"" },
         { id: "2", name: "Microneedling", resultPlans:"", contraindications:"", preTreatment:"", sideEffects:"", postDo:"", postAvoid:"" }
     ];
 }
+
 function saveToStorage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(documents));
 }
@@ -148,12 +155,7 @@ function renderDocList() {
 
 function clearEditor() {
     document.getElementById('docTitle').value = '';
-    document.getElementById('resultPlans').value = '';
-    document.getElementById('contraindications').value = '';
-    document.getElementById('preTreatment').value = '';
-    document.getElementById('sideEffects').value = '';
-    document.getElementById('postDo').value = '';
-    document.getElementById('postAvoid').value = '';
+    fieldIds.forEach(id => document.getElementById(id).innerText = '');
     currentId = null;
 }
 
@@ -168,54 +170,36 @@ function loadDoc(id) {
     if (!d) return;
     currentId = id;
     document.getElementById('docTitle').value = d.name || '';
-    document.getElementById('resultPlans').value = d.resultPlans || '';
-    document.getElementById('contraindications').value = d.contraindications || '';
-    document.getElementById('preTreatment').value = d.preTreatment || '';
-    document.getElementById('sideEffects').value = d.sideEffects || '';
-    document.getElementById('postDo').value = d.postDo || '';
-    document.getElementById('postAvoid').value = d.postAvoid || '';
+    fieldIds.forEach(id => document.getElementById(id).innerText = d[id] || '');
     renderDocList();
 }
 
 function saveCurrent() {
     const name = document.getElementById('docTitle').value.trim() || 'Untitled';
-    const data = {
-        name,
-        resultPlans: document.getElementById('resultPlans').value,
-        contraindications: document.getElementById('contraindications').value,
-        preTreatment: document.getElementById('preTreatment').value,
-        sideEffects: document.getElementById('sideEffects').value,
-        postDo: document.getElementById('postDo').value,
-        postAvoid: document.getElementById('postAvoid').value
-    };
+    const data = { name };
+    fieldIds.forEach(id => data[id] = document.getElementById(id).innerText);
+    
     const exist = documents.find(x => x.id === currentId);
     if (exist) Object.assign(exist, data);
     else { currentId = "doc-" + Date.now(); documents.push({ id: currentId, ...data }); }
+    
     saveToStorage();
     renderDocList();
     alert("Saved successfully");
 }
 
-function formatBold() {
-    const t = document.activeElement;
-    if (t.tagName === "TEXTAREA") {
-        const s = t.selectionStart, e = t.selectionEnd;
-        t.value = t.value.substring(0,s) + "**" + t.value.substring(s,e) + "**" + t.value.substring(e);
-    }
-}
-function formatBullet() {
-    const t = document.activeElement;
-    if (t.tagName === "TEXTAREA") {
-        const s = t.selectionStart;
-        t.value = t.value.substring(0,s) + "• " + t.value.substring(s);
-    }
-}
-function formatClear() {
-    const t = document.activeElement;
-    if (t.tagName === "TEXTAREA") t.value = "";
+function formatBold(fieldId) {
+    const el = document.getElementById(fieldId);
+    el.focus();
+    document.execCommand('bold');
 }
 
-// ✅ 终极最简单打印
+function formatBullet(fieldId) {
+    const el = document.getElementById(fieldId);
+    el.focus();
+    document.execCommand('insertUnorderedList');
+}
+
 function doPrint() {
     window.print();
 }
