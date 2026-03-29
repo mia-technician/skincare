@@ -132,14 +132,17 @@ const defaultDocs = [
 // Google 登录（和参考站完全一样）
 // ==============================================
 async function signInWithGoogle() {
-    try {
-        await _supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: { redirectTo: window.location.href }
-        });
-    } catch (e) {
-        alert("Login error: " + e.message);
-    }
+  try {
+    await _supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: "https://mia-technician.github.io/skincare/prepost.html"
+      }
+    });
+  } catch (e) {
+    alert("Login error: " + e.message);
+    console.error(e);
+  }
 }
 
 // ==============================================
