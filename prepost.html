@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pre & Post Care - Treatment Documents</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- 新增：引入 Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f5efe9; font-family: 'Inter', sans-serif; padding: 2rem 1rem; }
@@ -58,8 +60,12 @@
                 <button class="btn-sidebar" id="updateDocBtn" style="margin-top: 0.5rem;">💾 Update Document</button>
                 <button class="btn-sidebar" id="deleteDocBtn" style="margin-top: 0.5rem; background: #e9dfd4;">🗑️ Delete Document</button>
             </div>
+            <!-- 修复：加登录按钮 -->
             <div id="loginPrompt" class="login-prompt">
                 🔒 Sign in to add/edit/delete documents
+                <button id="signInBtn" class="btn-sidebar" style="margin-top:0.8rem; background:#b99f87; color:white;">
+                    🔐 Sign in with GitHub
+                </button>
             </div>
         </div>
         
@@ -102,6 +108,28 @@
 </div>
 
 <script>
+// ==================== 新增：Supabase 配置 ====================
+const SUPABASE_URL = "https://xxxx.supabase.co"; // 替换成你的
+const SUPABASE_ANON_KEY = "eyxxxxxx..."; // 替换成你的
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window.supabaseClient = supabaseClient;
+
+// 登录函数
+async function signInWithGitHub() {
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithOAuth({
+      provider: "github",
+      options: { redirectTo: window.location.origin }
+    });
+    if (error) throw error;
+  } catch (err) {
+    alert("Login failed: " + err.message);
+    console.error(err);
+  }
+}
+
+// ==================== 原有代码 ====================
 let documents = [];
 let currentId = null;
 let isAuthenticated = false;
@@ -135,12 +163,7 @@ function saveDocs() {
 
 function escapeHtml(str) {
     if (!str) return '';
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
 function renderDocList() {
@@ -180,6 +203,7 @@ function loadDoc(id) {
         document.getElementById('resultPlans').value = doc.resultPlans || '';
         document.getElementById('preTreatment').value = doc.preTreatment || '';
         document.getElementById('sideEffects').value = doc.sideEffects || '';
+
         document.getElementById('postDo').value = doc.postDo || '';
         document.getElementById('postAvoid').value = doc.postAvoid || '';
         renderDocList();
@@ -275,9 +299,12 @@ function emailDoc() {
     window.location.href = `mailto:?subject=${encodeURIComponent(name)}&body=${encodeURIComponent(content)}`;
 }
 
+// 修复：正确检查登录
 function checkLoginStatus() {
-    isAuthenticated = false;
-    updateUIForAuth();
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        isAuthenticated = !!session;
+        updateUIForAuth();
+    });
 }
 
 function updateUIForAuth() {
@@ -289,21 +316,27 @@ function updateUIForAuth() {
     }
 }
 
-document.getElementById('saveLocalBtn').addEventListener('click', saveCurrentDoc);
-document.getElementById('printDocBtn').addEventListener('click', printDoc);
-document.getElementById('emailDocBtn').addEventListener('click', emailDoc);
-document.getElementById('newDocBtn').addEventListener('click', newDoc);
-document.getElementById('updateDocBtn').addEventListener('click', updateDoc);
-document.getElementById('deleteDocBtn').addEventListener('click', () => {
-    if (currentId && isAuthenticated) {
-        if (confirm('Delete current document?')) deleteDoc(currentId);
-    } else {
-        alert('Please sign in to delete documents');
-    }
+// 绑定所有按钮
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('saveLocalBtn').addEventListener('click', saveCurrentDoc);
+    document.getElementById('printDocBtn').addEventListener('click', printDoc);
+    document.getElementById('emailDocBtn').addEventListener('click', emailDoc);
+    document.getElementById('newDocBtn').addEventListener('click', newDoc);
+    document.getElementById('updateDocBtn').addEventListener('click', updateDoc);
+    document.getElementById('deleteDocBtn').addEventListener('click', () => {
+        if (currentId && isAuthenticated) {
+            if (confirm('Delete current document?')) deleteDoc(currentId);
+        } else {
+            alert('Please sign in to delete documents');
+        }
+    });
+    // 绑定登录按钮
+    document.getElementById('signInBtn').addEventListener('click', signInWithGitHub);
 });
 
 loadDocs();
 checkLoginStatus();
+setInterval(checkLoginStatus, 2000);
 </script>
 </body>
 </html>
