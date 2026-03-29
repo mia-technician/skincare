@@ -3,114 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pre & Post Care - Treatment Documents</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>Pre & Post Care</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #f5efe9; font-family: 'Inter', sans-serif; padding: 2rem 1rem; }
-        .app { max-width: 1400px; margin: 0 auto; background: #faf7f2; border-radius: 32px; border: 1px solid #e8dfd4; padding: 2rem; }
-        h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 1.8rem; color: #7f6e5d; text-align: center; margin-bottom: 2rem; text-transform: uppercase; }
-        
-        .two-columns { display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; min-height: 600px; }
-        
-        .doc-sidebar { background: #fff9f2; border-radius: 24px; padding: 1.2rem; border: 1px solid #e7dbd0; }
-        .doc-sidebar h3 { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; color: #8f7e6b; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; }
-        .doc-list { list-style: none; max-height: 500px; overflow-y: auto; }
-        .doc-item { padding: 0.8rem 1rem; margin-bottom: 0.5rem; background: #f5efe8; border-radius: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
-        .doc-item:hover { background: #e9dfd4; transform: translateX(4px); }
-        .doc-item.active { background: #b99f87; color: white; }
-        .doc-name { font-size: 0.85rem; font-weight: 500; }
-        .doc-delete { color: #b7a99a; cursor: pointer; font-size: 0.8rem; opacity: 0.6; }
-        .doc-delete:hover { opacity: 1; color: #d2c0b0; }
-        .btn-sidebar { width: 100%; margin-top: 1rem; padding: 0.6rem; background: #e9dfd4; border: none; border-radius: 40px; cursor: pointer; font-size: 0.75rem; font-weight: 500; transition: all 0.2s; }
-        .btn-sidebar:hover { background: #dacbbb; }
-        
-        .doc-editor { background: #fff9f2; border-radius: 24px; padding: 1.5rem; border: 1px solid #e7dbd0; }
-        .doc-title { width: 100%; font-size: 1.5rem; font-family: 'Montserrat', sans-serif; font-weight: 500; border: none; background: transparent; border-bottom: 2px solid #e2d4c6; margin-bottom: 1.5rem; padding: 0.5rem 0; outline: none; color: #5f5347; }
-        .sections { display: flex; flex-direction: column; gap: 1rem; }
-        .section { background: #fefcf8; border-radius: 16px; border: 1px solid #e7dbd0; overflow: hidden; }
-        .section-header { background: #f5efe8; padding: 0.5rem 1rem; font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 600; color: #b99f87; border-bottom: 1px solid #e7dbd0; }
-        .section-textarea { width: 100%; min-height: 100px; padding: 0.8rem; border: none; font-family: 'Inter', monospace; font-size: 0.8rem; line-height: 1.5; resize: vertical; background: white; outline: none; }
-        .section-textarea:focus { background: #fffdf9; }
-        .editor-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; }
-        .btn { padding: 0.5rem 1.2rem; border-radius: 40px; border: none; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.2s; }
-        .btn-save { background: #b99f87; color: white; }
-        .btn-print { background: #e9dfd4; color: #5f5347; }
-        .btn-email { background: #e9dfd4; color: #5f5347; }
-        .login-prompt { margin-top: 1rem; padding: 0.5rem; background: #f5efe8; border-radius: 12px; text-align: center; font-size: 0.7rem; color: #b7a99a; }
-        .auth-buttons { display: flex; gap: 0.8rem; margin-top: 1rem; flex-wrap: wrap; }
-        
-        @media (max-width: 750px) {
-            .two-columns { grid-template-columns: 1fr; }
-        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#f5efe9; font-family:'Inter',sans-serif; padding:2rem 1rem; }
+        .app { max-width:1400px; margin:0 auto; background:#faf7f2; border-radius:32px; border:1px solid #e8dfd4; padding:2rem; }
+        h1 { font-family:'Montserrat',sans-serif; font-weight:300; font-size:1.8rem; color:#7f6e5d; text-align:center; margin-bottom:2rem; text-transform:uppercase; }
+        .two-columns { display:grid; grid-template-columns:280px 1fr; gap:1.5rem; min-height:600px; }
+        .doc-sidebar { background:#fff9f2; border-radius:24px; padding:1.2rem; border:1px solid #e7dbd0; }
+        .doc-sidebar h3 { font-family:'Montserrat',sans-serif; font-size:1rem; font-weight:600; color:#8f7e6b; margin-bottom:1rem; padding-bottom:0.5rem; border-bottom:1px solid #e2d4c6; }
+        .doc-list { list-style:none; max-height:500px; overflow-y:auto; }
+        .doc-item { padding:0.8rem 1rem; margin-bottom:0.5rem; background:#f5efe8; border-radius:16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all 0.2s; }
+        .doc-item:hover { background:#e9dfd4; transform:translateX(4px); }
+        .doc-item.active { background:#b99f87; color:white; }
+        .btn-sidebar { width:100%; margin-top:1rem; padding:0.6rem; background:#e9dfd4; border:none; border-radius:40px; cursor:pointer; font-size:0.75rem; font-weight:500; }
+        .btn-sidebar:hover { background:#dacbbb; }
+        .doc-editor { background:#fff9f2; border-radius:24px; padding:1.5rem; border:1px solid #e7dbd0; }
+        .doc-title { width:100%; font-size:1.5rem; border:none; background:transparent; border-bottom:2px solid #e2d4c6; margin-bottom:1.5rem; padding:0.5rem 0; outline:none; color:#5f5347; }
+        .section { background:#fefcf8; border-radius:16px; border:1px solid #e7dbd0; margin-bottom:1rem; overflow:hidden; }
+        .section-header { background:#f5efe8; padding:0.5rem 1rem; font-size:0.75rem; font-weight:600; color:#b99f87; border-bottom:1px solid #e7dbd0; }
+        .section-textarea { width:100%; min-height:100px; padding:0.8rem; border:none; font-size:0.8rem; resize:vertical; outline:none; }
+        .editor-actions { display:flex; gap:1rem; justify-content:flex-end; margin-top:1rem; }
+        .btn { padding:0.5rem 1.2rem; border-radius:40px; border:none; cursor:pointer; font-size:0.8rem; }
+        .btn-save { background:#b99f87; color:white; }
+        .btn-print, .btn-email { background:#e9dfd4; color:#5f5347; }
+        .login-prompt { margin-top:1rem; padding:0.8rem; background:#f5efe8; border-radius:12px; text-align:center; font-size:0.7rem; color:#888; }
+        #signInBtn { margin-top:8px; width:100%; padding:8px; border-radius:20px; border:none; background:#b99f87; color:white; font-size:13px; cursor:pointer; }
+        @media (max-width:750px) { .two-columns { grid-template-columns:1fr; } }
     </style>
 </head>
 <body>
+
 <div class="app">
     <h1>📋 Pre & Post Care</h1>
-    
     <div class="two-columns">
         <div class="doc-sidebar">
             <h3>📄 TREATMENT DOCUMENTS</h3>
             <div id="docList" class="doc-list"></div>
 
-            <div id="authButtons" style="display: none;">
+            <div id="authButtons" style="display:none;">
                 <button class="btn-sidebar" id="newDocBtn">✨ New Document</button>
-                <button class="btn-sidebar" id="updateDocBtn" style="margin-top: 0.5rem;">💾 Update Document</button>
-                <button class="btn-sidebar" id="deleteDocBtn" style="margin-top: 0.5rem; background: #e9dfd4;">🗑️ Delete Document</button>
+                <button class="btn-sidebar" id="updateDocBtn" style="margin-top:0.5rem;">💾 Update</button>
+                <button class="btn-sidebar" id="deleteDocBtn" style="margin-top:0.5rem;">🗑️ Delete</button>
             </div>
 
             <div id="loginPrompt" class="login-prompt">
-                🔒 Sign in to add/edit/delete documents<br>
-                <button id="signInBtn" style="margin-top:8px; width:100%; padding:8px; border-radius:20px; border:none; background:#b99f87; color:white; font-size:13px; cursor:pointer;">
-                    Sign in with Google
-                </button>
+                🔒 Sign in to edit<br>
+                <button id="signInBtn">Sign in with Google</button>
             </div>
         </div>
-        
+
         <div class="doc-editor">
             <input type="text" id="docTitle" class="doc-title" placeholder="Document Title">
-            
-            <div class="sections">
-                <div class="section">
-                    <div class="section-header">📋 RESULT & PLANS</div>
-                    <textarea id="resultPlans" class="section-textarea" placeholder="Expected results and treatment plan..."></textarea>
-                </div>
-                <div class="section">
-                    <div class="section-header">🩺 PRE TREATMENT</div>
-                    <textarea id="preTreatment" class="section-textarea" placeholder="Preparation before treatment..."></textarea>
-                </div>
-                <div class="section">
-                    <div class="section-header">⚠️ SIDE EFFECTS & WHAT TO DO</div>
-                    <textarea id="sideEffects" class="section-textarea" placeholder="Possible side effects and how to manage..."></textarea>
-                </div>
-                <div class="section">
-                    <div class="section-header">🌸 POST CARE - DO</div>
-                    <textarea id="postDo" class="section-textarea" placeholder="What to do after treatment..."></textarea>
-                </div>
-                <div class="section">
-                    <div class="section-header">🚫 POST CARE - AVOID</div>
-                    <textarea id="postAvoid" class="section-textarea" placeholder="What to avoid after treatment..."></textarea>
-                </div>
+            <div class="section">
+                <div class="section-header">📋 RESULT & PLANS</div>
+                <textarea class="section-textarea" id="resultPlans"></textarea>
             </div>
-            
+            <div class="section">
+                <div class="section-header">🩺 PRE TREATMENT</div>
+                <textarea class="section-textarea" id="preTreatment"></textarea>
+            </div>
+            <div class="section">
+                <div class="section-header">⚠️ SIDE EFFECTS</div>
+                <textarea class="section-textarea" id="sideEffects"></textarea>
+            </div>
+            <div class="section">
+                <div class="section-header">🌸 POST CARE - DO</div>
+                <textarea class="section-textarea" id="postDo"></textarea>
+            </div>
+            <div class="section">
+                <div class="section-header">🚫 POST CARE - AVOID</div>
+                <textarea class="section-textarea" id="postAvoid"></textarea>
+            </div>
             <div class="editor-actions">
-                <button class="btn btn-save" id="saveLocalBtn">💾 Save to Browser</button>
-                <button class="btn btn-print" id="printDocBtn">🖨️ Print / PDF</button>
+                <button class="btn btn-save" id="saveLocalBtn">💾 Save</button>
+                <button class="btn btn-print" id="printDocBtn">🖨️ Print</button>
                 <button class="btn btn-email" id="emailDocBtn">📧 Email</button>
             </div>
         </div>
     </div>
-    <div style="margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf;">
-        ✦ All changes saved to browser ✦ Sign in to create/edit/delete documents ✦
-    </div>
 </div>
 
 <script>
-// ==============================================
-// 👇 这是和参考站完全一样的配置（直接可用）
-// ==============================================
+// 👇 和主页面完全一样的 Supabase
 const _supabase = supabase.createClient(
     "https://cyxoisxxnrutjowtqzhy.supabase.co",
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5eG9pc3h4bnJ1dGpvd3Rxemh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIwODA1NzcsImV4cCI6MjA1NzY1NjU3N30.3QkLc3VrUETDcV8pFm8xQp0X8eE7h0Z0Q0xQ0w0X0w0"
@@ -123,31 +100,25 @@ let isAuthenticated = false;
 const defaultDocs = [
     { id: "1", name: "Laser Hair Removal", resultPlans: "✅ Expected Results: Significant hair reduction\n📅 Schedule: Every 4-6 weeks, 6-8 sessions", preTreatment: "• Shave 24-48 hours before\n• Avoid sun for 2 weeks\n• No waxing/plucking 4 weeks prior", sideEffects: "• Mild redness: Cold compress\n• Tingling: 1-2 hours\n• Hyperpigmentation: Avoid sun", postDo: "• Cold compress 10-15 min\n• Aloe vera gel\n• SPF50+ sunscreen", postAvoid: "• No hot showers 48h\n• No waxing/plucking\n• No exfoliating 1 week" },
     { id: "2", name: "Microneedling / SkinPen", resultPlans: "✅ Improves fine lines, scars, pores\n📅 Schedule: Every 4-6 weeks, 3-4 sessions", preTreatment: "• Stop retinoids 5 days prior\n• Avoid sun 1 week\n• No active acne", sideEffects: "• Redness: 24-72 hours\n• Dryness/peeling: Days 3-5\n• Pinpoint bleeding", postDo: "• Gentle cleansing 24h\n• Hyaluronic acid serum\n• SPF50+ sunscreen", postAvoid: "• No makeup 24h\n• No exfoliating 1 week\n• No swimming 3 days" },
-    { id: "3", name: "Chemical Peel", resultPlans: "✅ Brightens skin, fades spots\n📅 Schedule: Every 3-4 weeks, 3-6 sessions", preTreatment: "• Stop retinoids 1 week\n• Stop brightening products 3 days\n• Avoid sun 2 weeks", sideEffects: "• Redness: Normal\n• Peeling: Days 3-5\n• Temporary hyperpigmentation", postDo: "• Gentle cleansing\n• Healing cream\n• SPF50+ sunscreen", postAvoid: "• Do not pick peeling\n• No exfoliating 2 weeks\n• Avoid sun" },
-    { id: "4", name: "Botox / Dysport", resultPlans: "✅ Smooths dynamic wrinkles\n📅 Schedule: Every 3-4 months", preTreatment: "• Stop blood thinners 1 week\n• No alcohol 24 hours\n• No makeup", sideEffects: "• Redness at sites: Hours\n• Mild bruising: 3-7 days\n• Headache: 24 hours", postDo: "• Stay upright 4 hours\n• Gently move treated area\n• No massage 24h", postAvoid: "• No strenuous exercise 24h\n• Do not press sites\n• Avoid high heat" },
-    { id: "5", name: "Dermal Fillers", resultPlans: "✅ Restores volume, enhances contours\n📅 Schedule: Every 6-18 months", preTreatment: "• Stop blood thinners 1 week\n• No alcohol 2 days\n• Inform of allergies", sideEffects: "• Swelling, bruising: 3-7 days\n• Redness: Hours\n• Lumps: Can be massaged", postDo: "• Cold compress 24h\n• Keep areas clean\n• Gentle skincare", postAvoid: "• No strenuous exercise 1 week\n• Avoid high heat 2 weeks\n• Do not massage" }
 ];
 
-// ==============================================
-// Google 登录（和参考站完全一样）
-// ==============================================
+// ------------------------------
+// 登录
+// ------------------------------
 async function signInWithGoogle() {
-  try {
-    await _supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: "https://mia-technician.github.io/skincare/prepost.html"
-      }
-    });
-  } catch (e) {
-    alert("Login error: " + e.message);
-    console.error(e);
-  }
+    try {
+        await _supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: "https://mia-technician.github.io/skincare/prepost.html" }
+        });
+    } catch (e) {
+        alert("Login error: " + e.message);
+    }
 }
 
-// ==============================================
-// 检查登录状态
-// ==============================================
+// ------------------------------
+// 共享登录状态（关键！）
+// ------------------------------
 async function checkAuth() {
     const { data } = await _supabase.auth.getSession();
     isAuthenticated = !!data.session;
@@ -159,120 +130,81 @@ function updateUI() {
     document.getElementById("loginPrompt").style.display = isAuthenticated ? "none" : "block";
 }
 
-// ==============================================
-// 原有功能
-// ==============================================
+// ------------------------------
+// 文档功能
+// ------------------------------
 function loadDocs() {
-    const saved = localStorage.getItem('prepost_documents');
-    if (saved) { documents = JSON.parse(saved); }
+    const saved = localStorage.getItem('prepost_docs');
+    if (saved) try { documents = JSON.parse(saved); } catch(e) {}
     if (!documents || documents.length === 0) documents = defaultDocs;
     renderDocList();
     if (documents.length > 0) loadDoc(documents[0].id);
 }
 
-function saveDocs() { localStorage.setItem('prepost_documents', JSON.stringify(documents)); }
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
+function saveDocs() { localStorage.setItem('prepost_docs', JSON.stringify(documents)); }
 function renderDocList() {
-    const container = document.getElementById('docList');
-    container.innerHTML = documents.map(doc => `
-        <div class="doc-item ${currentId === doc.id ? 'active' : ''}" data-id="${doc.id}">
-            <span class="doc-name">📄 ${escapeHtml(doc.name)}</span>
-            <span class="doc-delete" data-id="${doc.id}">🗑️</span>
+    const el = document.getElementById('docList');
+    el.innerHTML = documents.map(d => `
+        <div class="doc-item ${currentId===d.id?'active':''}" data-id="${d.id}">
+            <span>📄 ${d.name}</span>
         </div>
     `).join('');
-
-    document.querySelectorAll('.doc-item').forEach(el => {
-        el.addEventListener('click', () => loadDoc(el.dataset.id));
-    });
-
-    document.querySelectorAll('.doc-delete').forEach(el => {
-        el.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!isAuthenticated) { alert('Please sign in first'); return; }
-            if (confirm('Delete?')) deleteDoc(el.dataset.id);
-        });
+    document.querySelectorAll('.doc-item').forEach(i => {
+        i.addEventListener('click', () => loadDoc(i.dataset.id));
     });
 }
 
 function loadDoc(id) {
-    const doc = documents.find(d => d.id === id);
-    if (!doc) return;
+    const d = documents.find(x => x.id === id);
+    if (!d) return;
     currentId = id;
-    document.getElementById('docTitle').value = doc.name;
-    document.getElementById('resultPlans').value = doc.resultPlans || '';
-    document.getElementById('preTreatment').value = doc.preTreatment || '';
-    document.getElementById('sideEffects').value = doc.sideEffects || '';
-    document.getElementById('postDo').value = doc.postDo || '';
-    document.getElementById('postAvoid').value = doc.postAvoid || '';
+    document.getElementById('docTitle').value = d.name;
+    document.getElementById('resultPlans').value = d.resultPlans || '';
+    document.getElementById('preTreatment').value = d.preTreatment || '';
+    document.getElementById('sideEffects').value = d.sideEffects || '';
+    document.getElementById('postDo').value = d.postDo || '';
+    document.getElementById('postAvoid').value = d.postAvoid || '';
     renderDocList();
 }
 
 function saveCurrentDoc() {
+    if (!isAuthenticated) { alert("Please sign in"); return; }
     const name = document.getElementById('docTitle').value.trim();
-    if (!name) { alert('Enter title'); return; }
+    if (!name) return;
     const data = {
-        name, resultPlans: document.getElementById('resultPlans').value,
+        name,
+        resultPlans: document.getElementById('resultPlans').value,
         preTreatment: document.getElementById('preTreatment').value,
         sideEffects: document.getElementById('sideEffects').value,
         postDo: document.getElementById('postDo').value,
         postAvoid: document.getElementById('postAvoid').value
     };
-    if (currentId) Object.assign(documents.find(d => d.id === currentId), data);
-    else { currentId = Date.now().toString(); documents.push({ id: currentId, ...data }); }
-    saveDocs(); renderDocList(); alert('Saved!');
+    if (currentId) Object.assign(documents.find(x => x.id === currentId), data);
+    else { currentId = Date.now()+''; documents.push({ id:currentId, ...data }); }
+    saveDocs(); loadDoc(currentId); alert('Saved!');
 }
 
-function newDoc() {
-    if (!isAuthenticated) { alert('Please sign in'); return; }
-    const name = prompt('Document title:');
-    if (!name) return;
-    currentId = Date.now().toString();
-    documents.push({ id: currentId, name, resultPlans: '', preTreatment: '', sideEffects: '', postDo: '', postAvoid: '' });
-    saveDocs(); loadDoc(currentId);
-}
-
-function updateDoc() {
-    if (!isAuthenticated) { alert('Please sign in'); return; }
-    saveCurrentDoc();
-}
-
-function deleteDoc(id) {
-    documents = documents.filter(d => d.id !== id);
-    if (currentId === id) currentId = documents.length ? documents[0].id : null;
-    saveDocs(); loadDoc(currentId || documents[0]?.id);
-}
-
-function printDoc() {
-    const name = document.getElementById('docTitle').value || 'Document';
-    const w = window.open('','_blank');
-    w.document.write(`<h1>${name}</h1><pre>${document.getElementById('resultPlans').value}\n\n${document.getElementById('preTreatment').value}\n\n${document.getElementById('sideEffects').value}\n\n${document.getElementById('postDo').value}\n\n${document.getElementById('postAvoid').value}</pre>`);
-    w.document.close(); w.print();
-}
-
-function emailDoc() {
-    const name = document.getElementById('docTitle').value || 'Document';
-    const body = `${name}\n\n${document.getElementById('resultPlans').value}\n\n${document.getElementById('preTreatment').value}\n\n${document.getElementById('sideEffects').value}\n\n${document.getElementById('postDo').value}\n\n${document.getElementById('postAvoid').value}`;
-    window.location.href = `mailto:?subject=${encodeURIComponent(name)}&body=${encodeURIComponent(body)}`;
-}
-
-// ==============================================
-// 初始化
-// ==============================================
+// ------------------------------
+// 启动
+// ------------------------------
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('signInBtn').onclick = signInWithGoogle;
     document.getElementById('saveLocalBtn').onclick = saveCurrentDoc;
-    document.getElementById('printDocBtn').onclick = printDoc;
-    document.getElementById('emailDocBtn').onclick = emailDoc;
-    document.getElementById('newDocBtn').onclick = newDoc;
-    document.getElementById('updateDocBtn').onclick = updateDoc;
+    document.getElementById('newDocBtn').onclick = () => {
+        if (!isAuthenticated) return alert("Sign in first");
+        const name = prompt('Title:');
+        if (!name) return;
+        currentId = Date.now()+'';
+        documents.push({ id:currentId, name, resultPlans:'', preTreatment:'', sideEffects:'', postDo:'', postAvoid:'' });
+        saveDocs(); loadDoc(currentId);
+    };
+    document.getElementById('updateDocBtn').onclick = saveCurrentDoc;
     document.getElementById('deleteDocBtn').onclick = () => {
-        if (!currentId || !isAuthenticated) return alert('Please sign in');
-        if (confirm('Delete current document?')) deleteDoc(currentId);
+        if (!currentId || !isAuthenticated) return;
+        if (confirm('Delete?')) {
+            documents = documents.filter(x => x.id !== currentId);
+            saveDocs(); loadDoc(documents[0]?.id);
+        }
     };
     loadDocs();
     checkAuth();
