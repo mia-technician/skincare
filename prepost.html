@@ -4,31 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pre & Post Care</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300,600&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background:#f5efe9; font-family:'Inter',sans-serif; padding:2rem 1rem; }
         .app { max-width:1400px; margin:0 auto; background:#faf7f2; border-radius:32px; border:1px solid #e8dfd4; padding:2rem; }
         h1 { font-family:'Montserrat',sans-serif; font-weight:300; font-size:1.8rem; color:#7f6e5d; text-align:center; margin-bottom:2rem; text-transform:uppercase; }
         .two-columns { display:grid; grid-template-columns:280px 1fr; gap:1.5rem; min-height:600px; }
+
         .doc-sidebar { background:#fff9f2; border-radius:24px; padding:1.2rem; border:1px solid #e7dbd0; }
         .doc-sidebar h3 { font-family:'Montserrat',sans-serif; font-size:1rem; font-weight:600; color:#8f7e6b; margin-bottom:1rem; padding-bottom:0.5rem; border-bottom:1px solid #e2d4c6; }
-        .doc-list { list-style:none; max-height:500px; overflow-y:auto; }
+        .doc-list { list-style:none; max-height:500px; overflow-y:auto; margin-bottom:1rem; }
         .doc-item { padding:0.8rem 1rem; margin-bottom:0.5rem; background:#f5efe8; border-radius:16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all 0.2s; }
         .doc-item:hover { background:#e9dfd4; transform:translateX(4px); }
         .doc-item.active { background:#b99f87; color:white; }
-        .btn-sidebar { width:100%; margin-top:1rem; padding:0.6rem; background:#e9dfd4; border:none; border-radius:40px; cursor:pointer; font-size:0.75rem; font-weight:500; }
+
+        .btn-add { width:100%; padding:0.6rem; background:#b99f87; color:#fff; border:none; border-radius:40px; cursor:pointer; font-size:0.75rem; font-weight:500; margin-bottom:1rem; }
+        .btn-sidebar { width:100%; padding:0.6rem; background:#e9dfd4; border:none; border-radius:40px; cursor:pointer; font-size:0.75rem; font-weight:500; margin-top:0.5rem; }
+
         .doc-editor { background:#fff9f2; border-radius:24px; padding:1.5rem; border:1px solid #e7dbd0; }
-        .doc-title { width:100%; font-size:1.5rem; border:none; background:transparent; border-bottom:2px solid #e2d4c6; margin-bottom:1.5rem; padding:0.5rem 0; outline:none; color:#5f5347; }
+        .doc-title { width:100%; font-size:1.5rem; border:none; background:transparent; border-bottom:2px solid #e2d4c6; margin-bottom:1rem; padding:0.5rem 0; outline:none; color:#5f5347; }
+
+        .toolbar { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+        .toolbar button { padding:4px 10px; border:1px solid #ddd; border-radius:8px; background:#fff; cursor:pointer; font-size:12px; }
+
         .section { background:#fefcf8; border-radius:16px; border:1px solid #e7dbd0; margin-bottom:1rem; overflow:hidden; }
         .section-header { background:#f5efe8; padding:0.5rem 1rem; font-size:0.75rem; font-weight:600; color:#b99f87; border-bottom:1px solid #e7dbd0; }
         .section-textarea { width:100%; min-height:100px; padding:0.8rem; border:none; font-size:0.8rem; resize:vertical; outline:none; }
+
         .editor-actions { display:flex; gap:1rem; justify-content:flex-end; margin-top:1rem; }
         .btn { padding:0.5rem 1.2rem; border-radius:40px; border:none; cursor:pointer; font-size:0.8rem; }
         .btn-save { background:#b99f87; color:white; }
-        .btn-print { background:#e9dfd4; color:#5f5347; }
-        .login-prompt { margin-top:1rem; padding:0.8rem; background:#f5efe8; border-radius:12px; text-align:center; font-size:0.7rem; color:#888; }
-        #signInBtn { margin-top:8px; width:100%; padding:8px; border-radius:20px; border:none; background:#b99f87; color:white; font-size:13px; cursor:pointer; }
+        .btn-print { background:#e9dfd4; color:#333; }
+
+        #loginPrompt { display:none; }
+        #authButtons { display:none; }
+
         @media (max-width:750px) { .two-columns { grid-template-columns:1fr; } }
     </style>
 </head>
@@ -39,23 +50,23 @@
     <div class="two-columns">
         <div class="doc-sidebar">
             <h3>📄 TREATMENT DOCUMENTS</h3>
+
+            <!-- 左侧：添加新文档按钮 -->
+            <button class="btn-add" id="addNewBtn">➕ Add New Document</button>
+
             <div id="docList" class="doc-list"></div>
-
-            <div id="authButtons" style="display:none;">
-                <button class="btn-sidebar" id="newDocBtn">✨ New Document</button>
-                <button class="btn-sidebar" id="updateDocBtn" style="margin-top:0.5rem;">💾 Update</button>
-                <button class="btn-sidebar" id="deleteDocBtn" style="margin-top:0.5rem;">🗑️ Delete</button>
-            </div>
-
-            <div id="loginPrompt" class="login-prompt">
-                🔒 Sign in to edit<br>
-                <button id="signInBtn">Sign in with Google</button>
-            </div>
         </div>
 
         <div class="doc-editor">
             <input type="text" id="docTitle" class="doc-title" placeholder="Document Title">
-            
+
+            <!-- 简易排版工具栏 -->
+            <div class="toolbar">
+                <button onclick="formatBold()">Bold</button>
+                <button onclick="formatBullet()">• Bullet</button>
+                <button onclick="formatClear()">Clear</button>
+            </div>
+
             <div class="section">
                 <div class="section-header">📋 RESULT & PLANS</div>
                 <textarea class="section-textarea" id="resultPlans"></textarea>
@@ -87,61 +98,73 @@
             </div>
 
             <div class="editor-actions">
-                <button class="btn btn-save" id="saveLocalBtn">Save</button>
-                <button class="btn btn-print" id="printDocBtn">Print</button>
+                <button class="btn btn-save" id="saveBtn">Save</button>
+                <button class="btn btn-print" id="printBtn">Print / PDF</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-let isAuthenticated = false;
-
-function fakeGoogleSignIn() {
-  alert("Login success");
-  isAuthenticated = true;
-  document.getElementById("authButtons").style.display = "block";
-  document.getElementById("loginPrompt").style.display = "none";
-}
-
 let documents = [];
 let currentId = null;
 
-const defaultDocs = [
-    { id: "1", name: "Laser Hair Removal", resultPlans: "", contraindications: "", preTreatment: "", sideEffects: "", postDo: "", postAvoid: "" },
-    { id: "2", name: "Microneedling", resultPlans: "", contraindications: "", preTreatment: "", sideEffects: "", postDo: "", postAvoid: "" }
-];
+const STORAGE_KEY = "prepost_data_v2";
 
 function loadFromStorage() {
-    const saved = localStorage.getItem("prepost_data");
-    if (saved) {
-        try { documents = JSON.parse(saved); } catch (e) { documents = defaultDocs; }
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (s) {
+        try { documents = JSON.parse(s); } catch (e) { resetDefault(); }
     } else {
-        documents = defaultDocs;
+        resetDefault();
     }
 }
 
+function resetDefault() {
+    documents = [
+        { id: "1", name: "Laser Hair Removal", resultPlans:"", contraindications:"", preTreatment:"", sideEffects:"", postDo:"", postAvoid:"" },
+        { id: "2", name: "Microneedling", resultPlans:"", contraindications:"", preTreatment:"", sideEffects:"", postDo:"", postAvoid:"" }
+    ];
+}
+
 function saveToStorage() {
-    localStorage.setItem("prepost_data", JSON.stringify(documents));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(documents));
 }
 
 function renderDocList() {
-    const el = document.getElementById('docList');
+    const el = document.getElementById("docList");
     el.innerHTML = documents.map(d => `
-        <div class="doc-item ${currentId===d.id?'active':''}" data-id="${d.id}">
+        <div class="doc-item ${currentId === d.id ? 'active' : ''}" data-id="${d.id}">
             <span>📄 ${d.name}</span>
         </div>
     `).join('');
-    document.querySelectorAll('.doc-item').forEach(i => {
-        i.addEventListener('click', () => loadDoc(i.dataset.id));
+    el.querySelectorAll('.doc-item').forEach(item => {
+        item.onclick = () => loadDoc(item.dataset.id);
     });
+}
+
+function clearEditor() {
+    document.getElementById('docTitle').value = '';
+    document.getElementById('resultPlans').value = '';
+    document.getElementById('contraindications').value = '';
+    document.getElementById('preTreatment').value = '';
+    document.getElementById('sideEffects').value = '';
+    document.getElementById('postDo').value = '';
+    document.getElementById('postAvoid').value = '';
+    currentId = null;
+}
+
+function addNewDocument() {
+    clearEditor();
+    document.getElementById('docTitle').value = 'New Document';
+    currentId = "new-" + Date.now();
 }
 
 function loadDoc(id) {
     const d = documents.find(x => x.id === id);
     if (!d) return;
     currentId = id;
-    document.getElementById('docTitle').value = d.name;
+    document.getElementById('docTitle').value = d.name || '';
     document.getElementById('resultPlans').value = d.resultPlans || '';
     document.getElementById('contraindications').value = d.contraindications || '';
     document.getElementById('preTreatment').value = d.preTreatment || '';
@@ -151,89 +174,113 @@ function loadDoc(id) {
     renderDocList();
 }
 
-function saveCurrentDoc() {
-    if (!isAuthenticated) { alert("Please sign in"); return; }
-    if (!currentId) return;
-    const doc = documents.find(x => x.id === currentId);
-    if (!doc) return;
-    doc.name = document.getElementById('docTitle').value;
-    doc.resultPlans = document.getElementById('resultPlans').value;
-    doc.contraindications = document.getElementById('contraindications').value;
-    doc.preTreatment = document.getElementById('preTreatment').value;
-    doc.sideEffects = document.getElementById('sideEffects').value;
-    doc.postDo = document.getElementById('postDo').value;
-    doc.postAvoid = document.getElementById('postAvoid').value;
+function saveCurrent() {
+    const name = document.getElementById('docTitle').value.trim() || 'Untitled';
+    const data = {
+        name,
+        resultPlans: document.getElementById('resultPlans').value,
+        contraindications: document.getElementById('contraindications').value,
+        preTreatment: document.getElementById('preTreatment').value,
+        sideEffects: document.getElementById('sideEffects').value,
+        postDo: document.getElementById('postDo').value,
+        postAvoid: document.getElementById('postAvoid').value
+    };
+    const exist = documents.find(x => x.id === currentId);
+    if (exist) {
+        Object.assign(exist, data);
+    } else {
+        currentId = "doc-" + Date.now();
+        documents.push({ id: currentId, ...data });
+    }
     saveToStorage();
-    alert("Saved successfully!");
     renderDocList();
+    alert("Saved successfully");
 }
 
-// ======================
-// Print to PDF (优美格式)
-// ======================
-function printDoc() {
-    const title = document.getElementById('docTitle').value || 'Document';
-    const resultPlans = document.getElementById('resultPlans').value || '-';
-    const contraindications = document.getElementById('contraindications').value || '-';
-    const preTreatment = document.getElementById('preTreatment').value || '-';
-    const sideEffects = document.getElementById('sideEffects').value || '-';
-    const postDo = document.getElementById('postDo').value || '-';
-    const postAvoid = document.getElementById('postAvoid').value || '-';
+// ------------------------------
+// Toolbar
+// ------------------------------
+function formatBold() {
+    const t = document.activeElement;
+    if (t.tagName === "TEXTAREA") {
+        const s = t.selectionStart;
+        const e = t.selectionEnd;
+        const val = t.value;
+        t.value = val.substring(0, s) + "**" + val.substring(s, e) + "**" + val.substring(e);
+    }
+}
 
-    const footNote = `If you have any unusual reactions or concerns, please contact our office phone/text:604-580-2464, email: infobclaser@dermapure.com`;
+function formatBullet() {
+    const t = document.activeElement;
+    if (t.tagName === "TEXTAREA") {
+        const s = t.selectionStart;
+        const val = t.value;
+        t.value = val.substring(0, s) + "• " + val.substring(s);
+    }
+}
 
-    const w = window.open('', '_blank');
+function formatClear() {
+    const t = document.activeElement;
+    if (t.tagName === "TEXTAREA") t.value = "";
+}
+
+// ------------------------------
+// Print / PDF / Email
+// ------------------------------
+function openPrintPage() {
+    const title = document.getElementById('docTitle').value || 'Treatment Document';
+    const fields = [
+        { label: "RESULT & PLANS", val: document.getElementById('resultPlans').value },
+        { label: "Contraindications", val: document.getElementById('contraindications').value },
+        { label: "PRE TREATMENT", val: document.getElementById('preTreatment').value },
+        { label: "SIDE EFFECTS", val: document.getElementById('sideEffects').value },
+        { label: "POST CARE - DO", val: document.getElementById('postDo').value },
+        { label: "POST CARE - AVOID", val: document.getElementById('postAvoid').value },
+    ];
+
+    const footnote = "If you have any unusual reactions or concerns, please contact our office phone/text:604-580-2464, email: infobclaser@dermapure.com";
+
+    const w = window.open("", "_blank");
     w.document.write(`
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>${title}</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height:1.6; padding: 40px; }
-        h1 { color: #222; margin-bottom: 30px; text-align:center; }
-        .section { margin-bottom: 20px; }
-        .label { font-weight: bold; color: #444; margin-bottom:6px; display:block; }
-        .content { white-space: pre-wrap; padding: 10px; background:#f9f9f9; border-radius:8px; }
-        .footnote { margin-top:60px; font-size:12px; color:#666; text-align:center; }
-    </style>
+<meta charset="UTF-8">
+<title>Print / PDF</title>
+<style>
+body{font-family:Arial,sans-serif;padding:30px;max-width:800px;margin:0 auto;}
+h1{text-align:center;color:#222;margin-bottom:30px;}
+.item{margin-bottom:20px;}
+.label{font-weight:bold;color:#444;margin-bottom:6px;display:block;}
+.content{white-space:pre-wrap;background:#f8f8f8;padding:12px;border-radius:10px;line-height:1.5;}
+.foot{margin-top:60px;font-size:12px;color:#666;text-align:center;}
+.buttons{display:flex;gap:12px;margin-bottom:30px;flex-wrap:wrap;justify-content:center;}
+.buttons button{padding:10px 16px;border-radius:10px;border:none;background:#b99f87;color:white;cursor:pointer;}
+.buttons button.sec{background:#eee;color:#333;}
+</style>
 </head>
 <body>
-    <h1>${title}</h1>
-
-    <div class="section">
-        <span class="label">RESULT & PLANS</span>
-        <div class="content">${resultPlans}</div>
-    </div>
-
-    <div class="section">
-        <span class="label">Contraindications</span>
-        <div class="content">${contraindications}</div>
-    </div>
-
-    <div class="section">
-        <span class="label">PRE TREATMENT</span>
-        <div class="content">${preTreatment}</div>
-    </div>
-
-    <div class="section">
-        <span class="label">SIDE EFFECTS</span>
-        <div class="content">${sideEffects}</div>
-    </div>
-
-    <div class="section">
-        <span class="label">POST CARE - DO</span>
-        <div class="content">${postDo}</div>
-    </div>
-
-    <div class="section">
-        <span class="label">POST CARE - AVOID</span>
-        <div class="content">${postAvoid}</div>
-    </div>
-
-    <div class="footnote">${footNote}</div>
+<div class="buttons">
+<button onclick="window.print()">🖨️ Print</button>
+<button class="sec" onclick="savePdf()">💾 Save as PDF</button>
+<button class="sec" onclick="sendEmail()">📧 Send as Email Attachment</button>
+</div>
+<h1>${title}</h1>
+${fields.map(f => `
+<div class="item">
+<div class="label">${f.label}</div>
+<div class="content">${f.val || '-'}</div>
+</div>
+`).join('')}
+<div class="foot">${footnote}</div>
 <script>
-    setTimeout(() => { window.print(); window.close(); }, 500);
+function savePdf(){
+alert("To save as PDF: select 'Print' → choose 'Save as PDF' in destination.");
+window.print();
+}
+function sendEmail(){
+alert("To send as email attachment: save as PDF first, then attach to your email.");
+}
 </script>
 </body>
 </html>
@@ -241,10 +288,13 @@ function printDoc() {
     w.document.close();
 }
 
+// ------------------------------
+// Init
+// ------------------------------
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('signInBtn').onclick = fakeGoogleSignIn;
-    document.getElementById('saveLocalBtn').onclick = saveCurrentDoc;
-    document.getElementById('printDocBtn').onclick = printDoc;
+    document.getElementById('addNewBtn').onclick = addNewDocument;
+    document.getElementById('saveBtn').onclick = saveCurrent;
+    document.getElementById('printBtn').onclick = openPrintPage;
     loadFromStorage();
     renderDocList();
     if (documents.length > 0) loadDoc(documents[0].id);
