@@ -98,7 +98,7 @@
             <h1>Skincare Routine Builder</h1>
             <p>drag to customize · login to save to cloud</p>
         </div>
-
+ 
         <div class="auth-section">
             <div class="auth-status" id="authStatus">Loading...</div>
             <div>
@@ -106,7 +106,7 @@
                 <button id="logoutBtn" class="auth-btn auth-btn-outline" style="display:none">Sign Out</button>
             </div>
         </div>
-
+ 
         <div class="routine-selector-bar">
             <div class="selector-header">
                 <div class="selector-title">📋 SELECT ROUTINE</div>
@@ -116,7 +116,7 @@
             </div>
             <div class="routine-buttons" id="routineButtons"></div>
         </div>
-
+ 
         <div class="product-library">
             <div class="library-header">
                 <div class="library-title">📦 PRODUCT LIBRARY · drag to add or replace</div>
@@ -139,7 +139,7 @@
                 <input type="hidden" id="editProductId">
             </div>
         </div>
-
+ 
         <div class="routine-grid">
             <div class="column morning-icon">
                 <div class="column-title">CURRENT MORNING ROUTINE <span>AM</span></div>
@@ -150,7 +150,7 @@
                 <div class="product-list" id="eveningList"></div>
             </div>
         </div>
-
+ 
         <div class="total-bar">
             <div class="total-label">TOTAL VALUE (Unique Products)</div>
             <div class="total-amount">$<span id="totalPrice">0.00</span></div>
@@ -170,16 +170,16 @@
         <div class="footnote">✦ All editing tools available without login ✦ Login to sync changes to cloud ✦ Data saved locally until synced ✦</div>
     </div>
 </div>
-
+ 
 <script>
 // ==================== Supabase 配置 ====================
 const SUPABASE_URL = "https://dmrskyskryrdclknezth.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
-
+ 
 let supabaseClient = null;
 let isAuthenticated = false;
 let currentUserId = null;
-
+ 
 // 等待 Supabase SDK 加载
 function initSupabase() {
     if (typeof supabase === 'undefined') {
@@ -192,7 +192,7 @@ function initSupabase() {
     console.log('Supabase initialized');
     checkAuth();
 }
-
+ 
 // ==================== 默认数据 ====================
 const DEFAULT_PRODUCTS = [
     { id: "clarify-cleanser", name: "Clarify Cleanser", brand: "FNL", price: 50, benefit: "Antibacterial", usage: "Pea size - cleanse", image: "https://static.wixstatic.com/media/11a6e1_964680bfdf1b4efa9039db6f52428325~mv2.webp" },
@@ -212,7 +212,7 @@ const DEFAULT_PRODUCTS = [
     { id: "spf50", name: "SPF50 Sheer Physical", brand: "SkinMedica", price: 66, benefit: "Physical SPF", usage: "1 pump - last step", image: "https://static.wixstatic.com/media/11a6e1_d2faad5c91134e0589fb5538c8f76d86~mv2.webp" },
     { id: "tns", name: "TNS+ Serum", brand: "SkinMedica", price: 330, benefit: "Lifting · Anti-aging", usage: "1 pump - apply to face", image: "https://static.wixstatic.com/media/11a6e1_8eb00266d932471483652b5a40828272~mv2.jpg" }
 ].sort((a, b) => a.name.localeCompare(b.name));
-
+ 
 const INITIAL_ROUTINES = {
     "standard-1774409503226": { 
         name: "FNL Acne", 
@@ -240,29 +240,29 @@ const INITIAL_ROUTINES = {
         evening: ["cleanser", "lumivive-night", "lytera", "retinol", "ha5", "moisturizer"] 
     }
 };
-
+ 
 // 全局变量
 let productsData = [], savedRoutines = {};
 let currentMorningProducts = [], currentEveningProducts = [];
 let currentRoutineId = null;
 let currentBrand = "all";
 let isLoading = false;
-
+ 
 function getProductById(id) { return productsData.find(p => p.id === id); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
 function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m; }); }
-
+ 
 function sortProductsByName(arr) {
     return [...arr].sort((a, b) => a.name.localeCompare(b.name));
 }
-
+ 
 function isRoutineNameExists(name, excludeId = null) {
     return Object.entries(savedRoutines).some(([id, r]) => {
         if (excludeId && id === excludeId) return false;
         return r.name.toLowerCase() === name.toLowerCase();
     });
 }
-
+ 
 function saveToLocalStorage() {
     localStorage.setItem('skincare_products', JSON.stringify(productsData));
     localStorage.setItem('skincare_routines', JSON.stringify(savedRoutines));
@@ -270,7 +270,7 @@ function saveToLocalStorage() {
     localStorage.setItem('skincare_current_evening', JSON.stringify(currentEveningProducts.map(p => p.productId)));
     localStorage.setItem('skincare_current_routine_id', currentRoutineId || '');
 }
-
+ 
 function loadFromLocalStorage() {
     const savedProducts = localStorage.getItem('skincare_products');
     const savedRoutinesData = localStorage.getItem('skincare_routines');
@@ -316,7 +316,7 @@ function loadFromLocalStorage() {
         currentRoutineId = Object.keys(savedRoutines)[0] || null;
     }
 }
-
+ 
 // ==================== 云端操作 ====================
 async function loadFromCloud() {
     if (!supabaseClient || isLoading) return false;
@@ -366,7 +366,7 @@ async function loadFromCloud() {
         isLoading = false;
     }
 }
-
+ 
 async function forceSyncAllToCloud() {
     if (!supabaseClient || !isAuthenticated) {
         alert("Please sign in first.");
@@ -401,7 +401,7 @@ async function forceSyncAllToCloud() {
         return false;
     }
 }
-
+ 
 async function saveCurrentRoutineToCloud() {
     if (!supabaseClient || !isAuthenticated) {
         alert("Please sign in to save to cloud.");
@@ -437,7 +437,7 @@ async function saveCurrentRoutineToCloud() {
         return false;
     }
 }
-
+ 
 async function deleteCurrentRoutineFromCloud() {
     if (!supabaseClient || !isAuthenticated) {
         alert("Please sign in to delete from cloud.");
@@ -476,7 +476,7 @@ async function deleteCurrentRoutineFromCloud() {
         return false;
     }
 }
-
+ 
 async function saveAsNewRoutineToCloud() {
     if (!supabaseClient || !isAuthenticated) {
         alert("Please sign in to save to cloud.");
@@ -524,7 +524,7 @@ async function saveAsNewRoutineToCloud() {
         return false;
     }
 }
-
+ 
 // ==================== UI 渲染函数 ====================
 async function loadRoutine(routineId) {
     let routine = savedRoutines[routineId];
@@ -538,14 +538,14 @@ async function loadRoutine(routineId) {
         saveToLocalStorage();
     }
 }
-
+ 
 function highlightActiveRoutine() {
     document.querySelectorAll('.routine-btn').forEach(btn => {
         if (btn.dataset.id === currentRoutineId) btn.classList.add('active');
         else btn.classList.remove('active');
     });
 }
-
+ 
 async function updateCurrentRoutine() {
     if (!currentRoutineId) {
         alert("No routine selected.");
@@ -555,7 +555,7 @@ async function updateCurrentRoutine() {
     renderRoutineButtons();
     highlightActiveRoutine();
 }
-
+ 
 async function deleteCurrentRoutine() {
     if (!currentRoutineId) {
         alert("No routine selected.");
@@ -565,11 +565,11 @@ async function deleteCurrentRoutine() {
         await deleteCurrentRoutineFromCloud();
     }
 }
-
+ 
 async function saveAsNewRoutine() {
     await saveAsNewRoutineToCloud();
 }
-
+ 
 async function renameCurrentRoutine(newName) {
     if (!currentRoutineId || !savedRoutines[currentRoutineId]) return;
     if (!isAuthenticated) {
@@ -596,7 +596,7 @@ async function renameCurrentRoutine(newName) {
     saveToLocalStorage();
     alert(`Routine renamed to "${newName}"!`);
 }
-
+ 
 function renderRoutineButtons() {
     let container = document.getElementById('routineButtons');
     if (!container) return;
@@ -607,7 +607,7 @@ function renderRoutineButtons() {
     container.innerHTML = Object.entries(savedRoutines).map(([id, r]) => `<button class="routine-btn ${id === currentRoutineId ? 'active' : ''}" data-id="${id}">${escapeHtml(r.name)}</button>`).join('');
     document.querySelectorAll('.routine-btn').forEach(btn => { btn.onclick = () => loadRoutine(btn.dataset.id); });
 }
-
+ 
 function getUniqueProductsTotal() { 
     let ids = new Set(); 
     currentMorningProducts.forEach(i => ids.add(i.productId)); 
@@ -616,12 +616,12 @@ function getUniqueProductsTotal() {
     ids.forEach(id => { let p = getProductById(id); if(p) total += p.price; }); 
     return total; 
 }
-
+ 
 function updateTotalPrice() { 
     let span = document.getElementById('totalPrice'); 
     if (span) span.innerText = getUniqueProductsTotal().toFixed(2); 
 }
-
+ 
 function updateUIBasedOnAuth() {
     const isLoggedIn = isAuthenticated;
     
@@ -636,7 +636,7 @@ function updateUIBasedOnAuth() {
     
     // 打印按钮始终显示，不需要控制
 }
-
+ 
 function renderBrandProducts() {
     let container = document.getElementById('brandProductsContainer');
     if (!container) return;
@@ -654,7 +654,7 @@ function renderBrandProducts() {
     attachProductDeleteEvents();
     updateUIBasedOnAuth();
 }
-
+ 
 async function deleteProduct(productId) {
     if (confirm('Delete product from library? It will be removed from all routines.')) {
         const index = productsData.findIndex(p => p.id === productId);
@@ -674,7 +674,7 @@ async function deleteProduct(productId) {
         }
     }
 }
-
+ 
 function attachProductDeleteEvents() {
     document.querySelectorAll('.delete-product-icon').forEach(icon => {
         icon.onclick = async (e) => {
@@ -683,7 +683,7 @@ function attachProductDeleteEvents() {
         };
     });
 }
-
+ 
 function attachDragEvents() { 
     document.querySelectorAll('.library-item').forEach(el => { 
         el.setAttribute('draggable', 'true'); 
@@ -693,7 +693,7 @@ function attachDragEvents() {
         }); 
     }); 
 }
-
+ 
 function attachEditEvents() { 
     document.querySelectorAll('.edit-icon').forEach(icon => { 
         icon.onclick = (e) => { 
@@ -703,7 +703,7 @@ function attachEditEvents() {
         }; 
     }); 
 }
-
+ 
 function openEditForm(product) { 
     document.getElementById('productName').value = product.name; 
     document.getElementById('productBrand').value = product.brand; 
@@ -715,7 +715,7 @@ function openEditForm(product) {
     document.getElementById('productForm').classList.add('show'); 
     document.getElementById('toggleAddBtn').style.display = 'none'; 
 }
-
+ 
 async function saveProduct() { 
     let name = document.getElementById('productName').value.trim(); 
     if (!name) { alert("Enter product name"); return; } 
@@ -738,14 +738,14 @@ async function saveProduct() {
     updateTotalPrice(); 
     saveToLocalStorage(); 
 }
-
+ 
 function closeForm() { 
     document.getElementById('productForm').classList.remove('show'); 
     document.getElementById('toggleAddBtn').style.display = ''; 
     document.getElementById('productName').value = ''; 
     document.getElementById('editProductId').value = ''; 
 }
-
+ 
 function attachReorderDrag(containerId, itemsArray, updateCallback) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -781,7 +781,7 @@ function attachReorderDrag(containerId, itemsArray, updateCallback) {
         });
     });
 }
-
+ 
 function renderRoutines() {
     let morningContainer = document.getElementById('morningList');
     let eveningContainer = document.getElementById('eveningList');
@@ -812,7 +812,7 @@ function renderRoutines() {
     attachDeleteEvents();
     attachEmptySlotEvents();
 }
-
+ 
 function renderCard(pid, idx, time) { 
     let p = getProductById(pid); 
     if (!p) return ''; 
@@ -827,7 +827,7 @@ function renderCard(pid, idx, time) {
         </div>
     </div>`; 
 }
-
+ 
 function attachEmptySlotEvents() {
     document.querySelectorAll('.empty-slot').forEach(slot => {
         slot.ondragover = (e) => { e.preventDefault(); slot.classList.add('drag-over'); };
@@ -851,7 +851,7 @@ function attachEmptySlotEvents() {
         };
     });
 }
-
+ 
 function attachDropEvents(containerId, time) { 
     let container = document.getElementById(containerId); 
     if (!container) return; 
@@ -871,7 +871,7 @@ function attachDropEvents(containerId, time) {
         } 
     }; 
 }
-
+ 
 function attachDeleteEvents() { 
     document.querySelectorAll('.delete-btn').forEach(btn => { 
         btn.onclick = async (e) => { 
@@ -885,7 +885,7 @@ function attachDeleteEvents() {
         }; 
     }); 
 }
-
+ 
 function printRoutine() { 
     let uniqueMorning = currentMorningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx);
     let uniqueEvening = currentEveningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx);
@@ -1078,7 +1078,7 @@ function printRoutine() {
     win.document.close(); 
     win.print(); 
 }
-
+ 
 function renderBrandTabs() { 
     let brands = ["all", "SkinMedica", "Skinceuticals", "FNL", "ColorScience", "Others"]; 
     let container = document.getElementById('brandTabs'); 
@@ -1086,7 +1086,7 @@ function renderBrandTabs() {
     container.innerHTML = brands.map(b => `<button class="brand-tab ${b === currentBrand ? 'active' : ''}" data-brand="${b}">${b === 'all' ? 'All' : b}</button>`).join(''); 
     document.querySelectorAll('.brand-tab').forEach(tab => { tab.onclick = () => { currentBrand = tab.dataset.brand; renderBrandTabs(); renderBrandProducts(); }; }); 
 }
-
+ 
 // ==================== 认证函数 ====================
 async function handleLogin() {
     if (!supabaseClient) { 
@@ -1111,7 +1111,7 @@ async function handleLogin() {
         alert('Login failed: ' + e.message);
     }
 }
-
+ 
 async function handleLogout() { 
     try {
         if (supabaseClient) {
@@ -1124,7 +1124,7 @@ async function handleLogout() {
         location.reload();
     }
 }
-
+ 
 async function checkAuth() {
     if (!supabaseClient) return;
     
@@ -1163,7 +1163,7 @@ async function checkAuth() {
         refreshUI();
     }
 }
-
+ 
 function refreshUI() {
     renderBrandTabs();
     renderBrandProducts();
@@ -1173,7 +1173,7 @@ function refreshUI() {
     if (currentRoutineId) highlightActiveRoutine();
     updateUIBasedOnAuth();
 }
-
+ 
 // 按钮绑定
 document.getElementById('toggleAddBtn').onclick = () => { 
     document.getElementById('editProductId').value = ''; 
@@ -1195,7 +1195,7 @@ document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
 document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutine;
 document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
 document.getElementById('syncAllBtn').onclick = forceSyncAllToCloud;
-
+ 
 // 启动应用
 loadFromLocalStorage();
 refreshUI();
