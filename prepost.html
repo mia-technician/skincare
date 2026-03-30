@@ -99,29 +99,34 @@
     </div>
     
 <script>
-  // ==================== 全局配置（只声明一次supabase，核心修复） ====================
-  const CLOUD_PASSWORD = "123456"; // 改成你的密码
-  const supabase = window.supabase; // 仅声明一次，后续不再重复声明
+  // ==================== 全局变量（仅声明一次，彻底解决重复声明报错） ====================
+  const CLOUD_PASSWORD = "123456"; // 改成你自己的密码
+  let supabase = null; // 先声明为let，避免重复声明冲突
   let currentId = null;
   let documents = [];
 
-  // ==================== 页面加载后直接加载文档 ====================
+  // ==================== 页面加载初始化（先获取supabase实例，再执行逻辑） ====================
   window.onload = async function() {
-    alert("页面加载完成，开始加载云端文档！"); // 强制提示，确认执行
-    await loadCloudDocuments(); // 加载文档列表
+    // 初始化supabase（复用全局实例，只赋值一次）
+    supabase = window.supabase;
+    alert("页面加载完成，开始加载云端文档！"); // 验证代码执行
+    
+    // 加载云端文档列表
+    await loadCloudDocuments();
   };
 
-  // ==================== 按钮点击逻辑（直接绑定到HTML） ====================
-  // 保存文档（密码验证+保存）
+  // ==================== 按钮点击核心逻辑（绑定到HTML的onclick） ====================
+  // 保存文档（密码验证 + 云端保存）
   async function verifyAndSave() {
+    // 验证密码
     const inputPwd = prompt("请输入云存储密码：");
     if (inputPwd !== CLOUD_PASSWORD) {
-      alert("密码错误！");
+      alert("密码错误！无法保存");
       return;
     }
 
-    // 获取编辑框内容
-    const title = document.getElementById("docTitle")?.value.trim() || "未命名文档";
+    // 获取编辑框内容（兼容ID不存在的情况）
+    const title = document.getElementById("docTitle")?.value?.trim() || "未命名文档";
     const resultPlans = document.getElementById("resultPlans")?.innerText || "";
     const contraindications = document.getElementById("contraindications")?.innerText || "";
     const preTreatment = document.getElementById("preTreatment")?.innerText || "";
@@ -129,29 +134,30 @@
     const postDo = document.getElementById("postDo")?.innerText || "";
     const postAvoid = document.getElementById("postAvoid")?.innerText || "";
 
-    // 保存到云端（使用已声明的supabase，不重复声明）
-    const { error } = await supabase
-      .from("prepost_documents")
-      .insert([{
-        title: title,
-        result_plans: resultPlans,
-        contraindications: contraindications,
-        pre_treatment: preTreatment,
-        side_effects: sideEffects,
-        post_do: postDo,
-        post_avoid: postAvoid
-      }]);
+    try {
+      // 执行保存（使用已初始化的supabase）
+      const { error } = await supabase
+        .from("prepost_documents")
+        .insert([{
+          title: title,
+          result_plans: resultPlans,
+          contraindications: contraindications,
+          pre_treatment: preTreatment,
+          side_effects: sideEffects,
+          post_do: postDo,
+          post_avoid: postAvoid
+        }]);
 
-    if (error) {
-      alert("保存失败：" + error.message);
-    } else {
+      if (error) throw new Error(error.message);
       alert("保存成功！");
-      await loadCloudDocuments(); // 刷新文档列表
+      await loadCloudDocuments(); // 刷新列表
       clearEditor(); // 清空编辑框
+    } catch (e) {
+      alert("保存失败：" + e.message);
     }
   }
 
-  // 更新文档（密码验证+更新）
+  // 更新文档（密码验证 + 云端更新）
   async function verifyAndUpdate() {
     if (!currentId) {
       alert("请先选择要更新的文档！");
@@ -160,11 +166,11 @@
 
     const inputPwd = prompt("请输入云存储密码：");
     if (inputPwd !== CLOUD_PASSWORD) {
-      alert("密码错误！");
+      alert("密码错误！无法更新");
       return;
     }
 
-    const title = document.getElementById("docTitle")?.value.trim() || "未命名文档";
+    const title = document.getElementById("docTitle")?.value?.trim() || "未命名文档";
     const resultPlans = document.getElementById("resultPlans")?.innerText || "";
     const contraindications = document.getElementById("contraindications")?.innerText || "";
     const preTreatment = document.getElementById("preTreatment")?.innerText || "";
@@ -172,28 +178,29 @@
     const postDo = document.getElementById("postDo")?.innerText || "";
     const postAvoid = document.getElementById("postAvoid")?.innerText || "";
 
-    const { error } = await supabase
-      .from("prepost_documents")
-      .update({
-        title: title,
-        result_plans: resultPlans,
-        contraindications: contraindications,
-        pre_treatment: preTreatment,
-        side_effects: sideEffects,
-        post_do: postDo,
-        post_avoid: postAvoid
-      })
-      .eq("id", currentId);
+    try {
+      const { error } = await supabase
+        .from("prepost_documents")
+        .update({
+          title: title,
+          result_plans: resultPlans,
+          contraindications: contraindications,
+          pre_treatment: preTreatment,
+          side_effects: sideEffects,
+          post_do: postDo,
+          post_avoid: postAvoid
+        })
+        .eq("id", currentId);
 
-    if (error) {
-      alert("更新失败：" + error.message);
-    } else {
+      if (error) throw new Error(error.message);
       alert("更新成功！");
       await loadCloudDocuments();
+    } catch (e) {
+      alert("更新失败：" + e.message);
     }
   }
 
-  // 删除文档（密码验证+删除）
+  // 删除文档（密码验证 + 云端删除）
   async function verifyAndDelete() {
     if (!currentId) {
       alert("请先选择要删除的文档！");
@@ -202,116 +209,85 @@
 
     const inputPwd = prompt("请输入云存储密码：");
     if (inputPwd !== CLOUD_PASSWORD) {
-      alert("密码错误！");
+      alert("密码错误！无法删除");
       return;
     }
 
-    if (!confirm("确定删除？删除后无法恢复！")) {
-      return;
-    }
+    if (!confirm("确定删除？删除后无法恢复！")) return;
 
-    const { error } = await supabase
-      .from("prepost_documents")
-      .delete()
-      .eq("id", currentId);
+    try {
+      const { error } = await supabase
+        .from("prepost_documents")
+        .delete()
+        .eq("id", currentId);
 
-    if (error) {
-      alert("删除失败：" + error.message);
-    } else {
+      if (error) throw new Error(error.message);
       alert("删除成功！");
       await loadCloudDocuments();
       clearEditor();
       currentId = null;
+    } catch (e) {
+      alert("删除失败：" + e.message);
     }
   }
 
-  // ==================== 基础功能（保留） ====================
+  // ==================== 基础辅助功能 ====================
   // 加载云端文档列表
   async function loadCloudDocuments() {
-    // 无重复声明，直接用全局的supabase
-    const { data, error } = await supabase
-      .from("prepost_documents")
-      .select("*")
-      .order("created_at", { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from("prepost_documents")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-    if (error) {
-      alert("加载文档失败：" + error.message);
-      return;
-    }
+      if (error) throw new Error(error.message);
+      documents = data || [];
 
-    documents = data || [];
-    // 渲染文档列表（替换成你的列表ID，比如docList）
-    const docList = document.getElementById("docList");
-    if (docList) {
-      docList.innerHTML = documents.map(item => `
-        <div onclick="selectDoc('${item.id}')" style="padding: 8px; cursor: pointer; border: 1px solid #eee; margin: 4px 0;">
-          📄 ${item.title}
-        </div>
-      `).join('');
+      // 渲染文档列表（替换docList为你实际的列表ID）
+      const docList = document.getElementById("docList");
+      if (docList) {
+        docList.innerHTML = documents.map(item => `
+          <div onclick="selectDoc('${item.id}')" style="padding:8px; cursor:pointer; border:1px solid #eee; margin:4px 0;">
+            📄 ${item.title}
+          </div>
+        `).join('');
+      }
+    } catch (e) {
+      alert("加载文档失败：" + e.message);
     }
   }
 
-  // 选择文档（点击列表项）
+  // 选择文档（点击列表项填充编辑框）
   function selectDoc(id) {
     currentId = id;
     const doc = documents.find(item => item.id === id);
     if (!doc) return;
 
-    // 填充编辑框（替换成你的编辑框ID）
-    if (document.getElementById("docTitle")) {
-      document.getElementById("docTitle").value = doc.title;
-    }
-    if (document.getElementById("resultPlans")) {
-      document.getElementById("resultPlans").innerText = doc.result_plans;
-    }
-    if (document.getElementById("contraindications")) {
-      document.getElementById("contraindications").innerText = doc.contraindications;
-    }
-    if (document.getElementById("preTreatment")) {
-      document.getElementById("preTreatment").innerText = doc.pre_treatment;
-    }
-    if (document.getElementById("sideEffects")) {
-      document.getElementById("sideEffects").innerText = doc.side_effects;
-    }
-    if (document.getElementById("postDo")) {
-      document.getElementById("postDo").innerText = doc.post_do;
-    }
-    if (document.getElementById("postAvoid")) {
-      document.getElementById("postAvoid").innerText = doc.post_avoid;
-    }
+    // 填充编辑框（替换为你实际的ID）
+    if (document.getElementById("docTitle")) document.getElementById("docTitle").value = doc.title;
+    if (document.getElementById("resultPlans")) document.getElementById("resultPlans").innerText = doc.result_plans;
+    if (document.getElementById("contraindications")) document.getElementById("contraindications").innerText = doc.contraindications;
+    if (document.getElementById("preTreatment")) document.getElementById("preTreatment").innerText = doc.pre_treatment;
+    if (document.getElementById("sideEffects")) document.getElementById("sideEffects").innerText = doc.side_effects;
+    if (document.getElementById("postDo")) document.getElementById("postDo").innerText = doc.post_do;
+    if (document.getElementById("postAvoid")) document.getElementById("postAvoid").innerText = doc.post_avoid;
   }
 
   // 清空编辑框
   function clearEditor() {
-    if (document.getElementById("docTitle")) {
-      document.getElementById("docTitle").value = "";
-    }
-    if (document.getElementById("resultPlans")) {
-      document.getElementById("resultPlans").innerText = "";
-    }
-    if (document.getElementById("contraindications")) {
-      document.getElementById("contraindications").innerText = "";
-    }
-    if (document.getElementById("preTreatment")) {
-      document.getElementById("preTreatment").innerText = "";
-    }
-    if (document.getElementById("sideEffects")) {
-      document.getElementById("sideEffects").innerText = "";
-    }
-    if (document.getElementById("postDo")) {
-      document.getElementById("postDo").innerText = "";
-    }
-    if (document.getElementById("postAvoid")) {
-      document.getElementById("postAvoid").innerText = "";
-    }
+    if (document.getElementById("docTitle")) document.getElementById("docTitle").value = "";
+    if (document.getElementById("resultPlans")) document.getElementById("resultPlans").innerText = "";
+    if (document.getElementById("contraindications")) document.getElementById("contraindications").innerText = "";
+    if (document.getElementById("preTreatment")) document.getElementById("preTreatment").innerText = "";
+    if (document.getElementById("sideEffects")) document.getElementById("sideEffects").innerText = "";
+    if (document.getElementById("postDo")) document.getElementById("postDo").innerText = "";
+    if (document.getElementById("postAvoid")) document.getElementById("postAvoid").innerText = "";
   }
 
-  // 新增文档（可选，加个按钮调用）
+  // 新增文档（可选，加按钮调用 onclick="addNewDoc()"）
   function addNewDoc() {
     clearEditor();
-    if (document.getElementById("docTitle")) {
-      document.getElementById("docTitle").value = "新文档";
-    }
+    if (document.getElementById("docTitle")) document.getElementById("docTitle").value = "新文档";
     currentId = null;
   }
 </script>
