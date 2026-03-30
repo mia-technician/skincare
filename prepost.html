@@ -105,208 +105,203 @@ window.addEventListener('DOMContentLoaded', async () => {
     loadCloudDocuments();
   }
 });
-    <script>
-        // 👇 注释掉原来独立创建的 supabase 实例
-        // const supabase = supabase.createClient(
-        //     "https://dmrskyskryrdclknezth.supabase.co",
-        //     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8"
-        // );
+<script>
+  // 全局状态（登录/文档/当前ID）
+  let isLoggedIn = false;
+  let currentId = null;
+  let documents = [];
+  const fieldIds = ["resultPlans", "contraindications", "preTreatment", "sideEffects", "postDo", "postAvoid"];
 
-        // 现在直接使用全局的 supabase 实例
-
-        const fieldIds = ["resultPlans", "contraindications", "preTreatment", "sideEffects", "postDo", "postAvoid"];
-        let currentId = null;
-        let documents = [];
-        let isLoggedIn = false;
-
-// -------------- 全局状态 --------------
-let isLoggedIn = false;
-let currentId = null;
-let documents = [];
-
-// -------------- 自动监听登录状态（实时同步）--------------
-supabase.auth.onAuthStateChange(async (event, session) => {
-  isLoggedIn = !!session;
-  updateAuthUI();
-  
-  if (session) {
-    await loadCloudDocuments();
-  } else {
-    documents = [];
-    renderDocList();
-    clearEditor();
-  }
-});
-
-// -------------- 登录 / 登出 --------------
-async function toggleLogin() {
-  const { data } = await supabase.auth.getUser();
-  if (data.user) {
-    await supabase.auth.signOut();
-    alert("Logged out");
-  } else {
-    const email = prompt("Email:");
-    const pass = prompt("Password:");
-    if (!email || !pass) return;
-    
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: pass
-    });
-    
-    if (error) {
-      alert(error.message);
+  // 🔥 1. 实时监听登录状态（同步主页）
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    isLoggedIn = !!session;
+    updateAuthUI(); // 更新按钮状态
+    if (session) {
+      await loadCloudDocuments(); // 登录后自动加载云端文档
     } else {
-      alert("Login success!");
+      documents = [];
+      clearEditor();
+      renderDocList();
+    }
+  });
+
+  // 🔥 2. 页面加载时自动检测登录（核心修复）
+  window.addEventListener('DOMContentLoaded', async () => {
+    const { data } = await supabase.auth.getUser();
+    if (data.user) {
+      isLoggedIn = true;
+      updateAuthUI();
+      await loadCloudDocuments();
+    }
+    // 绑定按钮事件
+    document.getElementById("loginBtn").onclick = toggleLogin;
+    document.getElementById("addNewBtn").onclick = addNewDocument;
+    document.getElementById("btnSaveNew").onclick = saveNew;
+    document.getElementById("btnUpdate").onclick = updateCurrent;
+    document.getElementById("btnDelete").onclick = deleteCurrent;
+    document.getElementById("emailBtn").onclick = sendAsEmail;
+    document.getElementById("printBtn").onclick = doPrint;
+    renderDocList();
+  });
+
+  // 3. 登录/登出逻辑
+  async function toggleLogin() {
+    const { data } = await supabase.auth.getUser();
+    if (data.user) {
+      await supabase.auth.signOut();
+      alert("Logged out successfully!");
+    } else {
+      const email = prompt("Enter your email:");
+      const pass = prompt("Enter your password:");
+      if (!email || !pass) return;
+      const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+      if (error) alert("Login failed: " + error.message);
+      else alert("Login success!");
     }
   }
-}
 
-// -------------- 保存到云（修复版）--------------
-async function saveNew() {
-  // ✅ 正确判断：用全局状态，不会失效
-  if (!isLoggedIn) {
-    alert("Please login first");
-    return;
+  // 4. 更新按钮权限（登录/未登录状态）
+  function updateAuthUI() {
+    const btnClass = isLoggedIn ? "btn-auth-enabled" : "btn-auth-disabled";
+    document.getElementById("btnSaveNew").className = btnClass;
+    document.getElementById("btnUpdate").className = btnClass;
+    document.getElementById("btnDelete").className = btnClass;
+    document.getElementById("loginBtn").textContent = isLoggedIn ? "Logout" : "Login";
   }
 
-  const doc = getCurrentDoc();
-  const { error } = await supabase.from("prepost_documents").insert([doc]);
-
-  if (error) {
-    alert("Save error: " + error.message);
-  } else {
-    alert("Saved to cloud successfully!");
-    loadCloudDocuments();
-  }
-}
-
-// -------------- 更新（修复版）--------------
-async function updateCurrent() {
-  if (!isLoggedIn) {
-    alert("Please login first");
-    return;
-  }
-  if (!currentId) {
-    alert("No document selected");
-    return;
+  // 🔥 5. 保存新文档（权限判断修复）
+  async function saveNew() {
+    if (!isLoggedIn) return alert("Please login first!");
+    const doc = getCurrentDoc();
+    const { error } = await supabase.from("prepost_documents").insert([doc]);
+    if (error) alert("Save failed: " + error.message);
+    else {
+      alert("Saved to cloud!");
+      await loadCloudDocuments();
+    }
   }
 
-  const doc = getCurrentDoc();
-  const { error } = await supabase
-    .from("prepost_documents")
-    .update(doc)
-    .eq("id", currentId);
-
-  if (error) alert("Update error: " + error.message);
-  else {
-    alert("Updated!");
-    loadCloudDocuments();
+  // 🔥 6. 更新当前文档（权限判断修复）
+  async function updateCurrent() {
+    if (!isLoggedIn) return alert("Please login first!");
+    if (!currentId) return alert("No document selected!");
+    const doc = getCurrentDoc();
+    const { error } = await supabase.from("prepost_documents")
+      .update(doc)
+      .eq("id", currentId);
+    if (error) alert("Update failed: " + error.message);
+    else {
+      alert("Updated!");
+      await loadCloudDocuments();
+    }
   }
-}
 
-// -------------- 删除（修复版）--------------
-async function deleteCurrent() {
-  if (!isLoggedIn) {
-    alert("Please login first");
-    return;
+  // 🔥 7. 删除当前文档（权限判断修复）
+  async function deleteCurrent() {
+    if (!isLoggedIn) return alert("Please login first!");
+    if (!currentId) return alert("No document selected!");
+    if (!confirm("Are you sure to delete?")) return;
+    const { error } = await supabase.from("prepost_documents")
+      .delete()
+      .eq("id", currentId);
+    if (error) alert("Delete failed: " + error.message);
+    else {
+      alert("Deleted!");
+      clearEditor();
+      await loadCloudDocuments();
+    }
   }
-  if (!currentId) return alert("No document selected");
-  if (!confirm("Delete this document?")) return;
 
-  const { error } = await supabase
-    .from("prepost_documents")
-    .delete()
-    .eq("id", currentId);
+  // 8. 加载云端文档列表
+  async function loadCloudDocuments() {
+    const { data, error } = await supabase.from("prepost_documents")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error("Load failed:", error);
+      documents = [];
+    } else {
+      documents = data.map(item => ({
+        id: item.id,
+        name: item.title,
+        resultPlans: item.result_plans,
+        contraindications: item.contraindications,
+        preTreatment: item.pre_treatment,
+        sideEffects: item.side_effects,
+        postDo: item.post_do,
+        postAvoid: item.post_avoid
+      }));
+    }
+    renderDocList();
+  }
 
-  if (error) alert("Delete error: " + error.message);
-  else {
-    alert("Deleted!");
+  // 9. 辅助功能（不变）
+  function getCurrentDoc() {
+    return {
+      title: document.getElementById("docTitle").value.trim() || "Untitled",
+      result_plans: document.getElementById("resultPlans").innerText,
+      contraindications: document.getElementById("contraindications").innerText,
+      pre_treatment: document.getElementById("preTreatment").innerText,
+      side_effects: document.getElementById("sideEffects").innerText,
+      post_do: document.getElementById("postDo").innerText,
+      post_avoid: document.getElementById("postAvoid").innerText
+    };
+  }
+
+  function clearEditor() {
+    document.getElementById("docTitle").value = "";
+    fieldIds.forEach(id => document.getElementById(id).innerText = "");
+    currentId = null;
+  }
+
+  function addNewDocument() {
     clearEditor();
-    loadCloudDocuments();
+    document.getElementById("docTitle").value = "New Document";
   }
-}
 
-        // 加载云端文档列表
-        async function loadCloudDocuments() {
-            const { data, error } = await supabase
-                .from("prepost_documents")
-                .select("id, title, result_plans, contraindications, pre_treatment, side_effects, post_do, post_avoid")
-                .order("created_at", { ascending: false });
+  function loadDoc(id) {
+    const d = documents.find(x => x.id === id);
+    if (!d) return;
+    currentId = id;
+    document.getElementById("docTitle").value = d.name || "";
+    document.getElementById("resultPlans").innerText = d.resultPlans || "";
+    document.getElementById("contraindications").innerText = d.contraindications || "";
+    document.getElementById("preTreatment").innerText = d.preTreatment || "";
+    document.getElementById("sideEffects").innerText = d.sideEffects || "";
+    document.getElementById("postDo").innerText = d.postDo || "";
+    document.getElementById("postAvoid").innerText = d.postAvoid || "";
+    renderDocList();
+  }
 
-            if (error) {
-                console.error(error);
-                documents = [];
-            } else {
-                documents = data.map(item => ({
-                    id: item.id,
-                    name: item.title,
-                    resultPlans: item.result_plans,
-                    contraindications: item.contraindications,
-                    preTreatment: item.pre_treatment,
-                    sideEffects: item.side_effects,
-                    postDo: item.post_do,
-                    postAvoid: item.post_avoid
-                }));
-            }
-            renderDocList();
-        }
+  function renderDocList() {
+    const el = document.getElementById("docList");
+    el.innerHTML = documents.map(d => `
+      <div class="doc-item ${currentId === d.id ? 'active' : ''}" data-id="${d.id}">
+        <span>📄 ${d.name}</span>
+      </div>
+    `).join('');
+    el.querySelectorAll('.doc-item').forEach(item => {
+      item.onclick = () => loadDoc(item.dataset.id);
+    });
+  }
 
-        // 基础 UI 功能
-        function clearEditor() {
-            document.getElementById("docTitle").value = "";
-            fieldIds.forEach(id => document.getElementById(id).innerText = "");
-            currentId = null;
-        }
+  function formatBold(id) {
+    document.getElementById(id).focus();
+    document.execCommand('bold');
+  }
 
-        function addNewDocument() {
-            clearEditor();
-            document.getElementById("docTitle").value = "New Document";
-        }
+  function formatBullet(id) {
+    document.getElementById(id).focus();
+    document.execCommand('insertUnorderedList');
+  }
 
-        function loadDoc(id) {
-            const d = documents.find(x => x.id === id);
-            if (!d) return;
-            currentId = id;
-            document.getElementById("docTitle").value = d.name || "";
-            document.getElementById("resultPlans").innerText = d.resultPlans || "";
-            document.getElementById("contraindications").innerText = d.contraindications || "";
-            document.getElementById("preTreatment").innerText = d.preTreatment || "";
-            document.getElementById("sideEffects").innerText = d.sideEffects || "";
-            document.getElementById("postDo").innerText = d.postDo || "";
-            document.getElementById("postAvoid").innerText = d.postAvoid || "";
-            renderDocList();
-        }
+  function doPrint() {
+    window.print();
+  }
 
-        function renderDocList() {
-            const el = document.getElementById("docList");
-            el.innerHTML = documents.map(d => `
-                <div class="doc-item ${currentId === d.id ? 'active' : ''}" data-id="${d.id}">
-                    <span>📄 ${d.name}</span>
-                </div>
-            `).join('');
-            el.querySelectorAll('.doc-item').forEach(item => {
-                item.onclick = () => loadDoc(item.dataset.id);
-            });
-        }
-
-        function formatBold(id) {
-            document.getElementById(id).focus();
-            document.execCommand('bold');
-        }
-
-        function formatBullet(id) {
-            document.getElementById(id).focus();
-            document.execCommand('insertUnorderedList');
-        }
-
-        function doPrint() {
-            window.print();
-        }
-
-        function sendAsEmail() {
-            const title = document.getElementById("docTitle").value || "Treatment Document";
-            const body = `
+  function sendAsEmail() {
+    const title = document.getElementById("docTitle").value || "Treatment Document";
+    const body = `
 ${title}
 
 ----------------------------------------
@@ -335,22 +330,9 @@ ${document.getElementById("postAvoid").innerText}
 
 ----------------------------------------
 Contact: 604-580-2464 OR infobclaser@dermapure.com
-            `;
-            window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
-        }
-
-        // 初始化
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById("loginBtn").onclick = toggleLogin;
-            document.getElementById("addNewBtn").onclick = addNewDocument;
-            document.getElementById("btnSaveNew").onclick = saveNew;
-            document.getElementById("btnUpdate").onclick = updateCurrent;
-            document.getElementById("btnDelete").onclick = deleteCurrent;
-            document.getElementById("emailBtn").onclick = sendAsEmail;
-            document.getElementById("printBtn").onclick = doPrint;
-            updateAuthUI(false);
-            renderDocList();
-        });
-    </script>
+    `;
+    window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+  }
+</script>
 </body>
 </html>
