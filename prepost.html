@@ -17,12 +17,11 @@
         h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 1.8rem; color: #7f6e5d; text-align: center; margin-bottom: 2rem; text-transform: uppercase; }
         .two-columns { display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; min-height: 600px; }
         
-        /* 左侧样式 - 只保留文档列表 */
+        /* 左侧样式 */
         .doc-sidebar { background: #fff9f2; border-radius: 24px; padding: 1.2rem; border: 1px solid #e7dbd0; }
         .doc-sidebar h3 { font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 600; color: #8f7e6d; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; letter-spacing: 0.5px; }
         .doc-list { list-style: none; max-height: 500px; overflow-y: auto; margin-bottom: 1rem; }
         
-        /* 文档列表项样式 */
         .doc-item {
             padding: 0.6rem 0.9rem;
             margin-bottom: 0.4rem;
@@ -56,7 +55,6 @@
         /* 右侧样式 */
         .doc-editor { background: #fff9f2; border-radius: 24px; padding: 1.5rem; border: 1px solid #e7dbd0; }
         
-        /* 按钮工具栏 - 放在右侧内容框上面 */
         .action-toolbar {
             display: flex;
             gap: 0.8rem;
@@ -88,12 +86,49 @@
         }
         
         .doc-title { width: 100%; font-size: 1.5rem; border: none; background: transparent; border-bottom: 2px solid #e2d4c6; margin-bottom: 1rem; padding: 0.5rem 0; outline: none; color: #5f5347; font-weight: 500; }
+        
         .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-        .toolbar button { padding: 4px 10px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-size: 12px; transition: all 0.2s; }
-        .toolbar button:hover { background: #f0e8e0; border-color: #b99f87; }
+        .toolbar button { 
+            padding: 4px 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            background: #fff; 
+            cursor: pointer; 
+            font-size: 12px; 
+            font-weight: 500;
+            transition: all 0.2s; 
+        }
+        .toolbar button:hover { 
+            background: #f0e8e0; 
+            border-color: #b99f87; 
+        }
+        
         .section { background: transparent; border-radius: 0; border: none; margin-bottom: 1rem; overflow: hidden; }
         .section-header { background: transparent; padding: 0.3rem 0; font-size: 0.75rem; font-weight: 600; color: #b99f87; border: none; letter-spacing: 0.3px; }
-        .section-content { padding: 0.4rem 0; white-space: pre-wrap; line-height: 1.5; min-height: 24px; font-size: 13px; color: #333; outline: none; }
+        .section-content { 
+            padding: 0.4rem 0; 
+            white-space: pre-wrap; 
+            line-height: 1.6; 
+            min-height: 24px; 
+            font-size: 13px; 
+            color: #333; 
+            outline: none;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .section-content:focus {
+            background: #fffef8;
+        }
+        
+        /* 列表样式 */
+        .section-content ul, .section-content ol {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+        .section-content li {
+            margin: 0.25rem 0;
+        }
+        
         .editor-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem; }
         .btn { padding: 0.5rem 1.2rem; border-radius: 40px; border: none; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
         .btn-email { background: #b99f87; color: white; }
@@ -112,9 +147,6 @@
         .doc-list::-webkit-scrollbar-thumb {
             background: #b99f87;
             border-radius: 10px;
-        }
-        .doc-list::-webkit-scrollbar-thumb:hover {
-            background: #9e846c;
         }
         
         .toast {
@@ -142,15 +174,12 @@
     <div class="app">
         <h1>📋 Pre & Post Care</h1>
         <div class="two-columns">
-            <!-- 左侧：只保留文档列表 -->
             <div class="doc-sidebar">
                 <h3>📄 DOCUMENTS</h3>
                 <div id="docList" class="doc-list"></div>
             </div>
             
-            <!-- 右侧：编辑区域 -->
             <div class="doc-editor">
-                <!-- 按钮工具栏 - 四个按钮放在这里 -->
                 <div class="action-toolbar">
                     <button class="action-btn" id="addNewBtn">➕ New Document</button>
                     <button class="action-btn" id="saveBtn">💾 Save as New</button>
@@ -160,8 +189,9 @@
                 
                 <input type="text" id="docTitle" class="doc-title" placeholder="Document Title">
                 <div class="toolbar">
-                    <button onclick="formatBold('resultPlans')">Bold</button>
-                    <button onclick="formatBullet('resultPlans')">• Bullet List</button>
+                    <button onclick="formatText('bold')"><b>Bold</b></button>
+                    <button onclick="formatText('insertUnorderedList')">• Bullet List</button>
+                    <button onclick="formatText('insertOrderedList')">1. Numbered List</button>
                 </div>
                 <div class="section">
                     <div class="section-header">📋 RESULTS & TREATMENT PLANS</div>
@@ -261,12 +291,12 @@
         
         currentId = doc.id;
         document.getElementById('docTitle').value = doc.title || '';
-        document.getElementById('resultPlans').innerText = doc.result_plans || '';
-        document.getElementById('contraindications').innerText = doc.contraindications || '';
-        document.getElementById('preTreatment').innerText = doc.pre_treatment || '';
-        document.getElementById('sideEffects').innerText = doc.side_effects || '';
-        document.getElementById('postDo').innerText = doc.post_do || '';
-        document.getElementById('postAvoid').innerText = doc.post_avoid || '';
+        document.getElementById('resultPlans').innerHTML = doc.result_plans || '';
+        document.getElementById('contraindications').innerHTML = doc.contraindications || '';
+        document.getElementById('preTreatment').innerHTML = doc.pre_treatment || '';
+        document.getElementById('sideEffects').innerHTML = doc.side_effects || '';
+        document.getElementById('postDo').innerHTML = doc.post_do || '';
+        document.getElementById('postAvoid').innerHTML = doc.post_avoid || '';
         
         renderDocumentList();
     };
@@ -274,23 +304,23 @@
     function getCurrentDocumentData() {
         return {
             title: document.getElementById('docTitle').value.trim() || 'Untitled',
-            result_plans: document.getElementById('resultPlans').innerText || '',
-            contraindications: document.getElementById('contraindications').innerText || '',
-            pre_treatment: document.getElementById('preTreatment').innerText || '',
-            side_effects: document.getElementById('sideEffects').innerText || '',
-            post_do: document.getElementById('postDo').innerText || '',
-            post_avoid: document.getElementById('postAvoid').innerText || ''
+            result_plans: document.getElementById('resultPlans').innerHTML || '',
+            contraindications: document.getElementById('contraindications').innerHTML || '',
+            pre_treatment: document.getElementById('preTreatment').innerHTML || '',
+            side_effects: document.getElementById('sideEffects').innerHTML || '',
+            post_do: document.getElementById('postDo').innerHTML || '',
+            post_avoid: document.getElementById('postAvoid').innerHTML || ''
         };
     }
 
     function clearEditor() {
         document.getElementById('docTitle').value = '';
-        document.getElementById('resultPlans').innerText = '';
-        document.getElementById('contraindications').innerText = '';
-        document.getElementById('preTreatment').innerText = '';
-        document.getElementById('sideEffects').innerText = '';
-        document.getElementById('postDo').innerText = '';
-        document.getElementById('postAvoid').innerText = '';
+        document.getElementById('resultPlans').innerHTML = '';
+        document.getElementById('contraindications').innerHTML = '';
+        document.getElementById('preTreatment').innerHTML = '';
+        document.getElementById('sideEffects').innerHTML = '';
+        document.getElementById('postDo').innerHTML = '';
+        document.getElementById('postAvoid').innerHTML = '';
     }
 
     function addNewDocument() {
@@ -370,19 +400,108 @@
         }
     }
 
-    // Simple email function - opens email client with formatted text
+    // Format text function - supports bold and lists
+    window.formatText = function(command) {
+        // Save current selection
+        const selection = window.getSelection();
+        const range = selection.getRangeAt(0);
+        
+        // For list commands, we need to handle differently
+        if (command === 'insertUnorderedList' || command === 'insertOrderedList') {
+            document.execCommand(command, false, null);
+        } else if (command === 'bold') {
+            document.execCommand('bold', false, null);
+        }
+        
+        // Focus back to keep editing
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement.classList.contains('section-content')) {
+            activeElement.focus();
+        }
+    };
+    
+    // Alternative bullet function for better compatibility
+    window.insertBullet = function(elementId) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        
+        el.focus();
+        
+        // Get current selection or cursor position
+        const selection = window.getSelection();
+        const range = selection.getRangeAt(0);
+        
+        // Insert bullet at cursor
+        const bulletText = '• ';
+        range.deleteContents();
+        const textNode = document.createTextNode(bulletText);
+        range.insertNode(textNode);
+        
+        // Move cursor after bullet
+        range.setStartAfter(textNode);
+        range.setEndAfter(textNode);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    };
+    
+    // Add keyboard support for lists
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            const activeEl = document.activeElement;
+            if (activeEl && activeEl.classList && activeEl.classList.contains('section-content')) {
+                const selection = window.getSelection();
+                const node = selection.anchorNode;
+                const line = node?.textContent || '';
+                
+                // Check if current line starts with bullet
+                if (line.trim().startsWith('•')) {
+                    // Check if line is empty bullet
+                    if (line.trim() === '•' || line.trim() === '• ') {
+                        e.preventDefault();
+                        // Remove the bullet line
+                        const range = selection.getRangeAt(0);
+                        range.deleteContents();
+                        return;
+                    }
+                }
+            }
+        }
+    });
+
     function sendEmailSimple() {
         const title = document.getElementById('docTitle').value || 'Pre & Post Care Document';
         const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
         
-        // Build email body with simple but clean formatting
+        // Get plain text content for email
+        function getPlainText(html) {
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            // Convert lists to plain text bullets
+            temp.querySelectorAll('ul').forEach(ul => {
+                const items = ul.querySelectorAll('li');
+                let bulletText = '';
+                items.forEach(li => {
+                    bulletText += '• ' + li.innerText + '\n';
+                });
+                ul.replaceWith(document.createTextNode(bulletText));
+            });
+            temp.querySelectorAll('ol').forEach(ol => {
+                const items = ol.querySelectorAll('li');
+                let numberedText = '';
+                items.forEach((li, idx) => {
+                    numberedText += (idx + 1) + '. ' + li.innerText + '\n';
+                });
+                ol.replaceWith(document.createTextNode(numberedText));
+            });
+            return temp.innerText || temp.textContent || '';
+        }
+        
         let emailBody = '';
         emailBody += `${title}\n`;
         emailBody += `${'='.repeat(Math.min(title.length, 50))}\n\n`;
         emailBody += `Date: ${currentDate}\n\n`;
         emailBody += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
         
-        // Sections
         const sections = [
             { name: 'RESULTS & TREATMENT PLANS', icon: '📋', id: 'resultPlans' },
             { name: 'CONTRAINDICATIONS', icon: '❗️', id: 'contraindications' },
@@ -395,12 +514,14 @@
         let hasContent = false;
         
         sections.forEach(section => {
-            const content = document.getElementById(section.id)?.innerText?.trim();
-            if (content && content !== '') {
+            const contentEl = document.getElementById(section.id);
+            const contentHtml = contentEl?.innerHTML?.trim();
+            if (contentHtml && contentHtml !== '') {
                 hasContent = true;
+                const plainContent = getPlainText(contentHtml);
                 emailBody += `${section.icon} ${section.name}\n`;
                 emailBody += `${'-'.repeat(section.name.length + 2)}\n`;
-                emailBody += `${content}\n\n`;
+                emailBody += `${plainContent}\n\n`;
             }
         });
         
@@ -408,10 +529,7 @@
             emailBody += `(No content available for this document)\n\n`;
         }
         
-        // Contact information
         emailBody += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-        emailBody += `📞 CONTACT INFORMATION\n`;
-        emailBody += `------------------------\n`;
         emailBody += `If you have any unusual reactions or concerns, please contact us:\n\n`;
         emailBody += `📱 Phone: 604-580-2464\n`;
         emailBody += `✉️ Email: infobclaser@dermapure.com\n\n`;
@@ -419,15 +537,11 @@
         emailBody += `This document was generated from Pre & Post Care Management System\n`;
         emailBody += `© ${new Date().getFullYear()} All rights reserved\n`;
         
-        // Create mailto link
         const subject = encodeURIComponent(title);
         const body = encodeURIComponent(emailBody);
         const mailtoLink = `mailto:?subject=${subject}&body=${body}`;
         
-        // Open email client
         window.location.href = mailtoLink;
-        
-        // Show confirmation
         showToast('Opening email client...');
     }
     
@@ -449,16 +563,6 @@
             return m;
         });
     }
-
-    window.formatBold = function(elementId) {
-        const el = document.getElementById(elementId);
-        if (el) { el.focus(); document.execCommand('bold', false, null); }
-    };
-    
-    window.formatBullet = function(elementId) {
-        const el = document.getElementById(elementId);
-        if (el) { el.focus(); document.execCommand('insertUnorderedList', false, null); }
-    };
 </script>
 </body>
 </html>
