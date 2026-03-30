@@ -101,7 +101,6 @@
 
     // Initialize on page load
     window.addEventListener('DOMContentLoaded', async function() {
-        // Check if Supabase is available
         if (typeof supabase === 'undefined') {
             console.error('Supabase not found');
             alert('Error: Supabase not initialized. Please check supabase.js');
@@ -109,11 +108,8 @@
         }
         
         console.log('Supabase initialized successfully');
-        
-        // Load documents
         await loadDocuments();
         
-        // Setup button event listeners
         document.getElementById('addNewBtn').addEventListener('click', addNewDocument);
         document.getElementById('saveBtn').addEventListener('click', saveDocument);
         document.getElementById('updateBtn').addEventListener('click', updateDocument);
@@ -122,7 +118,6 @@
         document.getElementById('printBtn').addEventListener('click', () => window.print());
     });
 
-    // Load all documents from cloud
     async function loadDocuments() {
         try {
             const { data, error } = await supabase
@@ -134,14 +129,12 @@
             
             documents = data || [];
             renderDocumentList();
-            console.log('Loaded', documents.length, 'documents');
         } catch (error) {
             console.error('Error loading documents:', error);
             alert('Failed to load documents: ' + error.message);
         }
     }
 
-    // Render document list in sidebar
     function renderDocumentList() {
         const docList = document.getElementById('docList');
         if (!docList) return;
@@ -158,18 +151,11 @@
         `).join('');
     }
 
-    // Select a document and load into editor
     window.selectDocument = function(id) {
         const doc = documents.find(d => String(d.id) === String(id));
-        
-        if (!doc) {
-            console.error('Document not found with ID:', id);
-            alert('Document not found');
-            return;
-        }
+        if (!doc) return;
         
         currentId = doc.id;
-        
         document.getElementById('docTitle').value = doc.title || '';
         document.getElementById('resultPlans').innerText = doc.result_plans || '';
         document.getElementById('contraindications').innerText = doc.contraindications || '';
@@ -181,7 +167,6 @@
         renderDocumentList();
     };
 
-    // Get current editor content
     function getCurrentDocumentData() {
         return {
             title: document.getElementById('docTitle').value.trim() || 'Untitled',
@@ -194,7 +179,6 @@
         };
     }
 
-    // Clear editor
     function clearEditor() {
         document.getElementById('docTitle').value = '';
         document.getElementById('resultPlans').innerText = '';
@@ -205,14 +189,12 @@
         document.getElementById('postAvoid').innerText = '';
     }
 
-    // Add new document (clear editor)
     function addNewDocument() {
         clearEditor();
         currentId = null;
         renderDocumentList();
     }
 
-    // Save document (with password)
     async function saveDocument() {
         const password = prompt('Enter cloud storage password:');
         if (password !== CLOUD_PASSWORD) {
@@ -239,7 +221,6 @@
         }
     }
 
-    // Update document (with password)
     async function updateDocument() {
         if (!currentId) {
             alert('Please select a document to update first.');
@@ -270,7 +251,6 @@
         }
     }
 
-    // Delete document (with password)
     async function deleteDocument() {
         if (!currentId) {
             alert('Please select a document to delete first.');
@@ -305,128 +285,163 @@
         }
     }
 
-    // Send as email with beautiful formatting
+    // Beautiful email function with preview window
     function sendAsEmail() {
         const title = document.getElementById('docTitle').value || 'Pre & Post Care Document';
         const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
         
-        // Beautiful HTML email template
-        let emailHtml = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${escapeHtml(title)}</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f5efe9;
-            margin: 0;
-            padding: 20px;
-        }
-        .email-container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .email-header {
-            background: linear-gradient(135deg, #b99f87 0%, #9e846c 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        .email-header h1 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 600;
-            letter-spacing: 1px;
-        }
-        .email-header .date {
-            margin-top: 10px;
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        .email-body {
-            padding: 40px;
-        }
-        .section {
-            margin-bottom: 30px;
-            border-bottom: 2px solid #f0e8e0;
-            padding-bottom: 20px;
-        }
-        .section:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-        .section-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #b99f87;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #b99f87;
-            display: inline-block;
-        }
-        .section-content {
-            color: #555;
-            white-space: pre-wrap;
-            line-height: 1.8;
-            margin-top: 15px;
-        }
-        .section-content ul, .section-content ol {
-            margin: 10px 0;
-            padding-left: 25px;
-        }
-        .section-content li {
-            margin: 5px 0;
-        }
-        .contact-info {
-            background: #f9f5f0;
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 30px;
-            text-align: center;
-            border-left: 4px solid #b99f87;
-        }
-        .contact-info p {
-            margin: 5px 0;
-            color: #7f6e5d;
-        }
-        .contact-info strong {
-            color: #b99f87;
-        }
-        .footer {
-            background: #f5efe9;
-            padding: 20px;
-            text-align: center;
-            font-size: 12px;
-            color: #999;
-        }
-        @media (max-width: 600px) {
-            .email-body {
-                padding: 20px;
-            }
-            .section-title {
-                font-size: 18px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="email-container">
-        <div class="email-header">
-            <h1>📋 ${escapeHtml(title)}</h1>
-            <div class="date">${currentDate}</div>
-        </div>
-        <div class="email-body">`;
+        // Generate email content
+        const emailHtml = generateEmailHTML(title, currentDate);
         
-        // Define sections with their icons and content
+        // Open a new window with the formatted email
+        const emailWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+        
+        if (emailWindow) {
+            emailWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Email Preview - ${escapeHtml(title)}</title>
+                    <style>
+                        body {
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+                            margin: 0;
+                            padding: 0;
+                            background: #f0f0f0;
+                        }
+                        .toolbar {
+                            background: white;
+                            padding: 15px;
+                            border-bottom: 1px solid #ddd;
+                            position: sticky;
+                            top: 0;
+                            z-index: 100;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        }
+                        .toolbar button {
+                            padding: 8px 16px;
+                            margin-right: 10px;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 14px;
+                            font-weight: 500;
+                        }
+                        .btn-send {
+                            background: #b99f87;
+                            color: white;
+                        }
+                        .btn-send:hover {
+                            background: #9e846c;
+                        }
+                        .btn-copy {
+                            background: #4a90e2;
+                            color: white;
+                        }
+                        .btn-copy:hover {
+                            background: #357abd;
+                        }
+                        .btn-close {
+                            background: #e0e0e0;
+                            color: #333;
+                        }
+                        .btn-close:hover {
+                            background: #d0d0d0;
+                        }
+                        .preview-container {
+                            max-width: 900px;
+                            margin: 20px auto;
+                            background: white;
+                            border-radius: 12px;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                            overflow: hidden;
+                        }
+                        .email-content {
+                            padding: 0;
+                        }
+                        .instruction {
+                            background: #fff9f2;
+                            padding: 12px 20px;
+                            border-bottom: 1px solid #e8dfd0;
+                            color: #7f6e5d;
+                            font-size: 13px;
+                            text-align: center;
+                        }
+                        .status-message {
+                            position: fixed;
+                            bottom: 20px;
+                            right: 20px;
+                            background: #4caf50;
+                            color: white;
+                            padding: 10px 20px;
+                            border-radius: 8px;
+                            display: none;
+                            z-index: 1000;
+                            animation: fadeInOut 2s ease;
+                        }
+                        @keyframes fadeInOut {
+                            0% { opacity: 0; transform: translateY(20px); }
+                            15% { opacity: 1; transform: translateY(0); }
+                            85% { opacity: 1; transform: translateY(0); }
+                            100% { opacity: 0; transform: translateY(20px); }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="toolbar">
+                        <button class="btn-send" onclick="sendEmail()">📧 Send with Email Client</button>
+                        <button class="btn-copy" onclick="copyToClipboard()">📋 Copy HTML</button>
+                        <button class="btn-close" onclick="window.close()">✖️ Close</button>
+                    </div>
+                    <div class="preview-container">
+                        <div class="instruction">
+                            💡 Preview your beautifully formatted email below. Click "Send with Email Client" to open in your email app, or copy the HTML to use in your email service.
+                        </div>
+                        <div class="email-content">
+                            ${emailHtml}
+                        </div>
+                    </div>
+                    <div id="statusMessage" class="status-message"></div>
+                    
+                    <script>
+                        const fullHtml = ${JSON.stringify(emailHtml)};
+                        const subject = ${JSON.stringify(title)};
+                        
+                        function sendEmail() {
+                            const mailtoLink = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(fullHtml);
+                            window.location.href = mailtoLink;
+                            showMessage('Opening email client...');
+                        }
+                        
+                        function copyToClipboard() {
+                            navigator.clipboard.writeText(fullHtml).then(() => {
+                                showMessage('✅ HTML copied to clipboard! You can paste it into your email service.');
+                            }).catch(() => {
+                                showMessage('❌ Failed to copy. Please select and copy manually.', 'error');
+                            });
+                        }
+                        
+                        function showMessage(msg, type = 'success') {
+                            const msgDiv = document.getElementById('statusMessage');
+                            msgDiv.textContent = msg;
+                            msgDiv.style.backgroundColor = type === 'error' ? '#f44336' : '#4caf50';
+                            msgDiv.style.display = 'block';
+                            setTimeout(() => {
+                                msgDiv.style.display = 'none';
+                            }, 3000);
+                        }
+                    </script>
+                </body>
+                </html>
+            `);
+            emailWindow.document.close();
+        } else {
+            alert('Please allow pop-ups to preview the email.');
+        }
+    }
+    
+    // Generate beautiful HTML email content
+    function generateEmailHTML(title, currentDate) {
         const sections = [
             { name: 'Results & Treatment Plans', icon: '📋', id: 'resultPlans' },
             { name: 'Contraindications', icon: '⚠️', id: 'contraindications' },
@@ -436,88 +451,59 @@
             { name: 'Post Care - What To Avoid', icon: '🚫', id: 'postAvoid' }
         ];
         
+        let sectionsHtml = '';
         let hasContent = false;
         
         sections.forEach(section => {
-            const content = document.getElementById(section.id)?.innerText?.trim();
+            const contentElement = document.getElementById(section.id);
+            const content = contentElement?.innerText?.trim();
+            
             if (content && content !== '') {
                 hasContent = true;
-                // Format content to preserve line breaks and basic HTML
-                let formattedContent = escapeHtml(content).replace(/\n/g, '<br>');
-                // Convert bullet points from * or - to HTML lists
-                if (formattedContent.includes('•') || formattedContent.includes('-') || formattedContent.includes('*')) {
-                    const lines = formattedContent.split('<br>');
-                    let inList = false;
-                    let listItems = [];
-                    let processedLines = [];
-                    
-                    for (let i = 0; i < lines.length; i++) {
-                        const line = lines[i].trim();
-                        if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
-                            if (!inList) {
-                                if (i > 0) processedLines.push('</p>');
-                                processedLines.push('<ul>');
-                                inList = true;
-                            }
-                            const itemText = line.substring(1).trim();
-                            processedLines.push(`<li>${itemText}</li>`);
-                        } else {
-                            if (inList) {
-                                processedLines.push('</ul><p>');
-                                inList = false;
-                            }
-                            if (line) {
-                                processedLines.push(line);
-                            }
-                        }
-                    }
-                    if (inList) processedLines.push('</ul>');
-                    formattedContent = processedLines.join('<br>');
-                }
+                // Format content with line breaks
+                const formattedContent = escapeHtml(content).replace(/\n/g, '<br>');
                 
-                emailHtml += `
-            <div class="section">
-                <div class="section-title">${section.icon} ${section.name}</div>
-                <div class="section-content">${formattedContent}</div>
+                sectionsHtml += `
+            <div style="margin-bottom: 30px; border-bottom: 2px solid #f0e8e0; padding-bottom: 20px;">
+                <div style="font-size: 20px; font-weight: 600; color: #b99f87; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #b99f87; display: inline-block;">
+                    ${section.icon} ${section.name}
+                </div>
+                <div style="color: #555; white-space: pre-wrap; line-height: 1.8; margin-top: 15px;">
+                    ${formattedContent}
+                </div>
             </div>`;
             }
         });
         
         if (!hasContent) {
-            emailHtml += `
+            sectionsHtml = `
             <div style="text-align: center; color: #999; padding: 40px;">
                 <p>No content available for this document.</p>
             </div>`;
         }
         
-        // Add contact information
-        emailHtml += `
-            <div class="contact-info">
-                <p><strong>📞 Contact Information</strong></p>
-                <p>If you have any unusual reactions or concerns, please contact us:</p>
-                <p>📱 Phone: <strong>604-580-2464</strong></p>
-                <p>✉️ Email: <strong>infobclaser@dermapure.com</strong></p>
+        return `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #b99f87 0%, #9e846c 100%); color: white; padding: 30px; text-align: center;">
+                <h1 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: 1px;">📋 ${escapeHtml(title)}</h1>
+                <div style="margin-top: 10px; font-size: 14px; opacity: 0.9;">${currentDate}</div>
             </div>
-        </div>
-        <div class="footer">
-            <p>This document was generated from Pre & Post Care Management System</p>
-            <p>© ${new Date().getFullYear()} All rights reserved</p>
-        </div>
-    </div>
-</body>
-</html>`;
-        
-        // Create mailto link with HTML content
-        const mailtoLink = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(emailHtml)}`;
-        window.location.href = mailtoLink;
-        
-        // Optional: Show a message that the email client will open
-        setTimeout(() => {
-            alert('Your email client will now open. The formatted content has been prepared.');
-        }, 100);
+            <div style="padding: 40px;">
+                ${sectionsHtml}
+                <div style="background: #f9f5f0; padding: 20px; border-radius: 12px; margin-top: 30px; text-align: center; border-left: 4px solid #b99f87;">
+                    <p style="margin: 5px 0; color: #7f6e5d;"><strong>📞 Contact Information</strong></p>
+                    <p style="margin: 5px 0; color: #7f6e5d;">If you have any unusual reactions or concerns, please contact us:</p>
+                    <p style="margin: 5px 0; color: #7f6e5d;">📱 Phone: <strong>604-580-2464</strong></p>
+                    <p style="margin: 5px 0; color: #7f6e5d;">✉️ Email: <strong>infobclaser@dermapure.com</strong></p>
+                </div>
+            </div>
+            <div style="background: #f5efe9; padding: 20px; text-align: center; font-size: 12px; color: #999;">
+                <p>This document was generated from Pre & Post Care Management System</p>
+                <p>© ${new Date().getFullYear()} All rights reserved</p>
+            </div>
+        </div>`;
     }
 
-    // Escape HTML to prevent XSS
     function escapeHtml(str) {
         if (!str) return '';
         return str
@@ -528,7 +514,6 @@
             .replace(/'/g, '&#39;');
     }
 
-    // Format functions for toolbar
     window.formatBold = function(elementId) {
         const el = document.getElementById(elementId);
         if (el) {
