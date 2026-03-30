@@ -1,150 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pre & Post Care</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box}body{background:#f5efe9;font-family:Inter,sans-serif;padding:2rem 1rem}
-        .app{max-width:1400px;margin:0 auto;background:#faf7f2;border-radius:32px;border:1px solid #e8dfd0;padding:2rem}
-        h1{font-family:Montserrat,sans-serif;font-weight:300;font-size:1.8rem;color:#7f6e5d;text-align:center;margin-bottom:2rem;text-transform:uppercase}
-        .two-columns{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;min-height:600px}
-        .doc-sidebar{background:#fff9f2;border-radius:24px;padding:1.2rem;border:1px solid #e7dbd0}
-        .doc-sidebar h3{font-family:Montserrat,sans-serif;font-size:1rem;font-weight:600;color:#8f7e6;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid #e2d4c6}
-        .doc-list{list-style:none;max-height:500px;overflow-y:auto;margin-bottom:1rem}
-        .doc-item{padding:.8rem 1rem;margin-bottom:.5rem;background:#f5efe8;border-radius:16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s}
-        .doc-item:hover{background:#e9dfd4;transform:translateX(4px)}
-        .doc-item.active{background:#b99f87;color:white}
-        .btn-add{width:100%;padding:.6rem;background:#b99f87;color:#fff;border:none;border-radius:40px;cursor:pointer;font-size:.75rem;font-weight:500;margin-bottom:1rem}
-        .btn-auth-enabled{width:100%;padding:.6rem;background:#b99f87;color:#fff;border:none;border-radius:40px;cursor:pointer;font-size:.75rem;font-weight:500;margin-bottom:.5rem}
-        .btn-auth-disabled{width:100%;padding:.6rem;background:#ddd;color:#888;border:none;border-radius:40px;cursor:not-allowed;font-size:.75rem;font-weight:500;margin-bottom:.5rem}
-        .btn-login{width:100%;padding:.6rem;background:#222;color:#fff;border:none;border-radius:40px;cursor:pointer;font-size:.75rem;font-weight:500;margin-bottom:1rem}
-        .doc-editor{background:#fff9f2;border-radius:24px;padding:1.5rem;border:1px solid #e7dbd0}
-        .doc-title{width:100%;font-size:1.5rem;border:none;background:transparent;border-bottom:2px solid #e2d4c6;margin-bottom:1rem;padding:.5rem 0;outline:none;color:#5f5347}
-        .toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-        .toolbar button{padding:4px 10px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:12px}
-        .section{background:transparent;border-radius:0;border:none;margin-bottom:1rem;overflow:hidden}
-        .section-header{background:transparent;padding:.3rem 0;font-size:.75rem;font-weight:600;color:#b99f87;border:none}
-        .section-content{padding:.4rem 0;white-space:pre-wrap;line-height:1.5;min-height:24px;font-size:13px;color:#333}
-        .editor-actions{display:flex;gap:1rem;justify-content:flex-end;margin-top:1rem}
-        .btn{padding:.5rem 1.2rem;border-radius:40px;border:none;cursor:pointer;font-size:.8rem}
-        .btn-email{background:#b99f87;color:white}
-        .btn-print{background:#e9dfd4;color:#333}
-        @media print{body *{visibility:hidden}.doc-editor,.doc-editor *{visibility:visible}.doc-editor{position:absolute;left:0;top:0;width:100%}.toolbar,.editor-actions{display:none!important}}
-        @media (max-width:750px){.two-columns{grid-template-columns:1fr}}
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pre & Post Care</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#f5efe9;font-family:Inter,sans-serif;padding:2rem 1rem}
+    .app{max-width:1400px;margin:0 auto;background:#faf7f2;border-radius:32px;border:1px solid #e8dfd0;padding:2rem}
+    h1{font-family:Montserrat,sans-serif;font-weight:300;font-size:1.8rem;color:#7f6e5d;text-align:center;margin-bottom:2rem;text-transform:uppercase}
+    .two-columns{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;min-height:600px}
+    .doc-sidebar{background:#fff9f2;border-radius:24px;padding:1.2rem;border:1px solid #e7dbd0}
+    .doc-sidebar h3{font-family:Montserrat,sans-serif;font-size:1rem;font-weight:600;color:#8f7e6d;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid #e2d4c6}
+    .doc-list{list-style:none;max-height:500px;overflow-y:auto;margin-bottom:1rem}
+    .doc-item{padding:.8rem 1rem;margin-bottom:.5rem;background:#f5efe8;border-radius:16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s}
+    .doc-item:hover{background:#e9dfd4;transform:translateX(4px)}
+    .doc-item.active{background:#b99f87;color:white}
+    .btn-add{width:100%;padding:.6rem;background:#b99f87;color:#fff;border:none;border-radius:40px;cursor:pointer;font-size:.75rem;font-weight:500;margin-bottom:1rem}
+    .btn-auth-enabled{width:100%;padding:.6rem;background:#b99f87;color:#fff;border:none;border-radius:40px;cursor:pointer;font-size:.75rem;font-weight:500;margin-bottom:.5rem}
+    .btn-auth-disabled{width:100%;padding:.6rem;background:#ddd;color:#888;border:none;border-radius:40px;cursor:not-allowed;font-size:.75rem;font-weight:500;margin-bottom:.5rem}
+    .btn-login{width:100%;padding:.6rem;background:#222;color:#fff;border:none;border-radius:40px;cursor:pointer;font-size:.75rem;font-weight:500;margin-bottom:1rem}
+    .doc-editor{background:#fff9f2;border-radius:24px;padding:1.5rem;border:1px solid #e7dbd0}
+    .doc-title{width:100%;font-size:1.5rem;border:none;background:transparent;border-bottom:2px solid #e2d4c6;margin-bottom:1rem;padding:.5rem 0;outline:none;color:#5f5347}
+    .toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+    .toolbar button{padding:4px 10px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:12px}
+    .section{background:transparent;border-radius:0;border:none;margin-bottom:1rem;overflow:hidden}
+    .section-header{background:transparent;padding:.3rem 0;font-size:.75rem;font-weight:600;color:#b99f87;border:none}
+    .section-content{padding:.4rem 0;white-space:pre-wrap;line-height:1.5;min-height:24px;font-size:13px;color:#333}
+    .editor-actions{display:flex;gap:1rem;justify-content:flex-end;margin-top:1rem}
+    .btn{padding:.5rem 1.2rem;border-radius:40px;border:none;cursor:pointer;font-size:.8rem}
+    .btn-email{background:#b99f87;color:white}
+    .btn-print{background:#e9dfd4;color:#333}
+    @media print{body *{visibility:hidden}.doc-editor,.doc-editor *{visibility:visible}.doc-editor{position:absolute;left:0;top:0;width:100%}.toolbar,.editor-actions{display:none!important}}
+    @media (max-width:750px){.two-columns{grid-template-columns:1fr}}
+  </style>
 </head>
 <body>
 
 <div class="app">
-    <h1>📋 Pre & Post Care</h1>
-    <div class="two-columns">
-        <div class="doc-sidebar">
-            <h3>📄 TREATMENT DOCUMENTS</h3>
-            <button class="btn-add" id="addNewBtn">➕ Add New Document</button>
-            <button class="btn-login" id="loginBtn">Login</button>
-            <button class="btn-auth-disabled" id="btnSaveNew">Save Current as New</button>
-            <button class="btn-auth-disabled" id="btnUpdate">Update Current</button>
-            <button class="btn-auth-disabled" id="btnDelete">Delete Current</button>
-            <div id="docList" class="doc-list"></div>
-        </div>
-
-        <div class="doc-editor">
-            <input type="text" id="docTitle" class="doc-title" placeholder="Document Title">
-            <div class="toolbar">
-                <button onclick="bold('resultPlans')">Bold</button>
-                <button onclick="bullet('resultPlans')">• List</button>
-            </div>
-
-            <div class="section"><div class="section-header">Results & Treatment Plan</div><div class="section-content" id="resultPlans" contenteditable></div></div>
-            <div class="section"><div class="section-header">Contraindications</div><div class="section-content" id="contraindications" contenteditable></div></div>
-            <div class="section"><div class="section-header">Pre Treatment Care</div><div class="section-content" id="preTreatment" contenteditable></div></div>
-            <div class="section"><div class="section-header">Possible Side Effects</div><div class="section-content" id="sideEffects" contenteditable></div></div>
-            <div class="section"><div class="section-header">Post Treatment Care</div><div class="section-content" id="postDo" contenteditable></div></div>
-            <div class="section"><div class="section-header">What To Avoid</div><div class="section-content" id="postAvoid" contenteditable></div></div>
-
-            <div class="section" style="margin-top:1rem;font-size:12px;color:#666;">
-                If you have any reactions, please call: 604-580-2464 | infobclaser@dermapure.com
-            </div>
-
-            <div class="editor-actions">
-                <button class="btn btn-email" id="emailBtn">Send as Email</button>
-                <button class="btn btn-print" id="printBtn">Print / PDF</button>
-            </div>
-        </div>
+  <h1>📋 Pre & Post Care</h1>
+  <div class="two-columns">
+    <div class="doc-sidebar">
+      <h3>📄 TREATMENT DOCUMENTS</h3>
+      <button class="btn-add" id="addNewBtn">➕ Add New Document</button>
+      <button class="btn-login" id="loginBtn">Login</button>
+      <button class="btn-auth-disabled" id="btnSaveNew">Save Current as New</button>
+      <button class="btn-auth-disabled" id="btnUpdate">Update Current</button>
+      <button class="btn-auth-disabled" id="btnDelete">Delete Current</button>
+      <div id="docList" class="doc-list"></div>
     </div>
+
+    <div class="doc-editor">
+      <input type="text" id="docTitle" class="doc-title" placeholder="Document Title">
+      <div class="toolbar">
+        <button onclick="bold('resultPlans')">Bold</button>
+        <button onclick="bullet('resultPlans')">• List</button>
+      </div>
+
+      <div class="section"><div class="section-header">Results & Treatment Plan</div><div class="section-content" id="resultPlans" contenteditable></div></div>
+      <div class="section"><div class="section-header">Contraindications</div><div class="section-content" id="contraindications" contenteditable></div></div>
+      <div class="section"><div class="section-header">Pre Treatment Care</div><div class="section-content" id="preTreatment" contenteditable></div></div>
+      <div class="section"><div class="section-header">Possible Side Effects</div><div class="section-content" id="sideEffects" contenteditable></div></div>
+      <div class="section"><div class="section-header">Post Treatment Care</div><div class="section-content" id="postDo" contenteditable></div></div>
+      <div class="section"><div class="section-header">What To Avoid</div><div class="section-content" id="postAvoid" contenteditable></div></div>
+
+      <div class="section" style="margin-top:1rem;font-size:12px;color:#666;">
+        If you have any reactions, please call: 604-580-2464 | infobclaser@dermapure.com
+      </div>
+
+      <div class="editor-actions">
+        <button class="btn btn-email" id="emailBtn">Send as Email</button>
+        <button class="btn btn-print" id="printBtn">Print / PDF</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
 // ==============================
-// CONFIG (SUPABASE)
+// CONFIG
 // ==============================
 const SUP_URL = "https://dmrskyskryrdclknezth.supabase.co";
 const SUP_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
 const TABLE = "prepost_documents";
 
-// LOCAL AUTH (NO CONFLICT WITH MAIN SITE)
-let isLoggedIn = localStorage.getItem("prepost_auth") === "true";
+// 本地登录（完全独立，不冲突主站）
+const AUTH_KEY = "prepost_auth_local";
+let isLoggedIn = localStorage.getItem(AUTH_KEY) === "true";
 let docs = [];
 let currentId = null;
-
 const fields = ["resultPlans","contraindications","preTreatment","sideEffects","postDo","postAvoid"];
 
+updateBtnState();
+loadDocsFromCloud();
+
 // ==============================
-// LOGIN
+// 登录/登出（登录后才能存云）
 // ==============================
 function toggleLogin() {
   if (isLoggedIn) {
     isLoggedIn = false;
-    localStorage.setItem("prepost_auth", "false");
-    updateBtn();
+    localStorage.setItem(AUTH_KEY, "false");
+    updateBtnState();
     alert("Logged out");
     return;
   }
-
-  const e = prompt("Email");
-  const p = prompt("Password");
-  if (e === "admin@clinic.com" && p === "clinic123") {
+  const email = prompt("Login Email");
+  const pass = prompt("Password");
+  // 你可以改这里的账号密码
+  if (email === "admin@clinic.com" && pass === "clinic123") {
     isLoggedIn = true;
-    localStorage.setItem("prepost_auth", "true");
-    updateBtn();
-    alert("Login success");
+    localStorage.setItem(AUTH_KEY, "true");
+    updateBtnState();
+    alert("Login success ✅");
   } else {
-    alert("Incorrect login");
+    alert("Incorrect email/password ❌");
   }
 }
 
-function updateBtn() {
-  const c = isLoggedIn ? "btn-auth-enabled" : "btn-auth-disabled";
-  document.getElementById("btnSaveNew").className = c;
-  document.getElementById("btnUpdate").className = c;
-  document.getElementById("btnDelete").className = c;
+function updateBtnState() {
+  const cls = isLoggedIn ? "btn-auth-enabled" : "btn-auth-disabled";
+  document.getElementById("btnSaveNew").className = cls;
+  document.getElementById("btnUpdate").className = cls;
+  document.getElementById("btnDelete").className = cls;
   document.getElementById("loginBtn").textContent = isLoggedIn ? "Logout" : "Login";
 }
 
 // ==============================
-// LOAD FROM SUPABASE
+// 加载云端文档（所有人可看）
 // ==============================
-async function loadAll() {
-  const r = await fetch(`${SUP_URL}/rest/v1/${TABLE}?select=*`, {
-    headers: { apikey: SUP_KEY }
-  });
-  const data = await r.json();
-  docs = data || [];
-  renderList();
+async function loadDocsFromCloud() {
+  try {
+    const res = await fetch(`${SUP_URL}/rest/v1/${TABLE}?select=*`, {
+      headers: { apikey: SUP_KEY }
+    });
+    docs = await res.json();
+    renderDocList();
+  } catch (err) {
+    console.error(err);
+  }
 }
 
-function renderList() {
+function renderDocList() {
   document.getElementById("docList").innerHTML = docs.map(d => `
     <div class="doc-item ${currentId == d.id ? 'active' : ''}" onclick="openDoc(${d.id})">
-      ${d.title}
+      ${d.title || 'Untitled'}
     </div>
   `).join("");
 }
 
 // ==============================
-// LOCAL EDIT (EVERYONE CAN DO)
+// 本地编辑（所有人可用）
 // ==============================
 function newDoc() {
   currentId = null;
@@ -156,17 +163,17 @@ function openDoc(id) {
   const d = docs.find(x => x.id == id);
   if (!d) return;
   currentId = d.id;
-  document.getElementById("docTitle").value = d.title;
-  document.getElementById("resultPlans").innerText = d.result_plans;
-  document.getElementById("contraindications").innerText = d.contraindications;
-  document.getElementById("preTreatment").innerText = d.pre_treatment;
-  document.getElementById("sideEffects").innerText = d.side_effects;
-  document.getElementById("postDo").innerText = d.post_do;
-  document.getElementById("postAvoid").innerText = d.post_avoid;
-  renderList();
+  document.getElementById("docTitle").value = d.title || "";
+  document.getElementById("resultPlans").innerText = d.result_plans || "";
+  document.getElementById("contraindications").innerText = d.contraindications || "";
+  document.getElementById("preTreatment").innerText = d.pre_treatment || "";
+  document.getElementById("sideEffects").innerText = d.side_effects || "";
+  document.getElementById("postDo").innerText = d.post_do || "";
+  document.getElementById("postAvoid").innerText = d.post_avoid || "";
+  renderDocList();
 }
 
-function getCurrent() {
+function getCurrentData() {
   return {
     title: document.getElementById("docTitle").value || "Untitled",
     result_plans: document.getElementById("resultPlans").innerText,
@@ -179,66 +186,93 @@ function getCurrent() {
 }
 
 // ==============================
-// CLOUD ACTIONS (LOGIN ONLY)
+// 🔥 关键修复：必须登录才能存云
 // ==============================
-async function saveNew() {
-  if (!isLoggedIn) return alert("Login required");
-  await fetch(`${SUP_URL}/rest/v1/${TABLE}`, {
-    method: "POST",
-    headers: { apikey: SUP_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify(getCurrent())
-  });
-  loadAll();
-  alert("Saved to cloud ✅");
+async function saveNewToCloud() {
+  // 🔥 未登录直接拒绝
+  if (!isLoggedIn) {
+    alert("Please login to save to cloud ❌");
+    return;
+  }
+
+  try {
+    const body = getCurrentData();
+    await fetch(`${SUP_URL}/rest/v1/${TABLE}`, {
+      method: "POST",
+      headers: {
+        apikey: SUP_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    });
+    await loadDocsFromCloud();
+    alert("Saved to cloud ✅");
+  } catch (err) {
+    alert("Save failed");
+  }
 }
 
-async function updateDoc() {
-  if (!isLoggedIn || !currentId) return alert("Login required");
-  await fetch(`${SUP_URL}/rest/v1/${TABLE}?id=eq.${currentId}`, {
-    method: "PATCH",
-    headers: { apikey: SUP_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify(getCurrent())
-  });
-  loadAll();
-  alert("Updated ✅");
+async function updateCloudDoc() {
+  if (!isLoggedIn) {
+    alert("Please login to update ❌");
+    return;
+  }
+  try {
+    await fetch(`${SUP_URL}/rest/v1/${TABLE}?id=eq.${currentId}`, {
+      method: "PATCH",
+      headers: {
+        apikey: SUP_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(getCurrentData())
+    });
+    await loadDocsFromCloud();
+    alert("Updated ✅");
+  } catch (err) {
+    alert("Update failed");
+  }
 }
 
-async function deleteDoc() {
-  if (!isLoggedIn || !currentId) return alert("Login required");
-  await fetch(`${SUP_URL}/rest/v1/${TABLE}?id=eq.${currentId}`, {
-    method: "DELETE",
-    headers: { apikey: SUP_KEY }
-  });
-  newDoc();
-  loadAll();
-  alert("Deleted ✅");
+async function deleteCloudDoc() {
+  if (!isLoggedIn) {
+    alert("Please login to delete ❌");
+    return;
+  }
+  try {
+    await fetch(`${SUP_URL}/rest/v1/${TABLE}?id=eq.${currentId}`, {
+      method: "DELETE",
+      headers: { apikey: SUP_KEY }
+    });
+    newDoc();
+    await loadDocsFromCloud();
+    alert("Deleted ✅");
+  } catch (err) {
+    alert("Delete failed");
+  }
 }
 
 // ==============================
-// TOOLS
+// 工具
 // ==============================
 function bold(id) { document.getElementById(id).focus(); document.execCommand("bold"); }
 function bullet(id) { document.getElementById(id).focus(); document.execCommand("insertUnorderedList"); }
 function printDoc() { window.print(); }
 function emailDoc() {
-  const t = document.getElementById("docTitle").value;
-  const c = fields.map(f => document.getElementById(f).innerText).join("\n\n");
-  window.location.href = `mailto:?subject=${encodeURIComponent(t)}&body=${encodeURIComponent(c)}`;
+  const title = document.getElementById("docTitle").value;
+  const content = fields.map(f => document.getElementById(f).innerText).join("\n\n");
+  window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(content)}`;
 }
 
 // ==============================
-// INIT
+// 绑定按钮
 // ==============================
 document.getElementById("loginBtn").onclick = toggleLogin;
 document.getElementById("addNewBtn").onclick = newDoc;
-document.getElementById("btnSaveNew").onclick = saveNew;
-document.getElementById("btnUpdate").onclick = updateDoc;
-document.getElementById("btnDelete").onclick = deleteDoc;
+document.getElementById("btnSaveNew").onclick = saveNewToCloud;
+document.getElementById("btnUpdate").onclick = updateCloudDoc;
+document.getElementById("btnDelete").onclick = deleteCloudDoc;
 document.getElementById("emailBtn").onclick = emailDoc;
 document.getElementById("printBtn").onclick = printDoc;
-
-updateBtn();
-loadAll();
 </script>
 </body>
 </html>
