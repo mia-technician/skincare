@@ -96,7 +96,15 @@
             </div>
         </div>
     </div>
-
+// 页面加载时自动检查是否已登录
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data } = await supabase.auth.getUser();
+  if (data.user) {
+    isLoggedIn = true;
+    updateAuthUI();
+    loadCloudDocuments();
+  }
+});
     <script>
         // 👇 注释掉原来独立创建的 supabase 实例
         // const supabase = supabase.createClient(
