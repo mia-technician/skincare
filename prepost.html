@@ -107,29 +107,20 @@
         .section-header { background: transparent; padding: 0.3rem 0; font-size: 0.75rem; font-weight: 300; color: #b99f87; border: none; letter-spacing: 0.3px; }
         
         /* 统一右侧内容区域的字体和字号 */
-        .section-content, 
-        .section-content *,
-        [contenteditable="true"],
-        [contenteditable="true"] * {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-            font-size: 14px !important;
-            line-height: 1.6 !important;
-            color: #333 !important;
-        }
-        
-        .section-content { 
-            padding: 0.4rem 0; 
-            white-space: pre-wrap; 
-            min-height: 24px; 
+        .section-content {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            padding: 0.4rem 0;
+            white-space: pre-wrap;
+            min-height: 24px;
             outline: none;
             border-radius: 8px;
             transition: background 0.2s;
         }
-        .section-content:focus {
-            background: #fffef8;
-        }
         
-        /* 列表样式 - 保持统一字体 */
+        /* 列表样式 */
         .section-content ul, 
         .section-content ol {
             margin: 0.5rem 0;
@@ -137,29 +128,10 @@
         }
         .section-content li {
             margin: 0.25rem 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-            font-size: 14px !important;
-            line-height: 1.6 !important;
         }
         
-        /* 强制覆盖任何内联样式 */
-        .section-content b,
-        .section-content strong,
-        .section-content i,
-        .section-content em,
-        .section-content span,
-        .section-content div,
-        .section-content p {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-            font-size: 14px !important;
-            line-height: 1.6 !important;
-        }
-        
-        /* 粗体保留但字体大小不变 */
-        .section-content b,
-        .section-content strong {
-            font-weight: 600 !important;
-            font-size: 14px !important;
+        .section-content:focus {
+            background: #fffef8;
         }
         
         .editor-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem; }
@@ -276,40 +248,6 @@
             return;
         }
         
-        // 统一所有内容区域的字体样式
-        const contentAreas = ['resultPlans', 'contraindications', 'preTreatment', 'sideEffects', 'postDo', 'postAvoid'];
-        contentAreas.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                // 设置基础字体样式
-                el.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-                el.style.fontSize = "14px";
-                el.style.lineHeight = "1.6";
-                el.style.color = "#333";
-                
-                // 监听粘贴事件，确保粘贴的内容也统一格式
-                el.addEventListener('paste', function(e) {
-                    e.preventDefault();
-                    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
-                    document.execCommand('insertText', false, text);
-                });
-                
-                // 监听输入事件，确保新输入的内容保持统一字体
-                el.addEventListener('input', function() {
-                    // 遍历所有子元素，强制统一字体
-                    const allChildren = el.querySelectorAll('*');
-                    allChildren.forEach(child => {
-                        if (child.style.fontSize !== '14px') {
-                            child.style.fontSize = '14px';
-                        }
-                        if (child.style.fontFamily !== el.style.fontFamily) {
-                            child.style.fontFamily = el.style.fontFamily;
-                        }
-                    });
-                });
-            }
-        });
-        
         await loadDocuments();
         
         document.getElementById('addNewBtn').addEventListener('click', addNewDocument);
@@ -318,6 +256,19 @@
         document.getElementById('deleteBtn').addEventListener('click', deleteDocument);
         document.getElementById('emailBtn').addEventListener('click', sendEmailSimple);
         document.getElementById('printBtn').addEventListener('click', () => window.print());
+        
+        // 为所有内容区域添加粘贴事件监听，统一字体
+        const contentAreas = ['resultPlans', 'contraindications', 'preTreatment', 'sideEffects', 'postDo', 'postAvoid'];
+        contentAreas.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+                    document.execCommand('insertText', false, text);
+                });
+            }
+        });
     });
 
     async function loadDocuments() {
@@ -359,62 +310,37 @@
         currentId = doc.id;
         document.getElementById('docTitle').value = doc.title || '';
         
-        // 加载内容并统一字体
-        const contentAreas = ['resultPlans', 'contraindications', 'preTreatment', 'sideEffects', 'postDo', 'postAvoid'];
-        contentAreas.forEach(area => {
-            const el = document.getElementById(area);
-            if (el && doc[area]) {
-                el.innerHTML = doc[area];
-                // 统一所有子元素的字体
-                const allChildren = el.querySelectorAll('*');
-                allChildren.forEach(child => {
-                    child.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-                    child.style.fontSize = "14px";
-                    child.style.lineHeight = "1.6";
-                });
-            } else if (el) {
-                el.innerHTML = '';
-            }
-        });
+        // 直接设置 innerHTML，保留原有格式
+        document.getElementById('resultPlans').innerHTML = doc.result_plans || '';
+        document.getElementById('contraindications').innerHTML = doc.contraindications || '';
+        document.getElementById('preTreatment').innerHTML = doc.pre_treatment || '';
+        document.getElementById('sideEffects').innerHTML = doc.side_effects || '';
+        document.getElementById('postDo').innerHTML = doc.post_do || '';
+        document.getElementById('postAvoid').innerHTML = doc.post_avoid || '';
         
         renderDocumentList();
     };
 
     function getCurrentDocumentData() {
-        // 获取内容前先清理字体样式，只保留HTML结构
-        const contentAreas = ['resultPlans', 'contraindications', 'preTreatment', 'sideEffects', 'postDo', 'postAvoid'];
-        const data = {
-            title: document.getElementById('docTitle').value.trim() || 'Untitled'
+        return {
+            title: document.getElementById('docTitle').value.trim() || 'Untitled',
+            result_plans: document.getElementById('resultPlans').innerHTML || '',
+            contraindications: document.getElementById('contraindications').innerHTML || '',
+            pre_treatment: document.getElementById('preTreatment').innerHTML || '',
+            side_effects: document.getElementById('sideEffects').innerHTML || '',
+            post_do: document.getElementById('postDo').innerHTML || '',
+            post_avoid: document.getElementById('postAvoid').innerHTML || ''
         };
-        
-        contentAreas.forEach(area => {
-            const el = document.getElementById(area);
-            if (el) {
-                // 克隆元素，移除内联样式后再保存
-                const clone = el.cloneNode(true);
-                const allElements = clone.querySelectorAll('*');
-                allElements.forEach(el => {
-                    el.style.fontFamily = '';
-                    el.style.fontSize = '';
-                    el.style.lineHeight = '';
-                    el.style.color = '';
-                });
-                data[area] = clone.innerHTML || '';
-            } else {
-                data[area] = '';
-            }
-        });
-        
-        return data;
     }
 
     function clearEditor() {
         document.getElementById('docTitle').value = '';
-        const contentAreas = ['resultPlans', 'contraindications', 'preTreatment', 'sideEffects', 'postDo', 'postAvoid'];
-        contentAreas.forEach(area => {
-            const el = document.getElementById(area);
-            if (el) el.innerHTML = '';
-        });
+        document.getElementById('resultPlans').innerHTML = '';
+        document.getElementById('contraindications').innerHTML = '';
+        document.getElementById('preTreatment').innerHTML = '';
+        document.getElementById('sideEffects').innerHTML = '';
+        document.getElementById('postDo').innerHTML = '';
+        document.getElementById('postAvoid').innerHTML = '';
     }
 
     function addNewDocument() {
@@ -496,34 +422,25 @@
 
     // Format text function - supports bold and lists
     window.formatText = function(command) {
-        const activeElement = document.activeElement;
+        // 获取当前焦点元素
+        let activeElement = document.activeElement;
+        
+        // 如果焦点不在内容区域，尝试找到并聚焦第一个内容区域
+        if (!activeElement || !activeElement.classList || !activeElement.classList.contains('section-content')) {
+            const firstContent = document.querySelector('.section-content');
+            if (firstContent) {
+                firstContent.focus();
+                activeElement = firstContent;
+            }
+        }
+        
         if (activeElement && activeElement.classList && activeElement.classList.contains('section-content')) {
             if (command === 'insertUnorderedList' || command === 'insertOrderedList') {
                 document.execCommand(command, false, null);
-                // 列表创建后统一字体
-                setTimeout(() => {
-                    const lists = activeElement.querySelectorAll('ul, ol, li');
-                    lists.forEach(el => {
-                        el.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-                        el.style.fontSize = "14px";
-                        el.style.lineHeight = "1.6";
-                    });
-                }, 10);
             } else if (command === 'bold') {
                 document.execCommand('bold', false, null);
             }
             activeElement.focus();
-        } else {
-            // 如果没有聚焦在内容区，尝试获取第一个内容区
-            const firstContent = document.querySelector('.section-content');
-            if (firstContent) {
-                firstContent.focus();
-                if (command === 'insertUnorderedList' || command === 'insertOrderedList') {
-                    document.execCommand(command, false, null);
-                } else if (command === 'bold') {
-                    document.execCommand('bold', false, null);
-                }
-            }
         }
     };
     
