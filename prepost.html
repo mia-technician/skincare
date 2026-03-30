@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pre & Post Care</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{background:#f5efe9;font-family:Inter,sans-serif;padding:2rem 1rem}
@@ -78,48 +79,26 @@
 </div>
 
 <script>
-// ==============================
-// CONFIG
-// ==============================
-const SUP_URL = "https://dmrskyskryrdclknezth.supabase.co";
-const SUP_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
-const TABLE = "prepost_documents";
+// 独立登录，不冲突主站
+const supabase = supabase.createClient(
+  "https://dmrskyskryrdclknezth.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8",
+  { auth: { storageKey: "prepost-auth-isolated" } }
+);
 
-// 本地登录（完全独立，不冲突主站）
-const AUTH_KEY = "prepost_auth_local";
-let isLoggedIn = localStorage.getItem(AUTH_KEY) === "true";
-let docs = [];
 let currentId = null;
-const fields = ["resultPlans","contraindications","preTreatment","sideEffects","postDo","postAvoid"];
+let documents = [];
+let isLoggedIn = false;
 
-updateBtnState();
-loadDocsFromCloud();
+const fieldIds = ["resultPlans","contraindications","preTreatment","sideEffects","postDo","postAvoid"];
 
-// ==============================
-// 登录/登出（登录后才能存云）
-// ==============================
-function toggleLogin() {
-  if (isLoggedIn) {
-    isLoggedIn = false;
-    localStorage.setItem(AUTH_KEY, "false");
-    updateBtnState();
-    alert("Logged out");
-    return;
-  }
-  const email = prompt("Login Email");
-  const pass = prompt("Password");
-  // 你可以改这里的账号密码
-  if (email === "admin@clinic.com" && pass === "clinic123") {
-    isLoggedIn = true;
-    localStorage.setItem(AUTH_KEY, "true");
-    updateBtnState();
-    alert("Login success ✅");
-  } else {
-    alert("Incorrect email/password ❌");
-  }
-}
+supabase.auth.onAuthStateChange((_, session) => {
+  isLoggedIn = !!session;
+  updateUI();
+  loadDocs();
+});
 
-function updateBtnState() {
+function updateUI() {
   const cls = isLoggedIn ? "btn-auth-enabled" : "btn-auth-disabled";
   document.getElementById("btnSaveNew").className = cls;
   document.getElementById("btnUpdate").className = cls;
@@ -127,53 +106,64 @@ function updateBtnState() {
   document.getElementById("loginBtn").textContent = isLoggedIn ? "Logout" : "Login";
 }
 
-// ==============================
-// 加载云端文档（所有人可看）
-// ==============================
-async function loadDocsFromCloud() {
-  try {
-    const res = await fetch(`${SUP_URL}/rest/v1/${TABLE}?select=*`, {
-      headers: { apikey: SUP_KEY }
-    });
-    docs = await res.json();
-    renderDocList();
-  } catch (err) {
-    console.error(err);
+// 登录
+async function toggleLogin() {
+  if (isLoggedIn) {
+    await supabase.auth.signOut();
+    alert("Logged out");
+    return;
   }
+
+  const email = prompt("Email:");
+  const password = prompt("Password:");
+  if (!email || !password) return;
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) alert(error.message);
+  else alert("Login success!");
 }
 
-function renderDocList() {
-  document.getElementById("docList").innerHTML = docs.map(d => `
-    <div class="doc-item ${currentId == d.id ? 'active' : ''}" onclick="openDoc(${d.id})">
-      ${d.title || 'Untitled'}
+// 加载所有文档（所有人可看）
+async function loadDocs() {
+  const { data } = await supabase
+    .from("prepost_documents")
+    .select()
+    .order("created_at", { ascending: false });
+
+  documents = data || [];
+  renderList();
+}
+
+function renderList() {
+  document.getElementById("docList").innerHTML = documents.map(d => `
+    <div class="doc-item ${currentId === d.id ? 'active' : ''}" onclick="openDoc(${d.id})">
+      ${d.title}
     </div>
-  `).join("");
+  `).join('');
 }
 
-// ==============================
-// 本地编辑（所有人可用）
-// ==============================
+// 本地编辑
 function newDoc() {
   currentId = null;
   document.getElementById("docTitle").value = "New Document";
-  fields.forEach(f => document.getElementById(f).innerText = "");
+  fieldIds.forEach(id => document.getElementById(id).innerText = "");
 }
 
 function openDoc(id) {
-  const d = docs.find(x => x.id == id);
+  const d = documents.find(x => x.id === id);
   if (!d) return;
   currentId = d.id;
-  document.getElementById("docTitle").value = d.title || "";
-  document.getElementById("resultPlans").innerText = d.result_plans || "";
-  document.getElementById("contraindications").innerText = d.contraindications || "";
-  document.getElementById("preTreatment").innerText = d.pre_treatment || "";
-  document.getElementById("sideEffects").innerText = d.side_effects || "";
-  document.getElementById("postDo").innerText = d.post_do || "";
-  document.getElementById("postAvoid").innerText = d.post_avoid || "";
-  renderDocList();
+  document.getElementById("docTitle").value = d.title;
+  document.getElementById("resultPlans").innerText = d.result_plans;
+  document.getElementById("contraindications").innerText = d.contraindications;
+  document.getElementById("preTreatment").innerText = d.pre_treatment;
+  document.getElementById("sideEffects").innerText = d.side_effects;
+  document.getElementById("postDo").innerText = d.post_do;
+  document.getElementById("postAvoid").innerText = d.post_avoid;
+  renderList();
 }
 
-function getCurrentData() {
+function getCurrent() {
   return {
     title: document.getElementById("docTitle").value || "Untitled",
     result_plans: document.getElementById("resultPlans").innerText,
@@ -186,93 +176,49 @@ function getCurrentData() {
 }
 
 // ==============================
-// 🔥 关键修复：必须登录才能存云
+// 🔥 登录才能保存到云（正确逻辑）
 // ==============================
-async function saveNewToCloud() {
-  // 🔥 未登录直接拒绝
-  if (!isLoggedIn) {
-    alert("Please login to save to cloud ❌");
-    return;
-  }
-
-  try {
-    const body = getCurrentData();
-    await fetch(`${SUP_URL}/rest/v1/${TABLE}`, {
-      method: "POST",
-      headers: {
-        apikey: SUP_KEY,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(body)
-    });
-    await loadDocsFromCloud();
-    alert("Saved to cloud ✅");
-  } catch (err) {
-    alert("Save failed");
-  }
+async function saveNew() {
+  if (!isLoggedIn) return alert("Please login to save to cloud ❌");
+  const { error } = await supabase.from("prepost_documents").insert([getCurrent()]);
+  if (error) alert(error.message);
+  else { alert("Saved to cloud ✅"); loadDocs(); }
 }
 
-async function updateCloudDoc() {
-  if (!isLoggedIn) {
-    alert("Please login to update ❌");
-    return;
-  }
-  try {
-    await fetch(`${SUP_URL}/rest/v1/${TABLE}?id=eq.${currentId}`, {
-      method: "PATCH",
-      headers: {
-        apikey: SUP_KEY,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(getCurrentData())
-    });
-    await loadDocsFromCloud();
-    alert("Updated ✅");
-  } catch (err) {
-    alert("Update failed");
-  }
+async function updateDoc() {
+  if (!isLoggedIn) return alert("Please login to update ❌");
+  const { error } = await supabase.from("prepost_documents").update(getCurrent()).eq("id", currentId);
+  if (error) alert(error.message);
+  else { alert("Updated ✅"); loadDocs(); }
 }
 
-async function deleteCloudDoc() {
-  if (!isLoggedIn) {
-    alert("Please login to delete ❌");
-    return;
-  }
-  try {
-    await fetch(`${SUP_URL}/rest/v1/${TABLE}?id=eq.${currentId}`, {
-      method: "DELETE",
-      headers: { apikey: SUP_KEY }
-    });
-    newDoc();
-    await loadDocsFromCloud();
-    alert("Deleted ✅");
-  } catch (err) {
-    alert("Delete failed");
-  }
+async function deleteDoc() {
+  if (!isLoggedIn) return alert("Please login to delete ❌");
+  const { error } = await supabase.from("prepost_documents").delete().eq("id", currentId);
+  if (error) alert(error.message);
+  else { alert("Deleted ✅"); newDoc(); loadDocs(); }
 }
 
-// ==============================
 // 工具
-// ==============================
-function bold(id) { document.getElementById(id).focus(); document.execCommand("bold"); }
-function bullet(id) { document.getElementById(id).focus(); document.execCommand("insertUnorderedList"); }
-function printDoc() { window.print(); }
-function emailDoc() {
+function bold(id) { document.getElementById(id).focus(); document.execCommand('bold'); }
+function bullet(id) { document.getElementById(id).focus(); document.execCommand('insertUnorderedList'); }
+function doPrint() { window.print(); }
+function sendEmail() {
   const title = document.getElementById("docTitle").value;
-  const content = fields.map(f => document.getElementById(f).innerText).join("\n\n");
-  window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(content)}`;
+  const body = fieldIds.map(id => document.getElementById(id).innerText).join("\n\n");
+  window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
 }
 
-// ==============================
-// 绑定按钮
-// ==============================
+// 绑定
 document.getElementById("loginBtn").onclick = toggleLogin;
 document.getElementById("addNewBtn").onclick = newDoc;
-document.getElementById("btnSaveNew").onclick = saveNewToCloud;
-document.getElementById("btnUpdate").onclick = updateCloudDoc;
-document.getElementById("btnDelete").onclick = deleteCloudDoc;
-document.getElementById("emailBtn").onclick = emailDoc;
-document.getElementById("printBtn").onclick = printDoc;
+document.getElementById("btnSaveNew").onclick = saveNew;
+document.getElementById("btnUpdate").onclick = updateDoc;
+document.getElementById("btnDelete").onclick = deleteDoc;
+document.getElementById("emailBtn").onclick = sendEmail;
+document.getElementById("printBtn").onclick = doPrint;
+
+loadDocs();
 </script>
 </body>
 </html>
