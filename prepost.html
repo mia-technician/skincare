@@ -275,6 +275,35 @@
         });
     }
     
+    // 修复列表内容 - 确保 li 标签被包裹在 ul 中
+    function fixListContent(html) {
+        if (!html) return '';
+        
+        // 检查是否有孤立的 li 标签（没有包裹在 ul/ol 中）
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        // 查找所有没有被 ul/ol 包裹的 li 标签
+        const orphanLis = [];
+        tempDiv.querySelectorAll('li').forEach(li => {
+            if (!li.parentElement || (li.parentElement.tagName !== 'UL' && li.parentElement.tagName !== 'OL')) {
+                orphanLis.push(li);
+            }
+        });
+        
+        // 将孤立的 li 包裹到 ul 中
+        if (orphanLis.length > 0) {
+            const ul = document.createElement('ul');
+            orphanLis.forEach(li => {
+                ul.appendChild(li.cloneNode(true));
+                li.remove();
+            });
+            tempDiv.appendChild(ul);
+        }
+        
+        return tempDiv.innerHTML;
+    }
+    
     // 设置内容区域的统一行为
     function setupContentEditable(element, areaId) {
         if (!element) return;
@@ -418,10 +447,25 @@
             const el = document.getElementById(area);
             if (el) {
                 const dbField = fieldMapping[area];
-                const content = doc[dbField] || '';
+                let content = doc[dbField] || '';
                 console.log(`Loading ${area} (${dbField}):`, content);
+                
+                // 修复列表内容
+                if (content && (content.includes('<li>') || content.includes('<li '))) {
+                    content = fixListContent(content);
+                }
+                
                 el.innerHTML = content;
+                
+                // 如果内容为空，设置一个空白占位
+                if (!content || content === '') {
+                    el.innerHTML = '';
+                }
+                
                 cleanInlineStyles(el);
+                
+                // 确保内容可见
+                console.log(`After setting ${area}, innerHTML:`, el.innerHTML);
             }
         });
         
@@ -436,7 +480,7 @@
             const el = document.getElementById(area);
             if (el) {
                 const dbField = fieldMapping[area];
-                // 获取内容前清理内联样式
+                // 获取内容前清理内联样式，但保留 HTML 结构
                 const clone = el.cloneNode(true);
                 const allElements = clone.querySelectorAll('*');
                 allElements.forEach(child => {
@@ -567,6 +611,11 @@
                     numberedText += (idx + 1) + '. ' + li.innerText + '\n';
                 });
                 ol.replaceWith(document.createTextNode(numberedText));
+            });
+            // 处理孤立的 li 标签
+            temp.querySelectorAll('li').forEach(li => {
+                const bulletText = '• ' + li.innerText + '\n';
+                li.replaceWith(document.createTextNode(bulletText));
             });
             return temp.innerText || temp.textContent || '';
         }
