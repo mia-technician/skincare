@@ -17,29 +17,75 @@
         h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 1.8rem; color: #7f6e5d; text-align: center; margin-bottom: 2rem; text-transform: uppercase; }
         .two-columns { display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; min-height: 600px; }
         .doc-sidebar { background: #fff9f2; border-radius: 24px; padding: 1.2rem; border: 1px solid #e7dbd0; }
-        .doc-sidebar h3 { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; color: #8f7e6d; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; }
+        .doc-sidebar h3 { font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 600; color: #8f7e6d; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; letter-spacing: 0.5px; }
         .doc-list { list-style: none; max-height: 500px; overflow-y: auto; margin-bottom: 1rem; }
-        .doc-item { padding: 0.8rem 1rem; margin-bottom: 0.5rem; background: #f5efe8; border-radius: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
-        .doc-item:hover { background: #e9dfd4; transform: translateX(4px); }
-        .doc-item.active { background: #b99f87; color: white; }
-        .btn-add { width: 100%; padding: 0.6rem; background: #b99f87; color: #fff; border: none; border-radius: 40px; cursor: pointer; font-size: 0.75rem; font-weight: 500; margin-bottom: 1rem; }
+        
+        /* 优化后的文档列表项样式 - 字体更小更精致 */
+        .doc-item {
+            padding: 0.6rem 0.9rem;
+            margin-bottom: 0.4rem;
+            background: #f5efe8;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            font-size: 0.75rem;
+            font-weight: 450;
+            color: #5f5347;
+        }
+        .doc-item:hover {
+            background: #e9dfd4;
+            transform: translateX(3px);
+        }
+        .doc-item.active {
+            background: #b99f87;
+            color: white;
+        }
+        .doc-item span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+            display: inline-block;
+        }
+        
+        .btn-add { width: 100%; padding: 0.6rem; background: #b99f87; color: #fff; border: none; border-radius: 40px; cursor: pointer; font-size: 0.75rem; font-weight: 500; margin-bottom: 1rem; transition: background 0.2s; }
+        .btn-add:hover { background: #9e846c; }
         .btn-cloud { width: 100%; padding: 0.6rem; background: #b99f87; color: #fff; border: none; border-radius: 40px; cursor: pointer; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.5rem; transition: background 0.2s; }
         .btn-cloud:hover { background: #9e846c; }
         .doc-editor { background: #fff9f2; border-radius: 24px; padding: 1.5rem; border: 1px solid #e7dbd0; }
-        .doc-title { width: 100%; font-size: 1.5rem; border: none; background: transparent; border-bottom: 2px solid #e2d4c6; margin-bottom: 1rem; padding: 0.5rem 0; outline: none; color: #5f5347; }
+        .doc-title { width: 100%; font-size: 1.5rem; border: none; background: transparent; border-bottom: 2px solid #e2d4c6; margin-bottom: 1rem; padding: 0.5rem 0; outline: none; color: #5f5347; font-weight: 500; }
         .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-        .toolbar button { padding: 4px 10px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-size: 12px; }
+        .toolbar button { padding: 4px 10px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+        .toolbar button:hover { background: #f0e8e0; border-color: #b99f87; }
         .section { background: transparent; border-radius: 0; border: none; margin-bottom: 1rem; overflow: hidden; }
-        .section-header { background: transparent; padding: 0.3rem 0; font-size: 0.75rem; font-weight: 600; color: #b99f87; border: none; }
+        .section-header { background: transparent; padding: 0.3rem 0; font-size: 0.75rem; font-weight: 600; color: #b99f87; border: none; letter-spacing: 0.3px; }
         .section-content { padding: 0.4rem 0; white-space: pre-wrap; line-height: 1.5; min-height: 24px; font-size: 13px; color: #333; outline: none; }
         .editor-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem; }
-        .btn { padding: 0.5rem 1.2rem; border-radius: 40px; border: none; cursor: pointer; font-size: 0.8rem; }
+        .btn { padding: 0.5rem 1.2rem; border-radius: 40px; border: none; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
         .btn-email { background: #b99f87; color: white; }
+        .btn-email:hover { background: #9e846c; }
         .btn-print { background: #e9dfd4; color: #333; }
-        @media print { body * { visibility: hidden; } .doc-editor, .doc-editor * { visibility: visible; } .doc-editor { position: absolute; left: 0; top: 0; width: 100%; } .toolbar, .editor-actions { display: none !important; } }
-        @media (max-width: 750px) { .two-columns { grid-template-columns: 1fr; } }
+        .btn-print:hover { background: #ddd0c2; }
         
-        /* Simple notification */
+        /* 滚动条美化 */
+        .doc-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .doc-list::-webkit-scrollbar-track {
+            background: #f0e8e0;
+            border-radius: 10px;
+        }
+        .doc-list::-webkit-scrollbar-thumb {
+            background: #b99f87;
+            border-radius: 10px;
+        }
+        .doc-list::-webkit-scrollbar-thumb:hover {
+            background: #9e846c;
+        }
+        
         .toast {
             position: fixed;
             bottom: 30px;
@@ -57,6 +103,8 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+        @media print { body * { visibility: hidden; } .doc-editor, .doc-editor * { visibility: visible; } .doc-editor { position: absolute; left: 0; top: 0; width: 100%; } .toolbar, .editor-actions { display: none !important; } }
+        @media (max-width: 750px) { .two-columns { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -64,7 +112,7 @@
         <h1>📋 Pre & Post Care</h1>
         <div class="two-columns">
             <div class="doc-sidebar">
-                <h3>📄 DOCUMENTS</h3>
+                <h3>📄 TREATMENT DOCUMENTS</h3>
                 <button class="btn-add" id="addNewBtn">➕ New Document</button>
                 <button class="btn-cloud" id="saveBtn">💾 Save as New</button>
                 <button class="btn-cloud" id="updateBtn">✏️ Update Current</button>
@@ -82,7 +130,7 @@
                     <div class="section-content" id="resultPlans" contenteditable="true"></div>
                 </div>
                 <div class="section">
-                    <div class="section-header">❗️ CONTRAINDICATIONS</div>
+                    <div class="section-header">⚠️ CONTRAINDICATIONS</div>
                     <div class="section-content" id="contraindications" contenteditable="true"></div>
                 </div>
                 <div class="section">
@@ -102,7 +150,7 @@
                     <div class="section-content" id="postAvoid" contenteditable="true"></div>
                 </div>
                 <div class="section">
-                    <div class="section-header">📞 If you have any unusual reactions or concerns, please contact our office at 604-580-2464 OR infobclaser@dermapure.com</div>
+                    <div class="section-header">🚫 If you have any unusual reactions or concerns, please contact our office at 604-580-2464 OR infobclaser@dermapure.com</div>
                 </div>
                 <div class="editor-actions">
                     <button class="btn btn-email" id="emailBtn">📧 Send as Email</button>
@@ -158,7 +206,7 @@
         if (!docList) return;
         
         if (documents.length === 0) {
-            docList.innerHTML = '<div style="padding: 1rem; text-align: center; color: #999;">No documents</div>';
+            docList.innerHTML = '<div style="padding: 1rem; text-align: center; color: #999; font-size: 0.75rem;">No documents</div>';
             return;
         }
         
@@ -292,14 +340,14 @@
         // Build email body with simple but clean formatting
         let emailBody = '';
         emailBody += `${title}\n`;
-        emailBody += `${'='.repeat(title.length)}\n\n`;
+        emailBody += `${'='.repeat(Math.min(title.length, 50))}\n\n`;
         emailBody += `Date: ${currentDate}\n\n`;
         emailBody += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
         
         // Sections
         const sections = [
             { name: 'RESULTS & TREATMENT PLANS', icon: '📋', id: 'resultPlans' },
-            { name: 'CONTRAINDICATIONS', icon: '❗️', id: 'contraindications' },
+            { name: 'CONTRAINDICATIONS', icon: '⚠️', id: 'contraindications' },
             { name: 'PRE TREATMENT CARE', icon: '🩺', id: 'preTreatment' },
             { name: 'POSSIBLE SIDE EFFECT', icon: '⚠️', id: 'sideEffects' },
             { name: 'POST CARE - WHAT TO DO', icon: '🌸', id: 'postDo' },
