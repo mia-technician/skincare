@@ -16,11 +16,13 @@
         .app { max-width: 1400px; margin: 0 auto; background: #faf7f2; border-radius: 32px; border: 1px solid #e8dfd0; padding: 2rem; }
         h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 1.8rem; color: #7f6e5d; text-align: center; margin-bottom: 2rem; text-transform: uppercase; }
         .two-columns { display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; min-height: 600px; }
+        
+        /* 左侧样式 - 只保留文档列表 */
         .doc-sidebar { background: #fff9f2; border-radius: 24px; padding: 1.2rem; border: 1px solid #e7dbd0; }
         .doc-sidebar h3 { font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 600; color: #8f7e6d; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; letter-spacing: 0.5px; }
         .doc-list { list-style: none; max-height: 500px; overflow-y: auto; margin-bottom: 1rem; }
         
-        /* 优化后的文档列表项样式 - 字体更小更精致 */
+        /* 文档列表项样式 */
         .doc-item {
             padding: 0.6rem 0.9rem;
             margin-bottom: 0.4rem;
@@ -51,11 +53,40 @@
             display: inline-block;
         }
         
-        .btn-add { width: 100%; padding: 0.6rem; background: #b99f87; color: #fff; border: none; border-radius: 40px; cursor: pointer; font-size: 0.75rem; font-weight: 500; margin-bottom: 1rem; transition: background 0.2s; }
-        .btn-add:hover { background: #9e846c; }
-        .btn-cloud { width: 100%; padding: 0.6rem; background: #b99f87; color: #fff; border: none; border-radius: 40px; cursor: pointer; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.5rem; transition: background 0.2s; }
-        .btn-cloud:hover { background: #9e846c; }
+        /* 右侧样式 */
         .doc-editor { background: #fff9f2; border-radius: 24px; padding: 1.5rem; border: 1px solid #e7dbd0; }
+        
+        /* 按钮工具栏 - 放在右侧内容框上面 */
+        .action-toolbar {
+            display: flex;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e8dfd0;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            padding: 0.6rem 1.2rem;
+            background: #b99f87;
+            color: #fff;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .action-btn:hover {
+            background: #9e846c;
+            transform: translateY(-1px);
+        }
+        .action-btn:active {
+            transform: translateY(0);
+        }
+        
         .doc-title { width: 100%; font-size: 1.5rem; border: none; background: transparent; border-bottom: 2px solid #e2d4c6; margin-bottom: 1rem; padding: 0.5rem 0; outline: none; color: #5f5347; font-weight: 500; }
         .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
         .toolbar button { padding: 4px 10px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-size: 12px; transition: all 0.2s; }
@@ -111,15 +142,22 @@
     <div class="app">
         <h1>📋 Pre & Post Care</h1>
         <div class="two-columns">
+            <!-- 左侧：只保留文档列表 -->
             <div class="doc-sidebar">
                 <h3>📄 TREATMENT DOCUMENTS</h3>
-                <button class="btn-add" id="addNewBtn">➕ New Document</button>
-                <button class="btn-cloud" id="saveBtn">💾 Save as New</button>
-                <button class="btn-cloud" id="updateBtn">✏️ Update Current</button>
-                <button class="btn-cloud" id="deleteBtn">🗑️ Delete Current</button>
                 <div id="docList" class="doc-list"></div>
             </div>
+            
+            <!-- 右侧：编辑区域 -->
             <div class="doc-editor">
+                <!-- 按钮工具栏 - 四个按钮放在这里 -->
+                <div class="action-toolbar">
+                    <button class="action-btn" id="addNewBtn">➕ New Document</button>
+                    <button class="action-btn" id="saveBtn">💾 Save as New</button>
+                    <button class="action-btn" id="updateBtn">✏️ Update Current</button>
+                    <button class="action-btn" id="deleteBtn">🗑️ Delete Current</button>
+                </div>
+                
                 <input type="text" id="docTitle" class="doc-title" placeholder="Document Title">
                 <div class="toolbar">
                     <button onclick="formatBold('resultPlans')">Bold</button>
