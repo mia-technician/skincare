@@ -8,6 +8,7 @@
     
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -93,28 +94,24 @@
     </div>
     
 <script>
-    // Supabase configuration - REPLACE WITH YOUR ACTUAL CREDENTIALS
-    const SUPABASE_URL = "https://your-project.supabase.co";
-    const SUPABASE_ANON_KEY = "your-anon-key";
-    
     // Configuration
     const CLOUD_PASSWORD = "123456";
     let currentId = null;
     let documents = [];
-    let supabase = null;
+    
+    // Use the existing supabase instance from supabase.js (no redeclaration)
+    // supabase is already defined globally by supabase.js
 
     // Initialize on page load
     window.addEventListener('DOMContentLoaded', async function() {
-        // Initialize Supabase client
-        if (typeof supabaseJs !== 'undefined') {
-            supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } else if (window.supabase) {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } else {
+        // Check if Supabase is available
+        if (typeof supabase === 'undefined') {
             console.error('Supabase not found');
-            alert('Error: Supabase library not loaded. Please check your internet connection.');
+            alert('Error: Supabase not initialized. Please check supabase.js');
             return;
         }
+        
+        console.log('Supabase initialized successfully');
         
         // Load documents
         await loadDocuments();
@@ -140,6 +137,7 @@
             
             documents = data || [];
             renderDocumentList();
+            console.log('Loaded', documents.length, 'documents');
         } catch (error) {
             console.error('Error loading documents:', error);
             alert('Failed to load documents: ' + error.message);
