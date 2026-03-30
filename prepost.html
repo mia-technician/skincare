@@ -98,6 +98,19 @@
     </div>
     
 <script>
+      // ==================== 新增：强制同步登录状态（仅加这段） ====================
+  // 复用全局实例（和主页一致）
+  const supabase = window.supabase;
+  // 每2秒检查一次登录状态，确保同步
+  setInterval(async () => {
+    const { data } = await supabase.auth.getUser();
+    isLoggedIn = !!data.user; // 同步到你的全局变量
+    updateAuthUI(); // 更新按钮样式（用你原有函数）
+    if (isLoggedIn && documents.length === 0) {
+      await loadCloudDocuments(); // 登录后加载文档
+    }
+  }, 2000); // 每2秒检测一次，不影响性能
+    
   // ==================== 全局状态 ====================
   let isLoggedIn = false;
   let currentId = null;
