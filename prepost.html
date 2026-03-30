@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,9 +25,10 @@
         .doc-item:hover { background: #e9dfd4; transform: translateX(4px); }
         .doc-item.active { background: #b99f87; color: white; }
         .btn-add { width: 100%; padding: 0.6rem; background: #b99f87; color: #fff; border: none; border-radius: 40px; cursor: pointer; font-size: 0.75rem; font-weight: 500; margin-bottom: 1rem; }
-        .btn-auth-enabled { width: 100%; padding: 0.6rem; background: #b99f87; color: #fff; border: none; border-radius: 40px; cursor: pointer; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.5rem; }
-        .btn-auth-disabled { width: 100%; padding: 0.6rem; background: #ddd; color: #888; border: none; border-radius: 40px; cursor: not-allowed; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.5rem; }
-        .btn-login { width: 100%; padding: 0.6rem; background: #222; color: #fff; border: none; border-radius: 40px; cursor: pointer; font-size: 0.75rem; font-weight: 500; margin-bottom: 1rem; }
+        /* 三个云存储按钮样式 */
+        .btn-cloud { width: 100%; padding: 0.6rem; background: #b99f87; color: #fff; border: none; border-radius: 40px; cursor: pointer; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.5rem; transition: background 0.2s; }
+        .btn-cloud:hover { background: #9e846c; }
+        .btn-cloud:active { transform: scale(0.98); }
         .doc-editor { background: #fff9f2; border-radius: 24px; padding: 1.5rem; border: 1px solid #e7dbd0; }
         .doc-title { width: 100%; font-size: 1.5rem; border: none; background: transparent; border-bottom: 2px solid #e2d4c6; margin-bottom: 1rem; padding: 0.5rem 0; outline: none; color: #5f5347; }
         .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
@@ -51,10 +51,10 @@
             <div class="doc-sidebar">
                 <h3>📄 TREATMENT DOCUMENTS</h3>
                 <button class="btn-add" id="addNewBtn">➕ Add New Document</button>
-                <button class="btn-login" id="loginBtn">Login / Logout</button>
-                <button class="btn-auth-disabled" id="btnSaveNew">Save Current as New Document</button>
-                <button class="btn-auth-disabled" id="btnUpdate">Update Current Document</button>
-                <button class="btn-auth-disabled" id="btnDelete">Delete Current Document</button>
+                <!-- 三个云存储按钮：存储、更新、删除 -->
+                <button class="btn-cloud" id="btnSaveNew">💾 存储 (Save as New)</button>
+                <button class="btn-cloud" id="btnUpdate">✏️ 更新 (Update Current)</button>
+                <button class="btn-cloud" id="btnDelete">🗑️ 删除 (Delete Current)</button>
                 <div id="docList" class="doc-list"></div>
             </div>
             <div class="doc-editor">
@@ -99,33 +99,46 @@
     </div>
     
 <script>
-  // ==================== 全局变量（仅声明一次，彻底解决重复声明报错） ====================
-  const CLOUD_PASSWORD = "123456"; // 改成你自己的密码
-  let supabase = null; // 先声明为let，避免重复声明冲突
+  // ==================== 全局配置 ====================
+  const CLOUD_PASSWORD = "123456"; // 云存储密码，可自行修改
+  let supabase = null;
   let currentId = null;
   let documents = [];
 
-  // ==================== 页面加载初始化（先获取supabase实例，再执行逻辑） ====================
+  // ==================== 页面加载初始化 ====================
   window.onload = async function() {
-    // 初始化supabase（复用全局实例，只赋值一次）
-    supabase = window.supabase;
-    alert("页面加载完成，开始加载云端文档！"); // 验证代码执行
+    // 初始化 supabase（使用全局 window.supabase）
+    if (window.supabase) {
+        supabase = window.supabase;
+    } else {
+        alert("错误：未找到 supabase 配置，请确保 supabase.js 已正确加载。");
+        return;
+    }
     
     // 加载云端文档列表
     await loadCloudDocuments();
+    
+    // 绑定按钮事件（取代 onclick 属性，避免全局函数冲突）
+    document.getElementById("addNewBtn").addEventListener("click", addNewDoc);
+    document.getElementById("btnSaveNew").addEventListener("click", verifyAndSave);
+    document.getElementById("btnUpdate").addEventListener("click", verifyAndUpdate);
+    document.getElementById("btnDelete").addEventListener("click", verifyAndDelete);
+    document.getElementById("emailBtn").addEventListener("click", sendAsEmail);
+    document.getElementById("printBtn").addEventListener("click", () => window.print());
   };
 
-  // ==================== 按钮点击核心逻辑（绑定到HTML的onclick） ====================
-  // 保存文档（密码验证 + 云端保存）
+  // ==================== 云存储操作（均需密码验证） ====================
+  
+  // 存储文档（保存为新文档）
   async function verifyAndSave() {
-    // 验证密码
-    const inputPwd = prompt("请输入云存储密码：");
+    // 密码验证
+    const inputPwd = prompt("🔐 请输入云存储密码以保存新文档：");
     if (inputPwd !== CLOUD_PASSWORD) {
-      alert("密码错误！无法保存");
+      alert("密码错误！无法保存。");
       return;
     }
 
-    // 获取编辑框内容（兼容ID不存在的情况）
+    // 获取编辑框内容
     const title = document.getElementById("docTitle")?.value?.trim() || "未命名文档";
     const resultPlans = document.getElementById("resultPlans")?.innerText || "";
     const contraindications = document.getElementById("contraindications")?.innerText || "";
@@ -135,7 +148,6 @@
     const postAvoid = document.getElementById("postAvoid")?.innerText || "";
 
     try {
-      // 执行保存（使用已初始化的supabase）
       const { error } = await supabase
         .from("prepost_documents")
         .insert([{
@@ -149,24 +161,25 @@
         }]);
 
       if (error) throw new Error(error.message);
-      alert("保存成功！");
+      alert("✅ 文档保存成功！");
       await loadCloudDocuments(); // 刷新列表
       clearEditor(); // 清空编辑框
+      currentId = null;
     } catch (e) {
-      alert("保存失败：" + e.message);
+      alert("❌ 保存失败：" + e.message);
     }
   }
 
-  // 更新文档（密码验证 + 云端更新）
+  // 更新当前选中的文档
   async function verifyAndUpdate() {
     if (!currentId) {
-      alert("请先选择要更新的文档！");
+      alert("请先在左侧选择一个文档，然后再进行更新。");
       return;
     }
 
-    const inputPwd = prompt("请输入云存储密码：");
+    const inputPwd = prompt("🔐 请输入云存储密码以更新当前文档：");
     if (inputPwd !== CLOUD_PASSWORD) {
-      alert("密码错误！无法更新");
+      alert("密码错误！无法更新。");
       return;
     }
 
@@ -193,27 +206,27 @@
         .eq("id", currentId);
 
       if (error) throw new Error(error.message);
-      alert("更新成功！");
-      await loadCloudDocuments();
+      alert("✅ 文档更新成功！");
+      await loadCloudDocuments(); // 刷新列表，更新标题显示
     } catch (e) {
-      alert("更新失败：" + e.message);
+      alert("❌ 更新失败：" + e.message);
     }
   }
 
-  // 删除文档（密码验证 + 云端删除）
+  // 删除当前选中的文档
   async function verifyAndDelete() {
     if (!currentId) {
-      alert("请先选择要删除的文档！");
+      alert("请先在左侧选择一个文档，然后再进行删除。");
       return;
     }
 
-    const inputPwd = prompt("请输入云存储密码：");
+    const inputPwd = prompt("🔐 请输入云存储密码以删除文档：");
     if (inputPwd !== CLOUD_PASSWORD) {
-      alert("密码错误！无法删除");
+      alert("密码错误！无法删除。");
       return;
     }
 
-    if (!confirm("确定删除？删除后无法恢复！")) return;
+    if (!confirm("⚠️ 确定要永久删除此文档吗？此操作不可恢复！")) return;
 
     try {
       const { error } = await supabase
@@ -222,16 +235,17 @@
         .eq("id", currentId);
 
       if (error) throw new Error(error.message);
-      alert("删除成功！");
+      alert("🗑️ 文档已删除。");
       await loadCloudDocuments();
       clearEditor();
       currentId = null;
     } catch (e) {
-      alert("删除失败：" + e.message);
+      alert("❌ 删除失败：" + e.message);
     }
   }
 
-  // ==================== 基础辅助功能 ====================
+  // ==================== 辅助功能 ====================
+  
   // 加载云端文档列表
   async function loadCloudDocuments() {
     try {
@@ -243,37 +257,41 @@
       if (error) throw new Error(error.message);
       documents = data || [];
 
-      // 渲染文档列表（替换docList为你实际的列表ID）
+      // 渲染文档列表（带样式和选中高亮）
       const docList = document.getElementById("docList");
       if (docList) {
         docList.innerHTML = documents.map(item => `
-          <div onclick="selectDoc('${item.id}')" style="padding:8px; cursor:pointer; border:1px solid #eee; margin:4px 0;">
-            📄 ${item.title}
+          <div class="doc-item ${currentId === item.id ? 'active' : ''}" onclick="selectDoc('${item.id}')">
+            <span>📄 ${escapeHtml(item.title)}</span>
           </div>
         `).join('');
       }
     } catch (e) {
+      console.error("加载文档失败:", e);
       alert("加载文档失败：" + e.message);
     }
   }
 
-  // 选择文档（点击列表项填充编辑框）
-  function selectDoc(id) {
+  // 选择文档（供全局调用）
+  window.selectDoc = function(id) {
     currentId = id;
     const doc = documents.find(item => item.id === id);
     if (!doc) return;
 
-    // 填充编辑框（替换为你实际的ID）
-    if (document.getElementById("docTitle")) document.getElementById("docTitle").value = doc.title;
-    if (document.getElementById("resultPlans")) document.getElementById("resultPlans").innerText = doc.result_plans;
-    if (document.getElementById("contraindications")) document.getElementById("contraindications").innerText = doc.contraindications;
-    if (document.getElementById("preTreatment")) document.getElementById("preTreatment").innerText = doc.pre_treatment;
-    if (document.getElementById("sideEffects")) document.getElementById("sideEffects").innerText = doc.side_effects;
-    if (document.getElementById("postDo")) document.getElementById("postDo").innerText = doc.post_do;
-    if (document.getElementById("postAvoid")) document.getElementById("postAvoid").innerText = doc.post_avoid;
-  }
+    // 填充编辑框
+    if (document.getElementById("docTitle")) document.getElementById("docTitle").value = doc.title || "";
+    if (document.getElementById("resultPlans")) document.getElementById("resultPlans").innerText = doc.result_plans || "";
+    if (document.getElementById("contraindications")) document.getElementById("contraindications").innerText = doc.contraindications || "";
+    if (document.getElementById("preTreatment")) document.getElementById("preTreatment").innerText = doc.pre_treatment || "";
+    if (document.getElementById("sideEffects")) document.getElementById("sideEffects").innerText = doc.side_effects || "";
+    if (document.getElementById("postDo")) document.getElementById("postDo").innerText = doc.post_do || "";
+    if (document.getElementById("postAvoid")) document.getElementById("postAvoid").innerText = doc.post_avoid || "";
+    
+    // 刷新列表高亮
+    loadCloudDocuments();
+  };
 
-  // 清空编辑框
+  // 清空编辑器
   function clearEditor() {
     if (document.getElementById("docTitle")) document.getElementById("docTitle").value = "";
     if (document.getElementById("resultPlans")) document.getElementById("resultPlans").innerText = "";
@@ -284,12 +302,66 @@
     if (document.getElementById("postAvoid")) document.getElementById("postAvoid").innerText = "";
   }
 
-  // 新增文档（可选，加按钮调用 onclick="addNewDoc()"）
+  // 新增文档（清空并准备新建）
   function addNewDoc() {
     clearEditor();
     if (document.getElementById("docTitle")) document.getElementById("docTitle").value = "新文档";
     currentId = null;
+    // 刷新列表，移除高亮
+    loadCloudDocuments();
   }
+
+  // 发送邮件功能（保持原有）
+  function sendAsEmail() {
+    const title = document.getElementById("docTitle")?.value || "Pre & Post Care Document";
+    let body = `<h2>${title}</h2>`;
+    const sections = [
+      { name: "Results & Treatment Plans", id: "resultPlans" },
+      { name: "Contraindications", id: "contraindications" },
+      { name: "Pre Treatment Care", id: "preTreatment" },
+      { name: "Possible Side Effect", id: "sideEffects" },
+      { name: "Post Care - What To Do", id: "postDo" },
+      { name: "Post Care - What To Avoid", id: "postAvoid" }
+    ];
+    sections.forEach(section => {
+      const content = document.getElementById(section.id)?.innerText?.trim();
+      if (content) {
+        body += `<h3>${section.name}</h3><p>${content.replace(/\n/g, '<br>')}</p>`;
+      }
+    });
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoLink;
+  }
+
+  // 简单的防XSS辅助函数
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+      return c;
+    });
+  }
+
+  // ==================== 富文本格式化函数（保持原有） ====================
+  window.formatBold = function(elementId) {
+    const el = document.getElementById(elementId);
+    if (el) {
+      document.execCommand('bold', false, null);
+      el.focus();
+    }
+  };
+  
+  window.formatBullet = function(elementId) {
+    const el = document.getElementById(elementId);
+    if (el) {
+      document.execCommand('insertUnorderedList', false, null);
+      el.focus();
+    }
+  };
 </script>
 </body>
 </html>
