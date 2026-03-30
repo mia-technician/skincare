@@ -97,7 +97,9 @@
         </div>
     </div>
     
-// 页面加载时自动检查是否已登录
+<script>
+    
+    // 页面加载时自动检查是否已登录
 window.addEventListener('DOMContentLoaded', async () => {
   const { data } = await supabase.auth.getUser();
   if (data.user) {
@@ -107,7 +109,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 });
     
-<script>
   // 全局状态
   let isLoggedIn = false;
   let currentId = null;
