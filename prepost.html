@@ -248,17 +248,26 @@
     const CLOUD_PASSWORD = "123456";
     let currentId = null;
     let documents = [];
-    let currentActiveEditor = null; // 记录当前激活的编辑区域
+    let currentActiveEditor = null;
 
-    // 获取所有内容区域
+    // 内容区域ID映射
     const contentAreas = ['resultPlans', 'contraindications', 'preTreatment', 'sideEffects', 'postDo', 'postAvoid'];
+    
+    // 数据库字段名映射
+    const fieldMapping = {
+        'resultPlans': 'result_plans',
+        'contraindications': 'contraindications',
+        'preTreatment': 'pre_treatment',
+        'sideEffects': 'side_effects',
+        'postDo': 'post_do',
+        'postAvoid': 'post_avoid'
+    };
     
     // 统一字体处理函数 - 清理内联样式
     function cleanInlineStyles(element) {
         if (!element) return;
         const allElements = element.querySelectorAll('*');
         allElements.forEach(el => {
-            // 移除内联样式，让 CSS 接管
             if (el.style.fontSize) el.style.fontSize = '';
             if (el.style.fontFamily) el.style.fontFamily = '';
             if (el.style.lineHeight) el.style.lineHeight = '';
@@ -275,7 +284,6 @@
             e.preventDefault();
             const text = (e.clipboardData || window.clipboardData).getData('text/plain');
             document.execCommand('insertText', false, text);
-            // 粘贴后清理可能产生的内联样式
             setTimeout(() => cleanInlineStyles(element), 10);
         });
         
@@ -289,7 +297,6 @@
             currentActiveEditor = element;
         });
         
-        // 点击时也记录
         element.addEventListener('click', function() {
             currentActiveEditor = element;
         });
@@ -298,7 +305,6 @@
     // 应用格式到当前激活的编辑区域
     function applyFormat(command) {
         if (!currentActiveEditor) {
-            // 如果没有激活的编辑区域，尝试获取第一个有焦点的或默认第一个
             const firstContent = document.querySelector('.section-content');
             if (firstContent) {
                 firstContent.focus();
@@ -309,15 +315,12 @@
             }
         }
         
-        // 确保焦点在当前编辑区域
         currentActiveEditor.focus();
         
-        // 执行格式化命令
         if (command === 'bold') {
             document.execCommand('bold', false, null);
         } else if (command === 'insertUnorderedList') {
             document.execCommand('insertUnorderedList', false, null);
-            // 列表创建后清理样式
             setTimeout(() => cleanInlineStyles(currentActiveEditor), 10);
         } else if (command === 'insertOrderedList') {
             document.execCommand('insertOrderedList', false, null);
@@ -337,7 +340,6 @@
             const el = document.getElementById(id);
             if (el) {
                 setupContentEditable(el, id);
-                // 初始清理一次
                 cleanInlineStyles(el);
             }
         });
@@ -373,6 +375,7 @@
             
             if (error) throw error;
             documents = data || [];
+            console.log('Loaded documents:', documents);
             renderDocumentList();
         } catch (error) {
             console.error('Error loading documents:', error);
@@ -397,22 +400,33 @@
     }
 
     window.selectDocument = function(id) {
+        console.log('Selecting document with ID:', id);
         const doc = documents.find(d => String(d.id) === String(id));
-        if (!doc) return;
+        if (!doc) {
+            console.error('Document not found');
+            return;
+        }
         
+        console.log('Document data:', doc);
         currentId = doc.id;
+        
+        // 设置标题
         document.getElementById('docTitle').value = doc.title || '';
         
-        // 加载内容并清理样式
+        // 加载所有内容区域
         contentAreas.forEach(area => {
             const el = document.getElementById(area);
             if (el) {
-                el.innerHTML = doc[area] || '';
+                const dbField = fieldMapping[area];
+                const content = doc[dbField] || '';
+                console.log(`Loading ${area} (${dbField}):`, content);
+                el.innerHTML = content;
                 cleanInlineStyles(el);
             }
         });
         
         renderDocumentList();
+        showToast('Document loaded');
     };
 
     function getCurrentDocumentData() {
@@ -421,6 +435,7 @@
         contentAreas.forEach(area => {
             const el = document.getElementById(area);
             if (el) {
+                const dbField = fieldMapping[area];
                 // 获取内容前清理内联样式
                 const clone = el.cloneNode(true);
                 const allElements = clone.querySelectorAll('*');
@@ -430,9 +445,9 @@
                     child.style.lineHeight = '';
                     child.style.color = '';
                 });
-                data[area] = clone.innerHTML || '';
+                data[dbField] = clone.innerHTML || '';
             } else {
-                data[area] = '';
+                data[dbField] = '';
             }
         });
         
@@ -451,6 +466,7 @@
         clearEditor();
         currentId = null;
         renderDocumentList();
+        showToast('New document ready');
     }
 
     async function saveDocument() {
@@ -461,6 +477,7 @@
         }
         
         const data = getCurrentDocumentData();
+        console.log('Saving document:', data);
         
         try {
             const { error } = await supabase.from('prepost_documents').insert([data]);
@@ -470,6 +487,7 @@
             clearEditor();
             currentId = null;
         } catch (error) {
+            console.error('Save error:', error);
             alert('Failed to save: ' + error.message);
         }
     }
@@ -487,6 +505,7 @@
         }
         
         const data = getCurrentDocumentData();
+        console.log('Updating document', currentId, 'with:', data);
         
         try {
             const { error } = await supabase.from('prepost_documents').update(data).eq('id', currentId);
@@ -494,6 +513,7 @@
             showToast('Document updated successfully!');
             await loadDocuments();
         } catch (error) {
+            console.error('Update error:', error);
             alert('Failed to update: ' + error.message);
         }
     }
@@ -520,6 +540,7 @@
             currentId = null;
             await loadDocuments();
         } catch (error) {
+            console.error('Delete error:', error);
             alert('Failed to delete: ' + error.message);
         }
     }
