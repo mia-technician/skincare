@@ -98,9 +98,6 @@
     const CLOUD_PASSWORD = "123456";
     let currentId = null;
     let documents = [];
-    
-    // Use the existing supabase instance from supabase.js (no redeclaration)
-    // supabase is already defined globally by supabase.js
 
     // Initialize on page load
     window.addEventListener('DOMContentLoaded', async function() {
@@ -138,6 +135,9 @@
             documents = data || [];
             renderDocumentList();
             console.log('Loaded', documents.length, 'documents');
+            if (documents.length > 0) {
+                console.log('First document:', documents[0]);
+            }
         } catch (error) {
             console.error('Error loading documents:', error);
             alert('Failed to load documents: ' + error.message);
@@ -163,10 +163,22 @@
 
     // Select a document and load into editor
     window.selectDocument = function(id) {
-        currentId = id;
-        const doc = documents.find(d => d.id === id);
-        if (!doc) return;
+        console.log('Selecting document with ID:', id);
+        console.log('Available documents:', documents);
         
+        // Find the document (convert ID to string for comparison if needed)
+        const doc = documents.find(d => String(d.id) === String(id));
+        
+        if (!doc) {
+            console.error('Document not found with ID:', id);
+            alert('Document not found');
+            return;
+        }
+        
+        console.log('Found document:', doc);
+        currentId = doc.id;
+        
+        // Fill the editor with document content
         document.getElementById('docTitle').value = doc.title || '';
         document.getElementById('resultPlans').innerText = doc.result_plans || '';
         document.getElementById('contraindications').innerText = doc.contraindications || '';
@@ -175,7 +187,10 @@
         document.getElementById('postDo').innerText = doc.post_do || '';
         document.getElementById('postAvoid').innerText = doc.post_avoid || '';
         
+        // Update the active state in the list
         renderDocumentList();
+        
+        console.log('Document loaded successfully');
     };
 
     // Get current editor content
@@ -207,6 +222,7 @@
         clearEditor();
         currentId = null;
         renderDocumentList();
+        console.log('New document created, editor cleared');
     }
 
     // Save document (with password)
@@ -218,11 +234,13 @@
         }
         
         const data = getCurrentDocumentData();
+        console.log('Saving document:', data);
         
         try {
-            const { error } = await supabase
+            const { data: result, error } = await supabase
                 .from('prepost_documents')
-                .insert([data]);
+                .insert([data])
+                .select();
             
             if (error) throw error;
             
@@ -250,6 +268,7 @@
         }
         
         const data = getCurrentDocumentData();
+        console.log('Updating document', currentId, 'with data:', data);
         
         try {
             const { error } = await supabase
