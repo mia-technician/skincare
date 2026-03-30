@@ -1095,8 +1095,6 @@ async function handleLogin() {
         alert("Supabase not ready. Please refresh the page.");
         return;
     }
-        // 👇 新增：登出后重登前，先重置 Supabase 会话缓存（核心修复）
-    await supabaseClient.auth.removeSession().catch(err => console.log("清除旧会话：", err));
     
     try {
         const { error } = await supabaseClient.auth.signInWithOAuth({ 
@@ -1120,7 +1118,6 @@ async function handleLogout() {
     try {
         if (supabaseClient) {
             await supabaseClient.auth.signOut();
-            await supabaseClient.auth.getUser().then(res => {
         }
         localStorage.clear();
         location.reload();
