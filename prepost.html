@@ -135,9 +135,6 @@
             documents = data || [];
             renderDocumentList();
             console.log('Loaded', documents.length, 'documents');
-            if (documents.length > 0) {
-                console.log('First document:', documents[0]);
-            }
         } catch (error) {
             console.error('Error loading documents:', error);
             alert('Failed to load documents: ' + error.message);
@@ -163,10 +160,6 @@
 
     // Select a document and load into editor
     window.selectDocument = function(id) {
-        console.log('Selecting document with ID:', id);
-        console.log('Available documents:', documents);
-        
-        // Find the document (convert ID to string for comparison if needed)
         const doc = documents.find(d => String(d.id) === String(id));
         
         if (!doc) {
@@ -175,10 +168,8 @@
             return;
         }
         
-        console.log('Found document:', doc);
         currentId = doc.id;
         
-        // Fill the editor with document content
         document.getElementById('docTitle').value = doc.title || '';
         document.getElementById('resultPlans').innerText = doc.result_plans || '';
         document.getElementById('contraindications').innerText = doc.contraindications || '';
@@ -187,10 +178,7 @@
         document.getElementById('postDo').innerText = doc.post_do || '';
         document.getElementById('postAvoid').innerText = doc.post_avoid || '';
         
-        // Update the active state in the list
         renderDocumentList();
-        
-        console.log('Document loaded successfully');
     };
 
     // Get current editor content
@@ -222,7 +210,6 @@
         clearEditor();
         currentId = null;
         renderDocumentList();
-        console.log('New document created, editor cleared');
     }
 
     // Save document (with password)
@@ -234,13 +221,11 @@
         }
         
         const data = getCurrentDocumentData();
-        console.log('Saving document:', data);
         
         try {
-            const { data: result, error } = await supabase
+            const { error } = await supabase
                 .from('prepost_documents')
-                .insert([data])
-                .select();
+                .insert([data]);
             
             if (error) throw error;
             
@@ -268,7 +253,6 @@
         }
         
         const data = getCurrentDocumentData();
-        console.log('Updating document', currentId, 'with data:', data);
         
         try {
             const { error } = await supabase
@@ -321,29 +305,216 @@
         }
     }
 
-    // Send as email
+    // Send as email with beautiful formatting
     function sendAsEmail() {
         const title = document.getElementById('docTitle').value || 'Pre & Post Care Document';
-        let body = `<h2>${escapeHtml(title)}</h2>`;
+        const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
         
+        // Beautiful HTML email template
+        let emailHtml = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${escapeHtml(title)}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5efe9;
+            margin: 0;
+            padding: 20px;
+        }
+        .email-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #b99f87 0%, #9e846c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .email-header .date {
+            margin-top: 10px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .email-body {
+            padding: 40px;
+        }
+        .section {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f0e8e0;
+            padding-bottom: 20px;
+        }
+        .section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #b99f87;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #b99f87;
+            display: inline-block;
+        }
+        .section-content {
+            color: #555;
+            white-space: pre-wrap;
+            line-height: 1.8;
+            margin-top: 15px;
+        }
+        .section-content ul, .section-content ol {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        .section-content li {
+            margin: 5px 0;
+        }
+        .contact-info {
+            background: #f9f5f0;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+            text-align: center;
+            border-left: 4px solid #b99f87;
+        }
+        .contact-info p {
+            margin: 5px 0;
+            color: #7f6e5d;
+        }
+        .contact-info strong {
+            color: #b99f87;
+        }
+        .footer {
+            background: #f5efe9;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+        @media (max-width: 600px) {
+            .email-body {
+                padding: 20px;
+            }
+            .section-title {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>📋 ${escapeHtml(title)}</h1>
+            <div class="date">${currentDate}</div>
+        </div>
+        <div class="email-body">`;
+        
+        // Define sections with their icons and content
         const sections = [
-            { name: 'Results & Treatment Plans', id: 'resultPlans' },
-            { name: 'Contraindications', id: 'contraindications' },
-            { name: 'Pre Treatment Care', id: 'preTreatment' },
-            { name: 'Possible Side Effect', id: 'sideEffects' },
-            { name: 'Post Care - What To Do', id: 'postDo' },
-            { name: 'Post Care - What To Avoid', id: 'postAvoid' }
+            { name: 'Results & Treatment Plans', icon: '📋', id: 'resultPlans' },
+            { name: 'Contraindications', icon: '⚠️', id: 'contraindications' },
+            { name: 'Pre Treatment Care', icon: '🩺', id: 'preTreatment' },
+            { name: 'Possible Side Effect', icon: '⚠️', id: 'sideEffects' },
+            { name: 'Post Care - What To Do', icon: '🌸', id: 'postDo' },
+            { name: 'Post Care - What To Avoid', icon: '🚫', id: 'postAvoid' }
         ];
+        
+        let hasContent = false;
         
         sections.forEach(section => {
             const content = document.getElementById(section.id)?.innerText?.trim();
-            if (content) {
-                body += `<h3>${section.name}</h3><p>${escapeHtml(content).replace(/\n/g, '<br>')}</p>`;
+            if (content && content !== '') {
+                hasContent = true;
+                // Format content to preserve line breaks and basic HTML
+                let formattedContent = escapeHtml(content).replace(/\n/g, '<br>');
+                // Convert bullet points from * or - to HTML lists
+                if (formattedContent.includes('•') || formattedContent.includes('-') || formattedContent.includes('*')) {
+                    const lines = formattedContent.split('<br>');
+                    let inList = false;
+                    let listItems = [];
+                    let processedLines = [];
+                    
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
+                            if (!inList) {
+                                if (i > 0) processedLines.push('</p>');
+                                processedLines.push('<ul>');
+                                inList = true;
+                            }
+                            const itemText = line.substring(1).trim();
+                            processedLines.push(`<li>${itemText}</li>`);
+                        } else {
+                            if (inList) {
+                                processedLines.push('</ul><p>');
+                                inList = false;
+                            }
+                            if (line) {
+                                processedLines.push(line);
+                            }
+                        }
+                    }
+                    if (inList) processedLines.push('</ul>');
+                    formattedContent = processedLines.join('<br>');
+                }
+                
+                emailHtml += `
+            <div class="section">
+                <div class="section-title">${section.icon} ${section.name}</div>
+                <div class="section-content">${formattedContent}</div>
+            </div>`;
             }
         });
         
-        const mailtoLink = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+        if (!hasContent) {
+            emailHtml += `
+            <div style="text-align: center; color: #999; padding: 40px;">
+                <p>No content available for this document.</p>
+            </div>`;
+        }
+        
+        // Add contact information
+        emailHtml += `
+            <div class="contact-info">
+                <p><strong>📞 Contact Information</strong></p>
+                <p>If you have any unusual reactions or concerns, please contact us:</p>
+                <p>📱 Phone: <strong>604-580-2464</strong></p>
+                <p>✉️ Email: <strong>infobclaser@dermapure.com</strong></p>
+            </div>
+        </div>
+        <div class="footer">
+            <p>This document was generated from Pre & Post Care Management System</p>
+            <p>© ${new Date().getFullYear()} All rights reserved</p>
+        </div>
+    </div>
+</body>
+</html>`;
+        
+        // Create mailto link with HTML content
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(emailHtml)}`;
         window.location.href = mailtoLink;
+        
+        // Optional: Show a message that the email client will open
+        setTimeout(() => {
+            alert('Your email client will now open. The formatted content has been prepared.');
+        }, 100);
     }
 
     // Escape HTML to prevent XSS
