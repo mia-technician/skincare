@@ -192,16 +192,17 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     // 获取表单数据（和 Supabase 表字段对齐）
-    const docData = {
-      title: document.getElementById("docTitle").value.trim() || "未命名文档",
-      result_plans: document.getElementById("resultPlans").innerText,
-      contraindications: document.getElementById("contraindications").innerText,
-      pre_treatment: document.getElementById("preTreatment").innerText,
-      side_effects: document.getElementById("sideEffects").innerText,
-      post_do: document.getElementById("postDo").innerText,
-      post_avoid: document.getElementById("postAvoid").innerText,
-      created_at: new Date().toISOString() // 新增时间字段（可选）
-    };
+// 保存新文档的 docData 部分（替换原有代码）
+const docData = {
+  title: document.getElementById("docTitle").value.trim() || "未命名文档",
+  result_plans: document.getElementById("resultPlans").innerText || "",
+  contraindications: document.getElementById("contraindications").innerText || "",
+  pre_treatment: document.getElementById("preTreatment").innerText || "",
+  side_effects: document.getElementById("sideEffects").innerText || "",
+  post_do: document.getElementById("postDo").innerText || "",
+  post_avoid: document.getElementById("postAvoid").innerText || ""
+  // 删掉 created_at：已有表可能自带该字段，无需手动传
+};
 
     // ✅ 执行保存（明确表名：prepost_documents）
     const { data, error } = await supabase
