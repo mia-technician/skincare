@@ -500,7 +500,6 @@
         emailBody += `${title}\n`;
         emailBody += `${'='.repeat(Math.min(title.length, 50))}\n\n`;
         emailBody += `Date: ${currentDate}\n\n`;
-        emailBody += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
         
         const sections = [
             { name: 'RESULTS & TREATMENT PLANS', icon: '📋', id: 'resultPlans' },
@@ -529,11 +528,10 @@
             emailBody += `(No content available for this document)\n\n`;
         }
         
-        emailBody += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
         emailBody += `If you have any unusual reactions or concerns, please contact us:\n\n`;
         emailBody += `📱 Phone: 604-580-2464\n`;
         emailBody += `✉️ Email: infobclaser@dermapure.com\n\n`;
-        emailBody += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        emailBody += `———————————————————————————————————\n\n`;
         emailBody += `This document was generated from Pre & Post Care Management System\n`;
         emailBody += `© ${new Date().getFullYear()} All rights reserved\n`;
         
