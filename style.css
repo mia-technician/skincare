@@ -1,0 +1,54 @@
+/* 仅 prepost 使用，不污染主页 */
+.prepost-body {
+  background: #f5efe9;
+  font-family: Inter, sans-serif;
+  padding: 2rem 1rem;
+}
+.prepost-app {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: #faf7f2;
+  border-radius: 32px;
+  border: 1px solid #e8dfd0;
+  padding: 2rem;
+}
+.prepost-sidebar {
+  background: #fff9f2;
+  border-radius: 24px;
+  padding: 1.2rem;
+  border: 1px solid #e7dbd0;
+}
+.prepost-doc-item {
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.5rem;
+  background: #f5efe8;
+  border-radius: 16px;
+  cursor: pointer;
+}
+.prepost-doc-item.active {
+  background: #b99f87;
+  color: white;
+}
+.prepost-btn {
+  width: 100%;
+  padding: 0.6rem;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+.prepost-btn-primary {
+  background: #b99f87;
+  color: #fff;
+}
+.prepost-btn-disabled {
+  background: #ddd;
+  color: #888;
+  cursor: not-allowed;
+}
+.prepost-editor {
+  background: #fff9f2;
+  border-radius: 24px;
+  padding: 1.5rem;
+  border: 1px solid #e7dbd0;
+}
