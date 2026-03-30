@@ -119,98 +119,113 @@ window.addEventListener('DOMContentLoaded', async () => {
         let documents = [];
         let isLoggedIn = false;
 
-        // 登录状态监听
-        supabase.auth.onAuthStateChange((event, session) => {
-            isLoggedIn = !!session;
-            updateAuthUI();
-            if (session) loadCloudDocuments();
-        });
+// -------------- 全局状态 --------------
+let isLoggedIn = false;
+let currentId = null;
+let documents = [];
 
-        function updateAuthUI() {
-            const cls = isLoggedIn ? "btn-auth-enabled" : "btn-auth-disabled";
-            document.getElementById("btnSaveNew").className = cls;
-            document.getElementById("btnUpdate").className = cls;
-            document.getElementById("btnDelete").className = cls;
-            document.getElementById("loginBtn").textContent = isLoggedIn ? "Logout" : "Login";
-        }
+// -------------- 自动监听登录状态（实时同步）--------------
+supabase.auth.onAuthStateChange(async (event, session) => {
+  isLoggedIn = !!session;
+  updateAuthUI();
+  
+  if (session) {
+    await loadCloudDocuments();
+  } else {
+    documents = [];
+    renderDocList();
+    clearEditor();
+  }
+});
 
-        // 登录 / 登出
-        async function toggleLogin() {
-            const { data } = await supabase.auth.getUser();
-            if (data.user) {
-                await supabase.auth.signOut();
-                alert("Logged out");
-                documents = [];
-                currentId = null;
-                clearEditor();
-                renderDocList();
-            } else {
-                const email = prompt("Email:");
-                const pass = prompt("Password:");
-                if (!email || !pass) return;
-                const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
-                if (error) alert(error.message);
-                else alert("Login success!");
-            }
-        }
+// -------------- 登录 / 登出 --------------
+async function toggleLogin() {
+  const { data } = await supabase.auth.getUser();
+  if (data.user) {
+    await supabase.auth.signOut();
+    alert("Logged out");
+  } else {
+    const email = prompt("Email:");
+    const pass = prompt("Password:");
+    if (!email || !pass) return;
+    
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: pass
+    });
+    
+    if (error) {
+      alert(error.message);
+    } else {
+      alert("Login success!");
+    }
+  }
+}
 
-        // 获取当前表单内容
-        function getCurrentDoc() {
-            return {
-                title: document.getElementById("docTitle").value.trim() || "Untitled",
-                result_plans: document.getElementById("resultPlans").innerText,
-                contraindications: document.getElementById("contraindications").innerText,
-                pre_treatment: document.getElementById("preTreatment").innerText,
-                side_effects: document.getElementById("sideEffects").innerText,
-                post_do: document.getElementById("postDo").innerText,
-                post_avoid: document.getElementById("postAvoid").innerText
-            };
-        }
+// -------------- 保存到云（修复版）--------------
+async function saveNew() {
+  // ✅ 正确判断：用全局状态，不会失效
+  if (!isLoggedIn) {
+    alert("Please login first");
+    return;
+  }
 
-        // 保存为新文档（云端）
-            async function saveNew() {
-            if (!isLoggedIn) return alert("Please login first"); // ✅ 正确判断
-            const doc = getCurrentDoc();
-            const { error } = await supabase.from("prepost_documents").insert([doc]);
-            if (error) alert(error.message);
-            else {
-                alert("Saved to cloud!");
-                loadCloudDocuments();
-            }
-        }
+  const doc = getCurrentDoc();
+  const { error } = await supabase.from("prepost_documents").insert([doc]);
 
-        // 更新当前文档（云端）
-            async function updateCurrent() {
-            if (!isLoggedIn) return alert("Please login first");
-            if (!currentId) return alert("No document selected");
-            const doc = getCurrentDoc();
-            const { error } = await supabase
-                .from("prepost_documents")
-                .update(doc)
-                .eq("id", currentId);
-            if (error) alert(error.message);
-            else {
-                alert("Updated!");
-                loadCloudDocuments();
-            }
-        }
+  if (error) {
+    alert("Save error: " + error.message);
+  } else {
+    alert("Saved to cloud successfully!");
+    loadCloudDocuments();
+  }
+}
 
-        // 删除当前文档（云端）
-       async function deleteCurrent() {
-            if (!isLoggedIn) return alert("Please login first");
-            if (!currentId) return alert("No document selected");
-            if (!confirm("Delete this document?")) return;
-            const { error } = await supabase
-                .from("prepost_documents")
-                .delete()
-                .eq("id", currentId);
-            if (error) alert(error.message);
-            else {
-                alert("Deleted!");
-                clearEditor();
-                loadCloudDocuments();
-            }
-        }
+// -------------- 更新（修复版）--------------
+async function updateCurrent() {
+  if (!isLoggedIn) {
+    alert("Please login first");
+    return;
+  }
+  if (!currentId) {
+    alert("No document selected");
+    return;
+  }
+
+  const doc = getCurrentDoc();
+  const { error } = await supabase
+    .from("prepost_documents")
+    .update(doc)
+    .eq("id", currentId);
+
+  if (error) alert("Update error: " + error.message);
+  else {
+    alert("Updated!");
+    loadCloudDocuments();
+  }
+}
+
+// -------------- 删除（修复版）--------------
+async function deleteCurrent() {
+  if (!isLoggedIn) {
+    alert("Please login first");
+    return;
+  }
+  if (!currentId) return alert("No document selected");
+  if (!confirm("Delete this document?")) return;
+
+  const { error } = await supabase
+    .from("prepost_documents")
+    .delete()
+    .eq("id", currentId);
+
+  if (error) alert("Delete error: " + error.message);
+  else {
+    alert("Deleted!");
+    clearEditor();
+    loadCloudDocuments();
+  }
+}
 
         // 加载云端文档列表
         async function loadCloudDocuments() {
