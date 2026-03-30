@@ -103,7 +103,7 @@
   let currentId = null;
   let documents = [];
   const fieldIds = ["resultPlans", "contraindications", "preTreatment", "sideEffects", "postDo", "postAvoid"];
-  // 复用全局 Supabase 实例
+  // 复用全局 Supabase 实例（和主页共用，无需改 supabase.js）
   const supabase = window.supabase;
 
   // ==================== 页面加载+登录检测（核心同步） ====================
@@ -123,13 +123,13 @@
     renderDocList();
   });
 
-  // ==================== 登录状态监听（实时同步） ====================
+  // ==================== 登录状态监听（实时同步主页） ====================
   supabase.auth.onAuthStateChange(async (event, session) => {
-    // 强制同步状态
+    // 强制同步状态（直接从 session 获取，不依赖缓存）
     isLoggedIn = !!session;
     updateAuthUI();
 
-    // 登出时清空所有状态
+    // 登出时清空所有状态（避免缓存干扰）
     if (!session) {
       documents = [];
       currentId = null;
@@ -138,163 +138,116 @@
       return;
     }
 
-    // 登录时加载云端文档
+    // 登录时强制加载云端文档（确保同步最新数据）
     await loadCloudDocuments();
   });
 
-  // ==================== 登录/登出逻辑 ====================
+  // ==================== 补充缺失的核心函数（必须加，否则代码报错） ====================
+  // 1. 检测登录状态（核心：直接从 Supabase 获取，不依赖缓存）
   async function checkLoginStatus() {
-    const { data } = await supabase.auth.getUser();
-    if (data.user) {
-      isLoggedIn = true;
+    try {
+      const { data } = await supabase.auth.getUser();
+      isLoggedIn = !!data.user; // 强制同步真实登录状态
       updateAuthUI();
-      await loadCloudDocuments();
-    } else {
+      if (isLoggedIn) {
+        await loadCloudDocuments(); // 登录状态下加载文档
+      }
+    } catch (e) {
+      console.error("检测登录状态失败：", e);
       isLoggedIn = false;
       updateAuthUI();
     }
   }
 
-  async function toggleLogin() {
-    const { data } = await supabase.auth.getUser();
-    if (data.user) {
-      // 登出：强制刷新+重置状态
-      await supabase.auth.signOut();
-      isLoggedIn = false;
-      updateAuthUI();
-      clearEditor();
-      documents = [];
-      renderDocList();
-      alert("登出成功！");
-      // 可选：强制刷新，确保同步
-      // window.location.reload();
-    } else {
-      // 邮箱密码登录（可替换成谷歌登录）
-      const email = prompt("请输入登录邮箱：");
-      const pass = prompt("请输入登录密码：");
-      if (!email || !pass) return;
+  // 2. 绑定按钮事件（确保按钮能点击，解决无效问题）
+  function bindButtonEvents() {
+    // 登录/登出按钮
+    const loginBtn = document.getElementById("loginBtn");
+    if (loginBtn) {
+      loginBtn.addEventListener('click', toggleLogin);
+    }
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: pass
-      });
+    // 新增文档按钮
+    const addNewBtn = document.getElementById("addNewBtn");
+    if (addNewBtn) {
+      addNewBtn.addEventListener('click', addNewDocument);
+    }
+
+    // 云端操作按钮（保存/更新/删除）
+    const btnSaveNew = document.getElementById("btnSaveNew");
+    const btnUpdate = document.getElementById("btnUpdate");
+    const btnDelete = document.getElementById("btnDelete");
+    
+    if (btnSaveNew) btnSaveNew.addEventListener('click', saveNew);
+    if (btnUpdate) btnUpdate.addEventListener('click', updateCurrent);
+    if (btnDelete) btnDelete.addEventListener('click', deleteCurrent);
+
+    // 其他功能按钮（邮件/打印，按需保留）
+    const emailBtn = document.getElementById("emailBtn");
+    const printBtn = document.getElementById("printBtn");
+    if (emailBtn) emailBtn.addEventListener('click', sendAsEmail);
+    if (printBtn) printBtn.addEventListener('click', doPrint);
+  }
+
+  // 3. 更新登录按钮样式（登录/未登录状态切换）
+  function updateAuthUI() {
+    const btnClass = isLoggedIn ? "btn-auth-enabled" : "btn-auth-disabled";
+    // 更新云端操作按钮样式
+    const btnSaveNew = document.getElementById("btnSaveNew");
+    const btnUpdate = document.getElementById("btnUpdate");
+    const btnDelete = document.getElementById("btnDelete");
+    const loginBtn = document.getElementById("loginBtn");
+
+    if (btnSaveNew) btnSaveNew.className = btnClass;
+    if (btnUpdate) btnUpdate.className = btnClass;
+    if (btnDelete) btnDelete.className = btnClass;
+    if (loginBtn) loginBtn.textContent = isLoggedIn ? "Logout" : "Login";
+  }
+
+  // 4. 登录/登出逻辑（和主页同步）
+  async function toggleLogin() {
+    try {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
+        // 登出：同步主页登出逻辑
+        await supabase.auth.signOut();
+        isLoggedIn = false;
+        updateAuthUI();
+        clearEditor();
+        documents = [];
+        renderDocList();
+        alert("登出成功！");
+      } else {
+        // 登录：复用主页的谷歌登录逻辑（和主页一致）
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.href // 登录后返回prepost页
+          }
+        });
+        if (error) {
+          alert("登录失败：" + error.message);
+        }
+      }
+    } catch (e) {
+      console.error("登录/登出失败：", e);
+      alert("操作失败：" + e.message);
+    }
+  }
+
+  // 5. 加载云端文档（核心：和主页共用数据库）
+  async function loadCloudDocuments() {
+    try {
+      const { data, error } = await supabase
+        .from("prepost_documents")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) {
-        alert("登录失败：" + error.message);
-      } else {
-        alert("登录成功！");
-        // 登录后自动加载文档
-        await loadCloudDocuments();
+        throw new Error(error.message);
       }
-    }
-  }
 
-  // ==================== 按钮事件绑定 ====================
-  function bindButtonEvents() {
-    // 基础按钮
-    document.getElementById("loginBtn")?.addEventListener('click', toggleLogin);
-    document.getElementById("addNewBtn")?.addEventListener('click', addNewDocument);
-    document.getElementById("emailBtn")?.addEventListener('click', sendAsEmail);
-    document.getElementById("printBtn")?.addEventListener('click', doPrint);
-
-    // 云端操作按钮
-    document.getElementById("btnSaveNew")?.addEventListener('click', saveNew);
-    document.getElementById("btnUpdate")?.addEventListener('click', updateCurrent);
-    document.getElementById("btnDelete")?.addEventListener('click', deleteCurrent);
-
-    // 格式工具按钮
-    document.getElementById("btnBoldResult")?.addEventListener('click', () => formatBold('resultPlans'));
-    document.getElementById("btnBulletResult")?.addEventListener('click', () => formatBullet('resultPlans'));
-    // 其他格式按钮（按需添加）
-  }
-
-  // ==================== 云端操作（保存/更新/删除） ====================
-  async function saveNew() {
-    if (!isLoggedIn) return alert("请先登录！");
-
-    const docData = {
-      title: document.getElementById("docTitle")?.value.trim() || "未命名文档",
-      result_plans: document.getElementById("resultPlans")?.innerText || "",
-      contraindications: document.getElementById("contraindications")?.innerText || "",
-      pre_treatment: document.getElementById("preTreatment")?.innerText || "",
-      side_effects: document.getElementById("sideEffects")?.innerText || "",
-      post_do: document.getElementById("postDo")?.innerText || "",
-      post_avoid: document.getElementById("postAvoid")?.innerText || ""
-    };
-
-    const { error } = await supabase
-      .from("prepost_documents")
-      .insert([docData]);
-
-    if (error) {
-      alert("保存失败：" + error.message);
-      console.log("保存报错：", error);
-    } else {
-      alert("保存到云端成功！");
-      await loadCloudDocuments();
-      clearEditor();
-    }
-  }
-
-  async function updateCurrent() {
-    if (!isLoggedIn) return alert("请先登录！");
-    if (!currentId) return alert("请选择要更新的文档！");
-
-    const docData = {
-      title: document.getElementById("docTitle")?.value.trim() || "未命名文档",
-      result_plans: document.getElementById("resultPlans")?.innerText || "",
-      contraindications: document.getElementById("contraindications")?.innerText || "",
-      pre_treatment: document.getElementById("preTreatment")?.innerText || "",
-      side_effects: document.getElementById("sideEffects")?.innerText || "",
-      post_do: document.getElementById("postDo")?.innerText || "",
-      post_avoid: document.getElementById("postAvoid")?.innerText || ""
-    };
-
-    const { error } = await supabase
-      .from("prepost_documents")
-      .update(docData)
-      .eq("id", currentId);
-
-    if (error) {
-      alert("更新失败：" + error.message);
-    } else {
-      alert("更新成功！");
-      await loadCloudDocuments();
-    }
-  }
-
-  async function deleteCurrent() {
-    if (!isLoggedIn) return alert("请先登录！");
-    if (!currentId) return alert("请选择要删除的文档！");
-    if (!confirm("确定删除？删除后无法恢复！")) return;
-
-    const { error } = await supabase
-      .from("prepost_documents")
-      .delete()
-      .eq("id", currentId);
-
-    if (error) {
-      alert("删除失败：" + error.message);
-    } else {
-      alert("删除成功！");
-      await loadCloudDocuments();
-      clearEditor();
-      currentId = null;
-    }
-  }
-
-  // ==================== 文档加载/渲染 ====================
-  async function loadCloudDocuments() {
-    const { data, error } = await supabase
-      .from("prepost_documents")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      alert("加载文档失败：" + error.message);
-      console.log("加载报错：", error);
-      documents = [];
-    } else {
+      // 格式化文档数据（和你的字段对齐）
       documents = data.map(item => ({
         id: item.id,
         name: item.title,
@@ -305,14 +258,20 @@
         postDo: item.post_do,
         postAvoid: item.post_avoid
       }));
+      renderDocList();
+    } catch (e) {
+      console.error("加载文档失败：", e);
+      alert("加载云端文档失败：" + e.message);
+      documents = [];
     }
-    renderDocList();
   }
 
+  // 6. 渲染文档列表（确保列表正常显示）
   function renderDocList() {
     const docListEl = document.getElementById("docList");
     if (!docListEl) return;
 
+    // 清空列表后重新渲染
     docListEl.innerHTML = documents.map(doc => `
       <div class="doc-item ${currentId === doc.id ? 'active' : ''}" data-id="${doc.id}">
         <span>📄 ${doc.name}</span>
@@ -325,35 +284,30 @@
     });
   }
 
+  // ==================== 基础辅助函数（保留） ====================
+  // 加载单个文档
   function loadDoc(id) {
     const doc = documents.find(item => item.id === id);
     if (!doc) return;
 
     currentId = id;
-    document.getElementById("docTitle")!.value = doc.name;
-    document.getElementById("resultPlans")!.innerText = doc.resultPlans || "";
-    document.getElementById("contraindications")!.innerText = doc.contraindications || "";
-    document.getElementById("preTreatment")!.innerText = doc.preTreatment || "";
-    document.getElementById("sideEffects")!.innerText = doc.sideEffects || "";
-    document.getElementById("postDo")!.innerText = doc.postDo || "";
-    document.getElementById("postAvoid")!.innerText = doc.postAvoid || "";
+    // 填充编辑框（确保DOM元素存在）
+    const docTitle = document.getElementById("docTitle");
+    if (docTitle) docTitle.value = doc.name;
+
+    fieldIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = doc[id] || "";
+    });
 
     renderDocList();
   }
 
-  // ==================== 辅助功能 ====================
-  function updateAuthUI() {
-    const btnClass = isLoggedIn ? "btn-auth-enabled" : "btn-auth-disabled";
-    // 更新按钮样式
-    document.getElementById("btnSaveNew")!.className = btnClass;
-    document.getElementById("btnUpdate")!.className = btnClass;
-    document.getElementById("btnDelete")!.className = btnClass;
-    // 更新登录按钮文字
-    document.getElementById("loginBtn")!.textContent = isLoggedIn ? "Logout" : "Login";
-  }
-
+  // 清空编辑框
   function clearEditor() {
-    document.getElementById("docTitle")!.value = "";
+    const docTitle = document.getElementById("docTitle");
+    if (docTitle) docTitle.value = "";
+
     fieldIds.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.innerText = "";
@@ -361,54 +315,133 @@
     currentId = null;
   }
 
+  // 新增文档
   function addNewDocument() {
     clearEditor();
-    document.getElementById("docTitle")!.value = "新文档";
+    const docTitle = document.getElementById("docTitle");
+    if (docTitle) docTitle.value = "新文档";
   }
 
-  function formatBold(id) {
-    const el = document.getElementById(id);
-    if (el) {
-      el.focus();
-      document.execCommand('bold');
+  // ==================== 云端保存/更新/删除（核心功能） ====================
+  async function saveNew() {
+    if (!isLoggedIn) return alert("请先登录！");
+
+    // 获取编辑框数据（兼容DOM元素不存在的情况）
+    const docTitle = document.getElementById("docTitle");
+    const title = docTitle ? docTitle.value.trim() : "未命名文档";
+
+    const docData = {
+      title: title || "未命名文档",
+      result_plans: document.getElementById("resultPlans")?.innerText || "",
+      contraindications: document.getElementById("contraindications")?.innerText || "",
+      pre_treatment: document.getElementById("preTreatment")?.innerText || "",
+      side_effects: document.getElementById("sideEffects")?.innerText || "",
+      post_do: document.getElementById("postDo")?.innerText || "",
+      post_avoid: document.getElementById("postAvoid")?.innerText || ""
+    };
+
+    try {
+      const { error } = await supabase
+        .from("prepost_documents")
+        .insert([docData]);
+
+      if (error) throw new Error(error.message);
+      
+      alert("保存到云端成功！");
+      await loadCloudDocuments();
+      clearEditor();
+    } catch (e) {
+      console.error("保存失败：", e);
+      alert("保存失败：" + e.message);
     }
   }
 
-  function formatBullet(id) {
-    const el = document.getElementById(id);
-    if (el) {
-      el.focus();
-      document.execCommand('insertUnorderedList');
+  async function updateCurrent() {
+    if (!isLoggedIn) return alert("请先登录！");
+    if (!currentId) return alert("请选择要更新的文档！");
+
+    const docTitle = document.getElementById("docTitle");
+    const title = docTitle ? docTitle.value.trim() : "未命名文档";
+
+    const docData = {
+      title: title || "未命名文档",
+      result_plans: document.getElementById("resultPlans")?.innerText || "",
+      contraindications: document.getElementById("contraindications")?.innerText || "",
+      pre_treatment: document.getElementById("preTreatment")?.innerText || "",
+      side_effects: document.getElementById("sideEffects")?.innerText || "",
+      post_do: document.getElementById("postDo")?.innerText || "",
+      post_avoid: document.getElementById("postAvoid")?.innerText || ""
+    };
+
+    try {
+      const { error } = await supabase
+        .from("prepost_documents")
+        .update(docData)
+        .eq("id", currentId);
+
+      if (error) throw new Error(error.message);
+      
+      alert("更新成功！");
+      await loadCloudDocuments();
+    } catch (e) {
+      console.error("更新失败：", e);
+      alert("更新失败：" + e.message);
     }
   }
 
+  async function deleteCurrent() {
+    if (!isLoggedIn) return alert("请先登录！");
+    if (!currentId) return alert("请选择要删除的文档！");
+    if (!confirm("确定删除？删除后无法恢复！")) return;
+
+    try {
+      const { error } = await supabase
+        .from("prepost_documents")
+        .delete()
+        .eq("id", currentId);
+
+      if (error) throw new Error(error.message);
+      
+      alert("删除成功！");
+      await loadCloudDocuments();
+      clearEditor();
+      currentId = null;
+    } catch (e) {
+      console.error("删除失败：", e);
+      alert("删除失败：" + e.message);
+    }
+  }
+
+  // ==================== 其他辅助功能（按需保留） ====================
   function doPrint() {
     window.print();
   }
 
   function sendAsEmail() {
-    const title = document.getElementById("docTitle")!.value || "护理文档";
+    const docTitle = document.getElementById("docTitle");
+    const title = docTitle ? docTitle.value : "护理文档";
+    
     const body = `
 ${title}
 
 --------------------------
 治疗方案：
-${document.getElementById("resultPlans")!.innerText}
+${document.getElementById("resultPlans")?.innerText || ""}
 
 禁忌：
-${document.getElementById("contraindications")!.innerText}
+${document.getElementById("contraindications")?.innerText || ""}
 
 治疗前准备：
-${document.getElementById("preTreatment")!.innerText}
+${document.getElementById("preTreatment")?.innerText || ""}
 
 可能的副作用：
-${document.getElementById("sideEffects")!.innerText}
+${document.getElementById("sideEffects")?.innerText || ""}
 
 术后注意事项（需做）：
-${document.getElementById("postDo")!.innerText}
+${document.getElementById("postDo")?.innerText || ""}
 
 术后注意事项（避免）：
-${document.getElementById("postAvoid")!.innerText}
+${document.getElementById("postAvoid")?.innerText || ""}
 
 --------------------------
 联系电话：604-580-2464 | 邮箱：infobclaser@dermapure.com
