@@ -132,9 +132,11 @@
 </div>
 
 <script>
+// 修复：独立存储键，避免和主站冲突
 const supabase = supabase.createClient(
     "https://dmrskyskryrdclknezth.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8"
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8",
+    { auth: { storageKey: "sb-prepost-auth" } } // 👈 关键修复
 );
 
 const fieldIds = [
@@ -146,13 +148,14 @@ let currentId = null;
 let documents = [];
 let isLoggedIn = false;
 
-supabase.auth.onAuthStateChange(async (event, session) => {
+// 安全监听，不干扰主站
+supabase.auth.onAuthStateChange((_, session) => {
     isLoggedIn = !!session;
-    updateAuthUI();
-    await loadDocuments();
+    updateBtnStatus();
+    loadDocuments();
 });
 
-function updateAuthUI() {
+function updateBtnStatus() {
     const cls = isLoggedIn ? "btn-auth-enabled" : "btn-auth-disabled";
     document.getElementById("btnSaveNew").className = cls;
     document.getElementById("btnUpdate").className = cls;
@@ -160,42 +163,35 @@ function updateAuthUI() {
     document.getElementById("loginBtn").textContent = isLoggedIn ? "Logout" : "Login";
 }
 
+// 登录 / 登出（完全独立）
 async function toggleLogin() {
     if (isLoggedIn) {
         await supabase.auth.signOut();
         alert("Logged out");
     } else {
         const email = prompt("Email:");
-        const pass = prompt("Password:");
-        if (!email || !pass) return;
-        const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+        const pw = prompt("Password:");
+        if (!email || !pw) return;
+        const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
         if (error) alert(error.message);
     }
 }
 
+// 加载文档（所有人可看）
 async function loadDocuments() {
-    const { data, error } = await supabase
-        .from("prepost_documents")
-        .select("id, title, result_plans, contraindications, pre_treatment, side_effects, post_do, post_avoid")
-        .order("created_at", { ascending: false });
-
-    if (error) console.error(error);
-    else documents = data.map(item => ({
-        id: item.id,
-        name: item.title,
-        resultPlans: item.result_plans,
-        contraindications: item.contraindications,
-        preTreatment: item.pre_treatment,
-        sideEffects: item.side_effects,
-        postDo: item.post_do,
-        postAvoid: item.post_avoid
+    const { data } = await supabase.from("prepost_documents").select("*").order("created_at", { ascending: false });
+    documents = (data || []).map(i => ({
+        id: i.id, name: i.title,
+        resultPlans: i.result_plans, contraindications: i.contraindications,
+        preTreatment: i.pre_treatment, sideEffects: i.side_effects,
+        postDo: i.post_do, postAvoid: i.post_avoid
     }));
-    renderDocList();
+    renderList();
 }
 
-function getCurrentDoc() {
+function getCurrent() {
     return {
-        title: document.getElementById("docTitle").value.trim() || "Untitled",
+        title: document.getElementById("docTitle").value || "Untitled",
         result_plans: document.getElementById("resultPlans").innerText,
         contraindications: document.getElementById("contraindications").innerText,
         pre_treatment: document.getElementById("preTreatment").innerText,
@@ -205,74 +201,40 @@ function getCurrentDoc() {
     };
 }
 
-async function saveNew() {
-    if (!isLoggedIn) return alert("Please login to save to cloud");
-    const { error } = await supabase.from("prepost_documents").insert([getCurrentDoc()]);
-    if (error) alert(error.message); else { alert("Saved to cloud!"); loadDocuments(); }
-}
+// 云操作（仅登录）
+async function saveNew() { if (!isLoggedIn) return alert("Login required"); await supabase.from("prepost_documents").insert([getCurrent()]); loadDocuments(); }
+async function updateDoc() { if (!isLoggedIn) return alert("Login required"); await supabase.from("prepost_documents").update(getCurrent()).eq("id", currentId); loadDocuments(); }
+async function deleteDoc() { if (!isLoggedIn) return alert("Login required"); await supabase.from("prepost_documents").delete().eq("id", currentId); clearEditor(); loadDocuments(); }
 
-async function updateCurrent() {
-    if (!isLoggedIn) return alert("Please login to update cloud");
-    if (!currentId) return;
-    const { error } = await supabase.from("prepost_documents").update(getCurrentDoc()).eq("id", currentId);
-    if (error) alert(error.message); else { alert("Updated to cloud!"); loadDocuments(); }
-}
-
-async function deleteCurrent() {
-    if (!isLoggedIn) return alert("Please login to delete");
-    if (!currentId) return;
-    if (!confirm("Delete this document?")) return;
-    const { error } = await supabase.from("prepost_documents").delete().eq("id", currentId);
-    if (error) alert(error.message); else { alert("Deleted!"); clearEditor(); loadDocuments(); }
-}
-
-function clearEditor() {
-    document.getElementById("docTitle").value = "";
-    fieldIds.forEach(id => document.getElementById(id).innerText = "");
-    currentId = null;
-}
-
-function addNewDocument() {
-    clearEditor();
-    document.getElementById("docTitle").value = "New Document";
-}
-
+// 本地编辑（所有人可用）
+function clearEditor() { document.getElementById("docTitle").value = ""; fieldIds.forEach(id => document.getElementById(id).innerText = ""); currentId = null; }
+function newDoc() { clearEditor(); document.getElementById("docTitle").value = "New Document"; }
 function loadDoc(id) {
-    const d = documents.find(x => x.id === id);
-    if (!d) return;
-    currentId = id;
+    const d = documents.find(x => x.id === id); if (!d) return; currentId = id;
     document.getElementById("docTitle").value = d.name || "";
-    document.getElementById("resultPlans").innerText = d.resultPlans || "";
-    document.getElementById("contraindications").innerText = d.contraindications || "";
-    document.getElementById("preTreatment").innerText = d.preTreatment || "";
-    document.getElementById("sideEffects").innerText = d.sideEffects || "";
-    document.getElementById("postDo").innerText = d.postDo || "";
-    document.getElementById("postAvoid").innerText = d.postAvoid || "";
-    renderDocList();
+    document.getElementById("resultPlans").innerText = d.resultPlans;
+    document.getElementById("contraindications").innerText = d.contraindications;
+    document.getElementById("preTreatment").innerText = d.preTreatment;
+    document.getElementById("sideEffects").innerText = d.sideEffects;
+    document.getElementById("postDo").innerText = d.postDo;
+    document.getElementById("postAvoid").innerText = d.postAvoid;
+    renderList();
 }
-
-function renderDocList() {
-    const el = document.getElementById("docList");
-    el.innerHTML = documents.map(d => `
-        <div class="doc-item ${currentId === d.id ? 'active' : ''}" data-id="${d.id}">
-            <span>📄 ${d.name}</span>
-        </div>
-    `).join('');
-    el.querySelectorAll('.doc-item').forEach(item => {
-        item.onclick = () => loadDoc(item.dataset.id);
-    });
+function renderList() {
+    document.getElementById("docList").innerHTML = documents.map(d =>
+        `<div class="doc-item ${currentId===d.id?'active':''}" data-id="${d.id}">📄 ${d.name}</div>`
+    ).join('');
+    document.querySelectorAll(".doc-item").forEach(i => i.onclick = () => loadDoc(i.dataset.id));
 }
 
 function formatBold(id) { document.getElementById(id).focus(); document.execCommand('bold'); }
 function formatBullet(id) { document.getElementById(id).focus(); document.execCommand('insertUnorderedList'); }
 function doPrint() { window.print(); }
+function sendEmail() {
+    const t = document.getElementById("docTitle").value;
+    const b = `
+${t}
 
-function sendAsEmail() {
-    const title = document.getElementById("docTitle").value || "Treatment Document";
-    const body = `
-${title}
-
-----------------------------------------
 RESULTS & TREATMENT PLANS:
 ${document.getElementById("resultPlans").innerText}
 
@@ -290,19 +252,18 @@ ${document.getElementById("postDo").innerText}
 
 POST CARE - WHAT TO AVOID:
 ${document.getElementById("postAvoid").innerText}
-
-Contact: 604-580-2464 | infobclaser@dermapure.com
     `;
-    window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(t)}&body=${encodeURIComponent(b)}`;
 }
 
+// 启动
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById("loginBtn").onclick = toggleLogin;
-    document.getElementById("addNewBtn").onclick = addNewDocument;
+    document.getElementById("addNewBtn").onclick = newDoc;
     document.getElementById("btnSaveNew").onclick = saveNew;
-    document.getElementById("btnUpdate").onclick = updateCurrent;
-    document.getElementById("btnDelete").onclick = deleteCurrent;
-    document.getElementById("emailBtn").onclick = sendAsEmail;
+    document.getElementById("btnUpdate").onclick = updateDoc;
+    document.getElementById("btnDelete").onclick = deleteDoc;
+    document.getElementById("emailBtn").onclick = sendEmail;
     document.getElementById("printBtn").onclick = doPrint;
     loadDocuments();
 });
