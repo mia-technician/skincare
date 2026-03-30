@@ -168,9 +168,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
 
         // 保存为新文档（云端）
-        async function saveNew() {
-            const { data } = await supabase.auth.getUser();
-            if (!data.user) return alert("Please login first");
+            async function saveNew() {
+            if (!isLoggedIn) return alert("Please login first"); // ✅ 正确判断
             const doc = getCurrentDoc();
             const { error } = await supabase.from("prepost_documents").insert([doc]);
             if (error) alert(error.message);
@@ -181,9 +180,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
 
         // 更新当前文档（云端）
-        async function updateCurrent() {
-            const { data } = await supabase.auth.getUser();
-            if (!data.user) return alert("Please login first");
+            async function updateCurrent() {
+            if (!isLoggedIn) return alert("Please login first");
             if (!currentId) return alert("No document selected");
             const doc = getCurrentDoc();
             const { error } = await supabase
@@ -198,9 +196,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
 
         // 删除当前文档（云端）
-        async function deleteCurrent() {
-            const { data } = await supabase.auth.getUser();
-            if (!data.user) return alert("Please login first");
+       async function deleteCurrent() {
+            if (!isLoggedIn) return alert("Please login first");
             if (!currentId) return alert("No document selected");
             if (!confirm("Delete this document?")) return;
             const { error } = await supabase
