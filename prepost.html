@@ -98,248 +98,79 @@
     </div>
     
 <script>
-      // ==================== 新增：强制同步登录状态（仅加这段） ====================
-  // 复用全局实例（和主页一致）
+  // ==================== 全局配置（可自定义） ====================
+  // 自定义云存储密码（你可以改成自己的密码）
+  const CLOUD_PASSWORD = "your_custom_password"; 
+  // 复用全局 Supabase 实例（不动 supabase.js）
   const supabase = window.supabase;
-  // 每2秒检查一次登录状态，确保同步
-  setInterval(async () => {
-    const { data } = await supabase.auth.getUser();
-    isLoggedIn = !!data.user; // 同步到你的全局变量
-    updateAuthUI(); // 更新按钮样式（用你原有函数）
-    if (isLoggedIn && documents.length === 0) {
-      await loadCloudDocuments(); // 登录后加载文档
-    }
-  }, 2000); // 每2秒检测一次，不影响性能
-    
-  // ==================== 全局状态 ====================
-  let isLoggedIn = false;
+
+  // ==================== 全局状态（保留原有） ====================
   let currentId = null;
   let documents = [];
   const fieldIds = ["resultPlans", "contraindications", "preTreatment", "sideEffects", "postDo", "postAvoid"];
-  // 复用全局 Supabase 实例（和主页共用，无需改 supabase.js）
-  const supabase = window.supabase;
 
-  // ==================== 页面加载+登录检测（核心同步） ====================
+  // ==================== 页面加载初始化 ====================
   window.addEventListener('DOMContentLoaded', async () => {
-    // 1. 强制清空旧状态，解决同步问题
-    isLoggedIn = false;
-    currentId = null;
-    documents = [];
-
-    // 2. 强制检测登录状态
-    await checkLoginStatus();
-
-    // 3. 绑定所有按钮事件（解决按钮无效）
-    bindButtonEvents();
-
-    // 4. 初始化文档列表
-    renderDocList();
-  });
-
-  // ==================== 登录状态监听（实时同步主页） ====================
-  supabase.auth.onAuthStateChange(async (event, session) => {
-    // 强制同步状态（直接从 session 获取，不依赖缓存）
-    isLoggedIn = !!session;
-    updateAuthUI();
-
-    // 登出时清空所有状态（避免缓存干扰）
-    if (!session) {
-      documents = [];
-      currentId = null;
-      clearEditor();
-      renderDocList();
-      return;
-    }
-
-    // 登录时强制加载云端文档（确保同步最新数据）
+    // 初始化：直接加载云端文档（无需登录）
     await loadCloudDocuments();
+    // 绑定按钮事件（替换原有登录相关逻辑）
+    bindButtonEvents();
   });
 
-  // ==================== 补充缺失的核心函数（必须加，否则代码报错） ====================
-  // 1. 检测登录状态（核心：直接从 Supabase 获取，不依赖缓存）
-  async function checkLoginStatus() {
-    try {
-      const { data } = await supabase.auth.getUser();
-      isLoggedIn = !!data.user; // 强制同步真实登录状态
-      updateAuthUI();
-      if (isLoggedIn) {
-        await loadCloudDocuments(); // 登录状态下加载文档
-      }
-    } catch (e) {
-      console.error("检测登录状态失败：", e);
-      isLoggedIn = false;
-      updateAuthUI();
-    }
-  }
-
-  // 2. 绑定按钮事件（确保按钮能点击，解决无效问题）
+  // ==================== 按钮事件绑定（核心改造） ====================
   function bindButtonEvents() {
-    // 登录/登出按钮
+    // 基础按钮（保留）
+    document.getElementById("addNewBtn")?.addEventListener('click', addNewDocument);
+    document.getElementById("emailBtn")?.addEventListener('click', sendAsEmail);
+    document.getElementById("printBtn")?.addEventListener('click', doPrint);
+
+    // 云端操作按钮（改为密码验证）
+    document.getElementById("btnSaveNew")?.addEventListener('click', () => {
+      // 先验证密码，再保存
+      if (verifyPassword()) {
+        saveNew();
+      }
+    });
+    document.getElementById("btnUpdate")?.addEventListener('click', () => {
+      if (verifyPassword() && currentId) {
+        updateCurrent();
+      } else if (!currentId) {
+        alert("请先选择要更新的文档！");
+      }
+    });
+    document.getElementById("btnDelete")?.addEventListener('click', () => {
+      if (verifyPassword() && currentId) {
+        if (confirm("确定删除？删除后无法恢复！")) {
+          deleteCurrent();
+        }
+      } else if (!currentId) {
+        alert("请先选择要删除的文档！");
+      }
+    });
+
+    // 移除原有登录按钮（如果不需要），或隐藏
     const loginBtn = document.getElementById("loginBtn");
     if (loginBtn) {
-      loginBtn.addEventListener('click', toggleLogin);
-    }
-
-    // 新增文档按钮
-    const addNewBtn = document.getElementById("addNewBtn");
-    if (addNewBtn) {
-      addNewBtn.addEventListener('click', addNewDocument);
-    }
-
-    // 云端操作按钮（保存/更新/删除）
-    const btnSaveNew = document.getElementById("btnSaveNew");
-    const btnUpdate = document.getElementById("btnUpdate");
-    const btnDelete = document.getElementById("btnDelete");
-    
-    if (btnSaveNew) btnSaveNew.addEventListener('click', saveNew);
-    if (btnUpdate) btnUpdate.addEventListener('click', updateCurrent);
-    if (btnDelete) btnDelete.addEventListener('click', deleteCurrent);
-
-    // 其他功能按钮（邮件/打印，按需保留）
-    const emailBtn = document.getElementById("emailBtn");
-    const printBtn = document.getElementById("printBtn");
-    if (emailBtn) emailBtn.addEventListener('click', sendAsEmail);
-    if (printBtn) printBtn.addEventListener('click', doPrint);
-  }
-
-  // 3. 更新登录按钮样式（登录/未登录状态切换）
-  function updateAuthUI() {
-    const btnClass = isLoggedIn ? "btn-auth-enabled" : "btn-auth-disabled";
-    // 更新云端操作按钮样式
-    const btnSaveNew = document.getElementById("btnSaveNew");
-    const btnUpdate = document.getElementById("btnUpdate");
-    const btnDelete = document.getElementById("btnDelete");
-    const loginBtn = document.getElementById("loginBtn");
-
-    if (btnSaveNew) btnSaveNew.className = btnClass;
-    if (btnUpdate) btnUpdate.className = btnClass;
-    if (btnDelete) btnDelete.className = btnClass;
-    if (loginBtn) loginBtn.textContent = isLoggedIn ? "Logout" : "Login";
-  }
-
-  // 4. 登录/登出逻辑（和主页同步）
-  async function toggleLogin() {
-    try {
-      const { data } = await supabase.auth.getUser();
-      if (data.user) {
-        // 登出：同步主页登出逻辑
-        await supabase.auth.signOut();
-        isLoggedIn = false;
-        updateAuthUI();
-        clearEditor();
-        documents = [];
-        renderDocList();
-        alert("登出成功！");
-      } else {
-        // 登录：复用主页的谷歌登录逻辑（和主页一致）
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: window.location.href // 登录后返回prepost页
-          }
-        });
-        if (error) {
-          alert("登录失败：" + error.message);
-        }
-      }
-    } catch (e) {
-      console.error("登录/登出失败：", e);
-      alert("操作失败：" + e.message);
+      loginBtn.style.display = "none"; // 隐藏登录按钮
     }
   }
 
-  // 5. 加载云端文档（核心：和主页共用数据库）
-  async function loadCloudDocuments() {
-    try {
-      const { data, error } = await supabase
-        .from("prepost_documents")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      // 格式化文档数据（和你的字段对齐）
-      documents = data.map(item => ({
-        id: item.id,
-        name: item.title,
-        resultPlans: item.result_plans,
-        contraindications: item.contraindications,
-        preTreatment: item.pre_treatment,
-        sideEffects: item.side_effects,
-        postDo: item.post_do,
-        postAvoid: item.post_avoid
-      }));
-      renderDocList();
-    } catch (e) {
-      console.error("加载文档失败：", e);
-      alert("加载云端文档失败：" + e.message);
-      documents = [];
+  // ==================== 密码验证函数（核心） ====================
+  function verifyPassword() {
+    const inputPwd = prompt("请输入云存储密码：");
+    // 密码为空/错误
+    if (!inputPwd || inputPwd !== CLOUD_PASSWORD) {
+      alert("密码错误！无法进行云存储操作");
+      return false;
     }
+    // 密码正确
+    return true;
   }
 
-  // 6. 渲染文档列表（确保列表正常显示）
-  function renderDocList() {
-    const docListEl = document.getElementById("docList");
-    if (!docListEl) return;
-
-    // 清空列表后重新渲染
-    docListEl.innerHTML = documents.map(doc => `
-      <div class="doc-item ${currentId === doc.id ? 'active' : ''}" data-id="${doc.id}">
-        <span>📄 ${doc.name}</span>
-      </div>
-    `).join('');
-
-    // 绑定文档点击事件
-    docListEl.querySelectorAll('.doc-item').forEach(item => {
-      item.addEventListener('click', () => loadDoc(item.dataset.id));
-    });
-  }
-
-  // ==================== 基础辅助函数（保留） ====================
-  // 加载单个文档
-  function loadDoc(id) {
-    const doc = documents.find(item => item.id === id);
-    if (!doc) return;
-
-    currentId = id;
-    // 填充编辑框（确保DOM元素存在）
-    const docTitle = document.getElementById("docTitle");
-    if (docTitle) docTitle.value = doc.name;
-
-    fieldIds.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.innerText = doc[id] || "";
-    });
-
-    renderDocList();
-  }
-
-  // 清空编辑框
-  function clearEditor() {
-    const docTitle = document.getElementById("docTitle");
-    if (docTitle) docTitle.value = "";
-
-    fieldIds.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.innerText = "";
-    });
-    currentId = null;
-  }
-
-  // 新增文档
-  function addNewDocument() {
-    clearEditor();
-    const docTitle = document.getElementById("docTitle");
-    if (docTitle) docTitle.value = "新文档";
-  }
-
-  // ==================== 云端保存/更新/删除（核心功能） ====================
+  // ==================== 云端操作（去掉登录判断） ====================
+  // 保存新文档
   async function saveNew() {
-    if (!isLoggedIn) return alert("请先登录！");
-
-    // 获取编辑框数据（兼容DOM元素不存在的情况）
+    // 获取编辑框数据
     const docTitle = document.getElementById("docTitle");
     const title = docTitle ? docTitle.value.trim() : "未命名文档";
 
@@ -369,10 +200,8 @@
     }
   }
 
+  // 更新文档
   async function updateCurrent() {
-    if (!isLoggedIn) return alert("请先登录！");
-    if (!currentId) return alert("请选择要更新的文档！");
-
     const docTitle = document.getElementById("docTitle");
     const title = docTitle ? docTitle.value.trim() : "未命名文档";
 
@@ -402,11 +231,8 @@
     }
   }
 
+  // 删除文档
   async function deleteCurrent() {
-    if (!isLoggedIn) return alert("请先登录！");
-    if (!currentId) return alert("请选择要删除的文档！");
-    if (!confirm("确定删除？删除后无法恢复！")) return;
-
     try {
       const { error } = await supabase
         .from("prepost_documents")
@@ -425,7 +251,85 @@
     }
   }
 
-  // ==================== 其他辅助功能（按需保留） ====================
+  // ==================== 加载云端文档（无需登录） ====================
+  async function loadCloudDocuments() {
+    try {
+      const { data, error } = await supabase
+        .from("prepost_documents")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      documents = data.map(item => ({
+        id: item.id,
+        name: item.title,
+        resultPlans: item.result_plans,
+        contraindications: item.contraindications,
+        preTreatment: item.pre_treatment,
+        sideEffects: item.side_effects,
+        postDo: item.post_do,
+        postAvoid: item.post_avoid
+      }));
+      renderDocList();
+    } catch (e) {
+      console.error("加载文档失败：", e);
+      alert("加载云端文档失败：" + e.message);
+      documents = [];
+    }
+  }
+
+  // ==================== 原有辅助函数（保留） ====================
+  function renderDocList() {
+    const docListEl = document.getElementById("docList");
+    if (!docListEl) return;
+
+    docListEl.innerHTML = documents.map(doc => `
+      <div class="doc-item ${currentId === doc.id ? 'active' : ''}" data-id="${doc.id}">
+        <span>📄 ${doc.name}</span>
+      </div>
+    `).join('');
+
+    docListEl.querySelectorAll('.doc-item').forEach(item => {
+      item.addEventListener('click', () => loadDoc(item.dataset.id));
+    });
+  }
+
+  function loadDoc(id) {
+    const doc = documents.find(item => item.id === id);
+    if (!doc) return;
+
+    currentId = id;
+    const docTitle = document.getElementById("docTitle");
+    if (docTitle) docTitle.value = doc.name;
+
+    fieldIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = doc[id] || "";
+    });
+
+    renderDocList();
+  }
+
+  function clearEditor() {
+    const docTitle = document.getElementById("docTitle");
+    if (docTitle) docTitle.value = "";
+
+    fieldIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = "";
+    });
+    currentId = null;
+  }
+
+  function addNewDocument() {
+    clearEditor();
+    const docTitle = document.getElementById("docTitle");
+    if (docTitle) docTitle.value = "新文档";
+  }
+
   function doPrint() {
     window.print();
   }
