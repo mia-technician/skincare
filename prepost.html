@@ -1,224 +1,336 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pre & Post Care</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{background:#f5efe9;font-family:Inter,sans-serif;padding:2rem 1rem}
-    .app{max-width:1400px;margin:0 auto;background:#faf7f2;border-radius:32px;border:1px solid #e8dfd0;padding:2rem}
-    h1{font-family:Montserrat,sans-serif;font-weight:300;font-size:1.8rem;color:#7f6e5d;text-align:center;margin-bottom:2rem;text-transform:uppercase}
-    .two-columns{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;min-height:600px}
-    .doc-sidebar{background:#fff9f2;border-radius:24px;padding:1.2rem;border:1px solid #e7dbd0}
-    .doc-sidebar h3{font-family:Montserrat,sans-serif;font-size:1rem;font-weight:600;color:#8f7e6d;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid #e2d4c6}
-    .doc-list{list-style:none;max-height:500px;overflow-y:auto;margin-bottom:1rem}
-    .doc-item{padding:.8rem 1rem;margin-bottom:.5rem;background:#f5efe8;border-radius:16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s}
-    .doc-item:hover{background:#e9dfd4;transform:translateX(4px)}
-    .doc-item.active{background:#b99f87;color:white}
-    .btn-add{width:100%;padding:.6rem;background:#b99f87;color:#fff;border:none;border-radius:40px;cursor:pointer;font-size:.75rem;font-weight:500;margin-bottom:1rem}
-    .btn-auth-enabled{width:100%;padding:.6rem;background:#b99f87;color:#fff;border:none;border-radius:40px;cursor:pointer;font-size:.75rem;font-weight:500;margin-bottom:.5rem}
-    .btn-auth-disabled{width:100%;padding:.6rem;background:#ddd;color:#888;border:none;border-radius:40px;cursor:not-allowed;font-size:.75rem;font-weight:500;margin-bottom:.5rem}
-    .btn-login{width:100%;padding:.6rem;background:#222;color:#fff;border:none;border-radius:40px;cursor:pointer;font-size:.75rem;font-weight:500;margin-bottom:1rem}
-    .doc-editor{background:#fff9f2;border-radius:24px;padding:1.5rem;border:1px solid #e7dbd0}
-    .doc-title{width:100%;font-size:1.5rem;border:none;background:transparent;border-bottom:2px solid #e2d4c6;margin-bottom:1rem;padding:.5rem 0;outline:none;color:#5f5347}
-    .toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-    .toolbar button{padding:4px 10px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:12px}
-    .section{background:transparent;border-radius:0;border:none;margin-bottom:1rem;overflow:hidden}
-    .section-header{background:transparent;padding:.3rem 0;font-size:.75rem;font-weight:600;color:#b99f87;border:none}
-    .section-content{padding:.4rem 0;white-space:pre-wrap;line-height:1.5;min-height:24px;font-size:13px;color:#333}
-    .editor-actions{display:flex;gap:1rem;justify-content:flex-end;margin-top:1rem}
-    .btn{padding:.5rem 1.2rem;border-radius:40px;border:none;cursor:pointer;font-size:.8rem}
-    .btn-email{background:#b99f87;color:white}
-    .btn-print{background:#e9dfd4;color:#333}
-    @media print{body *{visibility:hidden}.doc-editor,.doc-editor *{visibility:visible}.doc-editor{position:absolute;left:0;top:0;width:100%}.toolbar,.editor-actions{display:none!important}}
-    @media (max-width:750px){.two-columns{grid-template-columns:1fr}}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pre & Post Care</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    
+    <!-- 👇 引入共享的 supabase.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    <!-- 👆 引入共享的 supabase.js -->
+
+    <style>
+        /* 你的原始样式，完全不变 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f5efe9; font-family: 'Inter', sans-serif; padding: 2rem 1rem; }
+        .app { max-width: 1400px; margin: 0 auto; background: #faf7f2; border-radius: 32px; border: 1px solid #e8dfd0; padding: 2rem; }
+        h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 1.8rem; color: #7f6e5d; text-align: center; margin-bottom: 2rem; text-transform: uppercase; }
+        .two-columns { display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; min-height: 600px; }
+        .doc-sidebar { background: #fff9f2; border-radius: 24px; padding: 1.2rem; border: 1px solid #e7dbd0; }
+        .doc-sidebar h3 { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; color: #8f7e6d; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; }
+        .doc-list { list-style: none; max-height: 500px; overflow-y: auto; margin-bottom: 1rem; }
+        .doc-item { padding: 0.8rem 1rem; margin-bottom: 0.5rem; background: #f5efe8; border-radius: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
+        .doc-item:hover { background: #e9dfd4; transform: translateX(4px); }
+        .doc-item.active { background: #b99f87; color: white; }
+        .btn-add { width: 100%; padding: 0.6rem; background: #b99f87; color: #fff; border: none; border-radius: 40px; cursor: pointer; font-size: 0.75rem; font-weight: 500; margin-bottom: 1rem; }
+        .btn-auth-enabled { width: 100%; padding: 0.6rem; background: #b99f87; color: #fff; border: none; border-radius: 40px; cursor: pointer; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.5rem; }
+        .btn-auth-disabled { width: 100%; padding: 0.6rem; background: #ddd; color: #888; border: none; border-radius: 40px; cursor: not-allowed; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.5rem; }
+        .btn-login { width: 100%; padding: 0.6rem; background: #222; color: #fff; border: none; border-radius: 40px; cursor: pointer; font-size: 0.75rem; font-weight: 500; margin-bottom: 1rem; }
+        .doc-editor { background: #fff9f2; border-radius: 24px; padding: 1.5rem; border: 1px solid #e7dbd0; }
+        .doc-title { width: 100%; font-size: 1.5rem; border: none; background: transparent; border-bottom: 2px solid #e2d4c6; margin-bottom: 1rem; padding: 0.5rem 0; outline: none; color: #5f5347; }
+        .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .toolbar button { padding: 4px 10px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-size: 12px; }
+        .section { background: transparent; border-radius: 0; border: none; margin-bottom: 1rem; overflow: hidden; }
+        .section-header { background: transparent; padding: 0.3rem 0; font-size: 0.75rem; font-weight: 600; color: #b99f87; border: none; }
+        .section-content { padding: 0.4rem 0; white-space: pre-wrap; line-height: 1.5; min-height: 24px; font-size: 13px; color: #333; }
+        .editor-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem; }
+        .btn { padding: 0.5rem 1.2rem; border-radius: 40px; border: none; cursor: pointer; font-size: 0.8rem; }
+        .btn-email { background: #b99f87; color: white; }
+        .btn-print { background: #e9dfd4; color: #333; }
+        @media print { body * { visibility: hidden; } .doc-editor, .doc-editor * { visibility: visible; } .doc-editor { position: absolute; left: 0; top: 0; width: 100%; } .toolbar, .editor-actions { display: none !important; } }
+        @media (max-width: 750px) { .two-columns { grid-template-columns: 1fr; } }
+    </style>
 </head>
 <body>
-
-<div class="app">
-  <h1>📋 Pre & Post Care</h1>
-  <div class="two-columns">
-    <div class="doc-sidebar">
-      <h3>📄 TREATMENT DOCUMENTS</h3>
-      <button class="btn-add" id="addNewBtn">➕ Add New Document</button>
-      <button class="btn-login" id="loginBtn">Login</button>
-      <button class="btn-auth-disabled" id="btnSaveNew">Save Current as New</button>
-      <button class="btn-auth-disabled" id="btnUpdate">Update Current</button>
-      <button class="btn-auth-disabled" id="btnDelete">Delete Current</button>
-      <div id="docList" class="doc-list"></div>
+    <div class="app">
+        <h1>📋 Pre & Post Care</h1>
+        <div class="two-columns">
+            <div class="doc-sidebar">
+                <h3>📄 TREATMENT DOCUMENTS</h3>
+                <button class="btn-add" id="addNewBtn">➕ Add New Document</button>
+                <button class="btn-login" id="loginBtn">Login / Logout</button>
+                <button class="btn-auth-disabled" id="btnSaveNew">Save Current as New Document</button>
+                <button class="btn-auth-disabled" id="btnUpdate">Update Current Document</button>
+                <button class="btn-auth-disabled" id="btnDelete">Delete Current Document</button>
+                <div id="docList" class="doc-list"></div>
+            </div>
+            <div class="doc-editor">
+                <input type="text" id="docTitle" class="doc-title" placeholder="Document Title">
+                <div class="toolbar">
+                    <button onclick="formatBold('resultPlans')">Bold</button>
+                    <button onclick="formatBullet('resultPlans')">• Bullet</button>
+                </div>
+                <div class="section">
+                    <div class="section-header">📋 RESULTS & TREATMENT PLANS</div>
+                    <div class="section-content" id="resultPlans" contenteditable></div>
+                </div>
+                <div class="section">
+                    <div class="section-header">⚠️ CONTRAINDICATIONS</div>
+                    <div class="section-content" id="contraindications" contenteditable></div>
+                </div>
+                <div class="section">
+                    <div class="section-header">🩺 PRE TREATMENT CARE</div>
+                    <div class="section-content" id="preTreatment" contenteditable></div>
+                </div>
+                <div class="section">
+                    <div class="section-header">⚠️ POSSIBLE SIDE EFFECT</div>
+                    <div class="section-content" id="sideEffects" contenteditable></div>
+                </div>
+                <div class="section">
+                    <div class="section-header">🌸 POST CARE - WHAT TO DO</div>
+                    <div class="section-content" id="postDo" contenteditable></div>
+                </div>
+                <div class="section">
+                    <div class="section-header">🚫 POST CARE - WHAT TO AVOID</div>
+                    <div class="section-content" id="postAvoid" contenteditable></div>
+                </div>
+                <div class="section">
+                    <div class="section-header">🚫 If you have any unusual reactions or concerns, please contact our office at 604-580-2464 OR infobclaser@dermapure.com</div>
+                </div>
+                <div class="editor-actions">
+                    <button class="btn btn-email" id="emailBtn">Send as Email</button>
+                    <button class="btn btn-print" id="printBtn">Print / PDF</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="doc-editor">
-      <input type="text" id="docTitle" class="doc-title" placeholder="Document Title">
-      <div class="toolbar">
-        <button onclick="bold('resultPlans')">Bold</button>
-        <button onclick="bullet('resultPlans')">• List</button>
-      </div>
+    <script>
+        // 👇 注释掉原来独立创建的 supabase 实例
+        // const supabase = supabase.createClient(
+        //     "https://dmrskyskryrdclknezth.supabase.co",
+        //     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8"
+        // );
 
-      <div class="section"><div class="section-header">Results & Treatment Plan</div><div class="section-content" id="resultPlans" contenteditable></div></div>
-      <div class="section"><div class="section-header">Contraindications</div><div class="section-content" id="contraindications" contenteditable></div></div>
-      <div class="section"><div class="section-header">Pre Treatment Care</div><div class="section-content" id="preTreatment" contenteditable></div></div>
-      <div class="section"><div class="section-header">Possible Side Effects</div><div class="section-content" id="sideEffects" contenteditable></div></div>
-      <div class="section"><div class="section-header">Post Treatment Care</div><div class="section-content" id="postDo" contenteditable></div></div>
-      <div class="section"><div class="section-header">What To Avoid</div><div class="section-content" id="postAvoid" contenteditable></div></div>
+        // 现在直接使用全局的 supabase 实例
 
-      <div class="section" style="margin-top:1rem;font-size:12px;color:#666;">
-        If you have any reactions, please call: 604-580-2464 | infobclaser@dermapure.com
-      </div>
+        const fieldIds = ["resultPlans", "contraindications", "preTreatment", "sideEffects", "postDo", "postAvoid"];
+        let currentId = null;
+        let documents = [];
+        let isLoggedIn = false;
 
-      <div class="editor-actions">
-        <button class="btn btn-email" id="emailBtn">Send as Email</button>
-        <button class="btn btn-print" id="printBtn">Print / PDF</button>
-      </div>
-    </div>
-  </div>
-</div>
+        // 登录状态监听
+        supabase.auth.onAuthStateChange((event, session) => {
+            isLoggedIn = !!session;
+            updateAuthUI();
+            if (session) loadCloudDocuments();
+        });
 
-<script>
-// 独立登录，不冲突主站
-const supabase = supabase.createClient(
-  "https://dmrskyskryrdclknezth.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8",
-  { auth: { storageKey: "prepost-auth-isolated" } }
-);
+        function updateAuthUI() {
+            const cls = isLoggedIn ? "btn-auth-enabled" : "btn-auth-disabled";
+            document.getElementById("btnSaveNew").className = cls;
+            document.getElementById("btnUpdate").className = cls;
+            document.getElementById("btnDelete").className = cls;
+            document.getElementById("loginBtn").textContent = isLoggedIn ? "Logout" : "Login";
+        }
 
-let currentId = null;
-let documents = [];
-let isLoggedIn = false;
+        // 登录 / 登出
+        async function toggleLogin() {
+            const { data } = await supabase.auth.getUser();
+            if (data.user) {
+                await supabase.auth.signOut();
+                alert("Logged out");
+                documents = [];
+                currentId = null;
+                clearEditor();
+                renderDocList();
+            } else {
+                const email = prompt("Email:");
+                const pass = prompt("Password:");
+                if (!email || !pass) return;
+                const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+                if (error) alert(error.message);
+                else alert("Login success!");
+            }
+        }
 
-const fieldIds = ["resultPlans","contraindications","preTreatment","sideEffects","postDo","postAvoid"];
+        // 获取当前表单内容
+        function getCurrentDoc() {
+            return {
+                title: document.getElementById("docTitle").value.trim() || "Untitled",
+                result_plans: document.getElementById("resultPlans").innerText,
+                contraindications: document.getElementById("contraindications").innerText,
+                pre_treatment: document.getElementById("preTreatment").innerText,
+                side_effects: document.getElementById("sideEffects").innerText,
+                post_do: document.getElementById("postDo").innerText,
+                post_avoid: document.getElementById("postAvoid").innerText
+            };
+        }
 
-supabase.auth.onAuthStateChange((_, session) => {
-  isLoggedIn = !!session;
-  updateUI();
-  loadDocs();
-});
+        // 保存为新文档（云端）
+        async function saveNew() {
+            const { data } = await supabase.auth.getUser();
+            if (!data.user) return alert("Please login first");
+            const doc = getCurrentDoc();
+            const { error } = await supabase.from("prepost_documents").insert([doc]);
+            if (error) alert(error.message);
+            else {
+                alert("Saved to cloud!");
+                loadCloudDocuments();
+            }
+        }
 
-function updateUI() {
-  const cls = isLoggedIn ? "btn-auth-enabled" : "btn-auth-disabled";
-  document.getElementById("btnSaveNew").className = cls;
-  document.getElementById("btnUpdate").className = cls;
-  document.getElementById("btnDelete").className = cls;
-  document.getElementById("loginBtn").textContent = isLoggedIn ? "Logout" : "Login";
-}
+        // 更新当前文档（云端）
+        async function updateCurrent() {
+            const { data } = await supabase.auth.getUser();
+            if (!data.user) return alert("Please login first");
+            if (!currentId) return alert("No document selected");
+            const doc = getCurrentDoc();
+            const { error } = await supabase
+                .from("prepost_documents")
+                .update(doc)
+                .eq("id", currentId);
+            if (error) alert(error.message);
+            else {
+                alert("Updated!");
+                loadCloudDocuments();
+            }
+        }
 
-// 登录
-async function toggleLogin() {
-  if (isLoggedIn) {
-    await supabase.auth.signOut();
-    alert("Logged out");
-    return;
-  }
+        // 删除当前文档（云端）
+        async function deleteCurrent() {
+            const { data } = await supabase.auth.getUser();
+            if (!data.user) return alert("Please login first");
+            if (!currentId) return alert("No document selected");
+            if (!confirm("Delete this document?")) return;
+            const { error } = await supabase
+                .from("prepost_documents")
+                .delete()
+                .eq("id", currentId);
+            if (error) alert(error.message);
+            else {
+                alert("Deleted!");
+                clearEditor();
+                loadCloudDocuments();
+            }
+        }
 
-  const email = prompt("Email:");
-  const password = prompt("Password:");
-  if (!email || !password) return;
+        // 加载云端文档列表
+        async function loadCloudDocuments() {
+            const { data, error } = await supabase
+                .from("prepost_documents")
+                .select("id, title, result_plans, contraindications, pre_treatment, side_effects, post_do, post_avoid")
+                .order("created_at", { ascending: false });
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) alert(error.message);
-  else alert("Login success!");
-}
+            if (error) {
+                console.error(error);
+                documents = [];
+            } else {
+                documents = data.map(item => ({
+                    id: item.id,
+                    name: item.title,
+                    resultPlans: item.result_plans,
+                    contraindications: item.contraindications,
+                    preTreatment: item.pre_treatment,
+                    sideEffects: item.side_effects,
+                    postDo: item.post_do,
+                    postAvoid: item.post_avoid
+                }));
+            }
+            renderDocList();
+        }
 
-// 加载所有文档（所有人可看）
-async function loadDocs() {
-  const { data } = await supabase
-    .from("prepost_documents")
-    .select()
-    .order("created_at", { ascending: false });
+        // 基础 UI 功能
+        function clearEditor() {
+            document.getElementById("docTitle").value = "";
+            fieldIds.forEach(id => document.getElementById(id).innerText = "");
+            currentId = null;
+        }
 
-  documents = data || [];
-  renderList();
-}
+        function addNewDocument() {
+            clearEditor();
+            document.getElementById("docTitle").value = "New Document";
+        }
 
-function renderList() {
-  document.getElementById("docList").innerHTML = documents.map(d => `
-    <div class="doc-item ${currentId === d.id ? 'active' : ''}" onclick="openDoc(${d.id})">
-      ${d.title}
-    </div>
-  `).join('');
-}
+        function loadDoc(id) {
+            const d = documents.find(x => x.id === id);
+            if (!d) return;
+            currentId = id;
+            document.getElementById("docTitle").value = d.name || "";
+            document.getElementById("resultPlans").innerText = d.resultPlans || "";
+            document.getElementById("contraindications").innerText = d.contraindications || "";
+            document.getElementById("preTreatment").innerText = d.preTreatment || "";
+            document.getElementById("sideEffects").innerText = d.sideEffects || "";
+            document.getElementById("postDo").innerText = d.postDo || "";
+            document.getElementById("postAvoid").innerText = d.postAvoid || "";
+            renderDocList();
+        }
 
-// 本地编辑
-function newDoc() {
-  currentId = null;
-  document.getElementById("docTitle").value = "New Document";
-  fieldIds.forEach(id => document.getElementById(id).innerText = "");
-}
+        function renderDocList() {
+            const el = document.getElementById("docList");
+            el.innerHTML = documents.map(d => `
+                <div class="doc-item ${currentId === d.id ? 'active' : ''}" data-id="${d.id}">
+                    <span>📄 ${d.name}</span>
+                </div>
+            `).join('');
+            el.querySelectorAll('.doc-item').forEach(item => {
+                item.onclick = () => loadDoc(item.dataset.id);
+            });
+        }
 
-function openDoc(id) {
-  const d = documents.find(x => x.id === id);
-  if (!d) return;
-  currentId = d.id;
-  document.getElementById("docTitle").value = d.title;
-  document.getElementById("resultPlans").innerText = d.result_plans;
-  document.getElementById("contraindications").innerText = d.contraindications;
-  document.getElementById("preTreatment").innerText = d.pre_treatment;
-  document.getElementById("sideEffects").innerText = d.side_effects;
-  document.getElementById("postDo").innerText = d.post_do;
-  document.getElementById("postAvoid").innerText = d.post_avoid;
-  renderList();
-}
+        function formatBold(id) {
+            document.getElementById(id).focus();
+            document.execCommand('bold');
+        }
 
-function getCurrent() {
-  return {
-    title: document.getElementById("docTitle").value || "Untitled",
-    result_plans: document.getElementById("resultPlans").innerText,
-    contraindications: document.getElementById("contraindications").innerText,
-    pre_treatment: document.getElementById("preTreatment").innerText,
-    side_effects: document.getElementById("sideEffects").innerText,
-    post_do: document.getElementById("postDo").innerText,
-    post_avoid: document.getElementById("postAvoid").innerText
-  };
-}
+        function formatBullet(id) {
+            document.getElementById(id).focus();
+            document.execCommand('insertUnorderedList');
+        }
 
-// ==============================
-// 🔥 登录才能保存到云（正确逻辑）
-// ==============================
-async function saveNew() {
-  if (!isLoggedIn) return alert("Please login to save to cloud ❌");
-  const { error } = await supabase.from("prepost_documents").insert([getCurrent()]);
-  if (error) alert(error.message);
-  else { alert("Saved to cloud ✅"); loadDocs(); }
-}
+        function doPrint() {
+            window.print();
+        }
 
-async function updateDoc() {
-  if (!isLoggedIn) return alert("Please login to update ❌");
-  const { error } = await supabase.from("prepost_documents").update(getCurrent()).eq("id", currentId);
-  if (error) alert(error.message);
-  else { alert("Updated ✅"); loadDocs(); }
-}
+        function sendAsEmail() {
+            const title = document.getElementById("docTitle").value || "Treatment Document";
+            const body = `
+${title}
 
-async function deleteDoc() {
-  if (!isLoggedIn) return alert("Please login to delete ❌");
-  const { error } = await supabase.from("prepost_documents").delete().eq("id", currentId);
-  if (error) alert(error.message);
-  else { alert("Deleted ✅"); newDoc(); loadDocs(); }
-}
+----------------------------------------
+RESULTS & TREATMENT PLANS:
+${document.getElementById("resultPlans").innerText}
 
-// 工具
-function bold(id) { document.getElementById(id).focus(); document.execCommand('bold'); }
-function bullet(id) { document.getElementById(id).focus(); document.execCommand('insertUnorderedList'); }
-function doPrint() { window.print(); }
-function sendEmail() {
-  const title = document.getElementById("docTitle").value;
-  const body = fieldIds.map(id => document.getElementById(id).innerText).join("\n\n");
-  window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
-}
+----------------------------------------
+CONTRAINDICATIONS:
+${document.getElementById("contraindications").innerText}
 
-// 绑定
-document.getElementById("loginBtn").onclick = toggleLogin;
-document.getElementById("addNewBtn").onclick = newDoc;
-document.getElementById("btnSaveNew").onclick = saveNew;
-document.getElementById("btnUpdate").onclick = updateDoc;
-document.getElementById("btnDelete").onclick = deleteDoc;
-document.getElementById("emailBtn").onclick = sendEmail;
-document.getElementById("printBtn").onclick = doPrint;
+----------------------------------------
+PRE TREATMENT CARE:
+${document.getElementById("preTreatment").innerText}
 
-loadDocs();
-</script>
+----------------------------------------
+POSSIBLE SIDE EFFECT:
+${document.getElementById("sideEffects").innerText}
+
+----------------------------------------
+POST CARE - WHAT TO DO:
+${document.getElementById("postDo").innerText}
+
+----------------------------------------
+POST CARE - WHAT TO AVOID:
+${document.getElementById("postAvoid").innerText}
+
+----------------------------------------
+Contact: 604-580-2464 OR infobclaser@dermapure.com
+            `;
+            window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById("loginBtn").onclick = toggleLogin;
+            document.getElementById("addNewBtn").onclick = addNewDocument;
+            document.getElementById("btnSaveNew").onclick = saveNew;
+            document.getElementById("btnUpdate").onclick = updateCurrent;
+            document.getElementById("btnDelete").onclick = deleteCurrent;
+            document.getElementById("emailBtn").onclick = sendAsEmail;
+            document.getElementById("printBtn").onclick = doPrint;
+            updateAuthUI(false);
+            renderDocList();
+        });
+    </script>
 </body>
 </html>
