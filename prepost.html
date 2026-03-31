@@ -218,20 +218,31 @@
             to { transform: translateX(0); opacity: 1; }
         }
         
-        /* 打印样式 - 隐藏所有操作按钮 */
+        /* 优化打印样式 - 移除分页控制，避免空白 */
         @media print { 
-            body * { visibility: hidden; }
+            /* 隐藏所有页面元素 */
+            body * { 
+                visibility: hidden; 
+            }
+            
+            /* 只显示编辑区域 */
             .doc-editor, 
-            .doc-editor * { visibility: visible; }
+            .doc-editor * { 
+                visibility: visible; 
+            }
+            
+            /* 定位编辑区域 */
             .doc-editor { 
                 position: absolute; 
                 left: 0; 
                 top: 0; 
                 width: 100%; 
                 margin: 0;
-                padding: 20px;
+                padding: 15px;
                 background: white;
             }
+            
+            /* 隐藏所有操作按钮和工具栏 */
             .action-toolbar,
             .action-toolbar *,
             .inline-toolbar,
@@ -243,25 +254,49 @@
                 display: none !important;
                 visibility: hidden !important;
             }
+            
+            /* 标题样式 */
             .doc-title {
                 border-bottom: 2px solid #e2d4c6;
-                font-size: 24px;
+                font-size: 22px;
                 font-weight: 500;
-                margin-bottom: 20px;
-                padding: 0 0 10px 0;
+                margin-bottom: 15px;
+                padding: 0 0 8px 0;
+                color: #5f5347;
             }
+            
+            /* 内容区域样式 - 移除所有分页控制 */
             .section {
-                margin-bottom: 20px;
-                page-break-inside: avoid;
+                margin-bottom: 15px;
+                page-break-inside: auto;
+                break-inside: auto;
             }
+            
             .section-header {
-                font-size: 14px;
+                font-size: 13px;
                 font-weight: 600;
                 color: #b99f87;
+                margin-bottom: 5px;
             }
+            
             .section-content {
-                font-size: 12px;
+                font-size: 11px;
                 line-height: 1.5;
+                padding: 0;
+                background: white;
+                border: none;
+            }
+            
+            /* 确保列表正常显示 */
+            .section-content ul, 
+            .section-content ol {
+                margin: 0.3rem 0;
+                padding-left: 1.2rem;
+            }
+            
+            /* 避免内容被截断 */
+            .section-content br {
+                display: block;
             }
         }
         
