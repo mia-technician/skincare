@@ -87,24 +87,59 @@
         
         .doc-title { width: 100%; font-size: 1.5rem; border: none; background: transparent; border-bottom: 2px solid #e2d4c6; margin-bottom: 1rem; padding: 0.5rem 0; outline: none; color: #5f5347; font-weight: 300; }
         
-        .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-        .toolbar button { 
-            padding: 4px 12px; 
-            border: 1px solid #ddd; 
-            border-radius: 8px; 
-            background: #fff; 
-            cursor: pointer; 
-            font-size: 12px; 
-            font-weight: 500;
-            transition: all 0.2s; 
-        }
-        .toolbar button:hover { 
-            background: #f0e8e0; 
-            border-color: #b99f87; 
+        /* 每个内容区域的样式 */
+        .section {
+            background: transparent;
+            border-radius: 0;
+            border: none;
+            margin-bottom: 1.5rem;
+            overflow: visible;
+            position: relative;
         }
         
-        .section { background: transparent; border-radius: 0; border: none; margin-bottom: 1rem; overflow: hidden; }
-        .section-header { background: transparent; padding: 0.3rem 0; font-size: 0.75rem; font-weight: 300; color: #b99f87; border: none; letter-spacing: 0.3px; }
+        .section-header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid #e8dfd0;
+        }
+        
+        .section-header {
+            font-size: 0.75rem;
+            font-weight: 300;
+            color: #b99f87;
+            letter-spacing: 0.3px;
+        }
+        
+        /* 内嵌工具栏 - 每个内容区域右上角 */
+        .inline-toolbar {
+            display: flex;
+            gap: 6px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        
+        .section:hover .inline-toolbar {
+            opacity: 1;
+        }
+        
+        .inline-toolbar button {
+            padding: 2px 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .inline-toolbar button:hover {
+            background: #f0e8e0;
+            border-color: #b99f87;
+        }
         
         /* 统一右侧内容区域的字体和字号 */
         .section-content {
@@ -114,10 +149,17 @@
             color: #333 !important;
             padding: 0.4rem 0;
             white-space: pre-wrap;
-            min-height: 24px;
+            min-height: 80px;
             outline: none;
             border-radius: 8px;
             transition: background 0.2s;
+            background: #fff9f2;
+            border: 1px solid transparent;
+        }
+        
+        .section-content:focus {
+            background: #fffef8;
+            border-color: #e2d4c6;
         }
         
         /* 强制所有子元素继承相同字体 */
@@ -136,10 +178,6 @@
         }
         .section-content li {
             margin: 0.25rem 0;
-        }
-        
-        .section-content:focus {
-            background: #fffef8;
         }
         
         .editor-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem; }
@@ -182,18 +220,9 @@
         
         /* 打印样式 - 隐藏所有操作按钮 */
         @media print { 
-            /* 隐藏所有页面元素，只显示编辑区域 */
-            body * { 
-                visibility: hidden; 
-            }
-            
-            /* 显示编辑区域及其所有子元素 */
+            body * { visibility: hidden; }
             .doc-editor, 
-            .doc-editor * { 
-                visibility: visible; 
-            }
-            
-            /* 定位编辑区域 */
+            .doc-editor * { visibility: visible; }
             .doc-editor { 
                 position: absolute; 
                 left: 0; 
@@ -203,69 +232,36 @@
                 padding: 20px;
                 background: white;
             }
-            
-            /* 隐藏操作工具栏（四个按钮） */
             .action-toolbar,
-            .action-toolbar * {
-                display: none !important;
-                visibility: hidden !important;
-            }
-            
-            /* 隐藏富文本工具栏（Bold、Bullet List等按钮） */
-            .toolbar,
-            .toolbar * {
-                display: none !important;
-                visibility: hidden !important;
-            }
-            
-            /* 隐藏底部的发送邮件和打印按钮本身 */
+            .action-toolbar *,
+            .inline-toolbar,
+            .inline-toolbar *,
             .editor-actions,
-            .editor-actions * {
-                display: none !important;
-                visibility: hidden !important;
-            }
-            
-            /* 隐藏左侧边栏 */
+            .editor-actions *,
             .doc-sidebar,
             .doc-sidebar * {
                 display: none !important;
                 visibility: hidden !important;
             }
-            
-            /* 优化标题样式 */
             .doc-title {
                 border-bottom: 2px solid #e2d4c6;
                 font-size: 24px;
                 font-weight: 500;
                 margin-bottom: 20px;
                 padding: 0 0 10px 0;
-                color: #5f5347;
             }
-            
-            /* 确保内容区域有合适的边距 */
             .section {
                 margin-bottom: 20px;
                 page-break-inside: avoid;
             }
-            
             .section-header {
                 font-size: 14px;
                 font-weight: 600;
                 color: #b99f87;
-                margin-bottom: 8px;
-                letter-spacing: 0.5px;
             }
-            
             .section-content {
                 font-size: 12px;
                 line-height: 1.5;
-            }
-            
-            /* 确保列表样式在打印中正常显示 */
-            .section-content ul, 
-            .section-content ol {
-                margin: 0.5rem 0;
-                padding-left: 1.5rem;
             }
         }
         
@@ -294,37 +290,84 @@
                 </div>
                 
                 <input type="text" id="docTitle" class="doc-title" placeholder="Document Title">
-                <div class="toolbar">
-                    <button id="boldBtn"><b>Bold</b></button>
-                    <button id="bulletBtn">• Bullet List</button>
-                    <button id="numberBtn">1. Numbered List</button>
-                </div>
+                
+                <!-- 每个内容区域都有自己的工具栏 -->
                 <div class="section">
-                    <div class="section-header">📋 RESULTS & TREATMENT PLANS</div>
+                    <div class="section-header-wrapper">
+                        <span class="section-header">📋 RESULTS & TREATMENT PLANS</span>
+                        <div class="inline-toolbar">
+                            <button class="inline-bold" data-target="resultPlans"><b>B</b></button>
+                            <button class="inline-bullet" data-target="resultPlans">•</button>
+                            <button class="inline-number" data-target="resultPlans">1.</button>
+                        </div>
+                    </div>
                     <div class="section-content" id="resultPlans" contenteditable="true"></div>
                 </div>
+                
                 <div class="section">
-                    <div class="section-header">❗️ CONTRAINDICATIONS</div>
+                    <div class="section-header-wrapper">
+                        <span class="section-header">❗️ CONTRAINDICATIONS</span>
+                        <div class="inline-toolbar">
+                            <button class="inline-bold" data-target="contraindications"><b>B</b></button>
+                            <button class="inline-bullet" data-target="contraindications">•</button>
+                            <button class="inline-number" data-target="contraindications">1.</button>
+                        </div>
+                    </div>
                     <div class="section-content" id="contraindications" contenteditable="true"></div>
                 </div>
+                
                 <div class="section">
-                    <div class="section-header">🩺 PRE TREATMENT CARE</div>
+                    <div class="section-header-wrapper">
+                        <span class="section-header">🩺 PRE TREATMENT CARE</span>
+                        <div class="inline-toolbar">
+                            <button class="inline-bold" data-target="preTreatment"><b>B</b></button>
+                            <button class="inline-bullet" data-target="preTreatment">•</button>
+                            <button class="inline-number" data-target="preTreatment">1.</button>
+                        </div>
+                    </div>
                     <div class="section-content" id="preTreatment" contenteditable="true"></div>
                 </div>
+                
                 <div class="section">
-                    <div class="section-header">⚠️ POSSIBLE SIDE EFFECT</div>
+                    <div class="section-header-wrapper">
+                        <span class="section-header">⚠️ POSSIBLE SIDE EFFECT</span>
+                        <div class="inline-toolbar">
+                            <button class="inline-bold" data-target="sideEffects"><b>B</b></button>
+                            <button class="inline-bullet" data-target="sideEffects">•</button>
+                            <button class="inline-number" data-target="sideEffects">1.</button>
+                        </div>
+                    </div>
                     <div class="section-content" id="sideEffects" contenteditable="true"></div>
                 </div>
+                
                 <div class="section">
-                    <div class="section-header">🌸 POST CARE - WHAT TO DO</div>
+                    <div class="section-header-wrapper">
+                        <span class="section-header">🌸 POST CARE - WHAT TO DO</span>
+                        <div class="inline-toolbar">
+                            <button class="inline-bold" data-target="postDo"><b>B</b></button>
+                            <button class="inline-bullet" data-target="postDo">•</button>
+                            <button class="inline-number" data-target="postDo">1.</button>
+                        </div>
+                    </div>
                     <div class="section-content" id="postDo" contenteditable="true"></div>
                 </div>
+                
                 <div class="section">
-                    <div class="section-header">🚫 POST CARE - WHAT TO AVOID</div>
+                    <div class="section-header-wrapper">
+                        <span class="section-header">🚫 POST CARE - WHAT TO AVOID</span>
+                        <div class="inline-toolbar">
+                            <button class="inline-bold" data-target="postAvoid"><b>B</b></button>
+                            <button class="inline-bullet" data-target="postAvoid">•</button>
+                            <button class="inline-number" data-target="postAvoid">1.</button>
+                        </div>
+                    </div>
                     <div class="section-content" id="postAvoid" contenteditable="true"></div>
                 </div>
+                
                 <div class="section">
-                    <div class="section-header">📞 If you have any unusual reactions or concerns, please contact our office at 604-580-2464 OR infobclaser@dermapure.com</div>
+                    <div class="section-header-wrapper">
+                        <span class="section-header">📞 If you have any unusual reactions or concerns, please contact our office at 604-580-2464 OR infobclaser@dermapure.com</span>
+                    </div>
                 </div>
                 <div class="editor-actions">
                     <button class="btn btn-email" id="emailBtn">📧 Send as Email</button>
@@ -417,29 +460,23 @@
             currentActiveEditor = element;
         });
     }
-
-    function applyFormat(command) {
-        if (!currentActiveEditor) {
-            const firstContent = document.querySelector('.section-content');
-            if (firstContent) {
-                firstContent.focus();
-                currentActiveEditor = firstContent;
-            } else {
-                showToast('Please click on a content area first');
-                return;
-            }
-        }
+    
+    // 应用格式到指定编辑区域
+    function applyFormatToEditor(editorId, command) {
+        const editor = document.getElementById(editorId);
+        if (!editor) return;
         
-        currentActiveEditor.focus();
+        editor.focus();
+        currentActiveEditor = editor;
         
         if (command === 'bold') {
             document.execCommand('bold', false, null);
         } else if (command === 'insertUnorderedList') {
             document.execCommand('insertUnorderedList', false, null);
-            setTimeout(() => cleanInlineStyles(currentActiveEditor), 10);
+            setTimeout(() => cleanInlineStyles(editor), 10);
         } else if (command === 'insertOrderedList') {
             document.execCommand('insertOrderedList', false, null);
-            setTimeout(() => cleanInlineStyles(currentActiveEditor), 10);
+            setTimeout(() => cleanInlineStyles(editor), 10);
         }
     }
 
@@ -449,6 +486,7 @@
             return;
         }
         
+        // 设置所有内容区域
         contentAreas.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -457,10 +495,18 @@
             }
         });
         
-        document.getElementById('boldBtn').addEventListener('click', () => applyFormat('bold'));
-        document.getElementById('bulletBtn').addEventListener('click', () => applyFormat('insertUnorderedList'));
-        document.getElementById('numberBtn').addEventListener('click', () => applyFormat('insertOrderedList'));
+        // 为所有内嵌工具栏按钮添加事件监听
+        document.querySelectorAll('.inline-bold').forEach(btn => {
+            btn.addEventListener('click', () => applyFormatToEditor(btn.dataset.target, 'bold'));
+        });
+        document.querySelectorAll('.inline-bullet').forEach(btn => {
+            btn.addEventListener('click', () => applyFormatToEditor(btn.dataset.target, 'insertUnorderedList'));
+        });
+        document.querySelectorAll('.inline-number').forEach(btn => {
+            btn.addEventListener('click', () => applyFormatToEditor(btn.dataset.target, 'insertOrderedList'));
+        });
         
+        // 其他按钮
         document.getElementById('addNewBtn').addEventListener('click', addNewDocument);
         document.getElementById('saveBtn').addEventListener('click', saveDocument);
         document.getElementById('updateBtn').addEventListener('click', updateDocument);
@@ -470,6 +516,7 @@
         
         await loadDocuments();
         
+        // 默认激活第一个内容区域
         const firstContent = document.getElementById('resultPlans');
         if (firstContent) {
             currentActiveEditor = firstContent;
