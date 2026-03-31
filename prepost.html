@@ -220,18 +220,9 @@
         
         /* 优化打印样式 - 移除分页控制，避免空白 */
         @media print { 
-            /* 隐藏所有页面元素 */
-            body * { 
-                visibility: hidden; 
-            }
-            
-            /* 只显示编辑区域 */
+            body * { visibility: hidden; }
             .doc-editor, 
-            .doc-editor * { 
-                visibility: visible; 
-            }
-            
-            /* 定位编辑区域 */
+            .doc-editor * { visibility: visible; }
             .doc-editor { 
                 position: absolute; 
                 left: 0; 
@@ -241,8 +232,6 @@
                 padding: 15px;
                 background: white;
             }
-            
-            /* 隐藏所有操作按钮和工具栏 */
             .action-toolbar,
             .action-toolbar *,
             .inline-toolbar,
@@ -254,31 +243,24 @@
                 display: none !important;
                 visibility: hidden !important;
             }
-            
-            /* 标题样式 */
             .doc-title {
                 border-bottom: 2px solid #e2d4c6;
                 font-size: 22px;
                 font-weight: 500;
                 margin-bottom: 15px;
                 padding: 0 0 8px 0;
-                color: #5f5347;
             }
-            
-            /* 内容区域样式 - 移除所有分页控制 */
             .section {
                 margin-bottom: 15px;
                 page-break-inside: auto;
                 break-inside: auto;
             }
-            
             .section-header {
                 font-size: 13px;
                 font-weight: 600;
                 color: #b99f87;
                 margin-bottom: 5px;
             }
-            
             .section-content {
                 font-size: 11px;
                 line-height: 1.5;
@@ -286,17 +268,10 @@
                 background: white;
                 border: none;
             }
-            
-            /* 确保列表正常显示 */
             .section-content ul, 
             .section-content ol {
                 margin: 0.3rem 0;
                 padding-left: 1.2rem;
-            }
-            
-            /* 避免内容被截断 */
-            .section-content br {
-                display: block;
             }
         }
         
@@ -470,6 +445,73 @@
         }
         
         return tempDiv.innerHTML;
+    }
+    
+    // 将 HTML 转换为带缩进的纯文本（保持多行列表项的缩进）
+    function convertToPlainTextWithIndent(html) {
+        if (!html) return '';
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        // 处理无序列表 - 保持后续行缩进
+        tempDiv.querySelectorAll('ul').forEach(ul => {
+            const items = ul.querySelectorAll('li');
+            let result = '';
+            items.forEach(li => {
+                const liText = li.innerText;
+                const lines = liText.split('\n');
+                // 第一行带 bullet
+                result += '• ' + lines[0] + '\n';
+                // 后续行添加 2 个空格的缩进
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim()) {
+                        result += '  ' + lines[i] + '\n';
+                    }
+                }
+            });
+            ul.replaceWith(document.createTextNode(result));
+        });
+        
+        // 处理有序列表 - 保持后续行缩进
+        tempDiv.querySelectorAll('ol').forEach(ol => {
+            const items = ol.querySelectorAll('li');
+            let result = '';
+            items.forEach((li, idx) => {
+                const liText = li.innerText;
+                const lines = liText.split('\n');
+                // 第一行带数字
+                result += (idx + 1) + '. ' + lines[0] + '\n';
+                // 后续行添加 3 个空格的缩进（与数字后的空格对齐）
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim()) {
+                        result += '   ' + lines[i] + '\n';
+                    }
+                }
+            });
+            ol.replaceWith(document.createTextNode(result));
+        });
+        
+        // 处理孤立的 li 标签
+        tempDiv.querySelectorAll('li').forEach(li => {
+            const liText = li.innerText;
+            const lines = liText.split('\n');
+            let result = '• ' + lines[0] + '\n';
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim()) {
+                    result += '  ' + lines[i] + '\n';
+                }
+            }
+            li.replaceWith(document.createTextNode(result));
+        });
+        
+        // 处理段落和换行
+        let text = tempDiv.innerText || tempDiv.textContent || '';
+        
+        // 清理多余的空行，但保留必要的换行
+        text = text.replace(/\n\s*\n\s*\n/g, '\n\n');
+        
+        return text;
     }
     
     // 设置内容区域的统一行为
@@ -730,32 +772,6 @@
         const title = document.getElementById('docTitle').value || 'Pre & Post Care Document';
         const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
         
-        function getPlainText(html) {
-            const temp = document.createElement('div');
-            temp.innerHTML = html;
-            temp.querySelectorAll('ul').forEach(ul => {
-                const items = ul.querySelectorAll('li');
-                let bulletText = '';
-                items.forEach(li => {
-                    bulletText += '• ' + li.innerText + '\n';
-                });
-                ul.replaceWith(document.createTextNode(bulletText));
-            });
-            temp.querySelectorAll('ol').forEach(ol => {
-                const items = ol.querySelectorAll('li');
-                let numberedText = '';
-                items.forEach((li, idx) => {
-                    numberedText += (idx + 1) + '. ' + li.innerText + '\n';
-                });
-                ol.replaceWith(document.createTextNode(numberedText));
-            });
-            temp.querySelectorAll('li').forEach(li => {
-                const bulletText = '• ' + li.innerText + '\n';
-                li.replaceWith(document.createTextNode(bulletText));
-            });
-            return temp.innerText || temp.textContent || '';
-        }
-        
         let emailBody = '';
         emailBody += `${title}\n`;
         emailBody += `${'='.repeat(Math.min(title.length, 50))}\n\n`;
@@ -777,7 +793,8 @@
             const contentHtml = contentEl?.innerHTML?.trim();
             if (contentHtml && contentHtml !== '') {
                 hasContent = true;
-                const plainContent = getPlainText(contentHtml);
+                // 使用新的转换函数，保持多行列表项的缩进
+                const plainContent = convertToPlainTextWithIndent(contentHtml);
                 emailBody += `${section.icon} ${section.name}\n`;
                 emailBody += `${'-'.repeat(section.name.length + 2)}\n`;
                 emailBody += `${plainContent}\n\n`;
