@@ -179,8 +179,101 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        @media print { body * { visibility: hidden; } .doc-editor, .doc-editor * { visibility: visible; } .doc-editor { position: absolute; left: 0; top: 0; width: 100%; } .toolbar, .editor-actions { display: none !important; } }
-        @media (max-width: 750px) { .two-columns { grid-template-columns: 1fr; } }
+        
+        /* 打印样式 - 隐藏所有操作按钮 */
+        @media print { 
+            /* 隐藏所有页面元素，只显示编辑区域 */
+            body * { 
+                visibility: hidden; 
+            }
+            
+            /* 显示编辑区域及其所有子元素 */
+            .doc-editor, 
+            .doc-editor * { 
+                visibility: visible; 
+            }
+            
+            /* 定位编辑区域 */
+            .doc-editor { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                margin: 0;
+                padding: 20px;
+                background: white;
+            }
+            
+            /* 隐藏操作工具栏（四个按钮） */
+            .action-toolbar,
+            .action-toolbar * {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            /* 隐藏富文本工具栏（Bold、Bullet List等按钮） */
+            .toolbar,
+            .toolbar * {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            /* 隐藏底部的发送邮件和打印按钮本身 */
+            .editor-actions,
+            .editor-actions * {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            /* 隐藏左侧边栏 */
+            .doc-sidebar,
+            .doc-sidebar * {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            /* 优化标题样式 */
+            .doc-title {
+                border-bottom: 2px solid #e2d4c6;
+                font-size: 24px;
+                font-weight: 500;
+                margin-bottom: 20px;
+                padding: 0 0 10px 0;
+                color: #5f5347;
+            }
+            
+            /* 确保内容区域有合适的边距 */
+            .section {
+                margin-bottom: 20px;
+                page-break-inside: avoid;
+            }
+            
+            .section-header {
+                font-size: 14px;
+                font-weight: 600;
+                color: #b99f87;
+                margin-bottom: 8px;
+                letter-spacing: 0.5px;
+            }
+            
+            .section-content {
+                font-size: 12px;
+                line-height: 1.5;
+            }
+            
+            /* 确保列表样式在打印中正常显示 */
+            .section-content ul, 
+            .section-content ol {
+                margin: 0.5rem 0;
+                padding-left: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 750px) { 
+            .two-columns { 
+                grid-template-columns: 1fr; 
+            }
+        }
     </style>
 </head>
 <body>
@@ -279,11 +372,9 @@
     function fixListContent(html) {
         if (!html) return '';
         
-        // 检查是否有孤立的 li 标签（没有包裹在 ul/ol 中）
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = html;
         
-        // 查找所有没有被 ul/ol 包裹的 li 标签
         const orphanLis = [];
         tempDiv.querySelectorAll('li').forEach(li => {
             if (!li.parentElement || (li.parentElement.tagName !== 'UL' && li.parentElement.tagName !== 'OL')) {
@@ -291,7 +382,6 @@
             }
         });
         
-        // 将孤立的 li 包裹到 ul 中
         if (orphanLis.length > 0) {
             const ul = document.createElement('ul');
             orphanLis.forEach(li => {
@@ -308,7 +398,6 @@
     function setupContentEditable(element, areaId) {
         if (!element) return;
         
-        // 处理粘贴事件 - 只保留纯文本
         element.addEventListener('paste', function(e) {
             e.preventDefault();
             const text = (e.clipboardData || window.clipboardData).getData('text/plain');
@@ -316,12 +405,10 @@
             setTimeout(() => cleanInlineStyles(element), 10);
         });
         
-        // 处理输入事件 - 实时清理内联样式
         element.addEventListener('input', function() {
             cleanInlineStyles(element);
         });
         
-        // 获取焦点时记录当前编辑区域
         element.addEventListener('focus', function() {
             currentActiveEditor = element;
         });
@@ -331,7 +418,6 @@
         });
     }
 
-    // 应用格式到当前激活的编辑区域
     function applyFormat(command) {
         if (!currentActiveEditor) {
             const firstContent = document.querySelector('.section-content');
@@ -357,14 +443,12 @@
         }
     }
 
-    // Initialize on page load
     window.addEventListener('DOMContentLoaded', async function() {
         if (typeof supabase === 'undefined') {
             alert('Error: Supabase not initialized. Please check supabase.js');
             return;
         }
         
-        // 设置所有内容区域
         contentAreas.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -373,12 +457,10 @@
             }
         });
         
-        // 设置工具栏按钮
         document.getElementById('boldBtn').addEventListener('click', () => applyFormat('bold'));
         document.getElementById('bulletBtn').addEventListener('click', () => applyFormat('insertUnorderedList'));
         document.getElementById('numberBtn').addEventListener('click', () => applyFormat('insertOrderedList'));
         
-        // 其他按钮
         document.getElementById('addNewBtn').addEventListener('click', addNewDocument);
         document.getElementById('saveBtn').addEventListener('click', saveDocument);
         document.getElementById('updateBtn').addEventListener('click', updateDocument);
@@ -388,7 +470,6 @@
         
         await loadDocuments();
         
-        // 默认激活第一个内容区域
         const firstContent = document.getElementById('resultPlans');
         if (firstContent) {
             currentActiveEditor = firstContent;
@@ -404,7 +485,6 @@
             
             if (error) throw error;
             documents = data || [];
-            console.log('Loaded documents:', documents);
             renderDocumentList();
         } catch (error) {
             console.error('Error loading documents:', error);
@@ -429,43 +509,24 @@
     }
 
     window.selectDocument = function(id) {
-        console.log('Selecting document with ID:', id);
         const doc = documents.find(d => String(d.id) === String(id));
-        if (!doc) {
-            console.error('Document not found');
-            return;
-        }
+        if (!doc) return;
         
-        console.log('Document data:', doc);
         currentId = doc.id;
-        
-        // 设置标题
         document.getElementById('docTitle').value = doc.title || '';
         
-        // 加载所有内容区域
         contentAreas.forEach(area => {
             const el = document.getElementById(area);
             if (el) {
                 const dbField = fieldMapping[area];
                 let content = doc[dbField] || '';
-                console.log(`Loading ${area} (${dbField}):`, content);
                 
-                // 修复列表内容
                 if (content && (content.includes('<li>') || content.includes('<li '))) {
                     content = fixListContent(content);
                 }
                 
                 el.innerHTML = content;
-                
-                // 如果内容为空，设置一个空白占位
-                if (!content || content === '') {
-                    el.innerHTML = '';
-                }
-                
                 cleanInlineStyles(el);
-                
-                // 确保内容可见
-                console.log(`After setting ${area}, innerHTML:`, el.innerHTML);
             }
         });
         
@@ -480,7 +541,6 @@
             const el = document.getElementById(area);
             if (el) {
                 const dbField = fieldMapping[area];
-                // 获取内容前清理内联样式，但保留 HTML 结构
                 const clone = el.cloneNode(true);
                 const allElements = clone.querySelectorAll('*');
                 allElements.forEach(child => {
@@ -521,7 +581,6 @@
         }
         
         const data = getCurrentDocumentData();
-        console.log('Saving document:', data);
         
         try {
             const { error } = await supabase.from('prepost_documents').insert([data]);
@@ -531,7 +590,6 @@
             clearEditor();
             currentId = null;
         } catch (error) {
-            console.error('Save error:', error);
             alert('Failed to save: ' + error.message);
         }
     }
@@ -549,7 +607,6 @@
         }
         
         const data = getCurrentDocumentData();
-        console.log('Updating document', currentId, 'with:', data);
         
         try {
             const { error } = await supabase.from('prepost_documents').update(data).eq('id', currentId);
@@ -557,7 +614,6 @@
             showToast('Document updated successfully!');
             await loadDocuments();
         } catch (error) {
-            console.error('Update error:', error);
             alert('Failed to update: ' + error.message);
         }
     }
@@ -584,7 +640,6 @@
             currentId = null;
             await loadDocuments();
         } catch (error) {
-            console.error('Delete error:', error);
             alert('Failed to delete: ' + error.message);
         }
     }
@@ -612,7 +667,6 @@
                 });
                 ol.replaceWith(document.createTextNode(numberedText));
             });
-            // 处理孤立的 li 标签
             temp.querySelectorAll('li').forEach(li => {
                 const bulletText = '• ' + li.innerText + '\n';
                 li.replaceWith(document.createTextNode(bulletText));
