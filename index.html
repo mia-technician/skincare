@@ -7,10 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Skincare Routine Builder</title>
     
-    <!-- ==================== Supabase SDK（必须！）==================== -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f5efe9; font-family: 'Inter', sans-serif; padding: 2rem 1rem; }
@@ -19,10 +17,51 @@
         .ritual-header { text-align: center; margin-bottom: 2rem; }
         .ritual-header h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 1.8rem; color: #7f6e5d; text-transform: uppercase; }
         .ritual-header p { font-size: 0.85rem; color: #b7a99a; margin-top: 0.5rem; }
-        .auth-section { background: #fff9f2; border-radius: 24px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid #e7dbd0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .auth-status { font-size: 0.85rem; color: #8f7e6b; }
-        .auth-btn { background: #b99f87; color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
-        .auth-btn-outline { background: transparent; border: 1px solid #d2c0b0; color: #5f5347; }
+        
+        /* 密码验证区域 */
+        .password-section {
+            background: #fff9f2;
+            border-radius: 24px;
+            padding: 0.8rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e7dbd0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .password-status {
+            font-size: 0.85rem;
+            color: #8f7e6b;
+        }
+        .password-input-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .password-input-group input {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2d4c6;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            width: 150px;
+        }
+        .password-btn {
+            background: #b99f87;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .password-btn-outline {
+            background: transparent;
+            border: 1px solid #d2c0b0;
+            color: #5f5347;
+        }
+        
         .routine-selector-bar { background: #fff9f2; border-radius: 24px; padding: 1.2rem 1.5rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
         .selector-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
         .selector-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
@@ -88,7 +127,6 @@
         .save-standard-btn { background: #b99f87; color: white; border-color: #b99f87; }
         .sync-all-btn { background: #b99f87; color: white; border-color: #b99f87; }
         .print-btn { background: #e9dfd4; }
-        .action-buttons-bottom.hidden { display: none; }
         .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
         @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } }
     </style>
@@ -98,17 +136,19 @@
     <div class="app-container">
         <div class="ritual-header">
             <h1>Skincare Routine Builder</h1>
-            <p>drag to customize · login to save to cloud</p>
+            <p>drag to customize · enter password to save to cloud</p>
         </div>
- 
-        <div class="auth-section">
-            <div class="auth-status" id="authStatus">Loading...</div>
-            <div>
-                <button id="loginBtn" class="auth-btn" style="display:none">Sign In with Google</button>
-                <button id="logoutBtn" class="auth-btn auth-btn-outline" style="display:none">Sign Out</button>
+
+        <!-- 密码验证区域 -->
+        <div class="password-section">
+            <div class="password-status" id="authStatus">🔒 Enter password to enable cloud operations</div>
+            <div class="password-input-group">
+                <input type="password" id="cloudPassword" placeholder="Enter password" autocomplete="off">
+                <button id="verifyPasswordBtn" class="password-btn">Verify</button>
+                <button id="clearPasswordBtn" class="password-btn password-btn-outline" style="display:none">Clear</button>
             </div>
         </div>
- 
+
         <div class="routine-selector-bar">
             <div class="selector-header">
                 <div class="selector-title">📋 SELECT ROUTINE</div>
@@ -118,7 +158,7 @@
             </div>
             <div class="routine-buttons" id="routineButtons"></div>
         </div>
- 
+
         <div class="product-library">
             <div class="library-header">
                 <div class="library-title">📦 PRODUCT LIBRARY · drag to add or replace</div>
@@ -141,7 +181,7 @@
                 <input type="hidden" id="editProductId">
             </div>
         </div>
- 
+
         <div class="routine-grid">
             <div class="column morning-icon">
                 <div class="column-title">CURRENT MORNING ROUTINE <span>AM</span></div>
@@ -152,49 +192,32 @@
                 <div class="product-list" id="eveningList"></div>
             </div>
         </div>
- 
+
         <div class="total-bar">
             <div class="total-label">TOTAL VALUE (Unique Products)</div>
             <div class="total-amount">$<span id="totalPrice">0.00</span></div>
         </div>
         
         <div class="action-buttons-bottom">
-    <!-- 这些按钮只有登录时显示 -->
-    <div id="authButtons" style="display: flex; gap: 1rem; flex-wrap: wrap;">
-        <button class="action-btn update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
-        <button class="action-btn delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
-        <button class="action-btn save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
-        <button class="action-btn sync-all-btn" id="syncAllBtn">☁️ Force Sync All to Cloud</button>
-    </div>
-    <!-- 打印按钮始终显示 -->
-    <button class="action-btn print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
+            <div id="authButtons" style="display: none; gap: 1rem; flex-wrap: wrap;">
+                <button class="action-btn update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
+                <button class="action-btn delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
+                <button class="action-btn save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
+                <button class="action-btn sync-all-btn" id="syncAllBtn">☁️ Force Sync All to Cloud</button>
+            </div>
+            <button class="action-btn print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
         </div>
-        <div class="footnote">✦ All editing tools available without login ✦ Login to sync changes to cloud ✦ Data saved locally until synced ✦</div>
+        <div class="footnote">✦ All editing tools available without password ✦ Enter password to sync changes to cloud ✦ Data saved locally until synced ✦</div>
     </div>
 </div>
- 
-<script>
-// ==================== Supabase 配置 ====================
-// const SUPABASE_URL = "https://dmrskyskryrdclknezth.supabase.co";
-// const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
- 
-let supabaseClient = window.supabase; // ✅ 关键修改
-let isAuthenticated = false;
-let currentUserId = null;
- 
-// 等待 Supabase SDK 加载
-function initSupabase() {
-    if (typeof supabase === 'undefined') {
-        console.log('Waiting for Supabase SDK...');
-        setTimeout(initSupabase, 500);
-        return;
-    }
 
-    window.supabaseClient = supabaseClient;
-    console.log('Supabase initialized');
-    checkAuth();
-}
- 
+<script>
+// ==================== 配置 ====================
+const CLOUD_PASSWORD = "123456"; // 云存储密码，可修改
+let isAuthenticated = false;
+let currentUserId = "local_user";
+let supabaseClient = null;
+
 // ==================== 默认数据 ====================
 const DEFAULT_PRODUCTS = [
     { id: "clarify-cleanser", name: "Clarify Cleanser", brand: "FNL", price: 50, benefit: "Antibacterial", usage: "Pea size - cleanse", image: "https://static.wixstatic.com/media/11a6e1_964680bfdf1b4efa9039db6f52428325~mv2.webp" },
@@ -214,7 +237,7 @@ const DEFAULT_PRODUCTS = [
     { id: "spf50", name: "SPF50 Sheer Physical", brand: "SkinMedica", price: 66, benefit: "Physical SPF", usage: "1 pump - last step", image: "https://static.wixstatic.com/media/11a6e1_d2faad5c91134e0589fb5538c8f76d86~mv2.webp" },
     { id: "tns", name: "TNS+ Serum", brand: "SkinMedica", price: 330, benefit: "Lifting · Anti-aging", usage: "1 pump - apply to face", image: "https://static.wixstatic.com/media/11a6e1_8eb00266d932471483652b5a40828272~mv2.jpg" }
 ].sort((a, b) => a.name.localeCompare(b.name));
- 
+
 const INITIAL_ROUTINES = {
     "standard-1774409503226": { 
         name: "FNL Acne", 
@@ -242,29 +265,26 @@ const INITIAL_ROUTINES = {
         evening: ["cleanser", "lumivive-night", "lytera", "retinol", "ha5", "moisturizer"] 
     }
 };
- 
+
 // 全局变量
 let productsData = [], savedRoutines = {};
 let currentMorningProducts = [], currentEveningProducts = [];
 let currentRoutineId = null;
 let currentBrand = "all";
 let isLoading = false;
- 
+
 function getProductById(id) { return productsData.find(p => p.id === id); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
 function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m; }); }
- 
-function sortProductsByName(arr) {
-    return [...arr].sort((a, b) => a.name.localeCompare(b.name));
-}
- 
+function sortProductsByName(arr) { return [...arr].sort((a, b) => a.name.localeCompare(b.name)); }
+
 function isRoutineNameExists(name, excludeId = null) {
     return Object.entries(savedRoutines).some(([id, r]) => {
         if (excludeId && id === excludeId) return false;
         return r.name.toLowerCase() === name.toLowerCase();
     });
 }
- 
+
 function saveToLocalStorage() {
     localStorage.setItem('skincare_products', JSON.stringify(productsData));
     localStorage.setItem('skincare_routines', JSON.stringify(savedRoutines));
@@ -272,7 +292,7 @@ function saveToLocalStorage() {
     localStorage.setItem('skincare_current_evening', JSON.stringify(currentEveningProducts.map(p => p.productId)));
     localStorage.setItem('skincare_current_routine_id', currentRoutineId || '');
 }
- 
+
 function loadFromLocalStorage() {
     const savedProducts = localStorage.getItem('skincare_products');
     const savedRoutinesData = localStorage.getItem('skincare_routines');
@@ -318,8 +338,8 @@ function loadFromLocalStorage() {
         currentRoutineId = Object.keys(savedRoutines)[0] || null;
     }
 }
- 
-// ==================== 云端操作 ====================
+
+// ==================== 云端操作（需要密码验证）====================
 async function loadFromCloud() {
     if (!supabaseClient || isLoading) return false;
     isLoading = true;
@@ -368,10 +388,10 @@ async function loadFromCloud() {
         isLoading = false;
     }
 }
- 
+
 async function forceSyncAllToCloud() {
     if (!supabaseClient || !isAuthenticated) {
-        alert("Please sign in first.");
+        alert("Please verify password first.");
         return false;
     }
     
@@ -403,10 +423,10 @@ async function forceSyncAllToCloud() {
         return false;
     }
 }
- 
+
 async function saveCurrentRoutineToCloud() {
     if (!supabaseClient || !isAuthenticated) {
-        alert("Please sign in to save to cloud.");
+        alert("Please verify password first.");
         return false;
     }
     if (!currentRoutineId) {
@@ -439,10 +459,10 @@ async function saveCurrentRoutineToCloud() {
         return false;
     }
 }
- 
+
 async function deleteCurrentRoutineFromCloud() {
     if (!supabaseClient || !isAuthenticated) {
-        alert("Please sign in to delete from cloud.");
+        alert("Please verify password first.");
         return false;
     }
     if (!currentRoutineId) {
@@ -478,10 +498,10 @@ async function deleteCurrentRoutineFromCloud() {
         return false;
     }
 }
- 
+
 async function saveAsNewRoutineToCloud() {
     if (!supabaseClient || !isAuthenticated) {
-        alert("Please sign in to save to cloud.");
+        alert("Please verify password first.");
         return false;
     }
     
@@ -526,7 +546,7 @@ async function saveAsNewRoutineToCloud() {
         return false;
     }
 }
- 
+
 // ==================== UI 渲染函数 ====================
 async function loadRoutine(routineId) {
     let routine = savedRoutines[routineId];
@@ -540,14 +560,14 @@ async function loadRoutine(routineId) {
         saveToLocalStorage();
     }
 }
- 
+
 function highlightActiveRoutine() {
     document.querySelectorAll('.routine-btn').forEach(btn => {
         if (btn.dataset.id === currentRoutineId) btn.classList.add('active');
         else btn.classList.remove('active');
     });
 }
- 
+
 async function updateCurrentRoutine() {
     if (!currentRoutineId) {
         alert("No routine selected.");
@@ -557,7 +577,7 @@ async function updateCurrentRoutine() {
     renderRoutineButtons();
     highlightActiveRoutine();
 }
- 
+
 async function deleteCurrentRoutine() {
     if (!currentRoutineId) {
         alert("No routine selected.");
@@ -567,15 +587,15 @@ async function deleteCurrentRoutine() {
         await deleteCurrentRoutineFromCloud();
     }
 }
- 
+
 async function saveAsNewRoutine() {
     await saveAsNewRoutineToCloud();
 }
- 
+
 async function renameCurrentRoutine(newName) {
     if (!currentRoutineId || !savedRoutines[currentRoutineId]) return;
     if (!isAuthenticated) {
-        alert("Please sign in to rename routines.");
+        alert("Please verify password first.");
         return;
     }
     
@@ -598,7 +618,7 @@ async function renameCurrentRoutine(newName) {
     saveToLocalStorage();
     alert(`Routine renamed to "${newName}"!`);
 }
- 
+
 function renderRoutineButtons() {
     let container = document.getElementById('routineButtons');
     if (!container) return;
@@ -609,7 +629,7 @@ function renderRoutineButtons() {
     container.innerHTML = Object.entries(savedRoutines).map(([id, r]) => `<button class="routine-btn ${id === currentRoutineId ? 'active' : ''}" data-id="${id}">${escapeHtml(r.name)}</button>`).join('');
     document.querySelectorAll('.routine-btn').forEach(btn => { btn.onclick = () => loadRoutine(btn.dataset.id); });
 }
- 
+
 function getUniqueProductsTotal() { 
     let ids = new Set(); 
     currentMorningProducts.forEach(i => ids.add(i.productId)); 
@@ -618,27 +638,24 @@ function getUniqueProductsTotal() {
     ids.forEach(id => { let p = getProductById(id); if(p) total += p.price; }); 
     return total; 
 }
- 
+
 function updateTotalPrice() { 
     let span = document.getElementById('totalPrice'); 
     if (span) span.innerText = getUniqueProductsTotal().toFixed(2); 
 }
- 
+
 function updateUIBasedOnAuth() {
     const isLoggedIn = isAuthenticated;
     
     const editBtn = document.getElementById('editRoutineBtn');
     if (editBtn) editBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
     
-    // 控制登录相关按钮的显示/隐藏
     const authButtons = document.getElementById('authButtons');
     if (authButtons) {
         authButtons.style.display = isLoggedIn ? 'flex' : 'none';
     }
-    
-    // 打印按钮始终显示，不需要控制
 }
- 
+
 function renderBrandProducts() {
     let container = document.getElementById('brandProductsContainer');
     if (!container) return;
@@ -656,7 +673,7 @@ function renderBrandProducts() {
     attachProductDeleteEvents();
     updateUIBasedOnAuth();
 }
- 
+
 async function deleteProduct(productId) {
     if (confirm('Delete product from library? It will be removed from all routines.')) {
         const index = productsData.findIndex(p => p.id === productId);
@@ -676,7 +693,7 @@ async function deleteProduct(productId) {
         }
     }
 }
- 
+
 function attachProductDeleteEvents() {
     document.querySelectorAll('.delete-product-icon').forEach(icon => {
         icon.onclick = async (e) => {
@@ -685,7 +702,7 @@ function attachProductDeleteEvents() {
         };
     });
 }
- 
+
 function attachDragEvents() { 
     document.querySelectorAll('.library-item').forEach(el => { 
         el.setAttribute('draggable', 'true'); 
@@ -695,7 +712,7 @@ function attachDragEvents() {
         }); 
     }); 
 }
- 
+
 function attachEditEvents() { 
     document.querySelectorAll('.edit-icon').forEach(icon => { 
         icon.onclick = (e) => { 
@@ -705,7 +722,7 @@ function attachEditEvents() {
         }; 
     }); 
 }
- 
+
 function openEditForm(product) { 
     document.getElementById('productName').value = product.name; 
     document.getElementById('productBrand').value = product.brand; 
@@ -717,7 +734,7 @@ function openEditForm(product) {
     document.getElementById('productForm').classList.add('show'); 
     document.getElementById('toggleAddBtn').style.display = 'none'; 
 }
- 
+
 async function saveProduct() { 
     let name = document.getElementById('productName').value.trim(); 
     if (!name) { alert("Enter product name"); return; } 
@@ -740,14 +757,14 @@ async function saveProduct() {
     updateTotalPrice(); 
     saveToLocalStorage(); 
 }
- 
+
 function closeForm() { 
     document.getElementById('productForm').classList.remove('show'); 
     document.getElementById('toggleAddBtn').style.display = ''; 
     document.getElementById('productName').value = ''; 
     document.getElementById('editProductId').value = ''; 
 }
- 
+
 function attachReorderDrag(containerId, itemsArray, updateCallback) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -783,7 +800,7 @@ function attachReorderDrag(containerId, itemsArray, updateCallback) {
         });
     });
 }
- 
+
 function renderRoutines() {
     let morningContainer = document.getElementById('morningList');
     let eveningContainer = document.getElementById('eveningList');
@@ -814,7 +831,7 @@ function renderRoutines() {
     attachDeleteEvents();
     attachEmptySlotEvents();
 }
- 
+
 function renderCard(pid, idx, time) { 
     let p = getProductById(pid); 
     if (!p) return ''; 
@@ -829,7 +846,7 @@ function renderCard(pid, idx, time) {
         </div>
     </div>`; 
 }
- 
+
 function attachEmptySlotEvents() {
     document.querySelectorAll('.empty-slot').forEach(slot => {
         slot.ondragover = (e) => { e.preventDefault(); slot.classList.add('drag-over'); };
@@ -853,7 +870,7 @@ function attachEmptySlotEvents() {
         };
     });
 }
- 
+
 function attachDropEvents(containerId, time) { 
     let container = document.getElementById(containerId); 
     if (!container) return; 
@@ -873,7 +890,7 @@ function attachDropEvents(containerId, time) {
         } 
     }; 
 }
- 
+
 function attachDeleteEvents() { 
     document.querySelectorAll('.delete-btn').forEach(btn => { 
         btn.onclick = async (e) => { 
@@ -887,7 +904,7 @@ function attachDeleteEvents() {
         }; 
     }); 
 }
- 
+
 function printRoutine() { 
     let uniqueMorning = currentMorningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx);
     let uniqueEvening = currentEveningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx);
@@ -899,128 +916,25 @@ function printRoutine() {
         <meta charset="UTF-8">
         <title>Skincare Routine</title>
         <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            body {
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                padding: 0.5in;
-                background: white;
-                color: #3e3c39;
-                line-height: 1.5;
-            }
-            .print-header {
-                text-align: center;
-                margin-bottom: 30px;
-                border-bottom: 2px solid #e2d4c6;
-                padding-bottom: 15px;
-            }
-            .print-header h1 {
-                font-family: 'Montserrat', sans-serif;
-                font-weight: 300;
-                font-size: 28px;
-                color: #7f6e5d;
-                margin-bottom: 8px;
-            }
-            .print-header p {
-                font-size: 12px;
-                color: #b7a99a;
-            }
-            .print-date {
-                font-size: 11px;
-                color: #ccbeaf;
-                margin-top: 5px;
-            }
-            .print-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 30px;
-                margin-top: 20px;
-            }
-            .print-column {
-                border: 1px solid #e7dbd0;
-                border-radius: 16px;
-                padding: 20px;
-                background: #fefcf8;
-            }
-            .print-column h2 {
-                font-family: 'Montserrat', sans-serif;
-                font-size: 20px;
-                font-weight: 400;
-                color: #8f7e6b;
-                border-bottom: 1px solid #e2d4c6;
-                padding-bottom: 10px;
-                margin-bottom: 15px;
-            }
-            .print-product {
-                display: flex;
-                gap: 12px;
-                margin-bottom: 18px;
-                padding-bottom: 12px;
-                border-bottom: 1px dashed #e7dbd0;
-                page-break-inside: avoid;
-                break-inside: avoid;
-            }
-            .print-product:last-child {
-                border-bottom: none;
-                margin-bottom: 0;
-                padding-bottom: 0;
-            }
-            .print-product-image {
-                width: 50px;
-                height: 50px;
-                border-radius: 50%;
-                background: #f1e8e0;
-                border: 1px solid #dacbbb;
-                overflow: hidden;
-                flex-shrink: 0;
-            }
-            .print-product-image img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-            .print-product-info {
-                flex: 1;
-            }
-            .print-product-name {
-                font-family: 'Montserrat', sans-serif;
-                font-weight: 600;
-                font-size: 14px;
-                color: #5f5347;
-                margin-bottom: 4px;
-            }
-            .print-product-benefit {
-                font-size: 11px;
-                color: #b7a99a;
-                margin-top: 3px;
-                font-style: italic;
-            }
-            .print-product-usage {
-                font-size: 10px;
-                color: #8e7e6e;
-                margin-top: 5px;
-                line-height: 1.4;
-            }
-            .print-footer {
-                margin-top: 30px;
-                text-align: center;
-                font-size: 10px;
-                color: #ccbeaf;
-                border-top: 1px solid #e7dbd0;
-                padding-top: 15px;
-            }
-            @media print {
-                body {
-                    padding: 0;
-                }
-                .print-product {
-                    break-inside: avoid;
-                    page-break-inside: avoid;
-                }
-            }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 0.5in; background: white; color: #3e3c39; line-height: 1.5; }
+            .print-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2d4c6; padding-bottom: 15px; }
+            .print-header h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 28px; color: #7f6e5d; margin-bottom: 8px; }
+            .print-header p { font-size: 12px; color: #b7a99a; }
+            .print-date { font-size: 11px; color: #ccbeaf; margin-top: 5px; }
+            .print-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
+            .print-column { border: 1px solid #e7dbd0; border-radius: 16px; padding: 20px; background: #fefcf8; }
+            .print-column h2 { font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 400; color: #8f7e6b; border-bottom: 1px solid #e2d4c6; padding-bottom: 10px; margin-bottom: 15px; }
+            .print-product { display: flex; gap: 12px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px dashed #e7dbd0; page-break-inside: avoid; break-inside: avoid; }
+            .print-product:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+            .print-product-image { width: 50px; height: 50px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; flex-shrink: 0; }
+            .print-product-image img { width: 100%; height: 100%; object-fit: cover; }
+            .print-product-info { flex: 1; }
+            .print-product-name { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 14px; color: #5f5347; margin-bottom: 4px; }
+            .print-product-benefit { font-size: 11px; color: #b7a99a; margin-top: 3px; font-style: italic; }
+            .print-product-usage { font-size: 10px; color: #8e7e6e; margin-top: 5px; line-height: 1.4; }
+            .print-footer { margin-top: 30px; text-align: center; font-size: 10px; color: #ccbeaf; border-top: 1px solid #e7dbd0; padding-top: 15px; }
+            @media print { body { padding: 0; } .print-product { break-inside: avoid; page-break-inside: avoid; } }
         </style>
     </head>
     <body>
@@ -1029,7 +943,6 @@ function printRoutine() {
             <p>Personalized Skincare Routine</p>
             <div class="print-date">Printed on ${new Date().toLocaleDateString()}</div>
         </div>
-        
         <div class="print-grid">
             <div class="print-column">
                 <h2>MORNING ROUTINE ☀️</h2>
@@ -1037,50 +950,40 @@ function printRoutine() {
                     let p = getProductById(i.productId); 
                     return p ? `
                     <div class="print-product">
-                        <div class="print-product-image">
-                            <img src="${p.image || ''}" alt="${escapeHtml(p.name)}">
-                        </div>
+                        <div class="print-product-image"><img src="${p.image || ''}" alt="${escapeHtml(p.name)}"></div>
                         <div class="print-product-info">
                             <div class="print-product-name">${escapeHtml(p.name)}</div>
                             <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
                             <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions provided')}</div>
                         </div>
-                    </div>
-                    ` : '';
+                    </div>` : '';
                 }).join('')}
                 ${uniqueMorning.length === 0 ? '<div style="color: #b7a99a; text-align: center; padding: 20px;">No products in morning routine</div>' : ''}
             </div>
-            
             <div class="print-column">
                 <h2>EVENING ROUTINE 🌙</h2>
                 ${uniqueEvening.map(i => { 
                     let p = getProductById(i.productId); 
                     return p ? `
                     <div class="print-product">
-                        <div class="print-product-image">
-                            <img src="${p.image || ''}" alt="${escapeHtml(p.name)}">
-                        </div>
+                        <div class="print-product-image"><img src="${p.image || ''}" alt="${escapeHtml(p.name)}"></div>
                         <div class="print-product-info">
                             <div class="print-product-name">${escapeHtml(p.name)}</div>
                             <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
                             <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions provided')}</div>
                         </div>
-                    </div>
-                    ` : '';
+                    </div>` : '';
                 }).join('')}
                 ${uniqueEvening.length === 0 ? '<div style="color: #b7a99a; text-align: center; padding: 20px;">No products in evening routine</div>' : ''}
             </div>
         </div>
-        
-        <div class="print-footer">
-            ✦ ${savedRoutines[currentRoutineId]?.name || 'Skincare Routine'} ✦
-        </div>
+        <div class="print-footer">✦ ${savedRoutines[currentRoutineId]?.name || 'Skincare Routine'} ✦</div>
     </body>
     </html>`); 
     win.document.close(); 
     win.print(); 
 }
- 
+
 function renderBrandTabs() { 
     let brands = ["all", "SkinMedica", "Skinceuticals", "FNL", "ColorScience", "Others"]; 
     let container = document.getElementById('brandTabs'); 
@@ -1088,84 +991,51 @@ function renderBrandTabs() {
     container.innerHTML = brands.map(b => `<button class="brand-tab ${b === currentBrand ? 'active' : ''}" data-brand="${b}">${b === 'all' ? 'All' : b}</button>`).join(''); 
     document.querySelectorAll('.brand-tab').forEach(tab => { tab.onclick = () => { currentBrand = tab.dataset.brand; renderBrandTabs(); renderBrandProducts(); }; }); 
 }
- 
-// ==================== 认证函数 ====================
-async function handleLogin() {
-    if (!supabaseClient) { 
-        alert("Supabase not ready. Please refresh the page.");
-        return;
-    }
+
+// ==================== 密码验证函数 ====================
+async function verifyPassword() {
+    const passwordInput = document.getElementById('cloudPassword');
+    const enteredPassword = passwordInput.value;
     
-    try {
-        const { error } = await supabaseClient.auth.signInWithOAuth({ 
-            provider: 'google',
-            options: { 
-                redirectTo: window.location.href
-            }
-        });
+    if (enteredPassword === CLOUD_PASSWORD) {
+        isAuthenticated = true;
+        document.getElementById('authStatus').innerHTML = `✅ Cloud access verified!`;
+        document.getElementById('verifyPasswordBtn').style.display = 'none';
+        document.getElementById('clearPasswordBtn').style.display = 'inline-block';
+        passwordInput.style.display = 'none';
         
-        if (error) {
-            console.error('Login error:', error);
-            alert('Login error: ' + error.message);
-        }
-    } catch (e) {
-        console.error('Login exception:', e);
-        alert('Login failed: ' + e.message);
-    }
-}
- 
-async function handleLogout() { 
-    try {
-        if (supabaseClient) {
-            await supabaseClient.auth.signOut();
-        }
-        localStorage.clear();
-        location.reload();
-    } catch (e) {
-        console.error('Logout error:', e);
-        location.reload();
-    }
-}
- 
-async function checkAuth() {
-    if (!supabaseClient) return;
-    
-    try {
-        const { data: { session }, error } = await supabaseClient.auth.getSession();
-        
-        if (error) {
-            console.error('Auth check error:', error);
-            isAuthenticated = false;
-        } else if (session) {
-            isAuthenticated = true;
-            currentUserId = session.user.id;
-            document.getElementById('authStatus').innerHTML = `✅ Signed in as ${session.user.email}`;
-            document.getElementById('loginBtn').style.display = 'none';
-            document.getElementById('logoutBtn').style.display = 'inline-block';
+        // 初始化 Supabase 客户端
+        if (typeof supabase !== 'undefined') {
+            supabaseClient = supabase;
+            await loadFromCloud();
+            refreshUI();
+            alert("Password verified! Cloud data loaded.");
         } else {
-            isAuthenticated = false;
-            document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
-            document.getElementById('loginBtn').style.display = 'inline-block';
-            document.getElementById('logoutBtn').style.display = 'none';
+            alert("Supabase not ready. Please refresh the page.");
         }
-        
-        // 无论登录与否，都从云端加载数据
-        await loadFromCloud();
-        refreshUI();
-        
-    } catch (e) {
-        console.error('Auth check exception:', e);
+    } else {
+        alert("Incorrect password! Please try again.");
         isAuthenticated = false;
-        document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
-        document.getElementById('loginBtn').style.display = 'inline-block';
-        document.getElementById('logoutBtn').style.display = 'none';
-        
-        // 如果云端加载失败，才使用本地存储
-        loadFromLocalStorage();
-        refreshUI();
     }
+    updateUIBasedOnAuth();
 }
- 
+
+function clearPassword() {
+    isAuthenticated = false;
+    supabaseClient = null;
+    document.getElementById('authStatus').innerHTML = `🔒 Enter password to enable cloud operations`;
+    document.getElementById('verifyPasswordBtn').style.display = 'inline-block';
+    document.getElementById('clearPasswordBtn').style.display = 'none';
+    document.getElementById('cloudPassword').style.display = 'inline-block';
+    document.getElementById('cloudPassword').value = '';
+    
+    // 重新从本地加载
+    loadFromLocalStorage();
+    refreshUI();
+    updateUIBasedOnAuth();
+    alert("Password cleared. Using local data only.");
+}
+
 function refreshUI() {
     renderBrandTabs();
     renderBrandProducts();
@@ -1175,7 +1045,7 @@ function refreshUI() {
     if (currentRoutineId) highlightActiveRoutine();
     updateUIBasedOnAuth();
 }
- 
+
 // 按钮绑定
 document.getElementById('toggleAddBtn').onclick = () => { 
     document.getElementById('editProductId').value = ''; 
@@ -1187,21 +1057,20 @@ document.getElementById('cancelFormBtn').onclick = closeForm;
 document.getElementById('saveProductBtn').onclick = saveProduct;
 document.getElementById('printBtn').onclick = printRoutine;
 document.getElementById('editRoutineBtn').onclick = () => { 
-    if (!isAuthenticated) { alert("Please sign in to rename routines."); return; }
+    if (!isAuthenticated) { alert("Please verify password first."); return; }
     let newName = prompt("Edit routine name:", savedRoutines[currentRoutineId]?.name); 
     if(newName) renameCurrentRoutine(newName); 
 };
-document.getElementById('loginBtn').onclick = handleLogin;
-document.getElementById('logoutBtn').onclick = handleLogout;
+document.getElementById('verifyPasswordBtn').onclick = verifyPassword;
+document.getElementById('clearPasswordBtn').onclick = clearPassword;
 document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
 document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutine;
 document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
 document.getElementById('syncAllBtn').onclick = forceSyncAllToCloud;
- 
+
 // 启动应用
 loadFromLocalStorage();
 refreshUI();
-initSupabase();
 </script>
 </body>
 </html>
