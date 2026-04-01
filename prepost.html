@@ -602,13 +602,23 @@
 
     async function loadDocuments() {
         try {
+            // 从数据库获取数据，不排序（让 JavaScript 排序）
             const { data, error } = await supabase
                 .from('prepost_documents')
-                .select('*')
-                .order('created_at', { ascending: false });
+                .select('*');
             
             if (error) throw error;
-            documents = data || [];
+            
+            // 按标题字母顺序排序（不区分大小写）
+            documents = (data || []).sort((a, b) => {
+                const titleA = (a.title || '').toLowerCase();
+                const titleB = (b.title || '').toLowerCase();
+                if (titleA < titleB) return -1;
+                if (titleA > titleB) return 1;
+                return 0;
+            });
+            
+            console.log('Loaded and sorted documents:', documents);
             renderDocumentList();
         } catch (error) {
             console.error('Error loading documents:', error);
@@ -793,7 +803,6 @@
             const contentHtml = contentEl?.innerHTML?.trim();
             if (contentHtml && contentHtml !== '') {
                 hasContent = true;
-                // 使用新的转换函数，保持多行列表项的缩进
                 const plainContent = convertToPlainTextWithIndent(contentHtml);
                 emailBody += `${section.icon} ${section.name}\n`;
                 emailBody += `${'-'.repeat(section.name.length + 2)}\n`;
