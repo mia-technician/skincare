@@ -214,8 +214,11 @@
 <script>
 // ==================== 配置 ====================
 const CLOUD_PASSWORD = "123456"; // 云存储密码，可修改
+// 固定系统用户 ID - 必须与数据库中的一致
+const SYSTEM_USER_ID = "2c9b8bce-b2ab-47bb-92a1-f0d5143b4788";  // 👈 改成您在 SQL 中使用的 ID
+
 let isAuthenticated = false;
-let currentUserId = "local_user";
+let currentUserId = SYSTEM_USER_ID; // 默认使用系统用户 ID（未验证时无法操作）
 let supabaseClient = null;
 
 // ==================== 默认数据 ====================
@@ -999,6 +1002,8 @@ async function verifyPassword() {
     
     if (enteredPassword === CLOUD_PASSWORD) {
         isAuthenticated = true;
+        // 👇 添加这一行：设置系统用户 ID
+        currentUserId = SYSTEM_USER_ID;
         document.getElementById('authStatus').innerHTML = `✅ Cloud access verified!`;
         document.getElementById('verifyPasswordBtn').style.display = 'none';
         document.getElementById('clearPasswordBtn').style.display = 'inline-block';
