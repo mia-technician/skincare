@@ -691,6 +691,15 @@ function updateUIBasedOnAuth() {
     }
 }
 
+    // 检查是否需要密码验证才能编辑产品
+function checkAuthForProductAction(actionName) {
+    if (!isAuthenticated) {
+        alert(`Please verify cloud password first to ${actionName}.`);
+        return false;
+    }
+    return true;
+}
+    
 function renderBrandProducts() {
     let container = document.getElementById('brandProductsContainer');
     if (!container) return;
@@ -710,6 +719,7 @@ function renderBrandProducts() {
 }
 
 async function deleteProduct(productId) {
+    if (!checkAuthForProductAction("delete this product")) return;
     if (confirm('Delete product from library? It will be removed from all routines.')) {
         const index = productsData.findIndex(p => p.id === productId);
         if (index !== -1) {
@@ -752,6 +762,7 @@ function attachEditEvents() {
     document.querySelectorAll('.edit-icon').forEach(icon => { 
         icon.onclick = (e) => { 
             e.stopPropagation(); 
+            if (!checkAuthForProductAction("edit this product")) return;
             let product = getProductById(icon.dataset.id); 
             if (product) openEditForm(product); 
         }; 
@@ -771,6 +782,7 @@ function openEditForm(product) {
 }
 
 async function saveProduct() { 
+    if (!checkAuthForProductAction("save this product")) return;
     let name = document.getElementById('productName').value.trim(); 
     if (!name) { alert("Enter product name"); return; } 
     let newProduct = { 
@@ -1085,6 +1097,7 @@ function refreshUI() {
 
 // 按钮绑定
 document.getElementById('toggleAddBtn').onclick = () => { 
+    if (!checkAuthForProductAction("add a new product")) return;  // 👈 添加这一行
     document.getElementById('editProductId').value = ''; 
     closeForm(); 
     document.getElementById('productForm').classList.add('show'); 
