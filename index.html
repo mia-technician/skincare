@@ -725,13 +725,13 @@ function renderBrandProducts() {
     if (!container) return;
     let filtered = currentBrand === "all" ? productsData : productsData.filter(p => p.brand === currentBrand);
     filtered = sortProductsByName(filtered);
-    container.innerHTML = filtered.map(p => `<div class="library-item" draggable="true" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}" data-product-benefit="${escapeHtml(p.benefit || '')}" data-product-usage="${escapeHtml(p.usage || '')}" data-product-image="${p.image || ''}">
-        ${escapeHtml(p.name)} <span class="library-price">$${p.price}</span>
-        <span class="library-actions">
-            <span class="edit-icon" data-id="${p.id}" title="Edit" style="display: ${isAuthenticated ? 'inline-block' : 'none'}">✎</span>
-            <span class="delete-product-icon" data-id="${p.id}" title="Delete" style="display: ${isAuthenticated ? 'inline-block' : 'none'}">🗑️</span>
-        </span>
-    </div>`).join('');
+container.innerHTML = filtered.map(p => `<div class="library-item" draggable="true" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}" data-product-benefit="${escapeHtml(p.benefit || '')}" data-product-usage="${escapeHtml(p.usage || '')}" data-product-image="${p.image || ''}">
+    ${escapeHtml(p.name)}
+    <span class="library-actions">
+        <span class="edit-icon" data-id="${p.id}" title="Edit" style="display: ${isAuthenticated ? 'inline-block' : 'none'}">✎</span>
+        <span class="delete-product-icon" data-id="${p.id}" title="Delete" style="display: ${isAuthenticated ? 'inline-block' : 'none'}">🗑️</span>
+    </span>
+</div>`).join('');
     attachDragEvents(); 
     attachEditEvents();
     attachProductDeleteEvents();
