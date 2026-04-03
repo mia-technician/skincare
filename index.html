@@ -689,7 +689,6 @@ function updateUIBasedOnAuth() {
     if (authButtons) {
         authButtons.style.display = isLoggedIn ? 'flex' : 'none';
     }
-}
 
     // ========== 新增：控制产品库的编辑/删除按钮 ==========
     // 控制 "Add Product" 按钮
@@ -711,7 +710,7 @@ function updateUIBasedOnAuth() {
         editIcons.forEach(icon => icon.style.display = 'none');
         deleteIcons.forEach(icon => icon.style.display = 'none');
     }
-    
+ }    
     // 检查是否需要密码验证才能编辑产品
 function checkAuthForProductAction(actionName) {
     if (!isAuthenticated) {
