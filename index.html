@@ -691,6 +691,28 @@ function updateUIBasedOnAuth() {
     }
 }
 
+    // ========== 新增：控制产品库的编辑/删除按钮 ==========
+    // 控制 "Add Product" 按钮
+    const toggleAddBtn = document.getElementById('toggleAddBtn');
+    if (toggleAddBtn) {
+        toggleAddBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
+    }
+    
+    // 控制产品库中每个产品的编辑图标(✎)和删除图标(🗑️)
+    const editIcons = document.querySelectorAll('.edit-icon');
+    const deleteIcons = document.querySelectorAll('.delete-product-icon');
+    
+    if (isLoggedIn) {
+        // 验证密码后：显示编辑和删除按钮
+        editIcons.forEach(icon => icon.style.display = 'inline-block');
+        deleteIcons.forEach(icon => icon.style.display = 'inline-block');
+    } else {
+        // 未验证密码：隐藏编辑和删除按钮
+        editIcons.forEach(icon => icon.style.display = 'none');
+        deleteIcons.forEach(icon => icon.style.display = 'none');
+    }
+}
+    
     // 检查是否需要密码验证才能编辑产品
 function checkAuthForProductAction(actionName) {
     if (!isAuthenticated) {
@@ -708,8 +730,8 @@ function renderBrandProducts() {
     container.innerHTML = filtered.map(p => `<div class="library-item" draggable="true" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}" data-product-benefit="${escapeHtml(p.benefit || '')}" data-product-usage="${escapeHtml(p.usage || '')}" data-product-image="${p.image || ''}">
         ${escapeHtml(p.name)} <span class="library-price">$${p.price}</span>
         <span class="library-actions">
-            <span class="edit-icon" data-id="${p.id}" title="Edit">✎</span>
-            <span class="delete-product-icon" data-id="${p.id}" title="Delete">🗑️</span>
+            <span class="edit-icon" data-id="${p.id}" title="Edit" style="display: ${isAuthenticated ? 'inline-block' : 'none'}">✎</span>
+            <span class="delete-product-icon" data-id="${p.id}" title="Delete" style="display: ${isAuthenticated ? 'inline-block' : 'none'}">🗑️</span>
         </span>
     </div>`).join('');
     attachDragEvents(); 
@@ -719,7 +741,6 @@ function renderBrandProducts() {
 }
 
 async function deleteProduct(productId) {
-    if (!checkAuthForProductAction("delete this product")) return;
     if (confirm('Delete product from library? It will be removed from all routines.')) {
         const index = productsData.findIndex(p => p.id === productId);
         if (index !== -1) {
@@ -762,7 +783,6 @@ function attachEditEvents() {
     document.querySelectorAll('.edit-icon').forEach(icon => { 
         icon.onclick = (e) => { 
             e.stopPropagation(); 
-            if (!checkAuthForProductAction("edit this product")) return;
             let product = getProductById(icon.dataset.id); 
             if (product) openEditForm(product); 
         }; 
@@ -782,7 +802,6 @@ function openEditForm(product) {
 }
 
 async function saveProduct() { 
-    if (!checkAuthForProductAction("save this product")) return;
     let name = document.getElementById('productName').value.trim(); 
     if (!name) { alert("Enter product name"); return; } 
     let newProduct = { 
@@ -1097,7 +1116,6 @@ function refreshUI() {
 
 // 按钮绑定
 document.getElementById('toggleAddBtn').onclick = () => { 
-    if (!checkAuthForProductAction("add a new product")) return;  // 👈 添加这一行
     document.getElementById('editProductId').value = ''; 
     closeForm(); 
     document.getElementById('productForm').classList.add('show'); 
