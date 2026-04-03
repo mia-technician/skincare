@@ -781,7 +781,7 @@ async function deleteProduct(productId) {
     }
 }
 
-function attachProductDeleteEvents() {
+async function attachProductDeleteEvents() {
     document.querySelectorAll('.delete-product-icon').forEach(icon => {
         icon.onclick = async (e) => {
             e.stopPropagation();
