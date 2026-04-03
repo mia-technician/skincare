@@ -821,6 +821,21 @@ async function saveProduct() {
     updateTotalPrice(); 
     saveToLocalStorage(); 
 }
+    
+        // ========== 新增：自动同步到云端 ==========
+    if (isAuthenticated && supabaseClient) {
+        try {
+            await supabaseClient.from('products').upsert({ 
+                ...newProduct, 
+                user_id: currentUserId 
+            });
+            console.log('Product synced to cloud:', newProduct.name);
+        } catch (e) {
+            console.error('Sync to cloud failed:', e);
+            alert('Product saved locally but cloud sync failed: ' + e.message);
+        }
+    }
+}
 
 function closeForm() { 
     document.getElementById('productForm').classList.remove('show'); 
