@@ -754,6 +754,29 @@ async function deleteProduct(productId) {
             renderRoutines();
             updateTotalPrice();
             saveToLocalStorage();
+            
+            // ========== 自动同步到云端 ==========
+            if (isAuthenticated && supabaseClient) {
+                try {
+                    // 从云端删除产品
+                    await supabaseClient.from('products').delete().eq('id', productId);
+                    
+                    // 更新所有受影响的 routines
+                    for (let id in savedRoutines) {
+                        await supabaseClient.from('routines').update({
+                            morning: savedRoutines[id].morning,
+                            evening: savedRoutines[id].evening
+                        }).eq('id', id);
+                    }
+                    
+                    console.log('✅ Product deleted from cloud:', deletedProduct.name);
+                } catch (e) {
+                    console.error('❌ Cloud delete failed:', e);
+                    alert('Product deleted locally but cloud sync failed: ' + e.message);
+                }
+            } else {
+                console.log('📝 Product deleted locally only (not authenticated)');
+            }
         }
     }
 }
