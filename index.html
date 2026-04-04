@@ -144,7 +144,7 @@
         .product-name { font-size: 0.9rem; font-weight: 600; color: #5f5347; }
         .product-price { font-size: 0.75rem; color: #b99f87; margin-left: 0.3rem; }
         .benefit { font-size: 0.7rem; color: #b7a99a; margin-top: 2px; }
-        .usage { font-size: 0.65rem; color: #8e7e6e; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+        .usage { font-size: 0.65rem; color: #8e7e6e; margin-top: 3px; display: flex; align-items: flex-start; gap: 4px; white-space: normal; word-wrap: break-word; line-height: 1.4; }
         .drag-handle { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #d2c0b0; cursor: grab; flex-shrink: 0; }
         .drag-handle:active { cursor: grabbing; }
         .morning-icon .icon-hand::before { content: "☀️"; font-size: 0.8rem; margin-right: 3px; }
@@ -943,7 +943,7 @@ function renderCard(pid, idx, time) {
         <div class="product-info">
             <div class="product-name">${escapeHtml(p.name)} <span class="product-price">$${p.price}</span></div>
             <div class="benefit">${escapeHtml(p.benefit || '')}</div>
-            <div class="usage"><i class="icon-hand"></i> ${escapeHtml((p.usage || '').substring(0, 55))}</div>
+            <div class="usage"><i class="icon-hand"></i> ${escapeHtml(p.usage || 'No usage instructions provided')}</div>
         </div>
     </div>`; 
 }
