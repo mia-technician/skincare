@@ -1122,11 +1122,10 @@ function renderBrandTabs() {
     document.querySelectorAll('.brand-tab').forEach(tab => { tab.onclick = () => { currentBrand = tab.dataset.brand; renderBrandTabs(); renderBrandProducts(); }; }); 
 }
 
-// ==================== Quote 功能 ====================
+// ==================== Quote 功能（无需登录，完全本地使用）====================
 function generateQuote() {
-    // 获取所有唯一产品（去重）
+    // 获取所有唯一产品（去重）- 直接从当前页面数据获取
     const allProducts = [...currentMorningProducts, ...currentEveningProducts];
-    const uniqueProducts = [];
     const productMap = new Map();
     
     for (const item of allProducts) {
@@ -1146,6 +1145,12 @@ function generateQuote() {
     
     const quoteItems = Array.from(productMap.values());
     
+    // 如果没有产品，提示用户
+    if (quoteItems.length === 0) {
+        alert('No products in your routine. Please add products first.');
+        return;
+    }
+    
     // 显示弹窗
     const modal = document.getElementById('quoteModal');
     const routineNameSpan = document.getElementById('quoteRoutineName');
@@ -1156,33 +1161,43 @@ function generateQuote() {
     function renderQuoteTable() {
         tableBody.innerHTML = quoteItems.map((item, idx) => `
             <tr>
-                <td>${escapeHtml(item.name)}</td>
-                <td>$${item.price.toFixed(2)}</td>
-                <td><input type="number" class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" step="1" style="width:70px"></td>
-                <td><input type="number" class="discount-input" data-idx="${idx}" value="${item.discount}" min="0" max="100" step="1" style="width:80px">%</td>
-                <td class="discounted-price">$${(item.price * item.quantity * (1 - item.discount / 100)).toFixed(2)}</td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">${escapeHtml(item.name)}</td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">$${item.price.toFixed(2)}</td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">
+                    <input type="number" class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" step="1" style="width:70px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center;">
+                </td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">
+                    <input type="number" class="discount-input" data-idx="${idx}" value="${item.discount}" min="0" max="100" step="1" style="width:80px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center;">%
+                </td>
+                <td class="discounted-price" style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">$${(item.price * item.quantity * (1 - item.discount / 100)).toFixed(2)}</td>
             </tr>
         `).join('');
         
         // 绑定数量变化事件
         document.querySelectorAll('.qty-input').forEach(input => {
-            input.addEventListener('change', (e) => {
-                const idx = parseInt(e.target.dataset.idx);
-                quoteItems[idx].quantity = parseInt(e.target.value) || 1;
-                updateQuoteTotals(quoteItems);
-                renderQuoteTable();
-            });
+            input.removeEventListener('change', handleQuantityChange);
+            input.addEventListener('change', handleQuantityChange);
         });
         
         // 绑定折扣变化事件
         document.querySelectorAll('.discount-input').forEach(input => {
-            input.addEventListener('change', (e) => {
-                const idx = parseInt(e.target.dataset.idx);
-                quoteItems[idx].discount = parseFloat(e.target.value) || 0;
-                updateQuoteTotals(quoteItems);
-                renderQuoteTable();
-            });
+            input.removeEventListener('change', handleDiscountChange);
+            input.addEventListener('change', handleDiscountChange);
         });
+        
+        function handleQuantityChange(e) {
+            const idx = parseInt(e.target.dataset.idx);
+            quoteItems[idx].quantity = parseInt(e.target.value) || 1;
+            updateQuoteTotals(quoteItems);
+            renderQuoteTable();
+        }
+        
+        function handleDiscountChange(e) {
+            const idx = parseInt(e.target.dataset.idx);
+            quoteItems[idx].discount = parseFloat(e.target.value) || 0;
+            updateQuoteTotals(quoteItems);
+            renderQuoteTable();
+        }
         
         updateQuoteTotals(quoteItems);
     }
@@ -1216,7 +1231,10 @@ function generateQuote() {
 
 function printQuote() {
     const data = window.currentQuoteData;
-    if (!data) return;
+    if (!data) {
+        alert('No quote data to print.');
+        return;
+    }
     
     const win = window.open('', '_blank');
     win.document.write(`<!DOCTYPE html>
@@ -1247,7 +1265,7 @@ function printQuote() {
             <p style="margin-top: 10px;"><strong>Routine:</strong> ${escapeHtml(data.routineName || 'Skincare Routine')}</p>
         </div>
         <table>
-            <thead><tr><th>Product</th><th>Unit Price</th><th>Quantity</th><th>Discount</th><th>Total</th></tr></thead>
+            <thead><tr><th>Product</th><th>Unit Price</th><th>Quantity</th><th>Discount</th><th>Total</th></tr</thead>
             <tbody>
                 ${data.items.map(item => `
                     <tr>
@@ -1274,7 +1292,10 @@ function printQuote() {
 
 function emailQuote() {
     const data = window.currentQuoteData;
-    if (!data) return;
+    if (!data) {
+        alert('No quote data to email.');
+        return;
+    }
     
     let emailBody = `Price Quote\n\n`;
     emailBody += `Routine: ${data.routineName || 'Skincare Routine'}\n`;
