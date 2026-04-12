@@ -334,12 +334,28 @@
             <tbody id="quoteTableBody">
             </tbody>
         </table>
-        <div class="quote-totals" id="quoteTotals">
-            <p>Subtotal: $<span id="subtotal">0.00</span></p>
-            <p>Total Savings: $<span id="totalSavings">0.00</span></p>
-            <p>Tax (12%): $<span id="taxAmount">0.00</span></p>
-            <p style="font-size: 1.2rem; font-weight: bold;">Grand Total: $<span id="grandTotal">0.00</span></p>
-        </div>
+<div class="quote-totals" id="quoteTotals">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+        <span>💰 Subtotal (Before Discount):</span>
+        <span>$<span id="subtotalBeforeDiscount">0.00</span></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #2d6a4f;">
+        <span>🏷️ Total Discount:</span>
+        <span>-$<span id="totalDiscountAmount">0.00</span></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; border-bottom: 1px dashed #e2d4c6; padding-bottom: 0.5rem;">
+        <span>✨ Subtotal (After Discount):</span>
+        <span>$<span id="subtotalAfterDiscount">0.00</span></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+        <span>📋 Tax (12%):</span>
+        <span>$<span id="taxAmount">0.00</span></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 2px solid #e2d4c6; font-size: 1.1rem; font-weight: bold;">
+        <span>💵 Grand Total:</span>
+        <span>$<span id="grandTotal">0.00</span></span>
+    </div>
+</div>
         <div class="quote-footer">
             <button class="print-quote-btn" id="printQuoteBtn">🖨️ Print Quote</button>
             <button class="email-quote-btn" id="emailQuoteBtn">📧 Email Quote</button>
@@ -1202,28 +1218,37 @@ function generateQuote() {
         updateQuoteTotals(quoteItems);
     }
     
-    function updateQuoteTotals(items) {
-        let subtotal = 0;
-        let totalWithDiscount = 0;
-        
-        for (const item of items) {
-            const itemTotal = item.price * item.quantity;
-            subtotal += itemTotal;
-            totalWithDiscount += itemTotal * (1 - item.discount / 100);
-        }
-        
-        const totalSavings = subtotal - totalWithDiscount;
-        const tax = totalWithDiscount * 0.12;
-        const grandTotal = totalWithDiscount + tax;
-        
-        document.getElementById('subtotal').innerText = subtotal.toFixed(2);
-        document.getElementById('totalSavings').innerText = totalSavings.toFixed(2);
-        document.getElementById('taxAmount').innerText = tax.toFixed(2);
-        document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
-        
-        // 存储数据供打印使用
-        window.currentQuoteData = { items, subtotal, totalSavings, tax, grandTotal, routineName: savedRoutines[currentRoutineId]?.name };
+function updateQuoteTotals(items) {
+    let subtotalBeforeDiscount = 0;
+    let subtotalAfterDiscount = 0;
+    
+    for (const item of items) {
+        const itemTotal = item.price * item.quantity;
+        subtotalBeforeDiscount += itemTotal;
+        subtotalAfterDiscount += itemTotal * (1 - item.discount / 100);
     }
+    
+    const totalDiscountAmount = subtotalBeforeDiscount - subtotalAfterDiscount;
+    const tax = subtotalAfterDiscount * 0.12;
+    const grandTotal = subtotalAfterDiscount + tax;
+    
+    document.getElementById('subtotalBeforeDiscount').innerText = subtotalBeforeDiscount.toFixed(2);
+    document.getElementById('totalDiscountAmount').innerText = totalDiscountAmount.toFixed(2);
+    document.getElementById('subtotalAfterDiscount').innerText = subtotalAfterDiscount.toFixed(2);
+    document.getElementById('taxAmount').innerText = tax.toFixed(2);
+    document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
+    
+    // 存储数据供打印使用
+    window.currentQuoteData = { 
+        items, 
+        subtotalBeforeDiscount,
+        totalDiscountAmount,
+        subtotalAfterDiscount,
+        tax, 
+        grandTotal, 
+        routineName: savedRoutines[currentRoutineId]?.name 
+    };
+}
     
     renderQuoteTable();
     modal.classList.add('show');
@@ -1279,10 +1304,11 @@ function printQuote() {
             </tbody>
         </table>
         <div class="totals">
-            <p>Subtotal: $${data.subtotal.toFixed(2)}</p>
-            <p class="savings">Total Savings: $${data.totalSavings.toFixed(2)}</p>
-            <p>Tax (12%): $${data.tax.toFixed(2)}</p>
-            <p class="grand-total">Grand Total: $${data.grandTotal.toFixed(2)}</p>
+            <p>💰 Subtotal (Before Discount): $${data.subtotalBeforeDiscount.toFixed(2)}</p>
+            <p class="savings">🏷️ Total Discount: -$${data.totalDiscountAmount.toFixed(2)}</p>
+            <p>✨ Subtotal (After Discount): $${data.subtotalAfterDiscount.toFixed(2)}</p>
+            <p>📋 Tax (12%): $${data.tax.toFixed(2)}</p>
+            <p class="grand-total">💵 Grand Total: $${data.grandTotal.toFixed(2)}</p>
         </div>
     </body>
     </html>`);
@@ -1304,10 +1330,11 @@ function emailQuote() {
     for (const item of data.items) {
         emailBody += `- ${item.name}: $${item.price.toFixed(2)} x ${item.quantity} (${item.discount}% off) = $${(item.price * item.quantity * (1 - item.discount / 100)).toFixed(2)}\n`;
     }
-    emailBody += `\nSubtotal: $${data.subtotal.toFixed(2)}\n`;
-    emailBody += `Total Savings: $${data.totalSavings.toFixed(2)}\n`;
-    emailBody += `Tax (12%): $${data.tax.toFixed(2)}\n`;
-    emailBody += `Grand Total: $${data.grandTotal.toFixed(2)}\n`;
+    emailBody += `\n💰 Subtotal (Before Discount): $${data.subtotalBeforeDiscount.toFixed(2)}\n`;
+    emailBody += `🏷️ Total Discount: -$${data.totalDiscountAmount.toFixed(2)}\n`;
+    emailBody += `✨ Subtotal (After Discount): $${data.subtotalAfterDiscount.toFixed(2)}\n`;
+    emailBody += `📋 Tax (12%): $${data.tax.toFixed(2)}\n`;
+    emailBody += `💵 Grand Total: $${data.grandTotal.toFixed(2)}\n`;
     
     window.location.href = `mailto:?subject=Skincare Quote&body=${encodeURIComponent(emailBody)}`;
 }
