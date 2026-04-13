@@ -471,14 +471,14 @@
             </div>
         </div>
 
-<div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 1rem;">
-    <div class="total-bar" style="flex: 2; margin: 0;">
+<div style="display: flex; justify-content: space-between; align-items: stretch; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 1rem;">
+    <div class="total-bar" style="flex: 2; margin: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 1.3rem;">
         <div class="total-label">TOTAL VALUE (Unique Products)</div>
         <div class="total-amount">$<span id="totalPrice">0.00</span></div>
     </div>
     <div style="display: flex; gap: 0.8rem;">
-        <button class="quote-btn" id="quoteBtn" style="padding: 0.6rem 1.5rem; font-size: 0.9rem;">📄 Generate Quote</button>
-        <button class="action-btn print-btn" id="printBtn" style="margin: 0; padding: 0.6rem 1.5rem;">🖨️ PRINT ROUTINE</button>
+        <button class="quote-btn" id="quoteBtn" style="padding: 0 1.5rem; font-size: 0.9rem; height: 100%;">📄 Generate Quote</button>
+        <button class="action-btn print-btn" id="printBtn" style="margin: 0; padding: 0 1.5rem; height: 100%;">🖨️ PRINT ROUTINE</button>
     </div>
 </div>
 
@@ -534,15 +534,15 @@
     </div>
 </div>
         
-        <div class="action-buttons-bottom">
-            <div id="authButtons" style="display: none; gap: 1rem; flex-wrap: wrap;">
-                <button class="action-btn update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
-                <button class="action-btn delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
-                <button class="action-btn save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
-                <button class="action-btn sync-all-btn" id="syncAllBtn">☁️ Force Sync All to Cloud</button>
-            </div>
-            <button class="action-btn print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
-        </div>
+<div class="action-buttons-bottom">
+    <div id="authButtons" style="display: none; gap: 1rem; flex-wrap: wrap;">
+        <button class="action-btn update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
+        <button class="action-btn delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
+        <button class="action-btn save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
+        <button class="action-btn sync-all-btn" id="syncAllBtn">☁️ Force Sync All to Cloud</button>
+    </div>
+</div>
+        
         <div class="footnote">✦ All editing tools available without password ✦ Enter password to sync changes to cloud ✦ Data saved locally until synced ✦</div>
     </div>
 </div>
