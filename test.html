@@ -1590,9 +1590,15 @@ function generateQuote() {
                     
 <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">
     <div style="display: flex; gap: 0.3rem; align-items: center;">
-        <input type="number" class="discount-percent" data-idx="${idx}" value="${item.discountType === '%' ? item.discountValue : 0}" min="0" max="100" step="1" placeholder="%" style="width: 55px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center;">
-        <span style="color: #b7a99a;">/</span>
-        <input type="number" class="discount-fixed" data-idx="${idx}" value="${item.discountType === 'fixed' ? item.discountValue : 0}" min="0" step="1" placeholder="$" style="width: 65px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center;">
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <input type="number" class="discount-percent" data-idx="${idx}" value="${item.discountType === '%' ? item.discountValue : 0}" min="0" max="100" step="1" placeholder="0" style="width: 60px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center;">
+            <span style="font-size: 0.6rem; color: #b99f87;">% off</span>
+        </div>
+        <span style="color: #d2c0b0;">or</span>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <input type="number" class="discount-fixed" data-idx="${idx}" value="${item.discountType === 'fixed' ? item.discountValue : 0}" min="0" step="1" placeholder="0" style="width: 65px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center;">
+            <span style="font-size: 0.6rem; color: #b99f87;">$ off</span>
+        </div>
     </div>
 </td>
 
@@ -1790,24 +1796,35 @@ function emailQuote() {
         return;
     }
     
+    // 检查是否有任何折扣
+    const hasAnyDiscount = data.items.some(item => item.discountValue > 0);
+    
     let emailBody = `Price Quote\n\n`;
     emailBody += `Routine: ${data.routineName || 'Skincare Routine'}\n`;
     emailBody += `Generated on: ${new Date().toLocaleDateString()}\n\n`;
     emailBody += `Products:\n`;
     
-for (const item of data.items) {
-    let discountedUnitPrice = item.price;
-    if (item.discountType === '%') {
-        discountedUnitPrice = item.price * (1 - item.discountValue / 100);
-    } else if (item.discountType === 'fixed') {
-        discountedUnitPrice = Math.max(0, item.price - item.discountValue);
+    for (const item of data.items) {
+        let discountedUnitPrice = item.price;
+        let discountText = '';
+        if (hasAnyDiscount && item.discountValue > 0) {
+            if (item.discountType === '%') {
+                discountedUnitPrice = item.price * (1 - item.discountValue / 100);
+                discountText = ` (${item.discountValue}% off)`;
+            } else if (item.discountType === 'fixed') {
+                discountedUnitPrice = Math.max(0, item.price - item.discountValue);
+                discountText = ` ($${item.discountValue} off)`;
+            }
+        } else {
+            discountedUnitPrice = item.price;
+        }
+        emailBody += `- ${item.name}: $${item.price.toFixed(2)} x ${item.quantity}${discountText} = $${(discountedUnitPrice * item.quantity).toFixed(2)}\n`;
     }
-    const discountDisplay = item.discountType === '%' ? `${item.discountValue}% off` : `$${item.discountValue} off`;
-    emailBody += `- ${item.name}: $${item.price.toFixed(2)} x ${item.quantity} (${discountDisplay}) = $${(discountedUnitPrice * item.quantity).toFixed(2)}\n`;
-}
     
     emailBody += `\n💰 Subtotal (Before Discount): $${data.subtotalBeforeDiscount.toFixed(2)}\n`;
-    emailBody += `🏷️ Total Discount: -$${data.totalDiscountAmount.toFixed(2)}\n`;
+    if (hasAnyDiscount) {
+        emailBody += `🏷️ Total Discount: -$${data.totalDiscountAmount.toFixed(2)}\n`;
+    }
     emailBody += `✨ Subtotal (After Discount): $${data.subtotalAfterDiscount.toFixed(2)}\n`;
     emailBody += `📋 Tax (12%): $${data.tax.toFixed(2)}\n`;
     emailBody += `💵 Grand Total: $${data.grandTotal.toFixed(2)}\n`;
