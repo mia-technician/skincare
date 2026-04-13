@@ -471,14 +471,15 @@
             </div>
         </div>
 
-        <div class="total-bar">
-            <div class="total-label">TOTAL VALUE (Unique Products)</div>
-            <div class="total-amount">$<span id="totalPrice">0.00</span></div>
-        </div>
-
-        <!-- Quote 按钮 -->
-<div class="quote-button-container">
-    <button class="quote-btn" id="quoteBtn">📄 Generate Quote</button>
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 1rem;">
+    <div class="total-bar" style="flex: 2; margin: 0;">
+        <div class="total-label">TOTAL VALUE (Unique Products)</div>
+        <div class="total-amount">$<span id="totalPrice">0.00</span></div>
+    </div>
+    <div style="display: flex; gap: 0.8rem;">
+        <button class="quote-btn" id="quoteBtn" style="padding: 0.6rem 1.5rem; font-size: 0.9rem;">📄 Generate Quote</button>
+        <button class="action-btn print-btn" id="printBtn" style="margin: 0; padding: 0.6rem 1.5rem;">🖨️ PRINT ROUTINE</button>
+    </div>
 </div>
 
 <!-- Quote 弹窗 -->
