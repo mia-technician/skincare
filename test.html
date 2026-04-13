@@ -109,12 +109,10 @@
 
     <!-- 双栏：服务库 + 产品库 -->
     <div class="dashboard">
-        <!-- 服务库 -->
         <div class="card">
             <div class="card-header"><h3>💆 疗程服务</h3><button id="addServiceBtn" class="btn" style="display:none; font-size:0.7rem;">+ 新增服务</button></div>
             <div id="servicesLibrary" class="library-grid"></div>
         </div>
-        <!-- 产品库 -->
         <div class="card">
             <div class="card-header"><h3>🧴 居家产品</h3><button id="addProductBtn" class="btn" style="display:none; font-size:0.7rem;">+ 新增产品</button></div>
             <div id="productsLibrary" class="library-grid"></div>
@@ -168,17 +166,18 @@
     const PAGE_ACCESS_PASSWORD = "clinic2024";     // 开页密码
     const ADMIN_PASSWORD = "admin123";             // 管理员共用密码
     
-    let supabase = null;
-    let isAdminMode = false;       // 是否管理员编辑模式
+    // 使用不同的变量名避免冲突
+    let sbClient = null;
+    let isAdminMode = false;
     let isPageUnlocked = false;
     
     // 主数据
-    let services = [];     // { id, name, price }
+    let services = [];
     let products = [];
-    let packages = [];      // [{ id, name, serviceIds, productIds }]
+    let packages = [];
     
-    // 当前报价单 (服务+产品混合)
-    let currentQuote = [];   // 每个元素: { id, type, customName, customPrice, quantity, discountPercent, discountAmount, originalPrice }
+    // 当前报价单
+    let currentQuote = [];
     
     // ---------- 辅助函数 ----------
     function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 6); }
@@ -275,7 +274,6 @@
     
     // 添加项目到报价单
     function addToQuote(type, id, originalPrice, name) {
-        // 检查是否已存在 (简单去重，同类型同id)
         if (currentQuote.some(i => i.id === id && i.type === type)) { alert("该项目已在报价单中"); return; }
         currentQuote.push({
             id, type,
@@ -291,11 +289,11 @@
         saveQuoteToLocal();
     }
     
-    // 保存报价单到本地存储 (临时)
+    // 保存报价单到本地存储
     function saveQuoteToLocal() { localStorage.setItem('clinic_current_quote', JSON.stringify(currentQuote)); }
     function loadQuoteFromLocal() { const saved = localStorage.getItem('clinic_current_quote'); if(saved) currentQuote = JSON.parse(saved); else currentQuote = []; updateTotalAndRenderQuote(); }
     
-    // 渲染服务/产品库 (根据管理员模式显示编辑删除按钮)
+    // 渲染服务/产品库
     async function renderLibraries() {
         const servicesContainer = document.getElementById('servicesLibrary');
         const productsContainer = document.getElementById('productsLibrary');
@@ -319,7 +317,6 @@
             </div>
         `).join('');
         
-        // 绑定加入报价事件
         document.querySelectorAll('.add-to-quote').forEach(btn => {
             btn.onclick = () => { addToQuote(btn.dataset.type, btn.dataset.id, parseFloat(btn.dataset.price), btn.dataset.name); };
         });
@@ -336,35 +333,32 @@
         if(newName && newName.trim()) item.name = newName.trim();
         let newPrice = parseFloat(prompt("新价格", item.price));
         if(!isNaN(newPrice)) item.price = newPrice;
-        if(type === 'service') await supabase.from('services').update({name:item.name, price:item.price}).eq('id',id);
-        else await supabase.from('products').update({name:item.name, price:item.price}).eq('id',id);
+        if(type === 'service') await sbClient.from('services').update({name:item.name, price:item.price}).eq('id',id);
+        else await sbClient.from('products').update({name:item.name, price:item.price}).eq('id',id);
         await loadDataFromSupabase();
         renderLibraries();
     }
     async function deleteItem(type, id) {
         if(!confirm(`确定删除该${type==='service'?'服务':'产品'}吗？会影响套餐。`)) return;
-        if(type === 'service') await supabase.from('services').delete().eq('id',id);
-        else await supabase.from('products').delete().eq('id',id);
+        if(type === 'service') await sbClient.from('services').delete().eq('id',id);
+        else await sbClient.from('products').delete().eq('id',id);
         await loadDataFromSupabase();
         renderLibraries();
     }
     
-    // 套餐加载
     function loadPackage(packageName) {
         if(packageName === 'microneedling') {
-            // Microneedling套餐: 服务microneedling + 产品 Exo-GF
             const microneedlingService = services.find(s => s.name.toLowerCase().includes('microneedling'));
             const exoGfProduct = products.find(p => p.name.toLowerCase().includes('exo-gf'));
             if(microneedlingService && !currentQuote.some(i=>i.id===microneedlingService.id && i.type==='service')) 
                 addToQuote('service', microneedlingService.id, microneedlingService.price, microneedlingService.name);
-            else alert("服务未找到或已存在");
+            else if(!microneedlingService) alert("服务 Microneedling 未在库中找到");
             if(exoGfProduct && !currentQuote.some(i=>i.id===exoGfProduct.id && i.type==='product'))
                 addToQuote('product', exoGfProduct.id, exoGfProduct.price, exoGfProduct.name);
             else if(!exoGfProduct) alert("产品 Exo-GF 未在库中找到");
         }
     }
     
-    // 保存当前报价单为套餐 (管理员)
     async function saveCurrentAsPackage() {
         if(!isAdminMode) { alert("请先管理员登入"); return; }
         const packageName = prompt("套餐名称:", "自定义套餐");
@@ -372,18 +366,17 @@
         const serviceIds = currentQuote.filter(i=>i.type==='service').map(i=>i.id);
         const productIds = currentQuote.filter(i=>i.type==='product').map(i=>i.id);
         const newId = generateId();
-        const { error } = await supabase.from('packages').insert({id:newId, name:packageName, service_ids:serviceIds, product_ids:productIds});
+        const { error } = await sbClient.from('packages').insert({id:newId, name:packageName, service_ids:serviceIds, product_ids:productIds});
         if(error) alert("保存失败"+error.message);
         else { alert("套餐已保存"); await loadDataFromSupabase(); }
     }
     async function deletePackageFromDb() {
         if(!isAdminMode) return;
-        const pkgId = prompt("输入要删除的套餐ID (查看控制台 packages 列表)");
-        if(pkgId) await supabase.from('packages').delete().eq('id',pkgId);
+        const pkgId = prompt("输入要删除的套餐ID");
+        if(pkgId) await sbClient.from('packages').delete().eq('id',pkgId);
         await loadDataFromSupabase();
     }
     
-    // 生成专业报价单HTML
     function buildQuoteHTML() {
         let itemsRows = "";
         let subtotal = 0;
@@ -396,7 +389,7 @@
             let discountText = "";
             if(item.discountPercent>0) discountText = `${item.discountPercent}% off`;
             else if(item.discountAmount>0) discountText = `$${item.discountAmount} off`;
-            itemsRows += `<tr><td>${escapeHtml(displayName)} ${discountText?`<span style="background:#f9efe6; font-size:11px; padding:2px 8px; border-radius:40px;">${discountText}</span>`:''}</td><td>$${unitPrice.toFixed(2)}</td><td>${item.quantity}</td><td class="amount-col">$${finalPrice.toFixed(2)}</td></tr>`;
+            itemsRows += `<tr><td><strong>${escapeHtml(displayName)}</strong> ${discountText?`<span style="background:#f9efe6; font-size:11px; padding:2px 8px; border-radius:40px;">${discountText}</span>`:''}</td><td>$${unitPrice.toFixed(2)}</td><td>${item.quantity}</td><td class="amount-col">$${finalPrice.toFixed(2)}</td></tr>`;
         }
         let tax = subtotal * 0.12;
         let grand = subtotal + tax;
@@ -408,29 +401,27 @@
         document.getElementById('quoteModal').classList.add('show');
     }
     function printQuote() { const win = window.open('','_blank'); win.document.write(buildQuoteHTML()); win.document.close(); win.print(); }
-    function emailQuote() { const htmlBlob = new Blob([buildQuoteHTML()], {type:'text/html'}); const url = URL.createObjectURL(htmlBlob); window.location.href = `mailto:?subject=Aura诊所报价单&body=请查收附件报价单`; setTimeout(()=>URL.revokeObjectURL(url),200); alert("邮件客户端已打开，请手动附件预览内容。"); }
+    function emailQuote() { window.location.href = `mailto:?subject=Aura诊所报价单&body=${encodeURIComponent("请查收附件报价单")}`; alert("邮件客户端已打开"); }
     
-    // 数据加载
     async function loadDataFromSupabase() {
-        if(!supabase) return;
-        const {data:sData} = await supabase.from('services').select('*');
+        if(!sbClient) return;
+        const {data:sData} = await sbClient.from('services').select('*');
         if(sData && sData.length) services = sData;
         else services = [{id:"srv1", name:"激光脱毛", price:250},{id:"srv2", name:"Microneedling", price:450},{id:"srv3", name:"Excel V - Rejuvenate", price:350}];
-        const {data:pData} = await supabase.from('products').select('*');
+        const {data:pData} = await sbClient.from('products').select('*');
         if(pData && pData.length) products = pData;
         else products = [{id:"p1",name:"Exo-GF",price:275},{id:"p2",name:"Clarify Cleanser",price:50},{id:"p3",name:"Retinol",price:66}];
-        const {data:packData} = await supabase.from('packages').select('*');
+        const {data:packData} = await sbClient.from('packages').select('*');
         if(packData && packData.length) packages = packData;
         renderLibraries();
     }
     
-    // 初始化supabase
-    async function initSupabaseAndApp() {
-        if(typeof supabaseClient === 'undefined') { setTimeout(initSupabaseAndApp, 300); return; }
-        supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    async function initApp() {
+        if(typeof supabase === 'undefined') { setTimeout(initApp, 300); return; }
+        sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         await loadDataFromSupabase();
         loadQuoteFromLocal();
-        // UI按钮事件
+        
         document.getElementById('generateQuoteBtn').onclick = showQuoteModal;
         document.getElementById('closeModalBtn').onclick = () => document.getElementById('quoteModal').classList.remove('show');
         document.getElementById('printQuoteBtn').onclick = printQuote;
@@ -440,8 +431,8 @@
         document.getElementById('deletePackageBtn').onclick = deletePackageFromDb;
         document.getElementById('adminLoginBtn').onclick = () => { let pwd = prompt("管理员密码:"); if(pwd === ADMIN_PASSWORD) { isAdminMode=true; document.getElementById('adminStatusBadge').style.display='inline-block'; document.getElementById('adminLoginBtn').style.display='none'; document.getElementById('logoutAdminBtn').style.display='inline-block'; document.getElementById('addServiceBtn').style.display='inline-block'; document.getElementById('addProductBtn').style.display='inline-block'; document.getElementById('saveAsPackageBtn').style.display='inline-block'; document.getElementById('deletePackageBtn').style.display='inline-block'; renderLibraries(); } else alert("密码错误"); };
         document.getElementById('logoutAdminBtn').onclick = () => { isAdminMode=false; document.getElementById('adminStatusBadge').style.display='none'; document.getElementById('adminLoginBtn').style.display='inline-block'; document.getElementById('logoutAdminBtn').style.display='none'; document.getElementById('addServiceBtn').style.display='none'; document.getElementById('addProductBtn').style.display='none'; document.getElementById('saveAsPackageBtn').style.display='none'; document.getElementById('deletePackageBtn').style.display='none'; renderLibraries(); };
-        document.getElementById('addServiceBtn').onclick = async () => { if(!isAdminMode) return; let name = prompt("服务名称"); let price = parseFloat(prompt("价格")); if(name && price) { let newId=generateId(); await supabase.from('services').insert({id:newId, name, price}); await loadDataFromSupabase(); renderLibraries(); } };
-        document.getElementById('addProductBtn').onclick = async () => { if(!isAdminMode) return; let name = prompt("产品名称"); let price = parseFloat(prompt("价格")); if(name && price) { let newId=generateId(); await supabase.from('products').insert({id:newId, name, price}); await loadDataFromSupabase(); renderLibraries(); } };
+        document.getElementById('addServiceBtn').onclick = async () => { if(!isAdminMode) return; let name = prompt("服务名称"); let price = parseFloat(prompt("价格")); if(name && price) { let newId=generateId(); await sbClient.from('services').insert({id:newId, name, price}); await loadDataFromSupabase(); renderLibraries(); } };
+        document.getElementById('addProductBtn').onclick = async () => { if(!isAdminMode) return; let name = prompt("产品名称"); let price = parseFloat(prompt("价格")); if(name && price) { let newId=generateId(); await sbClient.from('products').insert({id:newId, name, price}); await loadDataFromSupabase(); renderLibraries(); } };
     }
     
     // 开页密码验证
@@ -451,7 +442,7 @@
             isPageUnlocked = true;
             document.getElementById('lockScreen').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
-            initSupabaseAndApp();
+            initApp();
         } else { document.getElementById('lockError').innerText = '密码错误，无权访问'; }
     };
 </script>
