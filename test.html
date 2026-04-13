@@ -48,33 +48,31 @@
         .admin-actions { display: flex; gap: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap; }
         .edit-routine-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.4rem 1rem; border-radius: 40px; cursor: pointer; font-size: 0.7rem; }
         
-        /* 3-Column Grid */
         .routine-grid { display: grid; grid-template-columns: 1fr 1.2fr 1.2fr; gap: 1.5rem; align-items: start; }
         .column { background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.2rem; border: 1px solid #e7dbd0; height: 100%; display: flex; flex-direction: column; }
         .column-title { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; color: #8f7e6b; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; }
         
-        /* Package dropdown - inside Service column */
         .package-select { width: 100%; padding: 0.5rem 0.8rem; border-radius: 40px; border: 1px solid #ddd0c2; background: white; font-size: 0.8rem; margin-bottom: 0.8rem; }
-        
-        /* Routine dropdown - inside Morning column */
         .routine-dropdown { width: 100%; padding: 0.5rem 0.8rem; border-radius: 40px; border: 1px solid #ddd0c2; background: white; font-size: 0.8rem; margin-bottom: 0.8rem; }
-        
-        /* Action buttons - inside Evening column */
         .action-buttons-row { display: flex; gap: 0.8rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
         .action-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.4rem 0.8rem; border-radius: 40px; cursor: pointer; font-size: 0.7rem; flex: 1; text-align: center; }
         
-        .product-list { display: flex; flex-direction: column; gap: 0.9rem; flex: 1; overflow: visible; margin-bottom: 1rem; }
-        .product-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; cursor: grab; }
+        .product-list { display: flex; flex-direction: column; gap: 0.9rem; flex: 1; overflow: visible; margin-bottom: 1rem; min-height: 200px; }
+        .product-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; cursor: grab; transition: all 0.2s; }
+        .product-card:active { cursor: grabbing; }
+        .product-card.dragging { opacity: 0.4; }
         .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px; z-index: 10; }
+        .product-image { width: 48px; height: 48px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .product-image img { width: 100%; height: 100%; object-fit: cover; }
+        .product-image-placeholder { font-size: 1.5rem; }
         .product-info { flex: 1; }
         .product-name { font-size: 0.85rem; font-weight: 600; color: #5f5347; }
         .product-price { font-size: 0.7rem; color: #b99f87; margin-left: 0.3rem; }
         .benefit { font-size: 0.65rem; color: #b7a99a; margin-top: 2px; }
         .usage { font-size: 0.6rem; color: #8e7e6e; margin-top: 3px; }
-        .drag-handle { width: 24px; display: flex; align-items: center; justify-content: center; color: #d2c0b0; cursor: grab; }
+        .drag-handle { width: 24px; display: flex; align-items: center; justify-content: center; color: #d2c0b0; cursor: grab; font-size: 1.2rem; }
         .empty-slot { display: flex; align-items: center; justify-content: center; padding: 0.7rem; background: rgba(233, 223, 212, 0.5); border-radius: 18px; border: 2px dashed #d2c0b0; color: #b7a99a; font-size: 0.7rem; min-height: 60px; margin-bottom: 0.6rem; }
         
-        /* Add item row */
         .add-item-row { position: relative; margin-top: 0.5rem; }
         .item-search-input { width: 100%; padding: 0.5rem 0.8rem; border: 1px solid #e2d4c6; border-radius: 60px; font-size: 0.75rem; outline: none; }
         .item-suggestions { position: absolute; bottom: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 16px; max-height: 200px; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 4px; }
@@ -119,23 +117,19 @@
             <span id="adminBadge" class="admin-badge" style="display:none;">Admin Mode</span></div>
         </div>
 
-        <!-- 3-Column Grid -->
         <div class="routine-grid">
             <!-- Service Recommend Column -->
             <div class="column">
                 <div class="column-title">💡 SERVICE RECOMMEND</div>
-                <!-- Quick Package dropdown - first line under title -->
                 <select id="packageSelect" class="package-select">
                     <option value="">-- Quick Package --</option>
                     <option value="microneedling">Microneedling Package (Service + Product)</option>
                 </select>
-                <!-- Search dropdown - second line -->
                 <div class="add-item-row">
                     <input type="text" class="item-search-input" id="serviceSearchInput" placeholder="Click to search or select service..." autocomplete="off">
                     <div id="serviceSuggestions" class="item-suggestions"></div>
                 </div>
                 <div class="product-list" id="servicesList" style="margin-top: 0.8rem;"></div>
-                <!-- Admin edit buttons for Service column -->
                 <div class="admin-actions" id="serviceAdminActions" style="display:none; margin-top: 0.8rem;">
                     <button id="editRoutineBtn" class="edit-routine-btn" style="display:none;">✏️ Edit Name</button>
                     <button id="deleteRoutineBtn" class="edit-routine-btn" style="display:none;">🗑️ Delete</button>
@@ -146,9 +140,7 @@
             <!-- AM Column -->
             <div class="column">
                 <div class="column-title">🌅 MORNING ROUTINE <span>AM</span></div>
-                <!-- SELECT ROUTINE dropdown - first line under title -->
                 <select id="routineDropdown" class="routine-dropdown"></select>
-                <!-- Search dropdown - second line -->
                 <div class="add-item-row">
                     <input type="text" class="item-search-input" id="productSearchInputAM" placeholder="Click to search or select product..." autocomplete="off">
                     <div id="productSuggestionsAM" class="item-suggestions"></div>
@@ -159,18 +151,15 @@
             <!-- PM Column -->
             <div class="column">
                 <div class="column-title">🌙 EVENING ROUTINE <span>PM</span></div>
-                <!-- Print/Email buttons - first line under title -->
                 <div class="action-buttons-row">
                     <button class="action-btn" id="printRoutineBtn">🖨️ PRINT ROUTINE</button>
                     <button class="action-btn" id="emailRoutineBtn">📧 EMAIL ROUTINE</button>
                 </div>
-                <!-- Search dropdown - second line -->
                 <div class="add-item-row">
                     <input type="text" class="item-search-input" id="productSearchInputPM" placeholder="Click to search or select product..." autocomplete="off">
                     <div id="productSuggestionsPM" class="item-suggestions"></div>
                 </div>
                 <div class="product-list" id="eveningList" style="margin-top: 0.8rem;"></div>
-                <!-- Admin update button -->
                 <div class="admin-actions" style="margin-top: 0.8rem;">
                     <button class="action-btn update-btn" id="updateCurrentBtn" style="display:none;">📝 Update Current Routine</button>
                 </div>
@@ -198,9 +187,9 @@ let isPageUnlocked = false;
 
 // ==================== DATA ====================
 let servicesData = [
-    { id: "srv1", name: "Laser Hair Removal", price: 250, type: "service", benefit: "Permanent reduction", usage: "Treatment per area" },
-    { id: "srv2", name: "Microneedling", price: 450, type: "service", benefit: "Collagen induction", usage: "30 min session" },
-    { id: "srv3", name: "Excel V - Rejuvenate", price: 350, type: "service", benefit: "Vascular & pigmentation", usage: "20 min session" }
+    { id: "srv1", name: "Laser Hair Removal", price: 250, type: "service", benefit: "Permanent reduction", usage: "Treatment per area", image: "" },
+    { id: "srv2", name: "Microneedling", price: 450, type: "service", benefit: "Collagen induction", usage: "30 min session", image: "" },
+    { id: "srv3", name: "Excel V - Rejuvenate", price: 350, type: "service", benefit: "Vascular & pigmentation", usage: "20 min session", image: "" }
 ];
 let productsData = [];
 let savedRoutines = {};
@@ -209,11 +198,19 @@ let currentServices = [];
 let currentMorningProducts = [];
 let currentEveningProducts = [];
 
+// Default product images
+const DEFAULT_IMAGE = "https://via.placeholder.com/48/f1e8e0/8f7e6b?text=Product";
+
 // ==================== HELPERS ====================
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
 function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 function getAllServicesSorted() { return [...servicesData].sort((a,b) => a.name.localeCompare(b.name)); }
 function getAllProductsSorted() { return [...productsData].sort((a,b) => a.name.localeCompare(b.name)); }
+
+function getProductImageUrl(item) {
+    if (item.image && item.image.startsWith('http')) return item.image;
+    return DEFAULT_IMAGE;
+}
 
 function getUniqueTotal() {
     let ids = new Set();
@@ -239,14 +236,14 @@ async function loadProductsFromSupabase() {
             productsData = data;
         } else {
             productsData = [
-                { id: "clarify-cleanser", name: "Clarify Cleanser", brand: "FNL", price: 50, benefit: "Antibacterial", usage: "Pea size - cleanse", type: "product" },
-                { id: "exo-gf", name: "Exo-GF Serum", brand: "FNL", price: 275, benefit: "Regenerates", usage: "1 pump", type: "product" },
-                { id: "exfoliating-pad", name: "Exfoliating Pad 10%", brand: "FNL", price: 88, benefit: "Minimizes blackheads", usage: "Wipe face gently", type: "product" },
-                { id: "glycolic-lotion", name: "Glycolic Lotion 10%", brand: "FNL", price: 98, benefit: "Improves texture", usage: "Pea size - apply", type: "product" },
-                { id: "silymarin", name: "Silymarin", brand: "Skinceuticals", price: 220, benefit: "Antioxidant for acne", usage: "1 pump", type: "product" },
-                { id: "spf50", name: "SPF50 Sheer Physical", brand: "SkinMedica", price: 66, benefit: "Physical SPF", usage: "1 pump - last step", type: "product" },
-                { id: "retinol-fnl", name: "Retinol (FNL)", brand: "FNL", price: 115, benefit: "Cell turnover", usage: "Start 2x/week", type: "product" },
-                { id: "tns", name: "TNS+ Serum", brand: "SkinMedica", price: 330, benefit: "Lifting & Anti-aging", usage: "1 pump", type: "product" }
+                { id: "clarify-cleanser", name: "Clarify Cleanser", brand: "FNL", price: 50, benefit: "Antibacterial", usage: "Pea size - cleanse", type: "product", image: "https://static.wixstatic.com/media/11a6e1_964680bfdf1b4efa9039db6f52428325~mv2.webp" },
+                { id: "exo-gf", name: "Exo-GF Serum", brand: "FNL", price: 275, benefit: "Regenerates", usage: "1 pump", type: "product", image: "https://static.wixstatic.com/media/11a6e1_62da2e3f71ff44229d4e90fc5289cf18~mv2.jpg" },
+                { id: "exfoliating-pad", name: "Exfoliating Pad 10%", brand: "FNL", price: 88, benefit: "Minimizes blackheads", usage: "Wipe face gently", type: "product", image: "https://static.wixstatic.com/media/11a6e1_c4491a22e89846ba84ef28f5820ff427~mv2.webp" },
+                { id: "glycolic-lotion", name: "Glycolic Lotion 10%", brand: "FNL", price: 98, benefit: "Improves texture", usage: "Pea size - apply", type: "product", image: "https://static.wixstatic.com/media/11a6e1_74ebb016820f45008058763526dfad76~mv2.webp" },
+                { id: "silymarin", name: "Silymarin", brand: "Skinceuticals", price: 220, benefit: "Antioxidant for acne", usage: "1 pump", type: "product", image: "https://static.wixstatic.com/media/11a6e1_8868dfe199c3466dafa239c238115433~mv2.webp" },
+                { id: "spf50", name: "SPF50 Sheer Physical", brand: "SkinMedica", price: 66, benefit: "Physical SPF", usage: "1 pump - last step", type: "product", image: "https://static.wixstatic.com/media/11a6e1_d2faad5c91134e0589fb5538c8f76d86~mv2.webp" },
+                { id: "retinol-fnl", name: "Retinol (FNL)", brand: "FNL", price: 115, benefit: "Cell turnover", usage: "Start 2x/week", type: "product", image: "https://static.wixstatic.com/media/11a6e1_c1094fd984f449a6bdd6a96bf13623ac~mv2.webp" },
+                { id: "tns", name: "TNS+ Serum", brand: "SkinMedica", price: 330, benefit: "Lifting & Anti-aging", usage: "1 pump", type: "product", image: "https://static.wixstatic.com/media/11a6e1_8eb00266d932471483652b5a40828272~mv2.jpg" }
             ];
         }
         return true;
@@ -262,13 +259,14 @@ async function loadRoutinesFromSupabase() {
             savedRoutines = {};
             data.forEach(r => { savedRoutines[r.id] = { name: r.name, services: r.services || [], morning: r.morning || [], evening: r.evening || [] }; });
         } else {
-            savedRoutines = { "default": { name: "Standard Routine", services: [], morning: [], evening: [] } };
+            savedRoutines = { "new-routine": { name: "New Routine", services: [], morning: [], evening: [] } };
         }
         const { data: stateData } = await sbClient.from('user_state').select('current_routine_id').maybeSingle();
         if (stateData && stateData.current_routine_id && savedRoutines[stateData.current_routine_id]) {
             currentRoutineId = stateData.current_routine_id;
         } else {
-            currentRoutineId = Object.keys(savedRoutines)[0] || null;
+            // Default to "New Routine" if exists, otherwise first routine
+            currentRoutineId = savedRoutines["new-routine"] ? "new-routine" : Object.keys(savedRoutines)[0];
         }
         if (currentRoutineId && savedRoutines[currentRoutineId]) {
             currentServices = (savedRoutines[currentRoutineId].services || []).map(id => ({ id, type: 'service' }));
@@ -302,22 +300,131 @@ async function saveCurrentStateToSupabase() {
     try { await sbClient.from('user_state').upsert({ current_routine_id: currentRoutineId }); } catch (err) { console.error(err); }
 }
 
-// ==================== UI RENDERING ====================
+// ==================== UI RENDERING with Drag & Drop and Images ====================
+function renderCard(item, type, idx, colName) {
+    let name = item.name;
+    let price = item.price;
+    let benefit = item.benefit || '';
+    let usage = item.usage || '';
+    let imageUrl = item.image || DEFAULT_IMAGE;
+    let typeIcon = type === 'service' ? '💆' : '🧴';
+    
+    return `<div class="product-card" data-id="${item.id}" data-col="${colName}" data-index="${idx}" draggable="true">
+        <div class="drag-handle">⋮⋮</div>
+        <button class="delete-btn" data-col="${colName}" data-index="${idx}">✕</button>
+        <div class="product-image">
+            <img src="${imageUrl}" alt="${escapeHtml(name)}" onerror="this.src='${DEFAULT_IMAGE}'">
+        </div>
+        <div class="product-info">
+            <div class="product-name">${typeIcon} ${escapeHtml(name)} <span class="product-price">$${price}</span></div>
+            <div class="benefit">${escapeHtml(benefit)}</div>
+            <div class="usage">✦ ${escapeHtml((usage || '').substring(0, 55))}</div>
+        </div>
+    </div>`;
+}
+
 function renderAllColumns() {
+    // Services column
     let sList = document.getElementById('servicesList');
-    if(sList) sList.innerHTML = currentServices.map((item, idx) => { let s = servicesData.find(s=>s.id===item.id); return s ? `<div class="product-card" data-id="${s.id}" data-col="services" data-index="${idx}" draggable="true"><div class="drag-handle">⋮⋮</div><button class="delete-btn" data-col="services" data-index="${idx}">✕</button><div class="product-info"><div class="product-name">💆 ${escapeHtml(s.name)} <span class="product-price">$${s.price}</span></div><div class="benefit">${escapeHtml(s.benefit || '')}</div><div class="usage">✦ ${escapeHtml((s.usage || '').substring(0, 45))}</div></div></div>` : ''; }).join('');
+    if(sList) {
+        sList.innerHTML = currentServices.map((item, idx) => {
+            let s = servicesData.find(s => s.id === item.id);
+            return s ? renderCard(s, 'service', idx, 'services') : '';
+        }).join('');
+    }
+    
+    // Morning column
     let amList = document.getElementById('morningList');
-    if(amList) amList.innerHTML = currentMorningProducts.map((item, idx) => { let p = productsData.find(pr=>pr.id===item.productId); return p ? `<div class="product-card" data-id="${p.id}" data-col="am" data-index="${idx}" draggable="true"><div class="drag-handle">⋮⋮</div><button class="delete-btn" data-col="am" data-index="${idx}">✕</button><div class="product-info"><div class="product-name">🧴 ${escapeHtml(p.name)} <span class="product-price">$${p.price}</span></div><div class="benefit">${escapeHtml(p.benefit || '')}</div><div class="usage">✦ ${escapeHtml((p.usage || '').substring(0, 45))}</div></div></div>` : ''; }).join('');
+    if(amList) {
+        amList.innerHTML = currentMorningProducts.map((item, idx) => {
+            let p = productsData.find(pr => pr.id === item.productId);
+            return p ? renderCard(p, 'product', idx, 'am') : '';
+        }).join('');
+    }
+    
+    // Evening column
     let pmList = document.getElementById('eveningList');
-    if(pmList) pmList.innerHTML = currentEveningProducts.map((item, idx) => { let p = productsData.find(pr=>pr.id===item.productId); return p ? `<div class="product-card" data-id="${p.id}" data-col="pm" data-index="${idx}" draggable="true"><div class="drag-handle">⋮⋮</div><button class="delete-btn" data-col="pm" data-index="${idx}">✕</button><div class="product-info"><div class="product-name">🧴 ${escapeHtml(p.name)} <span class="product-price">$${p.price}</span></div><div class="benefit">${escapeHtml(p.benefit || '')}</div><div class="usage">✦ ${escapeHtml((p.usage || '').substring(0, 45))}</div></div></div>` : ''; }).join('');
+    if(pmList) {
+        pmList.innerHTML = currentEveningProducts.map((item, idx) => {
+            let p = productsData.find(pr => pr.id === item.productId);
+            return p ? renderCard(p, 'product', idx, 'pm') : '';
+        }).join('');
+    }
+    
     attachDragAndDelete();
     updateTotalPrice();
 }
 
 function attachDragAndDelete() {
-    document.querySelectorAll('.product-card').forEach(card => { card.setAttribute('draggable', 'true'); card.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', JSON.stringify({ id: card.dataset.id, col: card.dataset.col, idx: card.dataset.index })); }); });
-    document.querySelectorAll('.product-list').forEach(list => { list.addEventListener('dragover', e => e.preventDefault()); list.addEventListener('drop', async (e) => { e.preventDefault(); let drag = JSON.parse(e.dataTransfer.getData('text/plain')); if(!drag) return; let targetCard = e.target.closest('.product-card'); if(!targetCard) return; let targetCol = targetCard.dataset.col, targetIdx = parseInt(targetCard.dataset.index); if(drag.col === targetCol) { let items = drag.col === 'services' ? currentServices : (drag.col === 'am' ? currentMorningProducts : currentEveningProducts); let dragged = items[drag.idx]; items.splice(drag.idx, 1); items.splice(targetIdx, 0, dragged); renderAllColumns(); await saveCurrentStateToSupabase(); } }); });
-    document.querySelectorAll('.delete-btn').forEach(btn => { btn.onclick = async () => { let col = btn.dataset.col, idx = parseInt(btn.dataset.index); if(col === 'services') currentServices.splice(idx,1); else if(col === 'am') currentMorningProducts.splice(idx,1); else if(col === 'pm') currentEveningProducts.splice(idx,1); renderAllColumns(); await saveCurrentStateToSupabase(); }; });
+    // Drag start
+    document.querySelectorAll('.product-card').forEach(card => {
+        card.setAttribute('draggable', 'true');
+        card.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', JSON.stringify({
+                id: card.dataset.id,
+                col: card.dataset.col,
+                idx: parseInt(card.dataset.index)
+            }));
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+        card.addEventListener('dragend', (e) => {
+            card.classList.remove('dragging');
+        });
+    });
+    
+    // Drag over and drop on product lists
+    document.querySelectorAll('.product-list').forEach(list => {
+        list.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+        
+        list.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            let dragData;
+            try {
+                dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
+            } catch (err) { return; }
+            if (!dragData) return;
+            
+            let targetCard = e.target.closest('.product-card');
+            if (!targetCard) return;
+            
+            let targetCol = targetCard.dataset.col;
+            let targetIdx = parseInt(targetCard.dataset.index);
+            
+            if (dragData.col === targetCol) {
+                // Reorder within same column
+                let items;
+                if (dragData.col === 'services') items = currentServices;
+                else if (dragData.col === 'am') items = currentMorningProducts;
+                else if (dragData.col === 'pm') items = currentEveningProducts;
+                else return;
+                
+                if (dragData.idx !== targetIdx) {
+                    let draggedItem = items[dragData.idx];
+                    items.splice(dragData.idx, 1);
+                    items.splice(targetIdx, 0, draggedItem);
+                    renderAllColumns();
+                    await saveCurrentStateToSupabase();
+                }
+            }
+        });
+    });
+    
+    // Delete buttons
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.onclick = async () => {
+            let col = btn.dataset.col;
+            let idx = parseInt(btn.dataset.index);
+            if (col === 'services') currentServices.splice(idx, 1);
+            else if (col === 'am') currentMorningProducts.splice(idx, 1);
+            else if (col === 'pm') currentEveningProducts.splice(idx, 1);
+            renderAllColumns();
+            await saveCurrentStateToSupabase();
+        };
+    });
 }
 
 // ==================== SEARCH DROPDOWNS ====================
