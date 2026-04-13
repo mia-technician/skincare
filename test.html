@@ -1707,6 +1707,9 @@ function printQuote() {
         return;
     }
     
+    // 先检查是否有折扣
+    const hasAnyDiscount = data.items.some(item => item.discountValue > 0);
+    
     const win = window.open('', '_blank');
     win.document.write(`<!DOCTYPE html>
     <html>
@@ -1736,34 +1739,34 @@ function printQuote() {
             <p style="margin-top: 10px;"><strong>Routine:</strong> ${escapeHtml(data.routineName || 'Skincare Routine')}</p>
         </div>
         <table>
-        
-// 先检查是否有折扣
-const hasAnyDiscount = data.items.some(item => item.discountValue > 0);
-
-// 然后在 win.document.write 中使用条件判断
-${hasAnyDiscount ? '<th>Discount</th>' : ''}
-
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Unit Price</th>
+                    <th>Quantity</th>
+                    ${hasAnyDiscount ? '<th>Discount</th>' : ''}
+                    <th>Total</th>
+                </tr>
+            </thead>
             <tbody>
-            
-${data.items.map(item => {
-    let discountedUnitPrice = item.price;
-    if (item.discountType === '%') {
-        discountedUnitPrice = item.price * (1 - item.discountValue / 100);
-    } else if (item.discountType === 'fixed') {
-        discountedUnitPrice = Math.max(0, item.price - item.discountValue);
-    }
-    const discountDisplay = item.discountType === '%' ? `${item.discountValue}%` : `$${item.discountValue}`;
-    return `
-        <tr>
-            <td>${escapeHtml(item.name)}</td>
-            <td>$${item.price.toFixed(2)}</td>
-            <td>${item.quantity}</td>
-            ${hasAnyDiscount ? `<td>${item.discountValue > 0 ? discountDisplay : '-'}</td>` : ''}
-            <td>$${(discountedUnitPrice * item.quantity).toFixed(2)}</td>
-        </tr>
-    `;
-}).join('')}
-                
+                ${data.items.map(item => {
+                    let discountedUnitPrice = item.price;
+                    if (item.discountType === '%') {
+                        discountedUnitPrice = item.price * (1 - item.discountValue / 100);
+                    } else if (item.discountType === 'fixed') {
+                        discountedUnitPrice = Math.max(0, item.price - item.discountValue);
+                    }
+                    const discountDisplay = item.discountType === '%' ? `${item.discountValue}%` : `$${item.discountValue}`;
+                    return `
+                        <tr>
+                            <td>${escapeHtml(item.name)}</td>
+                            <td>$${item.price.toFixed(2)}</td>
+                            <td>${item.quantity}</td>
+                            ${hasAnyDiscount ? `<td>${item.discountValue > 0 ? discountDisplay : '-'}</td>` : ''}
+                            <td>$${(discountedUnitPrice * item.quantity).toFixed(2)}</td>
+                        </tr>
+                    `;
+                }).join('')}
             </tbody>
         </table>
         <div class="totals">
