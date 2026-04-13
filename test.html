@@ -1538,15 +1538,23 @@ function refreshUI() {
 function generateQuote() {
     // 获取所有唯一产品（去重）- 直接从当前页面数据获取
     const allProducts = [...currentMorningProducts, ...currentEveningProducts];
+    const productMap = new Map();
     
-productMap.set(item.productId, {
-    id: product.id,
-    name: product.name,
-    price: product.price,
-    quantity: 1,
-    discountType: '%',     // '%' 或 'fixed'
-    discountValue: 0       // 折扣数值（百分比或固定金额）
-});
+    for (const item of allProducts) {
+        if (!productMap.has(item.productId)) {
+            const product = getProductById(item.productId);
+            if (product) {
+                productMap.set(item.productId, {
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    discountType: '%',     // '%' 或 'fixed'
+                    discountValue: 0       // 折扣数值（百分比或固定金额）
+                });
+            }
+        }
+    }
     
     const quoteItems = Array.from(productMap.values());
     
@@ -1561,123 +1569,123 @@ productMap.set(item.productId, {
     
     routineNameSpan.textContent = savedRoutines[currentRoutineId]?.name || 'Current Routine';
     
-function renderQuoteTable() {
-    tableBody.innerHTML = quoteItems.map((item, idx) => {
-        // 计算折扣后的单价和总价
-        let discountedUnitPrice = item.price;
-        if (item.discountType === '%') {
-            discountedUnitPrice = item.price * (1 - item.discountValue / 100);
-        } else if (item.discountType === 'fixed') {
-            discountedUnitPrice = Math.max(0, item.price - item.discountValue);
-        }
-        const totalPrice = discountedUnitPrice * item.quantity;
+    function renderQuoteTable() {
+        tableBody.innerHTML = quoteItems.map((item, idx) => {
+            // 计算折扣后的单价和总价
+            let discountedUnitPrice = item.price;
+            if (item.discountType === '%') {
+                discountedUnitPrice = item.price * (1 - item.discountValue / 100);
+            } else if (item.discountType === 'fixed') {
+                discountedUnitPrice = Math.max(0, item.price - item.discountValue);
+            }
+            const totalPrice = discountedUnitPrice * item.quantity;
+            
+            return `
+                <tr>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">${escapeHtml(item.name)}</td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">$${item.price.toFixed(2)}</td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">
+                        <input type="number" class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" step="1" style="width:70px;">
+                    </td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">
+                        <div class="discount-row">
+                            <select class="discount-type-select" data-idx="${idx}">
+                                <option value="%" ${item.discountType === '%' ? 'selected' : ''}>%</option>
+                                <option value="fixed" ${item.discountType === 'fixed' ? 'selected' : ''}>$</option>
+                            </select>
+                            <input type="number" class="discount-input" data-idx="${idx}" value="${item.discountValue}" min="0" step="1" placeholder="0">
+                        </div>
+                    </td>
+                    <td class="discounted-price" style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0; font-weight: 500;">$${totalPrice.toFixed(2)}</td>
+                </tr>
+            `;
+        }).join('');
         
-        return `
-            <tr>
-                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">${escapeHtml(item.name)}</td>
-                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">$${item.price.toFixed(2)}</td>
-                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">
-                    <input type="number" class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" step="1" style="width:70px;">
-                </td>
-                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">
-                    <div class="discount-row">
-                        <select class="discount-type-select" data-idx="${idx}">
-                            <option value="%" ${item.discountType === '%' ? 'selected' : ''}>%</option>
-                            <option value="fixed" ${item.discountType === 'fixed' ? 'selected' : ''}>$</option>
-                        </select>
-                        <input type="number" class="discount-input" data-idx="${idx}" value="${item.discountValue}" min="0" step="1" placeholder="0">
-                    </div>
-                </td>
-                <td class="discounted-price" style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0; font-weight: 500;">$${totalPrice.toFixed(2)}</td>
-            </tr>
-        `;
-    }).join('');
-    
-    // 绑定数量变化事件
-    document.querySelectorAll('.qty-input').forEach(input => {
-        input.removeEventListener('change', handleQuantityChange);
-        input.addEventListener('change', handleQuantityChange);
-    });
-    
-    // 绑定折扣类型变化事件
-    document.querySelectorAll('.discount-type-select').forEach(select => {
-        select.removeEventListener('change', handleDiscountChange);
-        select.addEventListener('change', handleDiscountChange);
-    });
-    
-    // 绑定折扣数值变化事件
-    document.querySelectorAll('.discount-input').forEach(input => {
-        input.removeEventListener('change', handleDiscountChange);
-        input.addEventListener('change', handleDiscountChange);
-    });
-    
-    function handleQuantityChange(e) {
-        const idx = parseInt(e.target.dataset.idx);
-        quoteItems[idx].quantity = parseInt(e.target.value) || 1;
+        // 绑定数量变化事件
+        document.querySelectorAll('.qty-input').forEach(input => {
+            input.removeEventListener('change', handleQuantityChange);
+            input.addEventListener('change', handleQuantityChange);
+        });
+        
+        // 绑定折扣类型变化事件
+        document.querySelectorAll('.discount-type-select').forEach(select => {
+            select.removeEventListener('change', handleDiscountChange);
+            select.addEventListener('change', handleDiscountChange);
+        });
+        
+        // 绑定折扣数值变化事件
+        document.querySelectorAll('.discount-input').forEach(input => {
+            input.removeEventListener('change', handleDiscountChange);
+            input.addEventListener('change', handleDiscountChange);
+        });
+        
+        function handleQuantityChange(e) {
+            const idx = parseInt(e.target.dataset.idx);
+            quoteItems[idx].quantity = parseInt(e.target.value) || 1;
+            updateQuoteTotals(quoteItems);
+            renderQuoteTable();
+        }
+        
+        function handleDiscountChange(e) {
+            const idx = parseInt(e.target.dataset.idx);
+            const row = e.target.closest('tr');
+            const typeSelect = row.querySelector('.discount-type-select');
+            const valueInput = row.querySelector('.discount-input');
+            
+            quoteItems[idx].discountType = typeSelect.value;
+            quoteItems[idx].discountValue = parseFloat(valueInput.value) || 0;
+            
+            // 额度折扣时不能超过原价
+            if (quoteItems[idx].discountType === 'fixed' && quoteItems[idx].discountValue > quoteItems[idx].price) {
+                quoteItems[idx].discountValue = quoteItems[idx].price;
+                valueInput.value = quoteItems[idx].price;
+            }
+            
+            updateQuoteTotals(quoteItems);
+            renderQuoteTable();
+        }
+        
         updateQuoteTotals(quoteItems);
-        renderQuoteTable();
     }
     
-    function handleDiscountChange(e) {
-        const idx = parseInt(e.target.dataset.idx);
-        const row = e.target.closest('tr');
-        const typeSelect = row.querySelector('.discount-type-select');
-        const valueInput = row.querySelector('.discount-input');
+    function updateQuoteTotals(items) {
+        let subtotalBeforeDiscount = 0;
+        let subtotalAfterDiscount = 0;
         
-        quoteItems[idx].discountType = typeSelect.value;
-        quoteItems[idx].discountValue = parseFloat(valueInput.value) || 0;
-        
-        // 额度折扣时不能超过原价
-        if (quoteItems[idx].discountType === 'fixed' && quoteItems[idx].discountValue > quoteItems[idx].price) {
-            quoteItems[idx].discountValue = quoteItems[idx].price;
-            valueInput.value = quoteItems[idx].price;
+        for (const item of items) {
+            const itemTotal = item.price * item.quantity;
+            subtotalBeforeDiscount += itemTotal;
+            
+            let discountedTotal = itemTotal;
+            if (item.discountType === '%') {
+                discountedTotal = itemTotal * (1 - item.discountValue / 100);
+            } else if (item.discountType === 'fixed') {
+                discountedTotal = itemTotal - (item.discountValue * item.quantity);
+                discountedTotal = Math.max(0, discountedTotal);
+            }
+            subtotalAfterDiscount += discountedTotal;
         }
         
-        updateQuoteTotals(quoteItems);
-        renderQuoteTable();
-    }
-    
-    updateQuoteTotals(quoteItems);
-}
-    
-  function updateQuoteTotals(items) {
-    let subtotalBeforeDiscount = 0;
-    let subtotalAfterDiscount = 0;
-    
-    for (const item of items) {
-        const itemTotal = item.price * item.quantity;
-        subtotalBeforeDiscount += itemTotal;
+        const totalDiscountAmount = subtotalBeforeDiscount - subtotalAfterDiscount;
+        const tax = subtotalAfterDiscount * 0.12;
+        const grandTotal = subtotalAfterDiscount + tax;
         
-        let discountedTotal = itemTotal;
-        if (item.discountType === '%') {
-            discountedTotal = itemTotal * (1 - item.discountValue / 100);
-        } else if (item.discountType === 'fixed') {
-            discountedTotal = itemTotal - (item.discountValue * item.quantity);
-            discountedTotal = Math.max(0, discountedTotal);
-        }
-        subtotalAfterDiscount += discountedTotal;
+        document.getElementById('subtotalBeforeDiscount').innerText = subtotalBeforeDiscount.toFixed(2);
+        document.getElementById('totalDiscountAmount').innerText = totalDiscountAmount.toFixed(2);
+        document.getElementById('subtotalAfterDiscount').innerText = subtotalAfterDiscount.toFixed(2);
+        document.getElementById('taxAmount').innerText = tax.toFixed(2);
+        document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
+        
+        window.currentQuoteData = { 
+            items, 
+            subtotalBeforeDiscount,
+            totalDiscountAmount,
+            subtotalAfterDiscount,
+            tax, 
+            grandTotal, 
+            routineName: savedRoutines[currentRoutineId]?.name 
+        };
     }
-    
-    const totalDiscountAmount = subtotalBeforeDiscount - subtotalAfterDiscount;
-    const tax = subtotalAfterDiscount * 0.12;
-    const grandTotal = subtotalAfterDiscount + tax;
-    
-    document.getElementById('subtotalBeforeDiscount').innerText = subtotalBeforeDiscount.toFixed(2);
-    document.getElementById('totalDiscountAmount').innerText = totalDiscountAmount.toFixed(2);
-    document.getElementById('subtotalAfterDiscount').innerText = subtotalAfterDiscount.toFixed(2);
-    document.getElementById('taxAmount').innerText = tax.toFixed(2);
-    document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
-    
-    window.currentQuoteData = { 
-        items, 
-        subtotalBeforeDiscount,
-        totalDiscountAmount,
-        subtotalAfterDiscount,
-        tax, 
-        grandTotal, 
-        routineName: savedRoutines[currentRoutineId]?.name 
-    };
-}
     
     renderQuoteTable();
     modal.classList.add('show');
