@@ -3,722 +3,1469 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aura Clinic · Smart Quote + Routine Guide</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>Skincare Routine Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f5efe9; font-family: 'Inter', sans-serif; padding: 2rem 1rem; }
-        
-        .lock-screen {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: #2c2a28e6;
-            backdrop-filter: blur(12px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-        }
-        .lock-card {
-            background: white;
-            border-radius: 40px;
-            padding: 2rem;
-            width: 90%;
-            max-width: 380px;
-            text-align: center;
-        }
-        .lock-card input { width: 100%; padding: 12px; margin: 1rem 0; border: 1px solid #ddd6ce; border-radius: 60px; }
-        .lock-card button { background: #b99f87; color: white; border: none; padding: 10px; border-radius: 60px; cursor: pointer; width: 100%; }
-        .error-msg { color: #c75c3c; font-size: 0.7rem; margin-top: 0.5rem; }
-        
-        .skincare-app { display: none; max-width: 1400px; margin: 0 auto; background: #faf7f2; border-radius: 32px; border: 1px solid #e8dfd4; }
+        .skincare-app { max-width: 1400px; margin: 0 auto; background: #faf7f2; border-radius: 32px; border: 1px solid #e8dfd4; }
         .app-container { padding: 2rem 1.8rem; }
         .ritual-header { text-align: center; margin-bottom: 2rem; }
         .ritual-header h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 1.8rem; color: #7f6e5d; text-transform: uppercase; }
-        
+        .ritual-header p { font-size: 0.85rem; color: #b7a99a; margin-top: 0.5rem; }
         .auth-section { background: #fff9f2; border-radius: 24px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid #e7dbd0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .auth-status { font-size: 0.85rem; color: #8f7e6b; }
         .auth-btn { background: #b99f87; color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
         .auth-btn-outline { background: transparent; border: 1px solid #d2c0b0; color: #5f5347; }
-        .admin-badge { background: #e9dfd4; padding: 4px 12px; border-radius: 40px; font-size: 0.7rem; margin-left: 1rem; }
-        
-        /* Admin CRUD panels */
-        .admin-panels { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-        .crud-card { background: #fff9f2; border-radius: 20px; padding: 1rem; border: 1px solid #e7dbd0; flex: 1; min-width: 250px; }
-        .crud-title { font-weight: 600; color: #8f7e6b; margin-bottom: 0.8rem; font-size: 0.9rem; border-bottom: 1px solid #e2d4c6; padding-bottom: 0.5rem; }
-        .crud-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
-        .small-btn { background: #e9dfd4; border: none; padding: 0.3rem 0.8rem; border-radius: 40px; cursor: pointer; font-size: 0.7rem; }
-        .crud-list { max-height: 150px; overflow-y: auto; }
-        .crud-item { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0; border-bottom: 1px solid #eee3d9; font-size: 0.75rem; }
-        .crud-item-name { font-weight: 500; }
-        .crud-item-actions { display: flex; gap: 0.3rem; }
-        .icon-btn { background: none; border: none; cursor: pointer; font-size: 0.7rem; padding: 0 4px; }
-        
-        .routine-grid { display: grid; grid-template-columns: 1fr 1.2fr 1.2fr; gap: 1.5rem; align-items: start; }
-        .column { background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.2rem; border: 1px solid #e7dbd0; height: 100%; display: flex; flex-direction: column; }
-        .column-title { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; color: #8f7e6b; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; }
-        
-        .package-select { width: 100%; padding: 0.5rem 0.8rem; border-radius: 40px; border: 1px solid #ddd0c2; background: white; font-size: 0.8rem; margin-bottom: 0.8rem; }
-        .routine-dropdown { width: 100%; padding: 0.5rem 0.8rem; border-radius: 40px; border: 1px solid #ddd0c2; background: white; font-size: 0.8rem; margin-bottom: 0.8rem; }
-        .action-buttons-row { display: flex; gap: 0.8rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
-        .action-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.4rem 0.8rem; border-radius: 40px; cursor: pointer; font-size: 0.7rem; flex: 1; text-align: center; }
-        
-        .product-list { display: flex; flex-direction: column; gap: 0.9rem; flex: 1; overflow: visible; margin-bottom: 1rem; min-height: 200px; }
+        .routine-selector-bar { background: #fff9f2; border-radius: 24px; padding: 1.2rem 1.5rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
+        .selector-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+        .selector-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
+        .selector-actions { display: flex; gap: 0.8rem; }
+        .manage-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.4rem 1rem; border-radius: 40px; cursor: pointer; font-size: 0.75rem; }
+        .routine-buttons { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1rem; }
+        .routine-btn { background: #e9dfd4; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
+        .routine-btn.active { background: #b99f87; color: white; }
+        .product-library { background: #fff9f2; border-radius: 24px; padding: 1.2rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
+        .library-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+        .library-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
+        .toggle-add-btn { background: #e9dfd4; border: none; padding: 0.4rem 1.2rem; border-radius: 40px; cursor: pointer; }
+        .brand-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #e7dbd0; padding-bottom: 0.8rem; }
+        .brand-tab { padding: 0.3rem 1rem; background: transparent; border: none; cursor: pointer; border-radius: 30px; font-size: 0.75rem; color: #b7a99a; }
+        .brand-tab.active { background: #e9dfd4; color: #5f5347; }
+        .brand-products { display: flex; flex-wrap: wrap; gap: 0.7rem; max-height: 200px; overflow-y: auto; padding: 0.3rem 0; }
+        .library-item { background: #e9dfd4; padding: 0.45rem 0.8rem; border-radius: 40px; cursor: grab; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; position: relative; }
+        .library-price { font-size: 0.7rem; color: #b99f87; }
+        .library-actions { display: inline-flex; gap: 0.3rem; margin-left: 0.3rem; }
+        .edit-icon, .delete-product-icon { cursor: pointer; font-size: 0.7rem; opacity: 0.6; transition: opacity 0.2s; }
+        .edit-icon:hover, .delete-product-icon:hover { opacity: 1; }
+        .delete-product-icon { color: #b99f87; }
+        .product-form { background: #f5efe8; border-radius: 20px; padding: 1.2rem; margin-top: 1.2rem; display: none; }
+        .product-form.show { display: block; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 0.7rem; font-weight: 600; color: #8f7e6b; margin-bottom: 0.3rem; }
+        .form-group input, .form-group select, .form-group textarea { padding: 0.6rem; border: 1px solid #e2d4c6; border-radius: 14px; background: white; font-size: 0.8rem; }
+        .form-actions { display: flex; gap: 1rem; justify-content: flex-end; }
+        .btn-save { background: #b99f87; color: white; padding: 0.5rem 1.5rem; border-radius: 40px; border: none; cursor: pointer; }
+        .btn-cancel { background: #e9dfd4; padding: 0.5rem 1.5rem; border-radius: 40px; border: none; cursor: pointer; }
+        .routine-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .column { background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.4rem; border: 1px solid #e7dbd0; }
+        .column-title { font-family: 'Montserrat', sans-serif; font-size: 1.2rem; color: #8f7e6b; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; display: flex; justify-content: space-between; }
+        .product-list { display: flex; flex-direction: column; gap: 0.9rem; min-height: 320px; }
         .product-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; cursor: grab; transition: all 0.2s; }
         .product-card:active { cursor: grabbing; }
-        .product-card.drag-over { border: 2px solid #b99f87; background: #fef7ef; }
+        .product-card.drag-over { border: 2px dashed #b99f87; background: #fef7ef; }
+        .product-card.dragging { opacity: 0.4; }
+        .empty-slot { display: flex; align-items: center; justify-content: center; gap: 0.9rem; padding: 0.7rem; background: rgba(233, 223, 212, 0.5); border-radius: 18px; border: 2px dashed #d2c0b0; color: #b7a99a; font-size: 0.8rem; min-height: 70px; transition: all 0.2s; margin-bottom: 0.9rem; }
+        .empty-slot.drag-over { background: #e9dfd4; border-color: #b99f87; }
+        .empty-slot:hover { background: #e9dfd4; }
         .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px; z-index: 10; }
-        .product-image { width: 48px; height: 48px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .delete-btn:hover { background: #d2c0b0; color: white; }
+        .product-image { width: 52px; height: 52px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; flex-shrink: 0; }
         .product-image img { width: 100%; height: 100%; object-fit: cover; }
-        .service-icon { width: 48px; height: 48px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
         .product-info { flex: 1; }
-        .product-name { font-size: 0.85rem; font-weight: 600; color: #5f5347; }
-        .product-price { font-size: 0.7rem; color: #b99f87; margin-left: 0.3rem; }
-        .benefit { font-size: 0.65rem; color: #b7a99a; margin-top: 2px; }
-        .usage { font-size: 0.6rem; color: #8e7e6e; margin-top: 3px; }
-        .drag-handle { width: 24px; display: flex; align-items: center; justify-content: center; color: #d2c0b0; cursor: grab; font-size: 1.2rem; }
+        .product-name { font-size: 0.9rem; font-weight: 600; color: #5f5347; }
+        .product-price { font-size: 0.75rem; color: #b99f87; margin-left: 0.3rem; }
+        .benefit { font-size: 0.7rem; color: #b7a99a; margin-top: 2px; }
+        .usage { font-size: 0.65rem; color: #8e7e6e; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+        .drag-handle { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #d2c0b0; cursor: grab; flex-shrink: 0; }
+        .drag-handle:active { cursor: grabbing; }
+        .morning-icon .icon-hand::before { content: "☀️"; font-size: 0.8rem; margin-right: 3px; }
+        .evening-icon .icon-hand::before { content: "☾"; font-size: 0.8rem; margin-right: 3px; }
         
-        .add-item-row { position: relative; margin-top: 0.5rem; }
-        .item-search-input { width: 100%; padding: 0.5rem 0.8rem; border: 1px solid #e2d4c6; border-radius: 60px; font-size: 0.75rem; outline: none; }
-        .item-suggestions { position: absolute; bottom: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 16px; max-height: 200px; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 4px; }
-        .suggestion-item { padding: 8px 12px; cursor: pointer; font-size: 0.75rem; border-bottom: 1px solid #f0e5db; }
-        .suggestion-item:hover { background: #f5efe8; }
+        /* Quote 按钮样式 */
+        .quote-button-container {
+            margin: 1.5rem 0 1rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .quote-btn {
+            background: #b99f87;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+        .quote-btn:hover {
+            background: #9f8468;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
         
-        .total-bar { padding: 1rem 1.3rem; background: #e9dfd4; border-radius: 20px; margin: 1rem 0 1rem; display: flex; justify-content: space-between; align-items: center; }
+        /* Quote 弹窗样式 */
+        .quote-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .quote-modal.show {
+            display: flex;
+        }
+        .quote-content {
+            background: white;
+            border-radius: 28px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 2rem;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .quote-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e2d4c6;
+        }
+        .quote-header h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5rem;
+            color: #7f6e5d;
+        }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #b7a99a;
+        }
+        .quote-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .quote-table th, .quote-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e7dbd0;
+        }
+        .quote-table th {
+            background: #f5efe8;
+            font-weight: 600;
+            color: #5f5347;
+        }
+        .quote-table input {
+            width: 70px;
+            padding: 0.3rem;
+            border: 1px solid #e2d4c6;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .quote-table input:focus {
+            outline: none;
+            border-color: #b99f87;
+        }
+        .discount-input {
+            width: 80px;
+            padding: 0.3rem;
+            border: 1px solid #e2d4c6;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .quote-totals {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 2px solid #e2d4c6;
+            text-align: right;
+        }
+        .quote-totals p {
+            margin: 0.5rem 0;
+        }
+        .savings {
+            color: #2d6a4f;
+            font-weight: 600;
+        }
+        .quote-footer {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        .print-quote-btn, .email-quote-btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 40px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .print-quote-btn {
+            background: #e9dfd4;
+            color: #5f5347;
+        }
+        .email-quote-btn {
+            background: #b99f87;
+            color: white;
+        }
+        .total-bar { padding: 1rem 1.3rem; background: #e9dfd4; border-radius: 20px; margin: 1.5rem 0 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .total-label { font-weight: 500; color: #5f5347; }
         .total-amount { font-size: 1.8rem; font-weight: 600; color: #8f7e6b; }
-        .quote-btn { background: #b99f87; color: white; border: none; padding: 0.8rem 2rem; border-radius: 50px; cursor: pointer; font-size: 1rem; font-weight: 500; margin: 1rem 0; width: 100%; }
-        
-        .quote-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .quote-modal.show { display: flex; }
-        .quote-content { background: white; border-radius: 28px; max-width: 900px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 2rem; }
-        .quote-table { width: 100%; border-collapse: collapse; }
-        .quote-table th, .quote-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e7dbd0; }
-        .quote-table th { background: #f5efe8; }
-        .quote-table input { width: 70px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center; }
-        .quote-totals { margin-top: 1.5rem; text-align: right; }
-        .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; }
-        @media (max-width: 1100px) { .routine-grid { grid-template-columns: 1fr; } .admin-panels { flex-direction: column; } }
+        .action-buttons-bottom { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 1rem; }
+        .action-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
+        .update-btn { background: #b99f87; color: white; border-color: #b99f87; }
+        .delete-current-btn { background: #e9dfd4; color: #5f5347; }
+        .save-standard-btn { background: #b99f87; color: white; border-color: #b99f87; }
+        .sync-all-btn { background: #b99f87; color: white; border-color: #b99f87; }
+        .print-btn { background: #e9dfd4; }
+        .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
+        @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } .quote-table { font-size: 0.8rem; } }
+        @media print { .product-library, .routine-selector-bar, .print-btn, .save-standard-btn, .sync-all-btn, .delete-current-btn, .delete-btn, .total-bar, .action-buttons-bottom, .quote-button-container, .close-modal, .quote-footer, .auth-section { display: none !important; } .quote-modal { position: static; display: block !important; background: white; } .quote-content { padding: 0; max-height: none; overflow: visible; } }
     </style>
 </head>
 <body>
-
-<div id="lockScreen" class="lock-screen">
-    <div class="lock-card">
-        <h2>🔐 Staff Access</h2>
-        <input type="password" id="pagePasswordInput" placeholder="Password" autocomplete="off">
-        <button id="unlockPageBtn">Unlock</button>
-        <div id="lockError" class="error-msg"></div>
-    </div>
-</div>
-
-<div id="mainApp" class="skincare-app">
+<div class="skincare-app">
     <div class="app-container">
-        <div class="ritual-header"><h1>AURA CLINIC · Smart Quote + Routine Guide</h1></div>
-        <div class="auth-section">
-            <div class="auth-status" id="authStatus">Connecting to database...</div>
-            <div><button id="adminModeBtn" class="auth-btn" style="background:#8f7e6b;">👑 Admin Login</button>
-            <button id="exitAdminBtn" class="auth-btn auth-btn-outline" style="display:none">Exit Admin</button>
-            <span id="adminBadge" class="admin-badge" style="display:none;">Admin Mode</span></div>
+        <div class="ritual-header">
+            <h1>Skincare Routine Builder</h1>
+            <p>drag to customize · login to save to cloud</p>
         </div>
 
-        <!-- Admin CRUD Panels (visible only in admin mode) -->
-        <div id="adminPanels" class="admin-panels" style="display:none;">
-            <!-- Services CRUD -->
-            <div class="crud-card">
-                <div class="crud-title">💆 Manage Services</div>
-                <div class="crud-buttons">
-                    <button id="addServiceBtn" class="small-btn">+ Add Service</button>
-                </div>
-                <div id="servicesCrudList" class="crud-list"></div>
+        <div class="auth-section">
+            <div class="auth-status" id="authStatus">Loading...</div>
+            <div>
+                <button id="loginBtn" class="auth-btn" style="display:none">Sign In with Google</button>
+                <button id="logoutBtn" class="auth-btn auth-btn-outline" style="display:none">Sign Out</button>
             </div>
-            <!-- Products CRUD -->
-            <div class="crud-card">
-                <div class="crud-title">🧴 Manage Products</div>
-                <div class="crud-buttons">
-                    <button id="addProductBtn" class="small-btn">+ Add Product</button>
+        </div>
+
+        <div class="routine-selector-bar">
+            <div class="selector-header">
+                <div class="selector-title">📋 SELECT ROUTINE</div>
+                <div class="selector-actions">
+                    <button id="editRoutineBtn" class="manage-btn" style="display:none">✏️ Edit Routine Name</button>
                 </div>
-                <div id="productsCrudList" class="crud-list"></div>
+            </div>
+            <div class="routine-buttons" id="routineButtons"></div>
+        </div>
+
+        <div class="product-library">
+            <div class="library-header">
+                <div class="library-title">📦 PRODUCT LIBRARY · drag to add or replace</div>
+                <button class="toggle-add-btn" id="toggleAddBtn">+ Add Product</button>
+            </div>
+            <div class="brand-tabs" id="brandTabs"></div>
+            <div id="brandProductsContainer" class="brand-products"></div>
+            <div id="productForm" class="product-form">
+                <div class="form-row">
+                    <div class="form-group"><label>Product Name *</label><input type="text" id="productName" placeholder="e.g., Vitamin C"></div>
+                    <div class="form-group"><label>Brand</label><select id="productBrand"><option>SkinMedica</option><option>Skinceuticals</option><option>FNL</option><option>ColorScience</option><option>Others</option></select></div>
+                    <div class="form-group"><label>Price ($)</label><input type="number" id="productPrice" step="0.01"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Benefit</label><input type="text" id="productBenefit"></div>
+                    <div class="form-group"><label>Image URL</label><input type="text" id="productImage"></div>
+                </div>
+                <div class="form-group"><label>Usage</label><textarea id="productUsage" rows="2"></textarea></div>
+                <div class="form-actions"><button class="btn-cancel" id="cancelFormBtn">Cancel</button><button class="btn-save" id="saveProductBtn">Save</button></div>
+                <input type="hidden" id="editProductId">
             </div>
         </div>
 
         <div class="routine-grid">
-            <!-- Service Recommend Column -->
-            <div class="column">
-                <div class="column-title">💡 SERVICE RECOMMEND</div>
-                <select id="packageSelect" class="package-select">
-                    <option value="">-- Quick Package --</option>
-                </select>
-                <div class="add-item-row">
-                    <input type="text" class="item-search-input" id="serviceSearchInput" placeholder="Click to search or select service..." autocomplete="off">
-                    <div id="serviceSuggestions" class="item-suggestions"></div>
-                </div>
-                <div class="product-list" id="servicesList" style="margin-top: 0.8rem;"></div>
+            <div class="column morning-icon">
+                <div class="column-title">CURRENT MORNING ROUTINE <span>AM</span></div>
+                <div class="product-list" id="morningList"></div>
             </div>
-            
-            <!-- AM Column -->
-            <div class="column">
-                <div class="column-title">🌅 MORNING ROUTINE <span>AM</span></div>
-                <select id="routineDropdown" class="routine-dropdown"></select>
-                <div class="add-item-row">
-                    <input type="text" class="item-search-input" id="productSearchInputAM" placeholder="Click to search or select product..." autocomplete="off">
-                    <div id="productSuggestionsAM" class="item-suggestions"></div>
-                </div>
-                <div class="product-list" id="morningList" style="margin-top: 0.8rem;"></div>
-            </div>
-            
-            <!-- PM Column -->
-            <div class="column">
-                <div class="column-title">🌙 EVENING ROUTINE <span>PM</span></div>
-                <div class="action-buttons-row">
-                    <button class="action-btn" id="printRoutineBtn">🖨️ PRINT ROUTINE</button>
-                    <button class="action-btn" id="emailRoutineBtn">📧 EMAIL ROUTINE</button>
-                </div>
-                <div class="add-item-row">
-                    <input type="text" class="item-search-input" id="productSearchInputPM" placeholder="Click to search or select product..." autocomplete="off">
-                    <div id="productSuggestionsPM" class="item-suggestions"></div>
-                </div>
-                <div class="product-list" id="eveningList" style="margin-top: 0.8rem;"></div>
-                <!-- Routine management buttons -->
-                <div id="routineActionsRow" class="action-buttons-row" style="margin-top: 0.8rem; display:none;">
-                    <button id="editRoutineNameBtn" class="action-btn">✏️ Edit Name</button>
-                    <button id="deleteRoutineBtn" class="action-btn">🗑️ Delete</button>
-                    <button id="saveAsNewRoutineBtn" class="action-btn">💾 Save as New</button>
-                    <button id="updateCurrentRoutineBtn" class="action-btn update-btn">📝 Update</button>
-                </div>
+            <div class="column evening-icon">
+                <div class="column-title">CURRENT EVENING ROUTINE <span>PM</span></div>
+                <div class="product-list" id="eveningList"></div>
             </div>
         </div>
 
-        <div class="total-bar"><div>TOTAL VALUE (Unique Services + Products)</div><div class="total-amount">$<span id="totalPrice">0.00</span></div></div>
-        <button class="quote-btn" id="quoteBtn">📄 Generate Quote (Services + Products)</button>
-        <div class="footnote">✦ Admin mode: add/edit/delete services & products ✦ Drag to reorder within columns ✦ Click search box to see all items ✦</div>
+        <div class="total-bar">
+            <div class="total-label">TOTAL VALUE (Unique Products)</div>
+            <div class="total-amount">$<span id="totalPrice">0.00</span></div>
+        </div>
+        
+        <!-- Quote 按钮 -->
+        <div class="quote-button-container">
+            <button class="quote-btn" id="quoteBtn">📄 Generate Quote</button>
+        </div>
+        
+        <div class="action-buttons-bottom">
+            <div id="authButtons" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="action-btn update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
+                <button class="action-btn delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
+                <button class="action-btn save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
+                <button class="action-btn sync-all-btn" id="syncAllBtn">☁️ Force Sync All to Cloud</button>
+            </div>
+            <button class="action-btn print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
+        </div>
+        <div class="footnote">✦ All editing tools available without login ✦ Login to sync changes to cloud ✦ Click "Generate Quote" to create a price quote ✦</div>
     </div>
 </div>
 
-<div id="quoteModal" class="quote-modal"><div class="quote-content"><div class="quote-header"><h2>📋 Professional Quote</h2><button id="closeModalBtn" style="background:none; border:none; font-size:1.8rem; cursor:pointer;">&times;</button></div><div><strong>Routine:</strong> <span id="quoteRoutineName"></span></div>
-<table class="quote-table"><thead><tr><th>Item</th><th>Type</th><th>Unit Price</th><th>Qty</th><th>Discount</th><th>Total</th></tr></thead><tbody id="quoteTableBody"></tbody></table>
-<div class="quote-totals" id="quoteTotals"></div><div style="text-align:right;"><button class="print-quote-btn" id="printQuoteBtn">🖨️ Print / PDF</button><button class="email-quote-btn" id="emailQuoteBtn">📧 Email Quote</button></div></div></div>
+<!-- Quote 弹窗 -->
+<div id="quoteModal" class="quote-modal">
+    <div class="quote-content">
+        <div class="quote-header">
+            <h2>📋 Price Quote</h2>
+            <button class="close-modal" id="closeModalBtn">&times;</button>
+        </div>
+        <div style="margin-bottom: 1rem; font-size: 0.85rem; color: #8f7e6b;">
+            <strong>Routine:</strong> <span id="quoteRoutineName"></span>
+        </div>
+        <table class="quote-table" id="quoteTable">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Unit Price</th>
+                    <th>Quantity</th>
+                    <th>Discount (%)</th>
+                    <th>Discounted Price</th>
+                </tr>
+            </thead>
+            <tbody id="quoteTableBody">
+            </tbody>
+        </table>
+<div class="quote-totals" id="quoteTotals">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+        <span>💰 Subtotal (Before Discount):</span>
+        <span>$<span id="subtotalBeforeDiscount">0.00</span></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #2d6a4f;">
+        <span>🏷️ Total Discount:</span>
+        <span>-$<span id="totalDiscountAmount">0.00</span></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; border-bottom: 1px dashed #e2d4c6; padding-bottom: 0.5rem;">
+        <span>✨ Subtotal (After Discount):</span>
+        <span>$<span id="subtotalAfterDiscount">0.00</span></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+        <span>📋 Tax (12%):</span>
+        <span>$<span id="taxAmount">0.00</span></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 2px solid #e2d4c6; font-size: 1.1rem; font-weight: bold;">
+        <span>💵 Grand Total:</span>
+        <span>$<span id="grandTotal">0.00</span></span>
+    </div>
+</div>
+        <div class="quote-footer">
+            <button class="print-quote-btn" id="printQuoteBtn">🖨️ Print Quote</button>
+            <button class="email-quote-btn" id="emailQuoteBtn">📧 Email Quote</button>
+        </div>
+    </div>
+</div>
 
 <script>
-// ==================== SUPABASE CONFIGURATION ====================
+// ==================== Supabase 配置 ====================
 const SUPABASE_URL = "https://dmrskyskryrdclknezth.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
 
-let sbClient = null;
-let isAdminMode = false;
-let isPageUnlocked = false;
+let supabaseClient = null;
+let isAuthenticated = false;
+let currentUserId = null;
 
-// ==================== DATA ====================
-let servicesData = [
-    { id: "srv1", name: "Laser Hair Removal", price: 250, type: "service", benefit: "Permanent reduction", usage: "Treatment per area" },
-    { id: "srv2", name: "Microneedling", price: 450, type: "service", benefit: "Collagen induction", usage: "30 min session" },
-    { id: "srv3", name: "Excel V - Rejuvenate", price: 350, type: "service", benefit: "Vascular & pigmentation", usage: "20 min session" }
-];
-let productsData = [];
-let packagesData = [];
-let savedRoutines = {};
+// ==================== 默认数据 ====================
+const DEFAULT_PRODUCTS = [
+    { id: "clarify-cleanser", name: "Clarify Cleanser", brand: "FNL", price: 50, benefit: "Antibacterial", usage: "Pea size - cleanse", image: "https://static.wixstatic.com/media/11a6e1_964680bfdf1b4efa9039db6f52428325~mv2.webp" },
+    { id: "cleanser", name: "Cleanser", brand: "SkinMedica", price: 46, benefit: "Cleans · Removes SPF", usage: "Pea size - add water - cleanse", image: "https://static.wixstatic.com/media/11a6e1_cd31f58211984ecabef518ed158ea4dc~mv2.webp" },
+    { id: "exo-gf", name: "Exo-GF Serum", brand: "FNL", price: 275, benefit: "Regenerates", usage: "1 pump", image: "https://static.wixstatic.com/media/11a6e1_62da2e3f71ff44229d4e90fc5289cf18~mv2.jpg" },
+    { id: "exfoliating-pad", name: "Exfoliating Pad 10%", brand: "FNL", price: 88, benefit: "Minimizes blackheads", usage: "Wipe face gently", image: "https://static.wixstatic.com/media/11a6e1_c4491a22e89846ba84ef28f5820ff427~mv2.webp" },
+    { id: "glycolic-lotion", name: "Glycolic Lotion 10%", brand: "FNL", price: 98, benefit: "Improves texture", usage: "Pea size - apply", image: "https://static.wixstatic.com/media/11a6e1_74ebb016820f45008058763526dfad76~mv2.webp" },
+    { id: "ha5", name: "HA5", brand: "SkinMedica", price: 196, benefit: "Hydrator", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_20f2ce9ce07a4ccaa0b5d5c6631fc0dc~mv2.webp" },
+    { id: "lumivive-day", name: "Lumivive - Day", brand: "SkinMedica", price: 285, benefit: "Antioxidant", usage: "1 pump - face & neck", image: "https://static.wixstatic.com/media/11a6e1_b12de65e4f8d4240ab28bdeecda8f811~mv2.webp" },
+    { id: "lumivive-night", name: "Lumivive - Night", brand: "SkinMedica", price: 285, benefit: "Night Repair", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_b12de65e4f8d4240ab28bdeecda8f811~mv2.webp" },
+    { id: "lytera", name: "Lytera", brand: "SkinMedica", price: 170, benefit: "Brightener", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_daddf6362e3b4bb0871467d485dcc76b~mv2.jpg" },
+    { id: "moisturizer", name: "Moisturizer", brand: "SkinMedica", price: 155, benefit: "Soothing", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_0f0aeb5de10d4a7ca110e93adb057e80~mv2.webp" },
+    { id: "retinol", name: "Retinol", brand: "Skinceuticals", price: 66, benefit: "Cell turnover", usage: "Start 2x/week", image: "https://static.wixstatic.com/media/11a6e1_4f3763842728442482947369cfee0b18~mv2.png" },
+    { id: "retinol-fnl", name: "Retinol (FNL)", brand: "FNL", price: 115, benefit: "Cell turnover", usage: "Start 2x/week", image: "https://static.wixstatic.com/media/11a6e1_c1094fd984f449a6bdd6a96bf13623ac~mv2.webp" },
+    { id: "silymarin", name: "Silymarin", brand: "Skinceuticals", price: 220, benefit: "Antioxidant for acne", usage: "1 pump", image: "https://static.wixstatic.com/media/11a6e1_8868dfe199c3466dafa239c238115433~mv2.webp" },
+    { id: "spf-powder", name: "SPF Powder Brush", brand: "ColorScience", price: 93.90, benefit: "Easy reapply", usage: "Brush over face", image: "https://static.wixstatic.com/media/11a6e1_02ac891ebdc24945ad2bb305d9be5579~mv2.jpg" },
+    { id: "spf50", name: "SPF50 Sheer Physical", brand: "SkinMedica", price: 66, benefit: "Physical SPF", usage: "1 pump - last step", image: "https://static.wixstatic.com/media/11a6e1_d2faad5c91134e0589fb5538c8f76d86~mv2.webp" },
+    { id: "tns", name: "TNS+ Serum", brand: "SkinMedica", price: 330, benefit: "Lifting · Anti-aging", usage: "1 pump - apply to face", image: "https://static.wixstatic.com/media/11a6e1_8eb00266d932471483652b5a40828272~mv2.jpg" }
+].sort((a, b) => a.name.localeCompare(b.name));
+
+const INITIAL_ROUTINES = {
+    "standard-1774409503226": { 
+        name: "FNL Acne", 
+        morning: ["clarify-cleanser", "exfoliating-pad", "silymarin", "glycolic-lotion", "spf50", "spf-powder"], 
+        evening: ["clarify-cleanser", "exo-gf", "retinol-fnl", "glycolic-lotion"] 
+    },
+    "fnl-pigmentation": { 
+        name: "FNL Pigment", 
+        morning: ["clarify-cleanser", "lytera", "silymarin", "spf50"], 
+        evening: ["clarify-cleanser", "exo-gf", "lytera", "retinol-fnl"] 
+    },
+    "standard-1774423030345": { 
+        name: "My New Routine", 
+        morning: [], 
+        evening: [] 
+    },
+    "standard-1774407153349": { 
+        name: "SM Acne & Pigment", 
+        morning: ["cleanser", "lytera", "ha5", "moisturizer", "spf50"], 
+        evening: ["cleanser", "lytera", "retinol", "ha5", "moisturizer"] 
+    },
+    "standard-1774409269378": { 
+        name: "SM Age & Pigment", 
+        morning: ["cleanser", "tns", "lumivive-day", "lytera", "ha5", "moisturizer", "spf50"], 
+        evening: ["cleanser", "lumivive-night", "lytera", "retinol", "ha5", "moisturizer"] 
+    }
+};
+
+// 全局变量
+let productsData = [], savedRoutines = {};
+let currentMorningProducts = [], currentEveningProducts = [];
 let currentRoutineId = null;
-let currentServices = [];
-let currentMorningProducts = [];
-let currentEveningProducts = [];
+let currentBrand = "all";
+let isLoading = false;
 
-const DEFAULT_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' fill='%23f1e8e0'/%3E%3Ctext x='24' y='28' text-anchor='middle' fill='%238f7e6b' font-size='12'%3E🧴%3C/text%3E%3C/svg%3E";
-
-// ==================== HELPERS ====================
+function getProductById(id) { return productsData.find(p => p.id === id); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
-function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
-function getAllServicesSorted() { return [...servicesData].sort((a,b) => a.name.localeCompare(b.name)); }
-function getAllProductsSorted() { return [...productsData].sort((a,b) => a.name.localeCompare(b.name)); }
+function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m; }); }
 
-function getUniqueTotal() {
-    let ids = new Set();
-    currentServices.forEach(i => ids.add(i.id));
-    currentMorningProducts.forEach(i => ids.add(i.productId));
-    currentEveningProducts.forEach(i => ids.add(i.productId));
-    let total = 0;
-    ids.forEach(id => {
-        let item = servicesData.find(s => s.id === id) || productsData.find(p => p.id === id);
-        if(item) total += item.price;
+function sortProductsByName(arr) {
+    return [...arr].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function isRoutineNameExists(name, excludeId = null) {
+    return Object.entries(savedRoutines).some(([id, r]) => {
+        if (excludeId && id === excludeId) return false;
+        return r.name.toLowerCase() === name.toLowerCase();
     });
-    return total;
-}
-function updateTotalPrice() { document.getElementById('totalPrice').innerText = getUniqueTotal().toFixed(2); }
-
-// ==================== SUPABASE OPERATIONS ====================
-async function loadProductsFromSupabase() {
-    if (!sbClient) return false;
-    try {
-        const { data, error } = await sbClient.from('products').select('*');
-        if (error) throw error;
-        if (data && data.length > 0) productsData = data;
-        else {
-            productsData = [
-                { id: "p1", name: "Exo-GF Serum", price: 275, benefit: "Regenerates", usage: "1 pump", image: "https://static.wixstatic.com/media/11a6e1_62da2e3f71ff44229d4e90fc5289cf18~mv2.jpg" },
-                { id: "p2", name: "Clarify Cleanser", price: 50, benefit: "Antibacterial", usage: "Pea size", image: "https://static.wixstatic.com/media/11a6e1_964680bfdf1b4efa9039db6f52428325~mv2.webp" },
-                { id: "p3", name: "SPF50", price: 66, benefit: "Protection", usage: "Last step", image: "https://static.wixstatic.com/media/11a6e1_d2faad5c91134e0589fb5538c8f76d86~mv2.webp" }
-            ];
-        }
-        renderCrudProducts();
-        return true;
-    } catch (err) { console.error(err); return false; }
 }
 
-async function loadPackagesFromSupabase() {
-    if (!sbClient) return;
-    try {
-        const { data, error } = await sbClient.from('packages').select('*');
-        if (error) throw error;
-        if (data && data.length) packagesData = data;
-        else packagesData = [];
-        renderPackageSelect();
-    } catch (err) { console.error(err); }
+function saveToLocalStorage() {
+    localStorage.setItem('skincare_products', JSON.stringify(productsData));
+    localStorage.setItem('skincare_routines', JSON.stringify(savedRoutines));
+    localStorage.setItem('skincare_current_morning', JSON.stringify(currentMorningProducts.map(p => p.productId)));
+    localStorage.setItem('skincare_current_evening', JSON.stringify(currentEveningProducts.map(p => p.productId)));
+    localStorage.setItem('skincare_current_routine_id', currentRoutineId || '');
 }
 
-async function loadRoutinesFromSupabase() {
-    if (!sbClient) return false;
-    try {
-        const { data, error } = await sbClient.from('routines').select('*');
-        if (error) throw error;
-        if (data && data.length > 0) {
-            savedRoutines = {};
-            data.forEach(r => { savedRoutines[r.id] = { name: r.name, services: r.services || [], morning: r.morning || [], evening: r.evening || [] }; });
+function loadFromLocalStorage() {
+    const savedProducts = localStorage.getItem('skincare_products');
+    const savedRoutinesData = localStorage.getItem('skincare_routines');
+    const savedMorning = localStorage.getItem('skincare_current_morning');
+    const savedEvening = localStorage.getItem('skincare_current_evening');
+    const savedRoutineId = localStorage.getItem('skincare_current_routine_id');
+    
+    if (savedProducts) productsData = JSON.parse(savedProducts);
+    else productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+    
+    if (savedRoutinesData) savedRoutines = JSON.parse(savedRoutinesData);
+    else savedRoutines = JSON.parse(JSON.stringify(INITIAL_ROUTINES));
+    
+    if (savedMorning && JSON.parse(savedMorning).length > 0) {
+        currentMorningProducts = JSON.parse(savedMorning).map(pid => ({ productId: pid, time: "morning" }));
+    } else if (savedRoutineId && savedRoutines[savedRoutineId]) {
+        currentMorningProducts = savedRoutines[savedRoutineId].morning.map(pid => ({ productId: pid, time: "morning" }));
+    } else {
+        const firstKey = Object.keys(savedRoutines)[0];
+        if (firstKey && savedRoutines[firstKey]) {
+            currentMorningProducts = savedRoutines[firstKey].morning.map(pid => ({ productId: pid, time: "morning" }));
         } else {
-            savedRoutines = { "new-routine": { name: "New Routine", services: [], morning: [], evening: [] } };
+            currentMorningProducts = [];
+        }
+    }
+    
+    if (savedEvening && JSON.parse(savedEvening).length > 0) {
+        currentEveningProducts = JSON.parse(savedEvening).map(pid => ({ productId: pid, time: "evening" }));
+    } else if (savedRoutineId && savedRoutines[savedRoutineId]) {
+        currentEveningProducts = savedRoutines[savedRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
+    } else {
+        const firstKey = Object.keys(savedRoutines)[0];
+        if (firstKey && savedRoutines[firstKey]) {
+            currentEveningProducts = savedRoutines[firstKey].evening.map(pid => ({ productId: pid, time: "evening" }));
+        } else {
+            currentEveningProducts = [];
+        }
+    }
+    
+    if (savedRoutineId && savedRoutines[savedRoutineId]) {
+        currentRoutineId = savedRoutineId;
+    } else {
+        currentRoutineId = Object.keys(savedRoutines)[0] || null;
+    }
+}
+
+// ==================== 云端操作 ====================
+async function loadFromCloud() {
+    if (!supabaseClient || isLoading) return false;
+    isLoading = true;
+    try {
+        const { data: products } = await supabaseClient.from('products').select('*');
+        const { data: routines } = await supabaseClient.from('routines').select('*');
+        const { data: state } = await supabaseClient.from('user_state').select('current_routine_id').maybeSingle();
+        
+        if (products && products.length > 0) {
+            productsData = products;
+        } else {
+            productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+        }
+        productsData = sortProductsByName(productsData);
+        
+        if (routines && routines.length > 0) {
+            savedRoutines = {};
+            routines.forEach(r => { savedRoutines[r.id] = { name: r.name, morning: r.morning, evening: r.evening }; });
+            savedRoutines = Object.fromEntries(
+                Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
+            );
+        } else {
+            savedRoutines = JSON.parse(JSON.stringify(INITIAL_ROUTINES));
         }
         
-        // 优先选中 "New Routine"
-        const hasNewRoutine = savedRoutines["new-routine"];
-        const { data: stateData } = await sbClient.from('user_state').select('current_routine_id').maybeSingle();
-        if (stateData && stateData.current_routine_id && savedRoutines[stateData.current_routine_id]) {
-            currentRoutineId = stateData.current_routine_id;
-        } else if (hasNewRoutine) {
-            currentRoutineId = "new-routine";
+        if (state && state.current_routine_id && savedRoutines[state.current_routine_id]) {
+            currentRoutineId = state.current_routine_id;
         } else {
-            currentRoutineId = Object.keys(savedRoutines)[0];
+            currentRoutineId = Object.keys(savedRoutines)[0] || null;
         }
         
         if (currentRoutineId && savedRoutines[currentRoutineId]) {
-            currentServices = (savedRoutines[currentRoutineId].services || []).map(id => ({ id, type: 'service' }));
-            currentMorningProducts = (savedRoutines[currentRoutineId].morning || []).map(pid => ({ productId: pid, time: "morning" }));
-            currentEveningProducts = (savedRoutines[currentRoutineId].evening || []).map(pid => ({ productId: pid, time: "evening" }));
+            currentMorningProducts = savedRoutines[currentRoutineId].morning.map(pid => ({ productId: pid, time: "morning" }));
+            currentEveningProducts = savedRoutines[currentRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
+        } else {
+            currentMorningProducts = [];
+            currentEveningProducts = [];
         }
-        updateRoutineDropdown();
-        renderAllColumns();
-        updateTotalPrice();
+        
+        saveToLocalStorage();
         return true;
-    } catch (err) { console.error(err); return false; }
+    } catch (e) {
+        console.error('Cloud load error:', e);
+        return false;
+    } finally {
+        isLoading = false;
+    }
 }
 
-async function saveRoutineToSupabase(routineId) {
-    if (!sbClient) return;
-    let routine = savedRoutines[routineId];
-    if (!routine) return;
+async function forceSyncAllToCloud() {
+    if (!supabaseClient || !isAuthenticated) {
+        alert("Please sign in first.");
+        return false;
+    }
+    
     try {
-        await sbClient.from('routines').upsert({ id: routineId, name: routine.name, services: routine.services || [], morning: routine.morning || [], evening: routine.evening || [] });
-    } catch (err) { console.error(err); }
-}
-
-async function saveCurrentStateToSupabase() {
-    if (!sbClient) return;
-    if (currentRoutineId && savedRoutines[currentRoutineId]) {
-        savedRoutines[currentRoutineId].services = currentServices.map(s => s.id);
-        savedRoutines[currentRoutineId].morning = currentMorningProducts.map(p => p.productId);
-        savedRoutines[currentRoutineId].evening = currentEveningProducts.map(p => p.productId);
-        await saveRoutineToSupabase(currentRoutineId);
+        const products = JSON.parse(localStorage.getItem('skincare_products') || '[]');
+        const routines = JSON.parse(localStorage.getItem('skincare_routines') || '{}');
+        const currentRoutineId = localStorage.getItem('skincare_current_routine_id');
+        
+        for (const p of products) {
+            await supabaseClient.from('products').upsert({ ...p, user_id: currentUserId });
+        }
+        
+        for (const [id, r] of Object.entries(routines)) {
+            await supabaseClient.from('routines').upsert({ id, name: r.name, morning: r.morning, evening: r.evening, user_id: currentUserId });
+        }
+        
+        if (currentRoutineId) {
+            await supabaseClient.from('user_state').upsert({ current_routine_id: currentRoutineId, user_id: currentUserId });
+        }
+        
+        productsData = products;
+        savedRoutines = routines;
+        
+        alert("✓ All local data synced to cloud!");
+        return true;
+    } catch (e) {
+        console.error('Force sync error:', e);
+        alert("Sync failed: " + e.message);
+        return false;
     }
-    try { await sbClient.from('user_state').upsert({ current_routine_id: currentRoutineId }); } catch (err) { console.error(err); }
 }
 
-// ==================== UI RENDERING ====================
-function renderServiceCard(item, idx) {
-    return `<div class="product-card" data-id="${item.id}" data-col="services" data-index="${idx}" draggable="true">
-        <div class="drag-handle">⋮⋮</div>
-        <button class="delete-btn" data-col="services" data-index="${idx}">✕</button>
-        <div class="service-icon">💆</div>
-        <div class="product-info">
-            <div class="product-name">${escapeHtml(item.name)} <span class="product-price">$${item.price}</span></div>
-            <div class="benefit">${escapeHtml(item.benefit || '')}</div>
-            <div class="usage">✦ ${escapeHtml((item.usage || '').substring(0, 45))}</div>
-        </div>
-    </div>`;
-}
-
-function renderProductCard(item, idx, colName) {
-    let imageUrl = item.image || DEFAULT_IMAGE;
-    return `<div class="product-card" data-id="${item.id}" data-col="${colName}" data-index="${idx}" draggable="true">
-        <div class="drag-handle">⋮⋮</div>
-        <button class="delete-btn" data-col="${colName}" data-index="${idx}">✕</button>
-        <div class="product-image"><img src="${imageUrl}" alt="${escapeHtml(item.name)}" onerror="this.src='${DEFAULT_IMAGE}'"></div>
-        <div class="product-info">
-            <div class="product-name">🧴 ${escapeHtml(item.name)} <span class="product-price">$${item.price}</span></div>
-            <div class="benefit">${escapeHtml(item.benefit || '')}</div>
-            <div class="usage">✦ ${escapeHtml((item.usage || '').substring(0, 45))}</div>
-        </div>
-    </div>`;
-}
-
-function renderAllColumns() {
-    let sList = document.getElementById('servicesList');
-    if(sList) sList.innerHTML = currentServices.map((item, idx) => {
-        let s = servicesData.find(s => s.id === item.id);
-        return s ? renderServiceCard(s, idx) : '';
-    }).join('');
-    
-    let amList = document.getElementById('morningList');
-    if(amList) amList.innerHTML = currentMorningProducts.map((item, idx) => {
-        let p = productsData.find(pr => pr.id === item.productId);
-        return p ? renderProductCard(p, idx, 'am') : '';
-    }).join('');
-    
-    let pmList = document.getElementById('eveningList');
-    if(pmList) pmList.innerHTML = currentEveningProducts.map((item, idx) => {
-        let p = productsData.find(pr => pr.id === item.productId);
-        return p ? renderProductCard(p, idx, 'pm') : '';
-    }).join('');
-    
-    attachDragAndDelete();
-    updateTotalPrice();
-}
-
-function attachDragAndDelete() {
-    let dragSource = null;
-    document.querySelectorAll('.product-card').forEach(card => {
-        card.setAttribute('draggable', 'true');
-        card.ondragstart = (e) => {
-            dragSource = { col: card.dataset.col, idx: parseInt(card.dataset.index) };
-            e.dataTransfer.setData('text/plain', '');
-            card.style.opacity = '0.4';
+async function saveCurrentRoutineToCloud() {
+    if (!supabaseClient || !isAuthenticated) {
+        alert("Please sign in to save to cloud.");
+        return false;
+    }
+    if (!currentRoutineId) {
+        alert("No routine selected.");
+        return false;
+    }
+    try {
+        savedRoutines[currentRoutineId] = { 
+            name: savedRoutines[currentRoutineId].name, 
+            morning: currentMorningProducts.map(p => p.productId), 
+            evening: currentEveningProducts.map(p => p.productId) 
         };
-        card.ondragend = () => { dragSource = null; card.style.opacity = ''; };
-        card.ondragover = (e) => e.preventDefault();
-        card.ondrop = async (e) => {
-            e.preventDefault();
-            if (!dragSource) return;
-            let targetCol = card.dataset.col, targetIdx = parseInt(card.dataset.index);
-            if (dragSource.col !== targetCol) return;
-            let items = dragSource.col === 'services' ? currentServices : (dragSource.col === 'am' ? currentMorningProducts : currentEveningProducts);
-            let [moved] = items.splice(dragSource.idx, 1);
-            items.splice(targetIdx, 0, moved);
-            renderAllColumns();
-            await saveCurrentStateToSupabase();
-        };
-    });
+        
+        await supabaseClient.from('routines').upsert({ 
+            id: currentRoutineId, 
+            name: savedRoutines[currentRoutineId].name, 
+            morning: savedRoutines[currentRoutineId].morning, 
+            evening: savedRoutines[currentRoutineId].evening, 
+            user_id: currentUserId 
+        });
+        
+        await supabaseClient.from('user_state').upsert({ current_routine_id: currentRoutineId, user_id: currentUserId });
+        
+        saveToLocalStorage();
+        alert(`✓ Routine "${savedRoutines[currentRoutineId].name}" saved to cloud!`);
+        return true;
+    } catch (e) {
+        console.error('Save to cloud error:', e);
+        alert("Save failed: " + e.message);
+        return false;
+    }
+}
+
+async function deleteCurrentRoutineFromCloud() {
+    if (!supabaseClient || !isAuthenticated) {
+        alert("Please sign in to delete from cloud.");
+        return false;
+    }
+    if (!currentRoutineId) {
+        alert("No routine selected.");
+        return false;
+    }
+    try {
+        await supabaseClient.from('routines').delete().eq('id', currentRoutineId);
+        
+        delete savedRoutines[currentRoutineId];
+        savedRoutines = Object.fromEntries(
+            Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
+        );
+        
+        const firstKey = Object.keys(savedRoutines)[0];
+        if (firstKey) {
+            await loadRoutine(firstKey);
+        } else {
+            currentMorningProducts = [];
+            currentEveningProducts = [];
+            currentRoutineId = null;
+            renderRoutines();
+            updateTotalPrice();
+        }
+        
+        renderRoutineButtons();
+        saveToLocalStorage();
+        alert("Routine deleted from cloud!");
+        return true;
+    } catch (e) {
+        console.error('Delete from cloud error:', e);
+        alert("Delete failed: " + e.message);
+        return false;
+    }
+}
+
+async function saveAsNewRoutineToCloud() {
+    if (!supabaseClient || !isAuthenticated) {
+        alert("Please sign in to save to cloud.");
+        return false;
+    }
     
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.onclick = async () => {
-            let col = btn.dataset.col, idx = parseInt(btn.dataset.index);
-            if (col === 'services') currentServices.splice(idx, 1);
-            else if (col === 'am') currentMorningProducts.splice(idx, 1);
-            else if (col === 'pm') currentEveningProducts.splice(idx, 1);
-            renderAllColumns();
-            await saveCurrentStateToSupabase();
+    let name = prompt("Enter a name for your new routine:");
+    if (!name) return false;
+    
+    if (isRoutineNameExists(name)) {
+        alert(`A routine named "${name}" already exists. Please choose a different name.`);
+        return false;
+    }
+    
+    let newId = "standard-" + Date.now();
+    let newMorning = currentMorningProducts.map(p => p.productId);
+    let newEvening = currentEveningProducts.map(p => p.productId);
+    
+    try {
+        await supabaseClient.from('routines').insert({ 
+            id: newId, 
+            name: name.trim(), 
+            morning: newMorning, 
+            evening: newEvening, 
+            user_id: currentUserId 
+        });
+        
+        savedRoutines[newId] = { 
+            name: name.trim(), 
+            morning: newMorning, 
+            evening: newEvening 
         };
-    });
-}
-
-// ==================== CRUD RENDERING ====================
-function renderCrudServices() {
-    let container = document.getElementById('servicesCrudList');
-    if(container) {
-        container.innerHTML = servicesData.map(s => `
-            <div class="crud-item">
-                <span class="crud-item-name">${escapeHtml(s.name)} ($${s.price})</span>
-                <div class="crud-item-actions">
-                    <button class="icon-btn edit-service" data-id="${s.id}">✎</button>
-                    <button class="icon-btn delete-service" data-id="${s.id}">🗑️</button>
-                </div>
-            </div>
-        `).join('');
-        document.querySelectorAll('.edit-service').forEach(btn => { btn.onclick = () => editService(btn.dataset.id); });
-        document.querySelectorAll('.delete-service').forEach(btn => { btn.onclick = () => deleteService(btn.dataset.id); });
+        savedRoutines = Object.fromEntries(
+            Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
+        );
+        
+        renderRoutineButtons();
+        await loadRoutine(newId);
+        saveToLocalStorage();
+        alert(`New routine "${name}" created and saved to cloud!`);
+        return true;
+    } catch (e) {
+        console.error('Save new routine error:', e);
+        alert("Save failed: " + e.message);
+        return false;
     }
 }
 
-function renderCrudProducts() {
-    let container = document.getElementById('productsCrudList');
-    if(container) {
-        container.innerHTML = productsData.map(p => `
-            <div class="crud-item">
-                <span class="crud-item-name">${escapeHtml(p.name)} ($${p.price})</span>
-                <div class="crud-item-actions">
-                    <button class="icon-btn edit-product" data-id="${p.id}">✎</button>
-                    <button class="icon-btn delete-product" data-id="${p.id}">🗑️</button>
-                </div>
-            </div>
-        `).join('');
-        document.querySelectorAll('.edit-product').forEach(btn => { btn.onclick = () => editProduct(btn.dataset.id); });
-        document.querySelectorAll('.delete-product').forEach(btn => { btn.onclick = () => deleteProduct(btn.dataset.id); });
-    }
-}
-
-async function editService(id) {
-    let s = servicesData.find(s => s.id === id);
-    if(!s) return;
-    let newName = prompt("Service name:", s.name);
-    if(newName) s.name = newName;
-    let newPrice = parseFloat(prompt("Price:", s.price));
-    if(!isNaN(newPrice)) s.price = newPrice;
-    await sbClient.from('services').upsert(s);
-    renderCrudServices();
-    renderAllColumns();
-    updateTotalPrice();
-}
-async function deleteService(id) {
-    if(!confirm("Delete this service?")) return;
-    servicesData = servicesData.filter(s => s.id !== id);
-    currentServices = currentServices.filter(s => s.id !== id);
-    await sbClient.from('services').delete().eq('id', id);
-    renderCrudServices();
-    renderAllColumns();
-    updateTotalPrice();
-}
-async function editProduct(id) {
-    let p = productsData.find(p => p.id === id);
-    if(!p) return;
-    let newName = prompt("Product name:", p.name);
-    if(newName) p.name = newName;
-    let newPrice = parseFloat(prompt("Price:", p.price));
-    if(!isNaN(newPrice)) p.price = newPrice;
-    let newBenefit = prompt("Benefit:", p.benefit || "");
-    if(newBenefit !== null) p.benefit = newBenefit;
-    await sbClient.from('products').upsert(p);
-    renderCrudProducts();
-    renderAllColumns();
-    updateTotalPrice();
-}
-async function deleteProduct(id) {
-    if(!confirm("Delete this product?")) return;
-    productsData = productsData.filter(p => p.id !== id);
-    currentMorningProducts = currentMorningProducts.filter(m => m.productId !== id);
-    currentEveningProducts = currentEveningProducts.filter(e => e.productId !== id);
-    await sbClient.from('products').delete().eq('id', id);
-    renderCrudProducts();
-    renderAllColumns();
-    updateTotalPrice();
-}
-
-// ==================== SEARCH DROPDOWNS ====================
-function setupSearch(inputId, suggestionsId, dataSource, onSelect) {
-    let input = document.getElementById(inputId);
-    let suggestionsDiv = document.getElementById(suggestionsId);
-    if(!input) return;
-    let allItems = [...dataSource].sort((a,b) => a.name.localeCompare(b.name));
-    const showAllSuggestions = () => {
-        if (allItems.length === 0) return;
-        suggestionsDiv.innerHTML = allItems.map(i => `<div class="suggestion-item" data-id="${i.id}">${escapeHtml(i.name)} (${i.type === 'service' ? 'Service' : 'Product'}) - $${i.price}</div>`).join('');
-        suggestionsDiv.style.display = 'block';
-        suggestionsDiv.querySelectorAll('.suggestion-item').forEach(sug => { sug.onclick = () => { input.value = ''; suggestionsDiv.style.display = 'none'; onSelect(sug.dataset.id); }; });
-    };
-    input.addEventListener('focus', () => showAllSuggestions());
-    input.addEventListener('input', (e) => {
-        let term = e.target.value.toLowerCase();
-        if(!term) { showAllSuggestions(); return; }
-        let filtered = allItems.filter(i => i.name.toLowerCase().includes(term)).slice(0, 10);
-        suggestionsDiv.innerHTML = filtered.map(i => `<div class="suggestion-item" data-id="${i.id}">${escapeHtml(i.name)} (${i.type === 'service' ? 'Service' : 'Product'}) - $${i.price}</div>`).join('');
-        suggestionsDiv.style.display = filtered.length ? 'block' : 'none';
-        suggestionsDiv.querySelectorAll('.suggestion-item').forEach(sug => { sug.onclick = () => { input.value = ''; suggestionsDiv.style.display = 'none'; onSelect(sug.dataset.id); }; });
-    });
-    document.addEventListener('click', (e) => { if(!input.contains(e.target) && !suggestionsDiv.contains(e.target)) suggestionsDiv.style.display = 'none'; });
-}
-
-async function addServiceToRoutine(serviceId) { 
-    let s = servicesData.find(s => s.id === serviceId); 
-    if(s && !currentServices.some(ss => ss.id === serviceId)) { 
-        currentServices.push({ id: serviceId, type: 'service' }); 
-        renderAllColumns(); 
-        await saveCurrentStateToSupabase();
-    } else if(s) alert("Service already in routine"); 
-}
-
-async function addProductToRoutine(productId, target) { 
-    let p = productsData.find(p => p.id === productId); 
-    if(!p) return; 
-    let targetArray = target === 'am' ? currentMorningProducts : currentEveningProducts; 
-    if(!targetArray.some(i => i.productId === productId)) { 
-        targetArray.push({ productId: productId, time: target }); 
-        renderAllColumns(); 
-        await saveCurrentStateToSupabase();
-    } else alert("Product already in this routine"); 
-}
-
-// ==================== ROUTINE DROPDOWN ====================
-function updateRoutineDropdown() {
-    let dropdown = document.getElementById('routineDropdown');
-    if(dropdown) {
-        dropdown.innerHTML = Object.entries(savedRoutines).map(([id, r]) => `<option value="${id}" ${id === currentRoutineId ? 'selected' : ''}>${escapeHtml(r.name)}</option>`).join('');
-        dropdown.onchange = () => loadRoutine(dropdown.value);
-    }
-}
-
+// ==================== UI 渲染函数 ====================
 async function loadRoutine(routineId) {
-    let r = savedRoutines[routineId];
-    if(r) {
+    let routine = savedRoutines[routineId];
+    if (routine) {
         currentRoutineId = routineId;
-        currentServices = (r.services || []).map(id => ({ id, type: 'service' }));
-        currentMorningProducts = (r.morning || []).map(pid => ({ productId: pid, time: "morning" }));
-        currentEveningProducts = (r.evening || []).map(pid => ({ productId: pid, time: "evening" }));
-        renderAllColumns();
-        updateRoutineDropdown();
-        await saveCurrentStateToSupabase();
+        currentMorningProducts = routine.morning.map(pid => ({ productId: pid, time: "morning" }));
+        currentEveningProducts = routine.evening.map(pid => ({ productId: pid, time: "evening" }));
+        renderRoutines();
+        updateTotalPrice();
+        highlightActiveRoutine();
+        saveToLocalStorage();
     }
 }
 
-// ==================== PACKAGE ====================
-function renderPackageSelect() {
-    let sel = document.getElementById('packageSelect');
-    if(sel) {
-        sel.innerHTML = '<option value="">-- Quick Package --</option>' + packagesData.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
-        sel.onchange = async () => {
-            if(sel.value) {
-                let pkg = packagesData.find(p => p.id === sel.value);
-                if(pkg) {
-                    pkg.service_ids.forEach(sid => { if(!currentServices.some(s => s.id === sid)) currentServices.push({ id: sid }); });
-                    pkg.product_ids.forEach(pid => { if(!currentMorningProducts.some(m => m.productId === pid) && !currentEveningProducts.some(e => e.productId === pid)) currentEveningProducts.push({ productId: pid }); });
-                    renderAllColumns();
-                    await saveCurrentStateToSupabase();
-                    alert(`Loaded: ${pkg.name}`);
-                    sel.value = '';
+function highlightActiveRoutine() {
+    document.querySelectorAll('.routine-btn').forEach(btn => {
+        if (btn.dataset.id === currentRoutineId) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+}
+
+async function updateCurrentRoutine() {
+    if (!currentRoutineId) {
+        alert("No routine selected.");
+        return;
+    }
+    await saveCurrentRoutineToCloud();
+    renderRoutineButtons();
+    highlightActiveRoutine();
+}
+
+async function deleteCurrentRoutine() {
+    if (!currentRoutineId) {
+        alert("No routine selected.");
+        return;
+    }
+    if (confirm(`Delete routine "${savedRoutines[currentRoutineId]?.name}"? This will also delete from cloud.`)) { 
+        await deleteCurrentRoutineFromCloud();
+    }
+}
+
+async function saveAsNewRoutine() {
+    await saveAsNewRoutineToCloud();
+}
+
+async function renameCurrentRoutine(newName) {
+    if (!currentRoutineId || !savedRoutines[currentRoutineId]) return;
+    if (!isAuthenticated) {
+        alert("Please sign in to rename routines.");
+        return;
+    }
+    
+    if (isRoutineNameExists(newName, currentRoutineId)) {
+        alert(`A routine named "${newName}" already exists. Please choose a different name.`);
+        return;
+    }
+    
+    savedRoutines[currentRoutineId].name = newName;
+    savedRoutines = Object.fromEntries(
+        Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
+    );
+    
+    if (isAuthenticated && supabaseClient) {
+        await supabaseClient.from('routines').update({ name: newName }).eq('id', currentRoutineId);
+    }
+    
+    renderRoutineButtons();
+    highlightActiveRoutine();
+    saveToLocalStorage();
+    alert(`Routine renamed to "${newName}"!`);
+}
+
+function renderRoutineButtons() {
+    let container = document.getElementById('routineButtons');
+    if (!container) return;
+    if (Object.keys(savedRoutines).length === 0) {
+        container.innerHTML = '<div style="color: #b7a99a; padding: 0.5rem;">No routines available.</div>';
+        return;
+    }
+    container.innerHTML = Object.entries(savedRoutines).map(([id, r]) => `<button class="routine-btn ${id === currentRoutineId ? 'active' : ''}" data-id="${id}">${escapeHtml(r.name)}</button>`).join('');
+    document.querySelectorAll('.routine-btn').forEach(btn => { btn.onclick = () => loadRoutine(btn.dataset.id); });
+}
+
+function getUniqueProductsTotal() { 
+    let ids = new Set(); 
+    currentMorningProducts.forEach(i => ids.add(i.productId)); 
+    currentEveningProducts.forEach(i => ids.add(i.productId)); 
+    let total = 0; 
+    ids.forEach(id => { let p = getProductById(id); if(p) total += p.price; }); 
+    return total; 
+}
+
+function updateTotalPrice() { 
+    let span = document.getElementById('totalPrice'); 
+    if (span) span.innerText = getUniqueProductsTotal().toFixed(2); 
+}
+
+function updateUIBasedOnAuth() {
+    const isLoggedIn = isAuthenticated;
+    
+    const editBtn = document.getElementById('editRoutineBtn');
+    if (editBtn) editBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
+    
+    const authButtons = document.getElementById('authButtons');
+    if (authButtons) {
+        authButtons.style.display = isLoggedIn ? 'flex' : 'none';
+    }
+}
+
+function renderBrandProducts() {
+    let container = document.getElementById('brandProductsContainer');
+    if (!container) return;
+    let filtered = currentBrand === "all" ? productsData : productsData.filter(p => p.brand === currentBrand);
+    filtered = sortProductsByName(filtered);
+    container.innerHTML = filtered.map(p => `<div class="library-item" draggable="true" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}" data-product-benefit="${escapeHtml(p.benefit || '')}" data-product-usage="${escapeHtml(p.usage || '')}" data-product-image="${p.image || ''}">
+        ${escapeHtml(p.name)} <span class="library-price">$${p.price}</span>
+        <span class="library-actions">
+            <span class="edit-icon" data-id="${p.id}" title="Edit">✎</span>
+            <span class="delete-product-icon" data-id="${p.id}" title="Delete">🗑️</span>
+        </span>
+    </div>`).join('');
+    attachDragEvents(); 
+    attachEditEvents();
+    attachProductDeleteEvents();
+    updateUIBasedOnAuth();
+}
+
+async function deleteProduct(productId) {
+    if (confirm('Delete product from library? It will be removed from all routines.')) {
+        const index = productsData.findIndex(p => p.id === productId);
+        if (index !== -1) {
+            productsData.splice(index, 1);
+            for (let id in savedRoutines) {
+                savedRoutines[id].morning = savedRoutines[id].morning.filter(pid => pid !== productId);
+                savedRoutines[id].evening = savedRoutines[id].evening.filter(pid => pid !== productId);
+            }
+            currentMorningProducts = currentMorningProducts.filter(item => item.productId !== productId);
+            currentEveningProducts = currentEveningProducts.filter(item => item.productId !== productId);
+            renderBrandProducts();
+            renderRoutineButtons();
+            renderRoutines();
+            updateTotalPrice();
+            saveToLocalStorage();
+        }
+    }
+}
+
+function attachProductDeleteEvents() {
+    document.querySelectorAll('.delete-product-icon').forEach(icon => {
+        icon.onclick = async (e) => {
+            e.stopPropagation();
+            await deleteProduct(icon.dataset.id);
+        };
+    });
+}
+
+function attachDragEvents() { 
+    document.querySelectorAll('.library-item').forEach(el => { 
+        el.setAttribute('draggable', 'true'); 
+        el.addEventListener('dragstart', (e) => { 
+            let data = { id: el.dataset.productId, name: el.dataset.productName, price: parseFloat(el.dataset.productPrice), benefit: el.dataset.productBenefit, usage: el.dataset.productUsage, image: el.dataset.productImage }; 
+            e.dataTransfer.setData('text/plain', JSON.stringify(data)); 
+        }); 
+    }); 
+}
+
+function attachEditEvents() { 
+    document.querySelectorAll('.edit-icon').forEach(icon => { 
+        icon.onclick = (e) => { 
+            e.stopPropagation(); 
+            let product = getProductById(icon.dataset.id); 
+            if (product) openEditForm(product); 
+        }; 
+    }); 
+}
+
+function openEditForm(product) { 
+    document.getElementById('productName').value = product.name; 
+    document.getElementById('productBrand').value = product.brand; 
+    document.getElementById('productPrice').value = product.price; 
+    document.getElementById('productBenefit').value = product.benefit || ''; 
+    document.getElementById('productUsage').value = product.usage || ''; 
+    document.getElementById('productImage').value = product.image || ''; 
+    document.getElementById('editProductId').value = product.id; 
+    document.getElementById('productForm').classList.add('show'); 
+    document.getElementById('toggleAddBtn').style.display = 'none'; 
+}
+
+async function saveProduct() { 
+    let name = document.getElementById('productName').value.trim(); 
+    if (!name) { alert("Enter product name"); return; } 
+    let newProduct = { 
+        id: document.getElementById('editProductId').value || generateId(), 
+        name: name, 
+        brand: document.getElementById('productBrand').value, 
+        price: parseFloat(document.getElementById('productPrice').value) || 0, 
+        benefit: document.getElementById('productBenefit').value, 
+        usage: document.getElementById('productUsage').value, 
+        image: document.getElementById('productImage').value 
+    }; 
+    let existing = productsData.findIndex(p => p.id === newProduct.id); 
+    if (existing >= 0) productsData[existing] = newProduct; 
+    else productsData.push(newProduct); 
+    productsData = sortProductsByName(productsData); 
+    closeForm(); 
+    renderBrandProducts(); 
+    renderRoutines(); 
+    updateTotalPrice(); 
+    saveToLocalStorage(); 
+}
+
+function closeForm() { 
+    document.getElementById('productForm').classList.remove('show'); 
+    document.getElementById('toggleAddBtn').style.display = ''; 
+    document.getElementById('productName').value = ''; 
+    document.getElementById('editProductId').value = ''; 
+}
+
+function attachReorderDrag(containerId, itemsArray, updateCallback) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    let dragStartIndex = null;
+    container.querySelectorAll('.product-card').forEach(card => {
+        card.setAttribute('draggable', 'true');
+        card.addEventListener('dragstart', (e) => {
+            dragStartIndex = parseInt(card.dataset.index);
+            e.dataTransfer.setData('text/plain', dragStartIndex);
+            e.dataTransfer.effectAllowed = 'move';
+            card.style.opacity = '0.4';
+        });
+        card.addEventListener('dragend', (e) => {
+            card.style.opacity = '';
+            dragStartIndex = null;
+        });
+        card.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+        card.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            const dragIndex = dragStartIndex;
+            const dropIndex = parseInt(card.dataset.index);
+            if (dragIndex !== null && dragIndex !== dropIndex) {
+                const draggedItem = itemsArray[dragIndex];
+                itemsArray.splice(dragIndex, 1);
+                itemsArray.splice(dropIndex, 0, draggedItem);
+                updateCallback();
+                renderRoutines();
+                saveToLocalStorage();
+            }
+        });
+    });
+}
+
+function renderRoutines() {
+    let morningContainer = document.getElementById('morningList');
+    let eveningContainer = document.getElementById('eveningList');
+    
+    if (morningContainer) {
+        let morningHtml = `<div class="empty-slot" data-time="morning" data-index="0">+ Drop product here to add at top</div>`;
+        morningHtml += currentMorningProducts.map((item, idx) => renderCard(item.productId, idx, 'morning')).join('');
+        morningContainer.innerHTML = morningHtml;
+    }
+    if (eveningContainer) {
+        let eveningHtml = `<div class="empty-slot" data-time="evening" data-index="0">+ Drop product here to add at top</div>`;
+        eveningHtml += currentEveningProducts.map((item, idx) => renderCard(item.productId, idx, 'evening')).join('');
+        eveningContainer.innerHTML = eveningHtml;
+    }
+    
+    document.querySelectorAll('#morningList .product-card').forEach((card, newIdx) => { card.dataset.index = newIdx; });
+    document.querySelectorAll('#eveningList .product-card').forEach((card, newIdx) => { card.dataset.index = newIdx; });
+    
+    attachReorderDrag('morningList', currentMorningProducts, () => {
+        updateTotalPrice();
+    });
+    attachReorderDrag('eveningList', currentEveningProducts, () => {
+        updateTotalPrice();
+    });
+    
+    attachDropEvents('morningList', 'morning');
+    attachDropEvents('eveningList', 'evening');
+    attachDeleteEvents();
+    attachEmptySlotEvents();
+}
+
+function renderCard(pid, idx, time) { 
+    let p = getProductById(pid); 
+    if (!p) return ''; 
+    return `<div class="product-card" data-product-id="${p.id}" data-index="${idx}" data-time="${time}" draggable="true">
+        <div class="drag-handle">⋮⋮</div>
+        <button class="delete-btn" data-time="${time}" data-index="${idx}">✕</button>
+        <div class="product-image"><img src="${p.image || 'https://via.placeholder.com/52/f1e8e0/8f7e6b?text=Product'}" alt="${escapeHtml(p.name)}"></div>
+        <div class="product-info">
+            <div class="product-name">${escapeHtml(p.name)} <span class="product-price">$${p.price}</span></div>
+            <div class="benefit">${escapeHtml(p.benefit || '')}</div>
+            <div class="usage"><i class="icon-hand"></i> ${escapeHtml((p.usage || '').substring(0, 55))}</div>
+        </div>
+    </div>`; 
+}
+
+function attachEmptySlotEvents() {
+    document.querySelectorAll('.empty-slot').forEach(slot => {
+        slot.ondragover = (e) => { e.preventDefault(); slot.classList.add('drag-over'); };
+        slot.ondragleave = () => { slot.classList.remove('drag-over'); };
+        slot.ondrop = async (e) => {
+            e.preventDefault();
+            slot.classList.remove('drag-over');
+            const time = slot.dataset.time;
+            const targetIndex = parseInt(slot.dataset.index);
+            let dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
+            if (dragData && dragData.id) {
+                if (time === 'morning') {
+                    currentMorningProducts.splice(targetIndex, 0, { productId: dragData.id, time: 'morning' });
+                } else {
+                    currentEveningProducts.splice(targetIndex, 0, { productId: dragData.id, time: 'evening' });
                 }
+                renderRoutines();
+                updateTotalPrice();
+                saveToLocalStorage();
             }
         };
-    }
+    });
 }
 
-async function saveCurrentAsPackage() {
-    if(!isAdminMode) { alert("Admin mode required"); return; }
-    let name = prompt("Package name:");
-    if(!name) return;
-    let newId = generateId();
-    let newPkg = { id: newId, name: name, service_ids: currentServices.map(s => s.id), product_ids: [...currentMorningProducts.map(m => m.productId), ...currentEveningProducts.map(e => e.productId)] };
-    packagesData.push(newPkg);
-    await sbClient.from('packages').insert(newPkg);
-    renderPackageSelect();
-    alert("Package saved");
+function attachDropEvents(containerId, time) { 
+    let container = document.getElementById(containerId); 
+    if (!container) return; 
+    container.ondragover = (e) => e.preventDefault(); 
+    container.ondrop = async (e) => { 
+        e.preventDefault(); 
+        let targetCard = e.target.closest('.product-card'); 
+        if (!targetCard) return; 
+        let targetIdx = parseInt(targetCard.dataset.index); 
+        let dragData = JSON.parse(e.dataTransfer.getData('text/plain')); 
+        if (dragData && dragData.id) { 
+            if (time === 'morning' && currentMorningProducts[targetIdx]) currentMorningProducts[targetIdx] = { productId: dragData.id, time: 'morning' }; 
+            if (time === 'evening' && currentEveningProducts[targetIdx]) currentEveningProducts[targetIdx] = { productId: dragData.id, time: 'evening' }; 
+            renderRoutines();
+            updateTotalPrice();
+            saveToLocalStorage();
+        } 
+    }; 
 }
 
-// ==================== PRINT/EMAIL ====================
-function getRoutinePrintHTML() {
-    let routineName = savedRoutines[currentRoutineId]?.name || 'Skincare Routine';
-    let amItems = currentMorningProducts.map(i => productsData.find(p => p.id === i.productId)).filter(p => p);
-    let pmItems = currentEveningProducts.map(i => productsData.find(p => p.id === i.productId)).filter(p => p);
-    return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(routineName)} - Client Routine</title><style>
-        body { font-family: 'Inter', sans-serif; padding: 0.5in; margin: 0; background: white; }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2d4c6; padding-bottom: 15px; }
-        .header h1 { font-family: 'Montserrat', sans-serif; font-size: 24px; color: #5e4e3c; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
-        .column { border: 1px solid #e7dbd0; border-radius: 20px; padding: 20px; background: #fefcf8; }
-        .column h2 { font-family: 'Montserrat', sans-serif; font-size: 18px; color: #8f7e6b; border-bottom: 1px solid #e2d4c6; padding-bottom: 10px; margin-bottom: 15px; }
-        .product-item { margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px dashed #e7dbd0; }
-        .product-name { font-weight: 600; font-size: 14px; color: #5f5347; }
-        .benefit { font-size: 11px; color: #b7a99a; margin-top: 4px; }
-        .usage { font-size: 10px; color: #8e7e6e; margin-top: 5px; }
-        .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #ccbeaf; }
-        @media print { body { padding: 0; } }
-    </style></head><body>
-    <div class="header"><h1>${escapeHtml(routineName)}</h1><div>Client Guide · ${new Date().toLocaleDateString()}</div></div>
-    <div class="grid"><div class="column"><h2>🌅 MORNING ROUTINE</h2>${amItems.map(p => `<div class="product-item"><div class="product-name">${escapeHtml(p.name)}</div><div class="benefit">${escapeHtml(p.benefit || '')}</div><div class="usage">✦ ${escapeHtml(p.usage || 'No instructions')}</div></div>`).join('') || '<p>No products added</p>'}</div>
-    <div class="column"><h2>🌙 EVENING ROUTINE</h2>${pmItems.map(p => `<div class="product-item"><div class="product-name">${escapeHtml(p.name)}</div><div class="benefit">${escapeHtml(p.benefit || '')}</div><div class="usage">✦ ${escapeHtml(p.usage || 'No instructions')}</div></div>`).join('') || '<p>No products added</p>'}</div></div>
-    <div class="footer">✦ AURA CLINIC · Personalized Skincare Guidance ✦</div></body></html>`;
-}
-function printRoutine() { let win = window.open('', '_blank'); win.document.write(getRoutinePrintHTML()); win.document.close(); win.print(); }
-function emailRoutinePlainText() {
-    let routineName = savedRoutines[currentRoutineId]?.name || 'Skincare Routine';
-    let amItems = currentMorningProducts.map(i => productsData.find(p => p.id === i.productId)).filter(p => p);
-    let pmItems = currentEveningProducts.map(i => productsData.find(p => p.id === i.productId)).filter(p => p);
-    let body = `AURA CLINIC - Skincare Routine\n\nRoutine: ${routineName}\nDate: ${new Date().toLocaleDateString()}\n\nMORNING:\n${amItems.map(p => `- ${p.name}: ${p.benefit || ''}`).join('\n') || 'None'}\n\nEVENING:\n${pmItems.map(p => `- ${p.name}: ${p.benefit || ''}`).join('\n') || 'None'}`;
-    window.location.href = `mailto:?subject=AURA CLINIC - Skincare Routine&body=${encodeURIComponent(body)}`;
-    alert("Email client opened");
+function attachDeleteEvents() { 
+    document.querySelectorAll('.delete-btn').forEach(btn => { 
+        btn.onclick = async (e) => { 
+            e.stopPropagation(); 
+            let time = btn.dataset.time, idx = parseInt(btn.dataset.index); 
+            if (time === 'morning') currentMorningProducts.splice(idx, 1); 
+            else currentEveningProducts.splice(idx, 1); 
+            renderRoutines();
+            updateTotalPrice();
+            saveToLocalStorage();
+        }; 
+    }); 
 }
 
-// ==================== QUOTE FUNCTIONS ====================
-let quoteCache = null;
+function printRoutine() { 
+    let uniqueMorning = currentMorningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx);
+    let uniqueEvening = currentEveningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx);
+    
+    let win = window.open('', '_blank'); 
+    win.document.write(`<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Skincare Routine</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Inter', sans-serif; padding: 0.5in; background: white; }
+            .print-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2d4c6; padding-bottom: 15px; }
+            .print-header h1 { font-family: 'Montserrat', sans-serif; font-size: 28px; color: #7f6e5d; }
+            .print-date { font-size: 11px; color: #ccbeaf; margin-top: 5px; }
+            .print-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+            .print-column { border: 1px solid #e7dbd0; border-radius: 16px; padding: 20px; background: #fefcf8; }
+            .print-column h2 { font-family: 'Montserrat', sans-serif; font-size: 20px; color: #8f7e6b; border-bottom: 1px solid #e2d4c6; padding-bottom: 10px; margin-bottom: 15px; }
+            .print-product { display: flex; gap: 12px; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px dashed #e7dbd0; }
+            .print-product-image { width: 50px; height: 50px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; }
+            .print-product-image img { width: 100%; height: 100%; object-fit: cover; }
+            .print-product-info { flex: 1; }
+            .print-product-name { font-weight: 600; font-size: 14px; color: #5f5347; }
+            .print-product-benefit { font-size: 11px; color: #b7a99a; font-style: italic; }
+            .print-product-usage { font-size: 10px; color: #8e7e6e; margin-top: 5px; }
+            .print-footer { margin-top: 30px; text-align: center; font-size: 10px; color: #ccbeaf; border-top: 1px solid #e7dbd0; padding-top: 15px; }
+            @media print { body { padding: 0; } }
+        </style>
+    </head>
+    <body>
+        <div class="print-header">
+            <h1>${escapeHtml(savedRoutines[currentRoutineId]?.name || 'Skincare Routine')}</h1>
+            <div class="print-date">Printed on ${new Date().toLocaleDateString()}</div>
+        </div>
+        <div class="print-grid">
+            <div class="print-column">
+                <h2>MORNING ROUTINE ☀️</h2>
+                ${uniqueMorning.map(i => { let p = getProductById(i.productId); return p ? `
+                <div class="print-product">
+                    <div class="print-product-image"><img src="${p.image || ''}"></div>
+                    <div class="print-product-info">
+                        <div class="print-product-name">${escapeHtml(p.name)}</div>
+                        <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
+                        <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions')}</div>
+                    </div>
+                </div>` : ''; }).join('')}
+            </div>
+            <div class="print-column">
+                <h2>EVENING ROUTINE 🌙</h2>
+                ${uniqueEvening.map(i => { let p = getProductById(i.productId); return p ? `
+                <div class="print-product">
+                    <div class="print-product-image"><img src="${p.image || ''}"></div>
+                    <div class="print-product-info">
+                        <div class="print-product-name">${escapeHtml(p.name)}</div>
+                        <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
+                        <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions')}</div>
+                    </div>
+                </div>` : ''; }).join('')}
+            </div>
+        </div>
+        <div class="print-footer">✦ ${savedRoutines[currentRoutineId]?.name || 'Skincare Routine'} ✦</div>
+    </body>
+    </html>`); 
+    win.document.close(); 
+    win.print(); 
+}
+
+function renderBrandTabs() { 
+    let brands = ["all", "SkinMedica", "Skinceuticals", "FNL", "ColorScience", "Others"]; 
+    let container = document.getElementById('brandTabs'); 
+    if (!container) return; 
+    container.innerHTML = brands.map(b => `<button class="brand-tab ${b === currentBrand ? 'active' : ''}" data-brand="${b}">${b === 'all' ? 'All' : b}</button>`).join(''); 
+    document.querySelectorAll('.brand-tab').forEach(tab => { tab.onclick = () => { currentBrand = tab.dataset.brand; renderBrandTabs(); renderBrandProducts(); }; }); 
+}
+
+// ==================== Quote 功能（无需登录，完全本地使用）====================
 function generateQuote() {
-    let all = [...currentServices.map(s => ({ id: s.id, type: 'service' })), ...currentMorningProducts.map(p => ({ id: p.productId, type: 'product' })), ...currentEveningProducts.map(p => ({ id: p.productId, type: 'product' }))];
-    let map = new Map();
-    for(let i of all) { if(!map.has(i.id)) { let item = i.type==='service' ? servicesData.find(s=>s.id===i.id) : productsData.find(p=>p.id===i.id); if(item) map.set(i.id, { id: item.id, name: item.name, price: item.price, type: item.type==='service'?'Service':'Product', quantity: 1, discount: 0 }); } }
-    let items = Array.from(map.values());
-    if(!items.length) { alert("No items in routine"); return; }
-    document.getElementById('quoteRoutineName').innerText = savedRoutines[currentRoutineId]?.name || 'Current';
-    let tbody = document.getElementById('quoteTableBody');
-    function render() {
-        tbody.innerHTML = items.map((item,idx) => `<tr><td style="padding:0.75rem;">${escapeHtml(item.name)}</td><td style="padding:0.75rem;">${item.type}</td><td style="padding:0.75rem;">$${item.price.toFixed(2)}</td><td style="padding:0.75rem;"><input class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" style="width:60px;"></td><td style="padding:0.75rem;"><input class="discount-input" data-idx="${idx}" value="${item.discount}" min="0" max="100" style="width:60px;">%</td><td class="discounted" style="padding:0.75rem;">$${(item.price * item.quantity * (1 - item.discount/100)).toFixed(2)}</td></tr>`).join('');
-        let subBefore=0, subAfter=0; items.forEach(i=>{ let t=i.price*i.quantity; subBefore+=t; subAfter+=t*(1-i.discount/100); });
-        let tax=subAfter*0.12;
-        document.getElementById('quoteTotals').innerHTML = `<p>Subtotal before: $${subBefore.toFixed(2)}</p><p style="color:#2d6a4f;">Discount: -$${(subBefore-subAfter).toFixed(2)}</p><p>Subtotal after: $${subAfter.toFixed(2)}</p><p>Tax 12%: $${tax.toFixed(2)}</p><p style="font-weight:bold;">Grand Total: $${(subAfter+tax).toFixed(2)}</p>`;
-        quoteCache = { items, subBefore, subAfter, tax, grand: subAfter+tax };
-        document.querySelectorAll('.qty-input, .discount-input').forEach(inp => { inp.onchange = () => { let idx=parseInt(inp.dataset.idx); if(inp.classList.contains('qty-input')) items[idx].quantity=parseInt(inp.value)||1; else items[idx].discount=parseFloat(inp.value)||0; render(); }; });
+    // 获取所有唯一产品（去重）- 直接从当前页面数据获取
+    const allProducts = [...currentMorningProducts, ...currentEveningProducts];
+    const productMap = new Map();
+    
+    for (const item of allProducts) {
+        if (!productMap.has(item.productId)) {
+            const product = getProductById(item.productId);
+            if (product) {
+                productMap.set(item.productId, {
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    discount: 0
+                });
+            }
+        }
     }
-    render();
-    document.getElementById('quoteModal').classList.add('show');
+    
+    const quoteItems = Array.from(productMap.values());
+    
+    // 如果没有产品，提示用户
+    if (quoteItems.length === 0) {
+        alert('No products in your routine. Please add products first.');
+        return;
+    }
+    
+    // 显示弹窗
+    const modal = document.getElementById('quoteModal');
+    const routineNameSpan = document.getElementById('quoteRoutineName');
+    const tableBody = document.getElementById('quoteTableBody');
+    
+    routineNameSpan.textContent = savedRoutines[currentRoutineId]?.name || 'Current Routine';
+    
+    function renderQuoteTable() {
+        tableBody.innerHTML = quoteItems.map((item, idx) => `
+            <tr>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">${escapeHtml(item.name)}</td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">$${item.price.toFixed(2)}</td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">
+                    <input type="number" class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" step="1" style="width:70px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center;">
+                </td>
+                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">
+                    <input type="number" class="discount-input" data-idx="${idx}" value="${item.discount}" min="0" max="100" step="1" style="width:80px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center;">%
+                </td>
+                <td class="discounted-price" style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">$${(item.price * item.quantity * (1 - item.discount / 100)).toFixed(2)}</td>
+            </tr>
+        `).join('');
+        
+        // 绑定数量变化事件
+        document.querySelectorAll('.qty-input').forEach(input => {
+            input.removeEventListener('change', handleQuantityChange);
+            input.addEventListener('change', handleQuantityChange);
+        });
+        
+        // 绑定折扣变化事件
+        document.querySelectorAll('.discount-input').forEach(input => {
+            input.removeEventListener('change', handleDiscountChange);
+            input.addEventListener('change', handleDiscountChange);
+        });
+        
+        function handleQuantityChange(e) {
+            const idx = parseInt(e.target.dataset.idx);
+            quoteItems[idx].quantity = parseInt(e.target.value) || 1;
+            updateQuoteTotals(quoteItems);
+            renderQuoteTable();
+        }
+        
+        function handleDiscountChange(e) {
+            const idx = parseInt(e.target.dataset.idx);
+            quoteItems[idx].discount = parseFloat(e.target.value) || 0;
+            updateQuoteTotals(quoteItems);
+            renderQuoteTable();
+        }
+        
+        updateQuoteTotals(quoteItems);
+    }
+    
+function updateQuoteTotals(items) {
+    let subtotalBeforeDiscount = 0;
+    let subtotalAfterDiscount = 0;
+    
+    for (const item of items) {
+        const itemTotal = item.price * item.quantity;
+        subtotalBeforeDiscount += itemTotal;
+        subtotalAfterDiscount += itemTotal * (1 - item.discount / 100);
+    }
+    
+    const totalDiscountAmount = subtotalBeforeDiscount - subtotalAfterDiscount;
+    const tax = subtotalAfterDiscount * 0.12;
+    const grandTotal = subtotalAfterDiscount + tax;
+    
+    document.getElementById('subtotalBeforeDiscount').innerText = subtotalBeforeDiscount.toFixed(2);
+    document.getElementById('totalDiscountAmount').innerText = totalDiscountAmount.toFixed(2);
+    document.getElementById('subtotalAfterDiscount').innerText = subtotalAfterDiscount.toFixed(2);
+    document.getElementById('taxAmount').innerText = tax.toFixed(2);
+    document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
+    
+    // 存储数据供打印使用
+    window.currentQuoteData = { 
+        items, 
+        subtotalBeforeDiscount,
+        totalDiscountAmount,
+        subtotalAfterDiscount,
+        tax, 
+        grandTotal, 
+        routineName: savedRoutines[currentRoutineId]?.name 
+    };
 }
-function printQuote() { let w=window.open('','_blank'); w.document.write(`<html><head><title>Quote</title><style>body{font-family:Inter;padding:0.5in;}table{width:100%;border-collapse:collapse;}th,td{padding:8px;border-bottom:1px solid #ddd;}</style></head><body><h2>AURA CLINIC</h2><p>${new Date().toLocaleDateString()}</p><p>Routine: ${escapeHtml(savedRoutines[currentRoutineId]?.name||'')}</p><table><table><thead><tr><th>Item</th><th>Type</th><th>Price</th><th>Qty</th><th>Discount</th><th>Total</th></tr></thead><tbody>${quoteCache?.items.map(i=>`<tr><td>${escapeHtml(i.name)}</td><td>${i.type}</td><td>$${i.price.toFixed(2)}</td><td>${i.quantity}</td><td>${i.discount}%</td><td>$${(i.price*i.quantity*(1-i.discount/100)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div style="text-align:right;"><p>Subtotal: $${quoteCache?.subBefore.toFixed(2)}</p><p>Tax: $${quoteCache?.tax.toFixed(2)}</p><h3>Total: $${quoteCache?.grand.toFixed(2)}</h3></div></body></html>`); w.document.close(); w.print(); }
-function emailQuote() { window.location.href=`mailto:?subject=Aura Quote&body=${encodeURIComponent("Please find the attached quote.")}`; alert("Email client opened"); }
-
-// ==================== ADMIN MODE ====================
-function setAdminMode(enabled) {
-    isAdminMode = enabled;
-    sessionStorage.setItem('aura_admin_mode', enabled);
-    document.getElementById('adminBadge').style.display = enabled ? 'inline-block' : 'none';
-    document.getElementById('adminModeBtn').style.display = enabled ? 'none' : 'inline-block';
-    document.getElementById('exitAdminBtn').style.display = enabled ? 'inline-block' : 'none';
-    document.getElementById('adminPanels').style.display = enabled ? 'flex' : 'none';
-    document.getElementById('routineActionsRow').style.display = enabled ? 'flex' : 'none';
-    if(enabled) { renderCrudServices(); renderCrudProducts(); }
+    
+    renderQuoteTable();
+    modal.classList.add('show');
 }
 
-// ==================== INITIALIZATION ====================
-async function initApp() {
-    if (typeof supabase === 'undefined') { setTimeout(initApp, 500); return; }
-    sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    document.getElementById('authStatus').innerHTML = '✅ Connected';
-    await loadProductsFromSupabase();
-    await loadPackagesFromSupabase();
-    await loadRoutinesFromSupabase();
+function printQuote() {
+    const data = window.currentQuoteData;
+    if (!data) {
+        alert('No quote data to print.');
+        return;
+    }
     
-    setupSearch('serviceSearchInput', 'serviceSuggestions', getAllServicesSorted(), (id) => addServiceToRoutine(id));
-    setupSearch('productSearchInputAM', 'productSuggestionsAM', getAllProductsSorted(), (id) => addProductToRoutine(id, 'am'));
-    setupSearch('productSearchInputPM', 'productSuggestionsPM', getAllProductsSorted(), (id) => addProductToRoutine(id, 'pm'));
-    
-    document.getElementById('quoteBtn').onclick = generateQuote;
-    document.getElementById('closeModalBtn').onclick = () => document.getElementById('quoteModal').classList.remove('show');
-    document.getElementById('printQuoteBtn').onclick = printQuote;
-    document.getElementById('emailQuoteBtn').onclick = emailQuote;
-    document.getElementById('printRoutineBtn').onclick = printRoutine;
-    document.getElementById('emailRoutineBtn').onclick = emailRoutinePlainText;
-    document.getElementById('adminModeBtn').onclick = () => { let p = prompt("Admin password:"); if(p === "admin123") setAdminMode(true); else alert("Wrong password"); };
-    document.getElementById('exitAdminBtn').onclick = () => setAdminMode(false);
-    
-    // Add handlers
-    document.getElementById('addServiceBtn').onclick = async () => { if(!isAdminMode) return; let n=prompt("Service name"); if(n){ let p=parseFloat(prompt("Price")); if(!isNaN(p)){ let newId=generateId(); let newS={id:newId, name:n, price:p, type:"service", benefit:"", usage:""}; servicesData.push(newS); await sbClient.from('services').insert(newS); renderCrudServices(); renderAllColumns(); updateTotalPrice(); } } };
-    document.getElementById('addProductBtn').onclick = async () => { if(!isAdminMode) return; let n=prompt("Product name"); if(n){ let p=parseFloat(prompt("Price")); if(!isNaN(p)){ let newId=generateId(); let newP={id:newId, name:n, price:p, benefit:"", usage:"", image:""}; productsData.push(newP); await sbClient.from('products').insert(newP); renderCrudProducts(); renderAllColumns(); updateTotalPrice(); } } };
-    
-    // Routine management
-    document.getElementById('editRoutineNameBtn').onclick = async () => { if(isAdminMode && currentRoutineId){ let n=prompt("New name:", savedRoutines[currentRoutineId]?.name); if(n){ savedRoutines[currentRoutineId].name=n; updateRoutineDropdown(); await saveRoutineToSupabase(currentRoutineId); } } };
-    document.getElementById('deleteRoutineBtn').onclick = async () => { if(isAdminMode && currentRoutineId && confirm("Delete?")){ delete savedRoutines[currentRoutineId]; await sbClient.from('routines').delete().eq('id', currentRoutineId); let keys=Object.keys(savedRoutines); if(keys.length) await loadRoutine(keys[0]); else { currentServices=[]; currentMorningProducts=[]; currentEveningProducts=[]; renderAllColumns(); updateTotalPrice(); } updateRoutineDropdown(); } };
-    document.getElementById('saveAsNewRoutineBtn').onclick = async () => { if(isAdminMode){ let n=prompt("New routine name:"); if(n){ let newId=generateId(); savedRoutines[newId]={name:n, services:currentServices.map(s=>s.id), morning:currentMorningProducts.map(p=>p.productId), evening:currentEveningProducts.map(p=>p.productId)}; await sbClient.from('routines').insert({id:newId, name:n, services:savedRoutines[newId].services, morning:savedRoutines[newId].morning, evening:savedRoutines[newId].evening}); updateRoutineDropdown(); await loadRoutine(newId); } } };
-    document.getElementById('updateCurrentRoutineBtn').onclick = async () => { await saveCurrentStateToSupabase(); alert("Routine saved"); };
-    
-    // Package save button (add to admin panels)
-    let savePackageBtn = document.createElement('button');
-    savePackageBtn.textContent = '💾 Save Current as Package';
-    savePackageBtn.className = 'small-btn';
-    savePackageBtn.onclick = saveCurrentAsPackage;
-    document.querySelector('#adminPanels .crud-card:first-child .crud-buttons').appendChild(savePackageBtn);
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Price Quote</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Inter', sans-serif; padding: 0.5in; background: white; }
+            .quote-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2d4c6; padding-bottom: 20px; }
+            .quote-header h1 { font-size: 28px; color: #7f6e5d; margin-bottom: 8px; }
+            .quote-date { font-size: 11px; color: #ccbeaf; margin-top: 5px; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e7dbd0; }
+            th { background: #f5efe8; font-weight: 600; }
+            .totals { text-align: right; margin-top: 20px; padding-top: 20px; border-top: 2px solid #e2d4c6; }
+            .totals p { margin: 8px 0; }
+            .savings { color: #2d6a4f; font-weight: 600; }
+            .grand-total { font-size: 18px; font-weight: bold; }
+            @media print { body { padding: 0; } }
+        </style>
+    </head>
+    <body>
+        <div class="quote-header">
+            <h1>Price Quote</h1>
+            <div class="quote-date">Generated on ${new Date().toLocaleDateString()}</div>
+            <p style="margin-top: 10px;"><strong>Routine:</strong> ${escapeHtml(data.routineName || 'Skincare Routine')}</p>
+        </div>
+        <table>
+            <thead><tr><th>Product</th><th>Unit Price</th><th>Quantity</th><th>Discount</th><th>Total</th></tr</thead>
+            <tbody>
+                ${data.items.map(item => `
+                    <tr>
+                        <td>${escapeHtml(item.name)}</td>
+                        <td>$${item.price.toFixed(2)}</td>
+                        <td>${item.quantity}</td>
+                        <td>${item.discount}%</td>
+                        <td>$${(item.price * item.quantity * (1 - item.discount / 100)).toFixed(2)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        <div class="totals">
+            <p>💰 Subtotal (Before Discount): $${data.subtotalBeforeDiscount.toFixed(2)}</p>
+            <p class="savings">🏷️ Total Discount: -$${data.totalDiscountAmount.toFixed(2)}</p>
+            <p>✨ Subtotal (After Discount): $${data.subtotalAfterDiscount.toFixed(2)}</p>
+            <p>📋 Tax (12%): $${data.tax.toFixed(2)}</p>
+            <p class="grand-total">💵 Grand Total: $${data.grandTotal.toFixed(2)}</p>
+        </div>
+    </body>
+    </html>`);
+    win.document.close();
+    win.print();
 }
 
-// ==================== PAGE UNLOCK ====================
-function unlockPage(pwd) {
-    if(pwd === "clinic2024") {
-        sessionStorage.setItem('aura_page_unlocked','true');
-        document.getElementById('lockScreen').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        initApp();
-        if(sessionStorage.getItem('aura_admin_mode') === 'true') setAdminMode(true);
-    } else { document.getElementById('lockError').innerText = 'Wrong password.'; }
+function emailQuote() {
+    const data = window.currentQuoteData;
+    if (!data) {
+        alert('No quote data to email.');
+        return;
+    }
+    
+    let emailBody = `Price Quote\n\n`;
+    emailBody += `Routine: ${data.routineName || 'Skincare Routine'}\n`;
+    emailBody += `Generated on: ${new Date().toLocaleDateString()}\n\n`;
+    emailBody += `Products:\n`;
+    for (const item of data.items) {
+        emailBody += `- ${item.name}: $${item.price.toFixed(2)} x ${item.quantity} (${item.discount}% off) = $${(item.price * item.quantity * (1 - item.discount / 100)).toFixed(2)}\n`;
+    }
+    emailBody += `\n💰 Subtotal (Before Discount): $${data.subtotalBeforeDiscount.toFixed(2)}\n`;
+    emailBody += `🏷️ Total Discount: -$${data.totalDiscountAmount.toFixed(2)}\n`;
+    emailBody += `✨ Subtotal (After Discount): $${data.subtotalAfterDiscount.toFixed(2)}\n`;
+    emailBody += `📋 Tax (12%): $${data.tax.toFixed(2)}\n`;
+    emailBody += `💵 Grand Total: $${data.grandTotal.toFixed(2)}\n`;
+    
+    window.location.href = `mailto:?subject=Skincare Quote&body=${encodeURIComponent(emailBody)}`;
 }
 
-if(sessionStorage.getItem('aura_page_unlocked') === 'true') { unlockPage("clinic2024"); } 
-else { document.getElementById('unlockPageBtn').onclick = () => unlockPage(document.getElementById('pagePasswordInput').value); }
+// ==================== 认证函数 ====================
+async function handleLogin() {
+    if (!supabaseClient) { 
+        alert("Supabase not ready. Please refresh the page.");
+        return;
+    }
+    try {
+        const { error } = await supabaseClient.auth.signInWithOAuth({ 
+            provider: 'google',
+            options: { redirectTo: window.location.href }
+        });
+        if (error) {
+            console.error('Login error:', error);
+            alert('Login error: ' + error.message);
+        }
+    } catch (e) {
+        console.error('Login exception:', e);
+        alert('Login failed: ' + e.message);
+    }
+}
+
+async function handleLogout() { 
+    try {
+        if (supabaseClient) await supabaseClient.auth.signOut();
+        localStorage.clear();
+        location.reload();
+    } catch (e) {
+        console.error('Logout error:', e);
+        location.reload();
+    }
+}
+
+async function checkAuth() {
+    if (!supabaseClient) return;
+    try {
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        if (error) {
+            console.error('Auth check error:', error);
+            isAuthenticated = false;
+        } else if (session) {
+            isAuthenticated = true;
+            currentUserId = session.user.id;
+            document.getElementById('authStatus').innerHTML = `✅ Signed in as ${session.user.email}`;
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+            await loadFromCloud();
+        } else {
+            isAuthenticated = false;
+            document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
+            document.getElementById('loginBtn').style.display = 'inline-block';
+            document.getElementById('logoutBtn').style.display = 'none';
+            loadFromLocalStorage();
+        }
+        refreshUI();
+    } catch (e) {
+        console.error('Auth check exception:', e);
+        isAuthenticated = false;
+        document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
+        document.getElementById('loginBtn').style.display = 'inline-block';
+        document.getElementById('logoutBtn').style.display = 'none';
+        loadFromLocalStorage();
+        refreshUI();
+    }
+}
+
+function refreshUI() {
+    renderBrandTabs();
+    renderBrandProducts();
+    renderRoutineButtons();
+    renderRoutines();
+    updateTotalPrice();
+    if (currentRoutineId) highlightActiveRoutine();
+    updateUIBasedOnAuth();
+}
+
+function initSupabase() {
+    if (typeof supabase === 'undefined') {
+        setTimeout(initSupabase, 500);
+        return;
+    }
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.supabaseClient = supabaseClient;
+    console.log('Supabase initialized');
+    checkAuth();
+}
+
+// 按钮绑定
+document.getElementById('toggleAddBtn').onclick = () => { 
+    document.getElementById('editProductId').value = ''; 
+    closeForm(); 
+    document.getElementById('productForm').classList.add('show'); 
+    document.getElementById('toggleAddBtn').style.display = 'none'; 
+};
+document.getElementById('cancelFormBtn').onclick = closeForm;
+document.getElementById('saveProductBtn').onclick = saveProduct;
+document.getElementById('printBtn').onclick = printRoutine;
+document.getElementById('editRoutineBtn').onclick = () => { 
+    if (!isAuthenticated) { alert("Please sign in to rename routines."); return; }
+    let newName = prompt("Edit routine name:", savedRoutines[currentRoutineId]?.name); 
+    if(newName) renameCurrentRoutine(newName); 
+};
+document.getElementById('loginBtn').onclick = handleLogin;
+document.getElementById('logoutBtn').onclick = handleLogout;
+document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
+document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutine;
+document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
+document.getElementById('syncAllBtn').onclick = forceSyncAllToCloud;
+
+// Quote 按钮绑定
+document.getElementById('quoteBtn').onclick = generateQuote;
+document.getElementById('closeModalBtn').onclick = () => {
+    document.getElementById('quoteModal').classList.remove('show');
+};
+document.getElementById('printQuoteBtn').onclick = printQuote;
+document.getElementById('emailQuoteBtn').onclick = emailQuote;
+
+// 点击弹窗背景关闭
+document.getElementById('quoteModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('quoteModal')) {
+        document.getElementById('quoteModal').classList.remove('show');
+    }
+});
+
+// 启动应用
+loadFromLocalStorage();
+refreshUI();
+initSupabase();
 </script>
 </body>
 </html>
