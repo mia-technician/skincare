@@ -45,8 +45,14 @@
         .auth-btn-outline { background: transparent; border: 1px solid #d2c0b0; color: #5f5347; }
         .admin-badge { background: #e9dfd4; padding: 4px 12px; border-radius: 40px; font-size: 0.7rem; margin-left: 1rem; }
         
-        .admin-actions { display: flex; gap: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap; }
-        .edit-routine-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.4rem 1rem; border-radius: 40px; cursor: pointer; font-size: 0.7rem; }
+        /* Admin action buttons row */
+        .admin-actions-row { display: flex; gap: 0.8rem; margin: 1rem 0 0.5rem; flex-wrap: wrap; justify-content: center; }
+        .admin-actions-row .action-btn { background: #e9dfd4; border: 1px solid #d2c0b0; padding: 0.4rem 0.8rem; border-radius: 40px; cursor: pointer; font-size: 0.7rem; }
+        .admin-actions-row .update-btn { background: #b99f87; color: white; border-color: #b99f87; }
+        
+        /* Add buttons row */
+        .add-buttons-row { display: flex; gap: 1rem; margin-bottom: 1rem; justify-content: center; }
+        .add-btn { background: #e9dfd4; border: none; padding: 0.4rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.75rem; }
         
         .routine-grid { display: grid; grid-template-columns: 1fr 1.2fr 1.2fr; gap: 1.5rem; align-items: start; }
         .column { background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.2rem; border: 1px solid #e7dbd0; height: 100%; display: flex; flex-direction: column; }
@@ -60,23 +66,16 @@
         .product-list { display: flex; flex-direction: column; gap: 0.9rem; flex: 1; overflow: visible; margin-bottom: 1rem; min-height: 200px; }
         .product-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; cursor: grab; transition: all 0.2s; }
         .product-card:active { cursor: grabbing; }
-        .product-card.dragging { opacity: 0.4; }
-        .product-card.drag-over {
-    border: 2px solid #b99f87;
-    background: #fef7ef;
-    transform: scale(1.01);
-}
+        .product-card.drag-over { border: 2px solid #b99f87; background: #fef7ef; }
         .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px; z-index: 10; }
         .product-image { width: 48px; height: 48px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
         .product-image img { width: 100%; height: 100%; object-fit: cover; }
-        .product-image-placeholder { font-size: 1.5rem; }
         .product-info { flex: 1; }
         .product-name { font-size: 0.85rem; font-weight: 600; color: #5f5347; }
         .product-price { font-size: 0.7rem; color: #b99f87; margin-left: 0.3rem; }
         .benefit { font-size: 0.65rem; color: #b7a99a; margin-top: 2px; }
         .usage { font-size: 0.6rem; color: #8e7e6e; margin-top: 3px; }
         .drag-handle { width: 24px; display: flex; align-items: center; justify-content: center; color: #d2c0b0; cursor: grab; font-size: 1.2rem; }
-        .empty-slot { display: flex; align-items: center; justify-content: center; padding: 0.7rem; background: rgba(233, 223, 212, 0.5); border-radius: 18px; border: 2px dashed #d2c0b0; color: #b7a99a; font-size: 0.7rem; min-height: 60px; margin-bottom: 0.6rem; }
         
         .add-item-row { position: relative; margin-top: 0.5rem; }
         .item-search-input { width: 100%; padding: 0.5rem 0.8rem; border: 1px solid #e2d4c6; border-radius: 60px; font-size: 0.75rem; outline: none; }
@@ -122,6 +121,12 @@
             <span id="adminBadge" class="admin-badge" style="display:none;">Admin Mode</span></div>
         </div>
 
+        <!-- Add Service and Add Product buttons (below login, visible only in admin mode) -->
+        <div class="add-buttons-row" id="addButtonsRow" style="display:none;">
+            <button id="addServiceBtn" class="add-btn">+ Add New Service</button>
+            <button id="addProductBtn" class="add-btn">+ Add New Product</button>
+        </div>
+
         <div class="routine-grid">
             <!-- Service Recommend Column -->
             <div class="column">
@@ -135,10 +140,12 @@
                     <div id="serviceSuggestions" class="item-suggestions"></div>
                 </div>
                 <div class="product-list" id="servicesList" style="margin-top: 0.8rem;"></div>
-                <div class="admin-actions" id="serviceAdminActions" style="display:none; margin-top: 0.8rem;">
-                    <button id="editRoutineBtn" class="edit-routine-btn" style="display:none;">✏️ Edit Name</button>
-                    <button id="deleteRoutineBtn" class="edit-routine-btn" style="display:none;">🗑️ Delete</button>
-                    <button id="saveAsNewRoutineBtn" class="edit-routine-btn" style="display:none;">💾 Save as New</button>
+                <!-- Package management buttons at bottom of Service column -->
+                <div class="admin-actions-row" id="packageActionsRow" style="display:none; margin-top: 1rem;">
+                    <button id="editPackageNameBtn" class="action-btn" style="background:#e9dfd4;">✏️ Edit Package Name</button>
+                    <button id="deleteCurrentPackageBtn" class="action-btn" style="background:#e9dfd4;">🗑️ Delete Current Package</button>
+                    <button id="saveAsNewPackageBtn" class="action-btn" style="background:#e9dfd4;">💾 Save as New Package</button>
+                    <button id="updateCurrentPackageBtn" class="action-btn update-btn">📝 Update Current Package</button>
                 </div>
             </div>
             
@@ -165,8 +172,12 @@
                     <div id="productSuggestionsPM" class="item-suggestions"></div>
                 </div>
                 <div class="product-list" id="eveningList" style="margin-top: 0.8rem;"></div>
-                <div class="admin-actions" style="margin-top: 0.8rem;">
-                    <button class="action-btn update-btn" id="updateCurrentBtn" style="display:none;">📝 Update Current Routine</button>
+                <!-- Routine management buttons at bottom of PM column -->
+                <div class="admin-actions-row" id="routineActionsRow" style="display:none; margin-top: 1rem;">
+                    <button id="editRoutineNameBtn" class="action-btn" style="background:#e9dfd4;">✏️ Edit Routine Name</button>
+                    <button id="deleteCurrentRoutineBtn" class="action-btn" style="background:#e9dfd4;">🗑️ Delete Current Routine</button>
+                    <button id="saveAsNewRoutineBtn" class="action-btn" style="background:#e9dfd4;">💾 Save as New Routine</button>
+                    <button id="updateCurrentRoutineBtn" class="action-btn update-btn">📝 Update Current Routine</button>
                 </div>
             </div>
         </div>
@@ -203,7 +214,6 @@ let currentServices = [];
 let currentMorningProducts = [];
 let currentEveningProducts = [];
 
-// Default product images
 const DEFAULT_IMAGE = "https://via.placeholder.com/48/f1e8e0/8f7e6b?text=Product";
 
 // ==================== HELPERS ====================
@@ -211,11 +221,6 @@ function generateId() { return Date.now().toString(36) + Math.random().toString(
 function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 function getAllServicesSorted() { return [...servicesData].sort((a,b) => a.name.localeCompare(b.name)); }
 function getAllProductsSorted() { return [...productsData].sort((a,b) => a.name.localeCompare(b.name)); }
-
-function getProductImageUrl(item) {
-    if (item.image && item.image.startsWith('http')) return item.image;
-    return DEFAULT_IMAGE;
-}
 
 function getUniqueTotal() {
     let ids = new Set();
@@ -267,14 +272,11 @@ async function loadRoutinesFromSupabase() {
             savedRoutines = { "new-routine": { name: "New Routine", services: [], morning: [], evening: [] } };
         }
         
-        // 检查是否存在 "New Routine"
         const hasNewRoutine = savedRoutines["new-routine"];
-        
         const { data: stateData } = await sbClient.from('user_state').select('current_routine_id').maybeSingle();
         if (stateData && stateData.current_routine_id && savedRoutines[stateData.current_routine_id]) {
             currentRoutineId = stateData.current_routine_id;
         } else if (hasNewRoutine) {
-            // 优先选中 "New Routine"
             currentRoutineId = "new-routine";
         } else {
             currentRoutineId = Object.keys(savedRoutines)[0];
@@ -312,7 +314,7 @@ async function saveCurrentStateToSupabase() {
     try { await sbClient.from('user_state').upsert({ current_routine_id: currentRoutineId }); } catch (err) { console.error(err); }
 }
 
-// ==================== UI RENDERING with Drag & Drop and Images ====================
+// ==================== UI RENDERING with Drag & Drop ====================
 function renderCard(item, type, idx, colName) {
     let name = item.name;
     let price = item.price;
@@ -336,7 +338,6 @@ function renderCard(item, type, idx, colName) {
 }
 
 function renderAllColumns() {
-    // Services column
     let sList = document.getElementById('servicesList');
     if(sList) {
         sList.innerHTML = currentServices.map((item, idx) => {
@@ -344,8 +345,6 @@ function renderAllColumns() {
             return s ? renderCard(s, 'service', idx, 'services') : '';
         }).join('');
     }
-    
-    // Morning column
     let amList = document.getElementById('morningList');
     if(amList) {
         amList.innerHTML = currentMorningProducts.map((item, idx) => {
@@ -353,8 +352,6 @@ function renderAllColumns() {
             return p ? renderCard(p, 'product', idx, 'am') : '';
         }).join('');
     }
-    
-    // Evening column
     let pmList = document.getElementById('eveningList');
     if(pmList) {
         pmList.innerHTML = currentEveningProducts.map((item, idx) => {
@@ -362,7 +359,6 @@ function renderAllColumns() {
             return p ? renderCard(p, 'product', idx, 'pm') : '';
         }).join('');
     }
-    
     attachDragAndDelete();
     updateTotalPrice();
 }
@@ -370,7 +366,6 @@ function renderAllColumns() {
 function attachDragAndDelete() {
     let dragSource = null;
     
-    // Drag start - 记录拖拽源
     document.querySelectorAll('.product-card').forEach(card => {
         card.setAttribute('draggable', 'true');
         
@@ -392,61 +387,45 @@ function attachDragAndDelete() {
         card._dragEndHandler = (e) => {
             card.style.opacity = '';
             dragSource = null;
-            // 移除所有高亮
-            document.querySelectorAll('.product-card').forEach(c => {
-                c.classList.remove('drag-over');
-            });
+            document.querySelectorAll('.product-card').forEach(c => c.classList.remove('drag-over'));
         };
         
         card.addEventListener('dragstart', card._dragStartHandler);
         card.addEventListener('dragend', card._dragEndHandler);
         
-        // Drag over 高亮目标
         card.addEventListener('dragover', (e) => {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
             card.classList.add('drag-over');
         });
         
-        card.addEventListener('dragleave', () => {
-            card.classList.remove('drag-over');
-        });
+        card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
         
-        // Drop 事件
         card.removeEventListener('drop', card._dropHandler);
         card._dropHandler = async (e) => {
             e.preventDefault();
             e.stopPropagation();
             card.classList.remove('drag-over');
-            
             if (!dragSource) return;
+            if (dragSource.col !== card.dataset.col) return;
             
-            const targetCol = card.dataset.col;
             const targetIdx = parseInt(card.dataset.index);
-            
-            // 只允许在同一列内拖拽
-            if (dragSource.col !== targetCol) return;
             if (dragSource.idx === targetIdx) return;
             
-            // 获取对应的数据数组
             let items;
             if (dragSource.col === 'services') items = currentServices;
             else if (dragSource.col === 'am') items = currentMorningProducts;
             else if (dragSource.col === 'pm') items = currentEveningProducts;
             else return;
             
-            // 执行移动
             const [movedItem] = items.splice(dragSource.idx, 1);
             items.splice(targetIdx, 0, movedItem);
-            
-            // 重新渲染并保存
             renderAllColumns();
             await saveCurrentStateToSupabase();
         };
         card.addEventListener('drop', card._dropHandler);
     });
     
-    // 删除按钮事件
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.onclick = async () => {
             let col = btn.dataset.col;
@@ -459,19 +438,6 @@ function attachDragAndDelete() {
         };
     });
 }
-    
-    // Delete buttons
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.onclick = async () => {
-            let col = btn.dataset.col;
-            let idx = parseInt(btn.dataset.index);
-            if (col === 'services') currentServices.splice(idx, 1);
-            else if (col === 'am') currentMorningProducts.splice(idx, 1);
-            else if (col === 'pm') currentEveningProducts.splice(idx, 1);
-            renderAllColumns();
-            await saveCurrentStateToSupabase();
-        };
-    });
 
 // ==================== SEARCH DROPDOWNS ====================
 function setupSearch(inputId, suggestionsId, dataSource, onSelect) {
@@ -555,7 +521,7 @@ document.getElementById('packageSelect').addEventListener('change', async (e) =>
     }
 });
 
-// ==================== PRINT ROUTINE (HTML) ====================
+// ==================== PRINT/EMAIL ====================
 function getRoutinePrintHTML() {
     let routineName = savedRoutines[currentRoutineId]?.name || 'Skincare Routine';
     let amItems = currentMorningProducts.map(i => productsData.find(p => p.id === i.productId)).filter(p => p);
@@ -581,7 +547,6 @@ function getRoutinePrintHTML() {
 }
 function printRoutine() { let win = window.open('', '_blank'); win.document.write(getRoutinePrintHTML()); win.document.close(); win.print(); }
 
-// ==================== EMAIL ROUTINE (Plain Text) ====================
 function getRoutinePlainText() {
     let routineName = savedRoutines[currentRoutineId]?.name || 'Skincare Routine';
     let amItems = currentMorningProducts.map(i => productsData.find(p => p.id === i.productId)).filter(p => p);
@@ -611,7 +576,7 @@ function generateQuote() {
     document.getElementById('quoteRoutineName').innerText = savedRoutines[currentRoutineId]?.name || 'Current';
     let tbody = document.getElementById('quoteTableBody');
     function render() {
-        tbody.innerHTML = items.map((item,idx) => `<tr><td style="padding:0.75rem;">${escapeHtml(item.name)}</td><td style="padding:0.75rem;">${item.type}</td><td style="padding:0.75rem;">$${item.price.toFixed(2)}</td><td style="padding:0.75rem;"><input class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" style="width:60px; padding:0.3rem; border:1px solid #e2d4c6; border-radius:8px;"></td><td style="padding:0.75rem;"><input class="discount-input" data-idx="${idx}" value="${item.discount}" min="0" max="100" style="width:60px; padding:0.3rem; border:1px solid #e2d4c6; border-radius:8px;">%</td><td class="discounted" style="padding:0.75rem;">$${(item.price * item.quantity * (1 - item.discount/100)).toFixed(2)}</td></tr>`).join('');
+        tbody.innerHTML = items.map((item,idx) => `<tr><td style="padding:0.75rem;">${escapeHtml(item.name)}</td><td style="padding:0.75rem;">${item.type}</td><td style="padding:0.75rem;">$${item.price.toFixed(2)}</td><td style="padding:0.75rem;"><input class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" style="width:60px;"></td><td style="padding:0.75rem;"><input class="discount-input" data-idx="${idx}" value="${item.discount}" min="0" max="100" style="width:60px;">%</td><td>$${(item.price * item.quantity * (1 - item.discount/100)).toFixed(2)}</td></tr>`).join('');
         let subBefore=0, subAfter=0; items.forEach(i=>{ let t=i.price*i.quantity; subBefore+=t; subAfter+=t*(1-i.discount/100); });
         let tax=subAfter*0.12;
         document.getElementById('quoteTotals').innerHTML = `<p>Subtotal before: $${subBefore.toFixed(2)}</p><p style="color:#2d6a4f;">Discount: -$${(subBefore-subAfter).toFixed(2)}</p><p>Subtotal after: $${subAfter.toFixed(2)}</p><p>Tax 12%: $${tax.toFixed(2)}</p><p style="font-weight:bold;">Grand Total: $${(subAfter+tax).toFixed(2)}</p>`;
@@ -631,11 +596,9 @@ function setAdminMode(enabled) {
     document.getElementById('adminBadge').style.display = enabled ? 'inline-block' : 'none';
     document.getElementById('adminModeBtn').style.display = enabled ? 'none' : 'inline-block';
     document.getElementById('exitAdminBtn').style.display = enabled ? 'inline-block' : 'none';
-    document.getElementById('updateCurrentBtn').style.display = enabled ? 'inline-block' : 'none';
-    document.getElementById('editRoutineBtn').style.display = enabled ? 'inline-block' : 'none';
-    document.getElementById('deleteRoutineBtn').style.display = enabled ? 'inline-block' : 'none';
-    document.getElementById('saveAsNewRoutineBtn').style.display = enabled ? 'inline-block' : 'none';
-    document.getElementById('serviceAdminActions').style.display = enabled ? 'flex' : 'none';
+    document.getElementById('addButtonsRow').style.display = enabled ? 'flex' : 'none';
+    document.getElementById('routineActionsRow').style.display = enabled ? 'flex' : 'none';
+    document.getElementById('packageActionsRow').style.display = enabled ? 'flex' : 'none';
 }
 
 // ==================== INITIALIZATION ====================
@@ -658,10 +621,22 @@ async function initApp() {
     document.getElementById('emailRoutineBtn').onclick = emailRoutinePlainText;
     document.getElementById('adminModeBtn').onclick = () => { let p = prompt("Admin password:"); if(p === "admin123") setAdminMode(true); else alert("Wrong password"); };
     document.getElementById('exitAdminBtn').onclick = () => setAdminMode(false);
-    document.getElementById('updateCurrentBtn').onclick = async () => { if(currentRoutineId){ savedRoutines[currentRoutineId] = { name: savedRoutines[currentRoutineId].name, services: currentServices.map(s=>s.id), morning: currentMorningProducts.map(p=>p.productId), evening: currentEveningProducts.map(p=>p.productId) }; await saveRoutineToSupabase(currentRoutineId); alert("Routine updated."); } };
-    document.getElementById('editRoutineBtn').onclick = async () => { if(isAdminMode && currentRoutineId){ let n=prompt("New routine name:", savedRoutines[currentRoutineId]?.name); if(n){ savedRoutines[currentRoutineId].name=n; updateRoutineDropdown(); await saveRoutineToSupabase(currentRoutineId); } } else alert("Admin mode required"); };
-    document.getElementById('deleteRoutineBtn').onclick = async () => { if(isAdminMode && currentRoutineId && confirm("Delete this routine?")){ delete savedRoutines[currentRoutineId]; if(sbClient) await sbClient.from('routines').delete().eq('id', currentRoutineId); let keys=Object.keys(savedRoutines); if(keys.length) await loadRoutine(keys[0]); else { currentServices=[]; currentMorningProducts=[]; currentEveningProducts=[]; renderAllColumns(); updateTotalPrice(); } updateRoutineDropdown(); } else if(!isAdminMode) alert("Admin mode required"); };
-    document.getElementById('saveAsNewRoutineBtn').onclick = async () => { if(isAdminMode){ let n=prompt("New routine name:"); if(n){ let newId = generateId(); savedRoutines[newId] = { name: n, services: currentServices.map(s=>s.id), morning: currentMorningProducts.map(p=>p.productId), evening: currentEveningProducts.map(p=>p.productId) }; if(sbClient) await sbClient.from('routines').insert({ id: newId, name: n, services: currentServices.map(s=>s.id), morning: currentMorningProducts.map(p=>p.productId), evening: currentEveningProducts.map(p=>p.productId) }); updateRoutineDropdown(); await loadRoutine(newId); alert("New routine saved."); } } else alert("Admin mode required"); };
+    
+    // Add Service/Product
+    document.getElementById('addServiceBtn').onclick = async () => { if(isAdminMode){ let n=prompt("Service name"); if(n){ let p=parseFloat(prompt("Price")); if(!isNaN(p)){ let newId=generateId(); servicesData.push({id:newId, name:n, price:p, type:"service", benefit:"", usage:"", image:""}); if(sbClient) await sbClient.from('services').insert({id:newId, name:n, price:p}); renderAllColumns(); } } } };
+    document.getElementById('addProductBtn').onclick = async () => { if(isAdminMode){ let n=prompt("Product name"); if(n){ let p=parseFloat(prompt("Price")); if(!isNaN(p)){ let newId=generateId(); let newProduct={id:newId, name:n, brand:"Others", price:p, benefit:"", usage:"", type:"product", image:""}; productsData.push(newProduct); if(sbClient) await sbClient.from('products').insert(newProduct); renderAllColumns(); } } } };
+    
+    // Routine management buttons
+    document.getElementById('editRoutineNameBtn').onclick = async () => { if(isAdminMode && currentRoutineId){ let n=prompt("New routine name:", savedRoutines[currentRoutineId]?.name); if(n){ savedRoutines[currentRoutineId].name=n; updateRoutineDropdown(); await saveRoutineToSupabase(currentRoutineId); } } };
+    document.getElementById('deleteCurrentRoutineBtn').onclick = async () => { if(isAdminMode && currentRoutineId && confirm("Delete this routine?")){ delete savedRoutines[currentRoutineId]; if(sbClient) await sbClient.from('routines').delete().eq('id', currentRoutineId); let keys=Object.keys(savedRoutines); if(keys.length) await loadRoutine(keys[0]); else { currentServices=[]; currentMorningProducts=[]; currentEveningProducts=[]; renderAllColumns(); updateTotalPrice(); } updateRoutineDropdown(); } };
+    document.getElementById('saveAsNewRoutineBtn').onclick = async () => { if(isAdminMode){ let n=prompt("New routine name:"); if(n){ let newId=generateId(); savedRoutines[newId]={name:n, services:currentServices.map(s=>s.id), morning:currentMorningProducts.map(p=>p.productId), evening:currentEveningProducts.map(p=>p.productId)}; if(sbClient) await sbClient.from('routines').insert({id:newId, name:n, services:currentServices.map(s=>s.id), morning:currentMorningProducts.map(p=>p.productId), evening:currentEveningProducts.map(p=>p.productId)}); updateRoutineDropdown(); await loadRoutine(newId); } } };
+    document.getElementById('updateCurrentRoutineBtn').onclick = async () => { if(currentRoutineId){ savedRoutines[currentRoutineId]={name:savedRoutines[currentRoutineId].name, services:currentServices.map(s=>s.id), morning:currentMorningProducts.map(p=>p.productId), evening:currentEveningProducts.map(p=>p.productId)}; await saveRoutineToSupabase(currentRoutineId); alert("Routine updated."); } };
+    
+    // Package management buttons (same as routine for now - they share the same data structure)
+    document.getElementById('editPackageNameBtn').onclick = document.getElementById('editRoutineNameBtn').onclick;
+    document.getElementById('deleteCurrentPackageBtn').onclick = document.getElementById('deleteCurrentRoutineBtn').onclick;
+    document.getElementById('saveAsNewPackageBtn').onclick = document.getElementById('saveAsNewRoutineBtn').onclick;
+    document.getElementById('updateCurrentPackageBtn').onclick = document.getElementById('updateCurrentRoutineBtn').onclick;
 }
 
 // ==================== PAGE UNLOCK ====================
