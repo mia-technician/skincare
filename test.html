@@ -195,7 +195,8 @@
 const SUPABASE_URL = "https://dmrskyskryrdclknezth.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
 
-let supabase = null;
+// Use a different variable name to avoid conflict with CDN's global supabase
+let sbClient = null;
 let isAdminMode = false;
 let isPageUnlocked = false;
 
@@ -234,9 +235,9 @@ function updateTotalPrice() { document.getElementById('totalPrice').innerText = 
 
 // ==================== SUPABASE OPERATIONS ====================
 async function loadProductsFromSupabase() {
-    if (!supabase) return;
+    if (!sbClient) return false;
     try {
-        const { data, error } = await supabase.from('products').select('*');
+        const { data, error } = await sbClient.from('products').select('*');
         if (error) throw error;
         if (data && data.length > 0) {
             productsData = data;
@@ -262,9 +263,9 @@ async function loadProductsFromSupabase() {
 }
 
 async function loadRoutinesFromSupabase() {
-    if (!supabase) return;
+    if (!sbClient) return false;
     try {
-        const { data, error } = await supabase.from('routines').select('*');
+        const { data, error } = await sbClient.from('routines').select('*');
         if (error) throw error;
         if (data && data.length > 0) {
             savedRoutines = {};
@@ -276,7 +277,7 @@ async function loadRoutinesFromSupabase() {
         }
         
         // Load current routine from user_state
-        const { data: stateData } = await supabase.from('user_state').select('current_routine_id').maybeSingle();
+        const { data: stateData } = await sbClient.from('user_state').select('current_routine_id').maybeSingle();
         if (stateData && stateData.current_routine_id && savedRoutines[stateData.current_routine_id]) {
             currentRoutineId = stateData.current_routine_id;
         } else {
@@ -300,11 +301,11 @@ async function loadRoutinesFromSupabase() {
 }
 
 async function saveRoutineToSupabase(routineId) {
-    if (!supabase) return;
+    if (!sbClient) return;
     let routine = savedRoutines[routineId];
     if (!routine) return;
     try {
-        await supabase.from('routines').upsert({ 
+        await sbClient.from('routines').upsert({ 
             id: routineId, 
             name: routine.name, 
             services: routine.services || [],
@@ -317,7 +318,7 @@ async function saveRoutineToSupabase(routineId) {
 }
 
 async function saveCurrentStateToSupabase() {
-    if (!supabase) return;
+    if (!sbClient) return;
     if (currentRoutineId && savedRoutines[currentRoutineId]) {
         savedRoutines[currentRoutineId].services = currentServices.map(s => s.id);
         savedRoutines[currentRoutineId].morning = currentMorningProducts.map(p => p.productId);
@@ -325,7 +326,7 @@ async function saveCurrentStateToSupabase() {
         await saveRoutineToSupabase(currentRoutineId);
     }
     try {
-        await supabase.from('user_state').upsert({ current_routine_id: currentRoutineId });
+        await sbClient.from('user_state').upsert({ current_routine_id: currentRoutineId });
     } catch (err) {
         console.error('Error saving user state:', err);
     }
@@ -339,7 +340,7 @@ function renderProductLibrary() {
     }
     if(isAdminMode) {
         document.querySelectorAll('#brandProductsContainer .edit-icon').forEach(icon => { icon.onclick = () => { let p = productsData.find(p => p.id === icon.dataset.id); if(p){ let n=prompt("New name",p.name); if(n) p.name=n; let pr=parseFloat(prompt("New price",p.price)); if(!isNaN(pr)) p.price=pr; renderProductLibrary(); saveCurrentStateToSupabase(); } }; });
-        document.querySelectorAll('#brandProductsContainer .delete-icon').forEach(icon => { icon.onclick = () => { if(confirm("Delete product?")){ productsData = productsData.filter(p => p.id !== icon.dataset.id); currentMorningProducts = currentMorningProducts.filter(i => i.productId !== icon.dataset.id); currentEveningProducts = currentEveningProducts.filter(i => i.productId !== icon.dataset.id); for(let rid in savedRoutines) { savedRoutines[rid].morning = (savedRoutines[rid].morning||[]).filter(id => id !== icon.dataset.id); savedRoutines[rid].evening = (savedRoutines[rid].evening||[]).filter(id => id !== icon.dataset.id); } renderProductLibrary(); renderAllColumns(); updateTotalPrice(); saveCurrentStateToSupabase(); } }; });
+        document.querySelectorAll('#brandProductsContainer .delete-icon').forEach(icon => { icon.onclick = async () => { if(confirm("Delete product?")){ let id = icon.dataset.id; productsData = productsData.filter(p => p.id !== id); currentMorningProducts = currentMorningProducts.filter(i => i.productId !== id); currentEveningProducts = currentEveningProducts.filter(i => i.productId !== id); for(let rid in savedRoutines) { savedRoutines[rid].morning = (savedRoutines[rid].morning||[]).filter(pid => pid !== id); savedRoutines[rid].evening = (savedRoutines[rid].evening||[]).filter(pid => pid !== id); } if(sbClient) await sbClient.from('products').delete().eq('id', id); renderProductLibrary(); renderAllColumns(); updateTotalPrice(); saveCurrentStateToSupabase(); } }; });
     }
 }
 
@@ -476,7 +477,7 @@ function generateQuote() {
     document.getElementById('quoteRoutineName').innerText = savedRoutines[currentRoutineId]?.name || 'Current';
     let tbody = document.getElementById('quoteTableBody');
     function render() {
-        tbody.innerHTML = items.map((item,idx) => `<tr><td>${escapeHtml(item.name)}</td><td>${item.type}</td><td>$${item.price.toFixed(2)}</td><td><input class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" style="width:60px;"></td><td><input class="discount-input" data-idx="${idx}" value="${item.discount}" min="0" max="100" style="width:60px;">%</td><td>$${(item.price * item.quantity * (1 - item.discount/100)).toFixed(2)}</td></tr>`).join('');
+        tbody.innerHTML = items.map((item,idx) => `<tr><td style="padding:0.75rem;">${escapeHtml(item.name)}</td><td style="padding:0.75rem;">${item.type}</td><td style="padding:0.75rem;">$${item.price.toFixed(2)}</td><td style="padding:0.75rem;"><input class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" style="width:60px; padding:0.3rem; border:1px solid #e2d4c6; border-radius:8px;"></td><td style="padding:0.75rem;"><input class="discount-input" data-idx="${idx}" value="${item.discount}" min="0" max="100" style="width:60px; padding:0.3rem; border:1px solid #e2d4c6; border-radius:8px;">%</td><td class="discounted" style="padding:0.75rem;">$${(item.price * item.quantity * (1 - item.discount/100)).toFixed(2)}</td></tr>`).join('');
         let subBefore=0, subAfter=0; items.forEach(i=>{ let t=i.price*i.quantity; subBefore+=t; subAfter+=t*(1-i.discount/100); });
         let tax=subAfter*0.12;
         document.getElementById('quoteTotals').innerHTML = `<p>Subtotal before: $${subBefore.toFixed(2)}</p><p style="color:#2d6a4f;">Discount: -$${(subBefore-subAfter).toFixed(2)}</p><p>Subtotal after: $${subAfter.toFixed(2)}</p><p>Tax 12%: $${tax.toFixed(2)}</p><p style="font-weight:bold;">Grand Total: $${(subAfter+tax).toFixed(2)}</p>`;
@@ -507,11 +508,12 @@ function setAdminMode(enabled) {
 
 // ==================== INITIALIZATION ====================
 async function initApp() {
+    // Wait for supabase CDN to load
     if (typeof supabase === 'undefined') {
         setTimeout(initApp, 500);
         return;
     }
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     document.getElementById('authStatus').innerHTML = '✅ Connected to database';
     await loadProductsFromSupabase();
     await loadRoutinesFromSupabase();
@@ -529,12 +531,12 @@ async function initApp() {
     document.getElementById('loadPackageBtn').onclick = loadMicroneedlingPackage;
     document.getElementById('adminModeBtn').onclick = () => { let p = prompt("Admin password:"); if(p === "admin123") setAdminMode(true); else alert("Wrong password"); };
     document.getElementById('exitAdminBtn').onclick = () => setAdminMode(false);
-    document.getElementById('addProductBtn').onclick = async () => { if(isAdminMode){ let n=prompt("Product name"); if(n){ let p=parseFloat(prompt("Price")); if(!isNaN(p)){ let newId = generateId(); let newProduct = {id:newId, name:n, brand:"Others", price:p, benefit:"", usage:"", type:"product"}; productsData.push(newProduct); if(supabase) await supabase.from('products').insert(newProduct); renderProductLibrary(); } } } else alert("Admin mode required"); };
+    document.getElementById('addProductBtn').onclick = async () => { if(isAdminMode){ let n=prompt("Product name"); if(n){ let p=parseFloat(prompt("Price")); if(!isNaN(p)){ let newId = generateId(); let newProduct = {id:newId, name:n, brand:"Others", price:p, benefit:"", usage:"", type:"product"}; productsData.push(newProduct); if(sbClient) await sbClient.from('products').insert(newProduct); renderProductLibrary(); } } } else alert("Admin mode required"); };
     document.getElementById('saveAsPackageBtn').onclick = () => { if(isAdminMode){ alert("Package save feature - would save current combo."); } else alert("Admin mode required"); };
     document.getElementById('updateCurrentBtn').onclick = async () => { if(currentRoutineId){ savedRoutines[currentRoutineId] = { name: savedRoutines[currentRoutineId].name, services: currentServices.map(s=>s.id), morning: currentMorningProducts.map(p=>p.productId), evening: currentEveningProducts.map(p=>p.productId) }; await saveRoutineToSupabase(currentRoutineId); alert("Routine updated."); } };
     document.getElementById('editRoutineBtn').onclick = async () => { if(isAdminMode && currentRoutineId){ let n=prompt("New routine name:", savedRoutines[currentRoutineId]?.name); if(n){ savedRoutines[currentRoutineId].name=n; updateRoutineDropdown(); await saveRoutineToSupabase(currentRoutineId); } } else alert("Admin mode required"); };
-    document.getElementById('deleteRoutineBtn').onclick = async () => { if(isAdminMode && currentRoutineId && confirm("Delete this routine?")){ delete savedRoutines[currentRoutineId]; if(supabase) await supabase.from('routines').delete().eq('id', currentRoutineId); let keys=Object.keys(savedRoutines); if(keys.length) await loadRoutine(keys[0]); else { currentServices=[]; currentMorningProducts=[]; currentEveningProducts=[]; renderAllColumns(); updateTotalPrice(); } updateRoutineDropdown(); } else if(!isAdminMode) alert("Admin mode required"); };
-    document.getElementById('saveAsNewRoutineBtn').onclick = async () => { if(isAdminMode){ let n=prompt("New routine name:"); if(n){ let newId = generateId(); savedRoutines[newId] = { name: n, services: currentServices.map(s=>s.id), morning: currentMorningProducts.map(p=>p.productId), evening: currentEveningProducts.map(p=>p.productId) }; if(supabase) await supabase.from('routines').insert({ id: newId, name: n, services: currentServices.map(s=>s.id), morning: currentMorningProducts.map(p=>p.productId), evening: currentEveningProducts.map(p=>p.productId) }); updateRoutineDropdown(); await loadRoutine(newId); alert("New routine saved."); } } else alert("Admin mode required"); };
+    document.getElementById('deleteRoutineBtn').onclick = async () => { if(isAdminMode && currentRoutineId && confirm("Delete this routine?")){ delete savedRoutines[currentRoutineId]; if(sbClient) await sbClient.from('routines').delete().eq('id', currentRoutineId); let keys=Object.keys(savedRoutines); if(keys.length) await loadRoutine(keys[0]); else { currentServices=[]; currentMorningProducts=[]; currentEveningProducts=[]; renderAllColumns(); updateTotalPrice(); } updateRoutineDropdown(); } else if(!isAdminMode) alert("Admin mode required"); };
+    document.getElementById('saveAsNewRoutineBtn').onclick = async () => { if(isAdminMode){ let n=prompt("New routine name:"); if(n){ let newId = generateId(); savedRoutines[newId] = { name: n, services: currentServices.map(s=>s.id), morning: currentMorningProducts.map(p=>p.productId), evening: currentEveningProducts.map(p=>p.productId) }; if(sbClient) await sbClient.from('routines').insert({ id: newId, name: n, services: currentServices.map(s=>s.id), morning: currentMorningProducts.map(p=>p.productId), evening: currentEveningProducts.map(p=>p.productId) }); updateRoutineDropdown(); await loadRoutine(newId); alert("New routine saved."); } } else alert("Admin mode required"); };
 }
 
 // ==================== PAGE UNLOCK ====================
