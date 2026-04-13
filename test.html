@@ -1604,9 +1604,9 @@ function generateQuote() {
                     
 <td style="padding: 0.5rem; border-bottom: 1px solid #e7dbd0;">
     <div style="display: flex; gap: 0.3rem; align-items: center;">
-        <input type="number" class="discount-percent" data-idx="${idx}" value="${item.discountType === '%' && item.discountValue > 0 ? item.discountValue : ''}" min="0" max="100" step="1" placeholder="% off" style="width: 65px; padding: 0.35rem; border: 1px solid #e2d4c6; border-radius: 6px; text-align: center; font-size: 0.75rem;">
+        <input type="number" class="discount-percent" data-idx="${idx}" value="${item.discountType === '%' && item.discountValue > 0 ? item.discountValue : ''}" min="0" max="100" step="1" placeholder="0" style="width: 65px; padding: 0.35rem; border: 1px solid #e2d4c6; border-radius: 6px; text-align: center; font-size: 0.75rem;">
         <span style="color: #d2c0b0; font-size: 0.7rem;">% off / $</span>
-        <input type="number" class="discount-fixed" data-idx="${idx}" value="${item.discountType === 'fixed' && item.discountValue > 0 ? item.discountValue : ''}" min="0" step="1" placeholder="$ off" style="width: 65px; padding: 0.35rem; border: 1px solid #e2d4c6; border-radius: 6px; text-align: center; font-size: 0.75rem;">
+        <input type="number" class="discount-fixed" data-idx="${idx}" value="${item.discountType === 'fixed' && item.discountValue > 0 ? item.discountValue : ''}" min="0" step="1" placeholder="0" style="width: 65px; padding: 0.35rem; border: 1px solid #e2d4c6; border-radius: 6px; text-align: center; font-size: 0.75rem;">
         <span style="color: #d2c0b0; font-size: 0.7rem;">off</span>
     </div>
 </td>
