@@ -1604,9 +1604,9 @@ function generateQuote() {
                     
 <td style="padding: 0.5rem; border-bottom: 1px solid #e7dbd0;">
     <div style="display: flex; gap: 0.3rem; align-items: center;">
-        <input type="number" class="discount-percent" data-idx="${idx}" value="${item.discountType === '%' ? item.discountValue : 0}" min="0" max="100" step="1" placeholder="% off" style="width: 70px; padding: 0.4rem 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center; font-size: 0.75rem;">
+        <input type="number" class="discount-percent" data-idx="${idx}" value="${item.discountType === '%' && item.discountValue > 0 ? item.discountValue : ''}" min="0" max="100" step="1" placeholder="% off" style="width: 65px; padding: 0.35rem; border: 1px solid #e2d4c6; border-radius: 6px; text-align: center; font-size: 0.75rem;">
+        <input type="number" class="discount-fixed" data-idx="${idx}" value="${item.discountType === 'fixed' && item.discountValue > 0 ? item.discountValue : ''}" min="0" step="1" placeholder="$ off" style="width: 65px; padding: 0.35rem; border: 1px solid #e2d4c6; border-radius: 6px; text-align: center; font-size: 0.75rem;">
         <span style="color: #d2c0b0; font-size: 0.7rem;">/</span>
-        <input type="number" class="discount-fixed" data-idx="${idx}" value="${item.discountType === 'fixed' ? item.discountValue : 0}" min="0" step="1" placeholder="$ off" style="width: 70px; padding: 0.4rem 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center; font-size: 0.75rem;">
     </div>
 </td>
 
@@ -1642,24 +1642,32 @@ function handleQuantityChange(e) {
 
 function handlePercentChange(e) {
     const idx = parseInt(e.target.dataset.idx);
-    const percentValue = parseFloat(e.target.value) || 0;
+    let percentValue = parseFloat(e.target.value);
+    // 如果输入为空或无效，设为 0
+    if (isNaN(percentValue) || e.target.value === '') {
+        percentValue = 0;
+    }
     quoteItems[idx].discountType = '%';
     quoteItems[idx].discountValue = percentValue;
     // 清空固定金额输入框
     const fixedInput = document.querySelector(`.discount-fixed[data-idx="${idx}"]`);
-    if (fixedInput) fixedInput.value = 0;
+    if (fixedInput) fixedInput.value = '';
     updateQuoteTotals(quoteItems);
     renderQuoteTable();
 }
 
 function handleFixedChange(e) {
     const idx = parseInt(e.target.dataset.idx);
-    const fixedValue = parseFloat(e.target.value) || 0;
+    let fixedValue = parseFloat(e.target.value);
+    // 如果输入为空或无效，设为 0
+    if (isNaN(fixedValue) || e.target.value === '') {
+        fixedValue = 0;
+    }
     quoteItems[idx].discountType = 'fixed';
     quoteItems[idx].discountValue = fixedValue;
     // 清空百分比输入框
     const percentInput = document.querySelector(`.discount-percent[data-idx="${idx}"]`);
-    if (percentInput) percentInput.value = 0;
+    if (percentInput) percentInput.value = '';
     // 额度折扣时不能超过原价
     if (quoteItems[idx].discountValue > quoteItems[idx].price) {
         quoteItems[idx].discountValue = quoteItems[idx].price;
