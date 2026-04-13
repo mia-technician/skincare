@@ -39,7 +39,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Skincare Routine Builder</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="sheet">
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -161,6 +161,71 @@
         .print-btn { background: #e9dfd4; }
         .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
         @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } }
+
+        /* 可搜索下拉菜单样式 */
+.searchable-select {
+    position: relative;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+.searchable-select input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px dashed #d2c0b0;
+    border-radius: 18px;
+    background: rgba(233, 223, 212, 0.3);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #5f5347;
+}
+.searchable-select input:focus {
+    outline: none;
+    border-color: #b99f87;
+    background: white;
+}
+.searchable-select .dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 280px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #e2d4c6;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 100;
+    display: none;
+}
+.searchable-select .dropdown-list.show {
+    display: block;
+}
+.searchable-select .dropdown-item {
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f0e8e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+}
+.searchable-select .dropdown-item:hover {
+    background: #f5efe9;
+}
+.searchable-select .dropdown-item .item-name {
+    font-weight: 500;
+    color: #5f5347;
+}
+.searchable-select .dropdown-item .item-brand {
+    font-size: 0.7rem;
+    color: #b99f87;
+}
+.searchable-select .dropdown-item .item-price {
+    font-size: 0.75rem;
+    color: #8f7e6b;
+}
+        
     </style>
 </head>
 <body>
@@ -902,19 +967,116 @@ function attachReorderDrag(containerId, itemsArray, updateCallback) {
     });
 }
 
+// 创建可搜索下拉菜单
+function createSearchableSelect(timeOfDay, containerElement) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'searchable-select';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = timeOfDay === 'morning' ? '🔍 搜索并添加到晨间 routine 底部...' : '🔍 搜索并添加到晚间 routine 底部...';
+    input.autocomplete = 'off';
+    
+    const dropdown = document.createElement('div');
+    dropdown.className = 'dropdown-list';
+    
+    wrapper.appendChild(input);
+    wrapper.appendChild(dropdown);
+    containerElement.appendChild(wrapper);
+    
+    let allProducts = [...productsData];
+    allProducts.sort((a, b) => a.name.localeCompare(b.name));
+    
+    function renderDropdownItems(searchTerm = '') {
+        const term = searchTerm.toLowerCase().trim();
+        let filtered = allProducts;
+        if (term) {
+            filtered = allProducts.filter(p => 
+                p.name.toLowerCase().includes(term) || 
+                (p.brand && p.brand.toLowerCase().includes(term))
+            );
+        }
+        
+        if (filtered.length === 0) {
+            dropdown.innerHTML = '<div class="dropdown-item" style="justify-content:center; color:#b7a99a;">未找到产品</div>';
+            return;
+        }
+        
+        dropdown.innerHTML = filtered.map(p => `
+            <div class="dropdown-item" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" 
+                 data-product-brand="${escapeHtml(p.brand || '')}" data-product-price="${p.price}">
+                <div>
+                    <div class="item-name">${escapeHtml(p.name)}</div>
+                    <div class="item-brand">${escapeHtml(p.brand || '')}</div>
+                </div>
+                <div class="item-price">$${p.price}</div>
+            </div>
+        `).join('');
+        
+        dropdown.querySelectorAll('.dropdown-item').forEach(item => {
+            item.onclick = (e) => {
+                e.stopPropagation();
+                const productId = item.dataset.productId;
+                const product = getProductById(productId);
+                if (product) {
+                    if (timeOfDay === 'morning') {
+                        currentMorningProducts.push({ productId: product.id, time: 'morning' });
+                    } else {
+                        currentEveningProducts.push({ productId: product.id, time: 'evening' });
+                    }
+                    renderRoutines();
+                    updateTotalPrice();
+                    saveToLocalStorage();
+                    // 仅保存到本地，不触发云同步
+                }
+                input.value = '';
+                dropdown.classList.remove('show');
+            };
+        });
+    }
+    
+    input.onfocus = () => {
+        renderDropdownItems('');
+        dropdown.classList.add('show');
+    };
+    
+    input.oninput = (e) => {
+        renderDropdownItems(e.target.value);
+        dropdown.classList.add('show');
+    };
+    
+    document.addEventListener('click', function(e) {
+        if (!wrapper.contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
+    
+    // 监听产品库更新
+    const observer = new MutationObserver(() => {
+        allProducts = [...productsData];
+        allProducts.sort((a, b) => a.name.localeCompare(b.name));
+        if (dropdown.classList.contains('show') && input.value !== undefined) {
+            renderDropdownItems(input.value);
+        }
+    });
+    observer.observe(document.getElementById('brandProductsContainer') || document.body, { childList: true, subtree: true });
+}
+    
 function renderRoutines() {
     let morningContainer = document.getElementById('morningList');
     let eveningContainer = document.getElementById('eveningList');
     
     if (morningContainer) {
-        let morningHtml = `<div class="empty-slot" data-time="morning" data-index="0">+ Drop product here to add at top</div>`;
-        morningHtml += currentMorningProducts.map((item, idx) => renderCard(item.productId, idx, 'morning')).join('');
+        let morningHtml = currentMorningProducts.map((item, idx) => renderCard(item.productId, idx, 'morning')).join('');
         morningContainer.innerHTML = morningHtml;
+        // 添加搜索下拉菜单
+        createSearchableSelect('morning', morningContainer);
     }
     if (eveningContainer) {
-        let eveningHtml = `<div class="empty-slot" data-time="evening" data-index="0">+ Drop product here to add at top</div>`;
-        eveningHtml += currentEveningProducts.map((item, idx) => renderCard(item.productId, idx, 'evening')).join('');
+        let eveningHtml = currentEveningProducts.map((item, idx) => renderCard(item.productId, idx, 'evening')).join('');
         eveningContainer.innerHTML = eveningHtml;
+        // 添加搜索下拉菜单
+        createSearchableSelect('evening', eveningContainer);
     }
     
     document.querySelectorAll('#morningList .product-card').forEach((card, newIdx) => { card.dataset.index = newIdx; });
@@ -930,7 +1092,6 @@ function renderRoutines() {
     attachDropEvents('morningList', 'morning');
     attachDropEvents('eveningList', 'evening');
     attachDeleteEvents();
-    attachEmptySlotEvents();
 }
 
 function renderCard(pid, idx, time) { 
