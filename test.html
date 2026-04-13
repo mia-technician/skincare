@@ -225,6 +225,147 @@
     font-size: 0.75rem;
     color: #8f7e6b;
 }
+
+        /* Quote 按钮样式 */
+.quote-button-container {
+    margin: 1.5rem 0 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+.quote-btn {
+    background: #b99f87;
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+.quote-btn:hover {
+    background: #9f8468;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Quote 弹窗样式 */
+.quote-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.quote-modal.show {
+    display: flex;
+}
+.quote-content {
+    background: white;
+    border-radius: 28px;
+    max-width: 900px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 2rem;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+.quote-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e2d4c6;
+}
+.quote-header h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.5rem;
+    color: #7f6e5d;
+}
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: #b7a99a;
+}
+.quote-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.quote-table th, .quote-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e7dbd0;
+}
+.quote-table th {
+    background: #f5efe8;
+    font-weight: 600;
+    color: #5f5347;
+}
+.quote-table input {
+    width: 70px;
+    padding: 0.3rem;
+    border: 1px solid #e2d4c6;
+    border-radius: 8px;
+    text-align: center;
+}
+.quote-table input:focus {
+    outline: none;
+    border-color: #b99f87;
+}
+.discount-input {
+    width: 80px;
+    padding: 0.3rem;
+    border: 1px solid #e2d4c6;
+    border-radius: 8px;
+    text-align: center;
+}
+.quote-totals {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 2px solid #e2d4c6;
+    text-align: right;
+}
+.quote-totals p {
+    margin: 0.5rem 0;
+}
+.savings {
+    color: #2d6a4f;
+    font-weight: 600;
+}
+.quote-footer {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+.print-quote-btn, .email-quote-btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 40px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+.print-quote-btn {
+    background: #e9dfd4;
+    color: #5f5347;
+}
+.email-quote-btn {
+    background: #b99f87;
+    color: white;
+}
+@media print { .quote-modal { position: static; display: block !important; background: white; } .quote-content { padding: 0; max-height: none; overflow: visible; } }
         
     </style>
 </head>
@@ -294,6 +435,56 @@
             <div class="total-label">TOTAL VALUE (Unique Products)</div>
             <div class="total-amount">$<span id="totalPrice">0.00</span></div>
         </div>
+
+        <!-- Quote 按钮 -->
+<div class="quote-button-container">
+    <button class="quote-btn" id="quoteBtn">📄 Generate Quote</button>
+</div>
+
+<!-- Quote 弹窗 -->
+<div id="quoteModal" class="quote-modal">
+    <div class="quote-content">
+        <div class="quote-header">
+            <h2>📋 Price Quote</h2>
+            <button class="close-modal" id="closeModalBtn">&times;</button>
+        </div>
+        <div style="margin-bottom: 1rem; font-size: 0.85rem; color: #8f7e6b;">
+            <strong>Routine:</strong> <span id="quoteRoutineName"></span>
+        </div>
+        <table class="quote-table" id="quoteTable">
+            <thead>
+                <tr><th>Product</th><th>Unit Price</th><th>Quantity</th><th>Discount (%)</th><th>Discounted Price</th</tr>
+            </thead>
+            <tbody id="quoteTableBody"></tbody>
+        </table>
+        <div class="quote-totals" id="quoteTotals">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>💰 Subtotal (Before Discount):</span>
+                <span>$<span id="subtotalBeforeDiscount">0.00</span></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #2d6a4f;">
+                <span>🏷️ Total Discount:</span>
+                <span>-$<span id="totalDiscountAmount">0.00</span></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; border-bottom: 1px dashed #e2d4c6; padding-bottom: 0.5rem;">
+                <span>✨ Subtotal (After Discount):</span>
+                <span>$<span id="subtotalAfterDiscount">0.00</span></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>📋 Tax (12%):</span>
+                <span>$<span id="taxAmount">0.00</span></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 2px solid #e2d4c6; font-size: 1.1rem; font-weight: bold;">
+                <span>💵 Grand Total:</span>
+                <span>$<span id="grandTotal">0.00</span></span>
+            </div>
+        </div>
+        <div class="quote-footer">
+            <button class="print-quote-btn" id="printQuoteBtn">🖨️ Print Quote</button>
+            <button class="email-quote-btn" id="emailQuoteBtn">📧 Email Quote</button>
+        </div>
+    </div>
+</div>
         
         <div class="action-buttons-bottom">
             <div id="authButtons" style="display: none; gap: 1rem; flex-wrap: wrap;">
@@ -1310,6 +1501,198 @@ function refreshUI() {
     updateUIBasedOnAuth();
 }
 
+    // ==================== Quote 功能（无需登录，完全本地使用）====================
+function generateQuote() {
+    // 获取所有唯一产品（去重）- 直接从当前页面数据获取
+    const allProducts = [...currentMorningProducts, ...currentEveningProducts];
+    const productMap = new Map();
+    
+    for (const item of allProducts) {
+        if (!productMap.has(item.productId)) {
+            const product = getProductById(item.productId);
+            if (product) {
+                productMap.set(item.productId, {
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    discount: 0
+                });
+            }
+        }
+    }
+    
+    const quoteItems = Array.from(productMap.values());
+    
+    if (quoteItems.length === 0) {
+        alert('No products in your routine. Please add products first.');
+        return;
+    }
+    
+    const modal = document.getElementById('quoteModal');
+    const routineNameSpan = document.getElementById('quoteRoutineName');
+    const tableBody = document.getElementById('quoteTableBody');
+    
+    routineNameSpan.textContent = savedRoutines[currentRoutineId]?.name || 'Current Routine';
+    
+    function renderQuoteTable() {
+        tableBody.innerHTML = quoteItems.map((item, idx) => `
+            <tr>
+                <td>${escapeHtml(item.name)}</td>
+                <td>$${item.price.toFixed(2)}</td>
+                <td><input type="number" class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" step="1"></td>
+                <td><input type="number" class="discount-input" data-idx="${idx}" value="${item.discount}" min="0" max="100" step="1">%</td>
+                <td class="discounted-price">$${(item.price * item.quantity * (1 - item.discount / 100)).toFixed(2)}</td>
+            </tr>
+        `).join('');
+        
+        document.querySelectorAll('.qty-input').forEach(input => {
+            input.removeEventListener('change', handleQuantityChange);
+            input.addEventListener('change', handleQuantityChange);
+        });
+        
+        document.querySelectorAll('.discount-input').forEach(input => {
+            input.removeEventListener('change', handleDiscountChange);
+            input.addEventListener('change', handleDiscountChange);
+        });
+        
+        function handleQuantityChange(e) {
+            const idx = parseInt(e.target.dataset.idx);
+            quoteItems[idx].quantity = parseInt(e.target.value) || 1;
+            updateQuoteTotals(quoteItems);
+            renderQuoteTable();
+        }
+        
+        function handleDiscountChange(e) {
+            const idx = parseInt(e.target.dataset.idx);
+            quoteItems[idx].discount = parseFloat(e.target.value) || 0;
+            updateQuoteTotals(quoteItems);
+            renderQuoteTable();
+        }
+        
+        updateQuoteTotals(quoteItems);
+    }
+    
+    function updateQuoteTotals(items) {
+        let subtotalBeforeDiscount = 0;
+        let subtotalAfterDiscount = 0;
+        
+        for (const item of items) {
+            const itemTotal = item.price * item.quantity;
+            subtotalBeforeDiscount += itemTotal;
+            subtotalAfterDiscount += itemTotal * (1 - item.discount / 100);
+        }
+        
+        const totalDiscountAmount = subtotalBeforeDiscount - subtotalAfterDiscount;
+        const tax = subtotalAfterDiscount * 0.12;
+        const grandTotal = subtotalAfterDiscount + tax;
+        
+        document.getElementById('subtotalBeforeDiscount').innerText = subtotalBeforeDiscount.toFixed(2);
+        document.getElementById('totalDiscountAmount').innerText = totalDiscountAmount.toFixed(2);
+        document.getElementById('subtotalAfterDiscount').innerText = subtotalAfterDiscount.toFixed(2);
+        document.getElementById('taxAmount').innerText = tax.toFixed(2);
+        document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
+        
+        window.currentQuoteData = { 
+            items, 
+            subtotalBeforeDiscount,
+            totalDiscountAmount,
+            subtotalAfterDiscount,
+            tax, 
+            grandTotal, 
+            routineName: savedRoutines[currentRoutineId]?.name 
+        };
+    }
+    
+    renderQuoteTable();
+    modal.classList.add('show');
+}
+
+function printQuote() {
+    const data = window.currentQuoteData;
+    if (!data) {
+        alert('No quote data to print.');
+        return;
+    }
+    
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Price Quote</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Inter', sans-serif; padding: 0.5in; background: white; }
+            .quote-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2d4c6; padding-bottom: 20px; }
+            .quote-header h1 { font-size: 28px; color: #7f6e5d; margin-bottom: 8px; }
+            .quote-date { font-size: 11px; color: #ccbeaf; margin-top: 5px; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e7dbd0; }
+            th { background: #f5efe8; font-weight: 600; }
+            .totals { text-align: right; margin-top: 20px; padding-top: 20px; border-top: 2px solid #e2d4c6; }
+            .totals p { margin: 8px 0; }
+            .savings { color: #2d6a4f; font-weight: 600; }
+            .grand-total { font-size: 18px; font-weight: bold; }
+            @media print { body { padding: 0; } }
+        </style>
+    </head>
+    <body>
+        <div class="quote-header">
+            <h1>Price Quote</h1>
+            <div class="quote-date">Generated on ${new Date().toLocaleDateString()}</div>
+            <p style="margin-top: 10px;"><strong>Routine:</strong> ${escapeHtml(data.routineName || 'Skincare Routine')}</p>
+        </div>
+        <table>
+            <thead><tr><th>Product</th><th>Unit Price</th><th>Quantity</th><th>Discount</th><th>Total</th></tr></thead>
+            <tbody>
+                ${data.items.map(item => `
+                    <tr>
+                        <td>${escapeHtml(item.name)}</td>
+                        <td>$${item.price.toFixed(2)}</td>
+                        <td>${item.quantity}</td>
+                        <td>${item.discount}%</td>
+                        <td>$${(item.price * item.quantity * (1 - item.discount / 100)).toFixed(2)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        <div class="totals">
+            <p>💰 Subtotal (Before Discount): $${data.subtotalBeforeDiscount.toFixed(2)}</p>
+            <p class="savings">🏷️ Total Discount: -$${data.totalDiscountAmount.toFixed(2)}</p>
+            <p>✨ Subtotal (After Discount): $${data.subtotalAfterDiscount.toFixed(2)}</p>
+            <p>📋 Tax (12%): $${data.tax.toFixed(2)}</p>
+            <p class="grand-total">💵 Grand Total: $${data.grandTotal.toFixed(2)}</p>
+        </div>
+    </body>
+    </html>`);
+    win.document.close();
+    win.print();
+}
+
+function emailQuote() {
+    const data = window.currentQuoteData;
+    if (!data) {
+        alert('No quote data to email.');
+        return;
+    }
+    
+    let emailBody = `Price Quote\n\n`;
+    emailBody += `Routine: ${data.routineName || 'Skincare Routine'}\n`;
+    emailBody += `Generated on: ${new Date().toLocaleDateString()}\n\n`;
+    emailBody += `Products:\n`;
+    for (const item of data.items) {
+        emailBody += `- ${item.name}: $${item.price.toFixed(2)} x ${item.quantity} (${item.discount}% off) = $${(item.price * item.quantity * (1 - item.discount / 100)).toFixed(2)}\n`;
+    }
+    emailBody += `\n💰 Subtotal (Before Discount): $${data.subtotalBeforeDiscount.toFixed(2)}\n`;
+    emailBody += `🏷️ Total Discount: -$${data.totalDiscountAmount.toFixed(2)}\n`;
+    emailBody += `✨ Subtotal (After Discount): $${data.subtotalAfterDiscount.toFixed(2)}\n`;
+    emailBody += `📋 Tax (12%): $${data.tax.toFixed(2)}\n`;
+    emailBody += `💵 Grand Total: $${data.grandTotal.toFixed(2)}\n`;
+    
+    window.location.href = `mailto:?subject=Skincare Quote&body=${encodeURIComponent(emailBody)}`;
+}
+    
 // 按钮绑定
 document.getElementById('toggleAddBtn').onclick = () => { 
     document.getElementById('editProductId').value = ''; 
@@ -1331,6 +1714,21 @@ document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
 document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutine;
 document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
 document.getElementById('syncAllBtn').onclick = forceSyncAllToCloud;
+
+    // Quote 按钮绑定
+document.getElementById('quoteBtn').onclick = generateQuote;
+document.getElementById('closeModalBtn').onclick = () => {
+    document.getElementById('quoteModal').classList.remove('show');
+};
+document.getElementById('printQuoteBtn').onclick = printQuote;
+document.getElementById('emailQuoteBtn').onclick = emailQuote;
+
+// 点击弹窗背景关闭
+document.getElementById('quoteModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('quoteModal')) {
+        document.getElementById('quoteModal').classList.remove('show');
+    }
+});
 
 // ==================== 启动应用 ====================
 async function initApp() {
