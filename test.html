@@ -1,11 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skincare Routine Builder</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+<script>
+(function(){
+    // 设置您想要的访问密码
+    var ACCESS_PASSWORD = 'laser2024';  // 请修改为您的密码
+    
+    // 检查 localStorage 中的认证标记及其时间戳
+    var auth = localStorage.getItem('page_authenticated');
+    var authTime = localStorage.getItem('page_auth_time');
+    var now = Date.now();
+    var SESSION_DURATION = 24 * 60 * 60 * 1000; // 24小时有效（可根据需要调整，例如 8*3600000 为8小时）
+    
+    // 如果认证标记存在且未超时，则允许直接访问
+    if (auth === 'true' && authTime && (now - parseInt(authTime)) < SESSION_DURATION) {
+        // 有效期内，直接显示页面，无需再次输入密码
+    } else {
+        // 标记不存在或已过期，需要验证密码
+        var pwd = prompt('此页面受密码保护，请输入访问密码：');
+        if (pwd !== ACCESS_PASSWORD) {
+            document.body.innerHTML = '<div style="text-align:center; margin-top:20vh; font-family:sans-serif;"><h2>🔒 访问被拒绝</h2><p>密码错误，无法查看页面内容。</p></div>';
+            throw new Error('Authentication failed');
+        } else {
+            // 密码正确，存储认证标记和当前时间
+            localStorage.setItem('page_authenticated', 'true');
+            localStorage.setItem('page_auth_time', now.toString());
+            // 刷新页面以正常加载
+            location.reload();
+        }
+    }
+})();
+</script>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Skincare Routine Builder</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f5efe9; font-family: 'Inter', sans-serif; padding: 2rem 1rem; }
@@ -14,10 +49,51 @@
         .ritual-header { text-align: center; margin-bottom: 2rem; }
         .ritual-header h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 1.8rem; color: #7f6e5d; text-transform: uppercase; }
         .ritual-header p { font-size: 0.85rem; color: #b7a99a; margin-top: 0.5rem; }
-        .auth-section { background: #fff9f2; border-radius: 24px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid #e7dbd0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .auth-status { font-size: 0.85rem; color: #8f7e6b; }
-        .auth-btn { background: #b99f87; color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
-        .auth-btn-outline { background: transparent; border: 1px solid #d2c0b0; color: #5f5347; }
+        
+        /* 密码验证区域 */
+        .password-section {
+            background: #fff9f2;
+            border-radius: 24px;
+            padding: 0.8rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e7dbd0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .password-status {
+            font-size: 0.85rem;
+            color: #8f7e6b;
+        }
+        .password-input-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .password-input-group input {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2d4c6;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            width: 150px;
+        }
+        .password-btn {
+            background: #b99f87;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .password-btn-outline {
+            background: transparent;
+            border: 1px solid #d2c0b0;
+            color: #5f5347;
+        }
+        
         .routine-selector-bar { background: #fff9f2; border-radius: 24px; padding: 1.2rem 1.5rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
         .selector-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
         .selector-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
@@ -68,151 +144,11 @@
         .product-name { font-size: 0.9rem; font-weight: 600; color: #5f5347; }
         .product-price { font-size: 0.75rem; color: #b99f87; margin-left: 0.3rem; }
         .benefit { font-size: 0.7rem; color: #b7a99a; margin-top: 2px; }
-        .usage { font-size: 0.65rem; color: #8e7e6e; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+        .usage { font-size: 0.65rem; color: #8e7e6e; margin-top: 3px; display: flex; align-items: flex-start; gap: 4px; white-space: normal; word-wrap: break-word; line-height: 1.4; }
         .drag-handle { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #d2c0b0; cursor: grab; flex-shrink: 0; }
         .drag-handle:active { cursor: grabbing; }
         .morning-icon .icon-hand::before { content: "☀️"; font-size: 0.8rem; margin-right: 3px; }
         .evening-icon .icon-hand::before { content: "☾"; font-size: 0.8rem; margin-right: 3px; }
-        
-        /* Quote 按钮样式 */
-        .quote-button-container {
-            margin: 1.5rem 0 1rem;
-            display: flex;
-            justify-content: flex-end;
-        }
-        .quote-btn {
-            background: #b99f87;
-            color: white;
-            border: none;
-            padding: 0.8rem 2rem;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
-        }
-        .quote-btn:hover {
-            background: #9f8468;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        
-        /* Quote 弹窗样式 */
-        .quote-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .quote-modal.show {
-            display: flex;
-        }
-        .quote-content {
-            background: white;
-            border-radius: 28px;
-            max-width: 900px;
-            width: 90%;
-            max-height: 85vh;
-            overflow-y: auto;
-            padding: 2rem;
-            position: relative;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        }
-        .quote-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #e2d4c6;
-        }
-        .quote-header h2 {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1.5rem;
-            color: #7f6e5d;
-        }
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 1.8rem;
-            cursor: pointer;
-            color: #b7a99a;
-        }
-        .quote-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .quote-table th, .quote-table td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #e7dbd0;
-        }
-        .quote-table th {
-            background: #f5efe8;
-            font-weight: 600;
-            color: #5f5347;
-        }
-        .quote-table input {
-            width: 70px;
-            padding: 0.3rem;
-            border: 1px solid #e2d4c6;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .quote-table input:focus {
-            outline: none;
-            border-color: #b99f87;
-        }
-        .discount-input {
-            width: 80px;
-            padding: 0.3rem;
-            border: 1px solid #e2d4c6;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .quote-totals {
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 2px solid #e2d4c6;
-            text-align: right;
-        }
-        .quote-totals p {
-            margin: 0.5rem 0;
-        }
-        .savings {
-            color: #2d6a4f;
-            font-weight: 600;
-        }
-        .quote-footer {
-            margin-top: 1.5rem;
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-        }
-        .print-quote-btn, .email-quote-btn {
-            padding: 0.6rem 1.2rem;
-            border-radius: 40px;
-            border: none;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-        .print-quote-btn {
-            background: #e9dfd4;
-            color: #5f5347;
-        }
-        .email-quote-btn {
-            background: #b99f87;
-            color: white;
-        }
         .total-bar { padding: 1rem 1.3rem; background: #e9dfd4; border-radius: 20px; margin: 1.5rem 0 1rem; display: flex; justify-content: space-between; align-items: center; }
         .total-label { font-weight: 500; color: #5f5347; }
         .total-amount { font-size: 1.8rem; font-weight: 600; color: #8f7e6b; }
@@ -224,8 +160,7 @@
         .sync-all-btn { background: #b99f87; color: white; border-color: #b99f87; }
         .print-btn { background: #e9dfd4; }
         .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
-        @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } .quote-table { font-size: 0.8rem; } }
-        @media print { .product-library, .routine-selector-bar, .print-btn, .save-standard-btn, .sync-all-btn, .delete-current-btn, .delete-btn, .total-bar, .action-buttons-bottom, .quote-button-container, .close-modal, .quote-footer, .auth-section { display: none !important; } .quote-modal { position: static; display: block !important; background: white; } .quote-content { padding: 0; max-height: none; overflow: visible; } }
+        @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -233,14 +168,16 @@
     <div class="app-container">
         <div class="ritual-header">
             <h1>Skincare Routine Builder</h1>
-            <p>drag to customize · login to save to cloud</p>
+            <p>drag to customize · enter password to save to cloud</p>
         </div>
 
-        <div class="auth-section">
-            <div class="auth-status" id="authStatus">Loading...</div>
-            <div>
-                <button id="loginBtn" class="auth-btn" style="display:none">Sign In with Google</button>
-                <button id="logoutBtn" class="auth-btn auth-btn-outline" style="display:none">Sign Out</button>
+        <!-- 密码验证区域 -->
+        <div class="password-section">
+            <div class="password-status" id="authStatus">🔒 Enter password to enable cloud operations</div>
+            <div class="password-input-group">
+                <input type="password" id="cloudPassword" placeholder="Enter password" autocomplete="off">
+                <button id="verifyPasswordBtn" class="password-btn">Verify</button>
+                <button id="clearPasswordBtn" class="password-btn password-btn-outline" style="display:none">Clear</button>
             </div>
         </div>
 
@@ -293,13 +230,8 @@
             <div class="total-amount">$<span id="totalPrice">0.00</span></div>
         </div>
         
-        <!-- Quote 按钮 -->
-        <div class="quote-button-container">
-            <button class="quote-btn" id="quoteBtn">📄 Generate Quote</button>
-        </div>
-        
         <div class="action-buttons-bottom">
-            <div id="authButtons" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <div id="authButtons" style="display: none; gap: 1rem; flex-wrap: wrap;">
                 <button class="action-btn update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
                 <button class="action-btn delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
                 <button class="action-btn save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
@@ -307,70 +239,19 @@
             </div>
             <button class="action-btn print-btn" id="printBtn">🖨️ PRINT ROUTINE</button>
         </div>
-        <div class="footnote">✦ All editing tools available without login ✦ Login to sync changes to cloud ✦ Click "Generate Quote" to create a price quote ✦</div>
-    </div>
-</div>
-
-<!-- Quote 弹窗 -->
-<div id="quoteModal" class="quote-modal">
-    <div class="quote-content">
-        <div class="quote-header">
-            <h2>📋 Price Quote</h2>
-            <button class="close-modal" id="closeModalBtn">&times;</button>
-        </div>
-        <div style="margin-bottom: 1rem; font-size: 0.85rem; color: #8f7e6b;">
-            <strong>Routine:</strong> <span id="quoteRoutineName"></span>
-        </div>
-        <table class="quote-table" id="quoteTable">
-            <thead>
-                <tr>
-                    <th>Product</th>
-                    <th>Unit Price</th>
-                    <th>Quantity</th>
-                    <th>Discount (%)</th>
-                    <th>Discounted Price</th>
-                </tr>
-            </thead>
-            <tbody id="quoteTableBody">
-            </tbody>
-        </table>
-<div class="quote-totals" id="quoteTotals">
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-        <span>💰 Subtotal (Before Discount):</span>
-        <span>$<span id="subtotalBeforeDiscount">0.00</span></span>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #2d6a4f;">
-        <span>🏷️ Total Discount:</span>
-        <span>-$<span id="totalDiscountAmount">0.00</span></span>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; border-bottom: 1px dashed #e2d4c6; padding-bottom: 0.5rem;">
-        <span>✨ Subtotal (After Discount):</span>
-        <span>$<span id="subtotalAfterDiscount">0.00</span></span>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-        <span>📋 Tax (12%):</span>
-        <span>$<span id="taxAmount">0.00</span></span>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 2px solid #e2d4c6; font-size: 1.1rem; font-weight: bold;">
-        <span>💵 Grand Total:</span>
-        <span>$<span id="grandTotal">0.00</span></span>
-    </div>
-</div>
-        <div class="quote-footer">
-            <button class="print-quote-btn" id="printQuoteBtn">🖨️ Print Quote</button>
-            <button class="email-quote-btn" id="emailQuoteBtn">📧 Email Quote</button>
-        </div>
+        <div class="footnote">✦ All editing tools available without password ✦ Enter password to sync changes to cloud ✦ Data saved locally until synced ✦</div>
     </div>
 </div>
 
 <script>
-// ==================== Supabase 配置 ====================
-const SUPABASE_URL = "https://dmrskyskryrdclknezth.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
+// ==================== 配置 ====================
+const CLOUD_PASSWORD = "laserVersante"; // 云存储密码，可修改
+// 固定系统用户 ID - 必须与数据库中的一致
+const SYSTEM_USER_ID = "2c9b8bce-b2ab-47bb-92a1-f0d5143b4788";  // 👈 改成您在 SQL 中使用的 ID
 
-let supabaseClient = null;
 let isAuthenticated = false;
-let currentUserId = null;
+let currentUserId = SYSTEM_USER_ID; // 默认使用系统用户 ID（未验证时无法操作）
+let supabaseClient = null;
 
 // ==================== 默认数据 ====================
 const DEFAULT_PRODUCTS = [
@@ -430,10 +311,7 @@ let isLoading = false;
 function getProductById(id) { return productsData.find(p => p.id === id); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
 function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m; }); }
-
-function sortProductsByName(arr) {
-    return [...arr].sort((a, b) => a.name.localeCompare(b.name));
-}
+function sortProductsByName(arr) { return [...arr].sort((a, b) => a.name.localeCompare(b.name)); }
 
 function isRoutineNameExists(name, excludeId = null) {
     return Object.entries(savedRoutines).some(([id, r]) => {
@@ -496,7 +374,7 @@ function loadFromLocalStorage() {
     }
 }
 
-// ==================== 云端操作 ====================
+// ==================== 云端操作（需要密码验证）====================
 async function loadFromCloud() {
     if (!supabaseClient || isLoading) return false;
     isLoading = true;
@@ -548,7 +426,7 @@ async function loadFromCloud() {
 
 async function forceSyncAllToCloud() {
     if (!supabaseClient || !isAuthenticated) {
-        alert("Please sign in first.");
+        alert("Please verify password first.");
         return false;
     }
     
@@ -583,7 +461,7 @@ async function forceSyncAllToCloud() {
 
 async function saveCurrentRoutineToCloud() {
     if (!supabaseClient || !isAuthenticated) {
-        alert("Please sign in to save to cloud.");
+        alert("Please verify password first.");
         return false;
     }
     if (!currentRoutineId) {
@@ -619,7 +497,7 @@ async function saveCurrentRoutineToCloud() {
 
 async function deleteCurrentRoutineFromCloud() {
     if (!supabaseClient || !isAuthenticated) {
-        alert("Please sign in to delete from cloud.");
+        alert("Please verify password first.");
         return false;
     }
     if (!currentRoutineId) {
@@ -658,7 +536,7 @@ async function deleteCurrentRoutineFromCloud() {
 
 async function saveAsNewRoutineToCloud() {
     if (!supabaseClient || !isAuthenticated) {
-        alert("Please sign in to save to cloud.");
+        alert("Please verify password first.");
         return false;
     }
     
@@ -752,7 +630,7 @@ async function saveAsNewRoutine() {
 async function renameCurrentRoutine(newName) {
     if (!currentRoutineId || !savedRoutines[currentRoutineId]) return;
     if (!isAuthenticated) {
-        alert("Please sign in to rename routines.");
+        alert("Please verify password first.");
         return;
     }
     
@@ -811,20 +689,49 @@ function updateUIBasedOnAuth() {
     if (authButtons) {
         authButtons.style.display = isLoggedIn ? 'flex' : 'none';
     }
-}
 
+    // ========== 新增：控制产品库的编辑/删除按钮 ==========
+    // 控制 "Add Product" 按钮
+    const toggleAddBtn = document.getElementById('toggleAddBtn');
+    if (toggleAddBtn) {
+        toggleAddBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
+    }
+    
+    // 控制产品库中每个产品的编辑图标(✎)和删除图标(🗑️)
+    const editIcons = document.querySelectorAll('.edit-icon');
+    const deleteIcons = document.querySelectorAll('.delete-product-icon');
+    
+    if (isLoggedIn) {
+        // 验证密码后：显示编辑和删除按钮
+        editIcons.forEach(icon => icon.style.display = 'inline-block');
+        deleteIcons.forEach(icon => icon.style.display = 'inline-block');
+    } else {
+        // 未验证密码：隐藏编辑和删除按钮
+        editIcons.forEach(icon => icon.style.display = 'none');
+        deleteIcons.forEach(icon => icon.style.display = 'none');
+    }
+ }    
+    // 检查是否需要密码验证才能编辑产品
+function checkAuthForProductAction(actionName) {
+    if (!isAuthenticated) {
+        alert(`Please verify cloud password first to ${actionName}.`);
+        return false;
+    }
+    return true;
+}
+    
 function renderBrandProducts() {
     let container = document.getElementById('brandProductsContainer');
     if (!container) return;
     let filtered = currentBrand === "all" ? productsData : productsData.filter(p => p.brand === currentBrand);
     filtered = sortProductsByName(filtered);
-    container.innerHTML = filtered.map(p => `<div class="library-item" draggable="true" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}" data-product-benefit="${escapeHtml(p.benefit || '')}" data-product-usage="${escapeHtml(p.usage || '')}" data-product-image="${p.image || ''}">
-        ${escapeHtml(p.name)} <span class="library-price">$${p.price}</span>
-        <span class="library-actions">
-            <span class="edit-icon" data-id="${p.id}" title="Edit">✎</span>
-            <span class="delete-product-icon" data-id="${p.id}" title="Delete">🗑️</span>
-        </span>
-    </div>`).join('');
+container.innerHTML = filtered.map(p => `<div class="library-item" draggable="true" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}" data-product-benefit="${escapeHtml(p.benefit || '')}" data-product-usage="${escapeHtml(p.usage || '')}" data-product-image="${p.image || ''}">
+    ${escapeHtml(p.name)}
+    <span class="library-actions">
+        <span class="edit-icon" data-id="${p.id}" title="Edit" style="display: ${isAuthenticated ? 'inline-block' : 'none'}">✎</span>
+        <span class="delete-product-icon" data-id="${p.id}" title="Delete" style="display: ${isAuthenticated ? 'inline-block' : 'none'}">🗑️</span>
+    </span>
+</div>`).join('');
     attachDragEvents(); 
     attachEditEvents();
     attachProductDeleteEvents();
@@ -847,11 +754,34 @@ async function deleteProduct(productId) {
             renderRoutines();
             updateTotalPrice();
             saveToLocalStorage();
+            
+            // ========== 自动同步到云端 ==========
+            if (isAuthenticated && supabaseClient) {
+                try {
+                    // 从云端删除产品
+                    await supabaseClient.from('products').delete().eq('id', productId);
+                    
+                    // 更新所有受影响的 routines
+                    for (let id in savedRoutines) {
+                        await supabaseClient.from('routines').update({
+                            morning: savedRoutines[id].morning,
+                            evening: savedRoutines[id].evening
+                        }).eq('id', id);
+                    }
+                    
+                    console.log('✅ Product deleted from cloud:', deletedProduct.name);
+                } catch (e) {
+                    console.error('❌ Cloud delete failed:', e);
+                    alert('Product deleted locally but cloud sync failed: ' + e.message);
+                }
+            } else {
+                console.log('📝 Product deleted locally only (not authenticated)');
+            }
         }
     }
 }
 
-function attachProductDeleteEvents() {
+async function attachProductDeleteEvents() {
     document.querySelectorAll('.delete-product-icon').forEach(icon => {
         icon.onclick = async (e) => {
             e.stopPropagation();
@@ -913,6 +843,20 @@ async function saveProduct() {
     renderRoutines(); 
     updateTotalPrice(); 
     saveToLocalStorage(); 
+    
+        // ========== 新增：自动同步到云端 ==========
+    if (isAuthenticated && supabaseClient) {
+        try {
+            await supabaseClient.from('products').upsert({ 
+                ...newProduct, 
+                user_id: currentUserId 
+            });
+            console.log('Product synced to cloud:', newProduct.name);
+        } catch (e) {
+            console.error('Sync to cloud failed:', e);
+            alert('Product saved locally but cloud sync failed: ' + e.message);
+        }
+    }
 }
 
 function closeForm() { 
@@ -999,7 +943,7 @@ function renderCard(pid, idx, time) {
         <div class="product-info">
             <div class="product-name">${escapeHtml(p.name)} <span class="product-price">$${p.price}</span></div>
             <div class="benefit">${escapeHtml(p.benefit || '')}</div>
-            <div class="usage"><i class="icon-hand"></i> ${escapeHtml((p.usage || '').substring(0, 55))}</div>
+            <div class="usage"><i class="icon-hand"></i> ${escapeHtml(p.usage || 'No usage instructions provided')}</div>
         </div>
     </div>`; 
 }
@@ -1074,53 +1018,64 @@ function printRoutine() {
         <title>Skincare Routine</title>
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: 'Inter', sans-serif; padding: 0.5in; background: white; }
+            body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 0.5in; background: white; color: #3e3c39; line-height: 1.5; }
             .print-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2d4c6; padding-bottom: 15px; }
-            .print-header h1 { font-family: 'Montserrat', sans-serif; font-size: 28px; color: #7f6e5d; }
+            .print-header h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 28px; color: #7f6e5d; margin-bottom: 8px; }
+            .print-header p { font-size: 12px; color: #b7a99a; }
             .print-date { font-size: 11px; color: #ccbeaf; margin-top: 5px; }
-            .print-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+            .print-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
             .print-column { border: 1px solid #e7dbd0; border-radius: 16px; padding: 20px; background: #fefcf8; }
-            .print-column h2 { font-family: 'Montserrat', sans-serif; font-size: 20px; color: #8f7e6b; border-bottom: 1px solid #e2d4c6; padding-bottom: 10px; margin-bottom: 15px; }
-            .print-product { display: flex; gap: 12px; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px dashed #e7dbd0; }
-            .print-product-image { width: 50px; height: 50px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; }
+            .print-column h2 { font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 400; color: #8f7e6b; border-bottom: 1px solid #e2d4c6; padding-bottom: 10px; margin-bottom: 15px; }
+            .print-product { display: flex; gap: 12px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px dashed #e7dbd0; page-break-inside: avoid; break-inside: avoid; }
+            .print-product:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+            .print-product-image { width: 50px; height: 50px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; flex-shrink: 0; }
             .print-product-image img { width: 100%; height: 100%; object-fit: cover; }
             .print-product-info { flex: 1; }
-            .print-product-name { font-weight: 600; font-size: 14px; color: #5f5347; }
-            .print-product-benefit { font-size: 11px; color: #b7a99a; font-style: italic; }
-            .print-product-usage { font-size: 10px; color: #8e7e6e; margin-top: 5px; }
+            .print-product-name { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 14px; color: #5f5347; margin-bottom: 4px; }
+            .print-product-benefit { font-size: 11px; color: #b7a99a; margin-top: 3px; font-style: italic; }
+            .print-product-usage { font-size: 10px; color: #8e7e6e; margin-top: 5px; line-height: 1.4; }
             .print-footer { margin-top: 30px; text-align: center; font-size: 10px; color: #ccbeaf; border-top: 1px solid #e7dbd0; padding-top: 15px; }
-            @media print { body { padding: 0; } }
+            @media print { body { padding: 0; } .print-product { break-inside: avoid; page-break-inside: avoid; } }
         </style>
     </head>
     <body>
         <div class="print-header">
             <h1>${escapeHtml(savedRoutines[currentRoutineId]?.name || 'Skincare Routine')}</h1>
+            <p>Personalized Skincare Routine</p>
             <div class="print-date">Printed on ${new Date().toLocaleDateString()}</div>
         </div>
         <div class="print-grid">
             <div class="print-column">
                 <h2>MORNING ROUTINE ☀️</h2>
-                ${uniqueMorning.map(i => { let p = getProductById(i.productId); return p ? `
-                <div class="print-product">
-                    <div class="print-product-image"><img src="${p.image || ''}"></div>
-                    <div class="print-product-info">
-                        <div class="print-product-name">${escapeHtml(p.name)}</div>
-                        <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
-                        <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions')}</div>
-                    </div>
-                </div>` : ''; }).join('')}
+                ${uniqueMorning.map(i => { 
+                    let p = getProductById(i.productId); 
+                    return p ? `
+                    <div class="print-product">
+                        <div class="print-product-image"><img src="${p.image || ''}" alt="${escapeHtml(p.name)}"></div>
+                        <div class="print-product-info">
+                            <div class="print-product-name">${escapeHtml(p.name)}</div>
+                            <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
+                            <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions provided')}</div>
+                        </div>
+                    </div>` : '';
+                }).join('')}
+                ${uniqueMorning.length === 0 ? '<div style="color: #b7a99a; text-align: center; padding: 20px;">No products in morning routine</div>' : ''}
             </div>
             <div class="print-column">
                 <h2>EVENING ROUTINE 🌙</h2>
-                ${uniqueEvening.map(i => { let p = getProductById(i.productId); return p ? `
-                <div class="print-product">
-                    <div class="print-product-image"><img src="${p.image || ''}"></div>
-                    <div class="print-product-info">
-                        <div class="print-product-name">${escapeHtml(p.name)}</div>
-                        <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
-                        <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions')}</div>
-                    </div>
-                </div>` : ''; }).join('')}
+                ${uniqueEvening.map(i => { 
+                    let p = getProductById(i.productId); 
+                    return p ? `
+                    <div class="print-product">
+                        <div class="print-product-image"><img src="${p.image || ''}" alt="${escapeHtml(p.name)}"></div>
+                        <div class="print-product-info">
+                            <div class="print-product-name">${escapeHtml(p.name)}</div>
+                            <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
+                            <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions provided')}</div>
+                        </div>
+                    </div>` : '';
+                }).join('')}
+                ${uniqueEvening.length === 0 ? '<div style="color: #b7a99a; text-align: center; padding: 20px;">No products in evening routine</div>' : ''}
             </div>
         </div>
         <div class="print-footer">✦ ${savedRoutines[currentRoutineId]?.name || 'Skincare Routine'} ✦</div>
@@ -1138,270 +1093,50 @@ function renderBrandTabs() {
     document.querySelectorAll('.brand-tab').forEach(tab => { tab.onclick = () => { currentBrand = tab.dataset.brand; renderBrandTabs(); renderBrandProducts(); }; }); 
 }
 
-// ==================== Quote 功能（无需登录，完全本地使用）====================
-function generateQuote() {
-    // 获取所有唯一产品（去重）- 直接从当前页面数据获取
-    const allProducts = [...currentMorningProducts, ...currentEveningProducts];
-    const productMap = new Map();
+// ==================== 密码验证函数 ====================
+async function verifyPassword() {
+    const passwordInput = document.getElementById('cloudPassword');
+    const enteredPassword = passwordInput.value;
     
-    for (const item of allProducts) {
-        if (!productMap.has(item.productId)) {
-            const product = getProductById(item.productId);
-            if (product) {
-                productMap.set(item.productId, {
-                    id: product.id,
-                    name: product.name,
-                    price: product.price,
-                    quantity: 1,
-                    discount: 0
-                });
-            }
-        }
-    }
-    
-    const quoteItems = Array.from(productMap.values());
-    
-    // 如果没有产品，提示用户
-    if (quoteItems.length === 0) {
-        alert('No products in your routine. Please add products first.');
-        return;
-    }
-    
-    // 显示弹窗
-    const modal = document.getElementById('quoteModal');
-    const routineNameSpan = document.getElementById('quoteRoutineName');
-    const tableBody = document.getElementById('quoteTableBody');
-    
-    routineNameSpan.textContent = savedRoutines[currentRoutineId]?.name || 'Current Routine';
-    
-    function renderQuoteTable() {
-        tableBody.innerHTML = quoteItems.map((item, idx) => `
-            <tr>
-                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">${escapeHtml(item.name)}</td>
-                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">$${item.price.toFixed(2)}</td>
-                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">
-                    <input type="number" class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" step="1" style="width:70px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center;">
-                </td>
-                <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">
-                    <input type="number" class="discount-input" data-idx="${idx}" value="${item.discount}" min="0" max="100" step="1" style="width:80px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center;">%
-                </td>
-                <td class="discounted-price" style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">$${(item.price * item.quantity * (1 - item.discount / 100)).toFixed(2)}</td>
-            </tr>
-        `).join('');
+    if (enteredPassword === CLOUD_PASSWORD) {
+        isAuthenticated = true;
+        // 👇 添加这一行：设置系统用户 ID
+        currentUserId = SYSTEM_USER_ID;
+        document.getElementById('authStatus').innerHTML = `✅ Cloud access verified!`;
+        document.getElementById('verifyPasswordBtn').style.display = 'none';
+        document.getElementById('clearPasswordBtn').style.display = 'inline-block';
+        passwordInput.style.display = 'none';
         
-        // 绑定数量变化事件
-        document.querySelectorAll('.qty-input').forEach(input => {
-            input.removeEventListener('change', handleQuantityChange);
-            input.addEventListener('change', handleQuantityChange);
-        });
-        
-        // 绑定折扣变化事件
-        document.querySelectorAll('.discount-input').forEach(input => {
-            input.removeEventListener('change', handleDiscountChange);
-            input.addEventListener('change', handleDiscountChange);
-        });
-        
-        function handleQuantityChange(e) {
-            const idx = parseInt(e.target.dataset.idx);
-            quoteItems[idx].quantity = parseInt(e.target.value) || 1;
-            updateQuoteTotals(quoteItems);
-            renderQuoteTable();
-        }
-        
-        function handleDiscountChange(e) {
-            const idx = parseInt(e.target.dataset.idx);
-            quoteItems[idx].discount = parseFloat(e.target.value) || 0;
-            updateQuoteTotals(quoteItems);
-            renderQuoteTable();
-        }
-        
-        updateQuoteTotals(quoteItems);
-    }
-    
-function updateQuoteTotals(items) {
-    let subtotalBeforeDiscount = 0;
-    let subtotalAfterDiscount = 0;
-    
-    for (const item of items) {
-        const itemTotal = item.price * item.quantity;
-        subtotalBeforeDiscount += itemTotal;
-        subtotalAfterDiscount += itemTotal * (1 - item.discount / 100);
-    }
-    
-    const totalDiscountAmount = subtotalBeforeDiscount - subtotalAfterDiscount;
-    const tax = subtotalAfterDiscount * 0.12;
-    const grandTotal = subtotalAfterDiscount + tax;
-    
-    document.getElementById('subtotalBeforeDiscount').innerText = subtotalBeforeDiscount.toFixed(2);
-    document.getElementById('totalDiscountAmount').innerText = totalDiscountAmount.toFixed(2);
-    document.getElementById('subtotalAfterDiscount').innerText = subtotalAfterDiscount.toFixed(2);
-    document.getElementById('taxAmount').innerText = tax.toFixed(2);
-    document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
-    
-    // 存储数据供打印使用
-    window.currentQuoteData = { 
-        items, 
-        subtotalBeforeDiscount,
-        totalDiscountAmount,
-        subtotalAfterDiscount,
-        tax, 
-        grandTotal, 
-        routineName: savedRoutines[currentRoutineId]?.name 
-    };
-}
-    
-    renderQuoteTable();
-    modal.classList.add('show');
-}
-
-function printQuote() {
-    const data = window.currentQuoteData;
-    if (!data) {
-        alert('No quote data to print.');
-        return;
-    }
-    
-    const win = window.open('', '_blank');
-    win.document.write(`<!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Price Quote</title>
-        <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: 'Inter', sans-serif; padding: 0.5in; background: white; }
-            .quote-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2d4c6; padding-bottom: 20px; }
-            .quote-header h1 { font-size: 28px; color: #7f6e5d; margin-bottom: 8px; }
-            .quote-date { font-size: 11px; color: #ccbeaf; margin-top: 5px; }
-            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-            th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e7dbd0; }
-            th { background: #f5efe8; font-weight: 600; }
-            .totals { text-align: right; margin-top: 20px; padding-top: 20px; border-top: 2px solid #e2d4c6; }
-            .totals p { margin: 8px 0; }
-            .savings { color: #2d6a4f; font-weight: 600; }
-            .grand-total { font-size: 18px; font-weight: bold; }
-            @media print { body { padding: 0; } }
-        </style>
-    </head>
-    <body>
-        <div class="quote-header">
-            <h1>Price Quote</h1>
-            <div class="quote-date">Generated on ${new Date().toLocaleDateString()}</div>
-            <p style="margin-top: 10px;"><strong>Routine:</strong> ${escapeHtml(data.routineName || 'Skincare Routine')}</p>
-        </div>
-        <table>
-            <thead><tr><th>Product</th><th>Unit Price</th><th>Quantity</th><th>Discount</th><th>Total</th></tr</thead>
-            <tbody>
-                ${data.items.map(item => `
-                    <tr>
-                        <td>${escapeHtml(item.name)}</td>
-                        <td>$${item.price.toFixed(2)}</td>
-                        <td>${item.quantity}</td>
-                        <td>${item.discount}%</td>
-                        <td>$${(item.price * item.quantity * (1 - item.discount / 100)).toFixed(2)}</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-        <div class="totals">
-            <p>💰 Subtotal (Before Discount): $${data.subtotalBeforeDiscount.toFixed(2)}</p>
-            <p class="savings">🏷️ Total Discount: -$${data.totalDiscountAmount.toFixed(2)}</p>
-            <p>✨ Subtotal (After Discount): $${data.subtotalAfterDiscount.toFixed(2)}</p>
-            <p>📋 Tax (12%): $${data.tax.toFixed(2)}</p>
-            <p class="grand-total">💵 Grand Total: $${data.grandTotal.toFixed(2)}</p>
-        </div>
-    </body>
-    </html>`);
-    win.document.close();
-    win.print();
-}
-
-function emailQuote() {
-    const data = window.currentQuoteData;
-    if (!data) {
-        alert('No quote data to email.');
-        return;
-    }
-    
-    let emailBody = `Price Quote\n\n`;
-    emailBody += `Routine: ${data.routineName || 'Skincare Routine'}\n`;
-    emailBody += `Generated on: ${new Date().toLocaleDateString()}\n\n`;
-    emailBody += `Products:\n`;
-    for (const item of data.items) {
-        emailBody += `- ${item.name}: $${item.price.toFixed(2)} x ${item.quantity} (${item.discount}% off) = $${(item.price * item.quantity * (1 - item.discount / 100)).toFixed(2)}\n`;
-    }
-    emailBody += `\n💰 Subtotal (Before Discount): $${data.subtotalBeforeDiscount.toFixed(2)}\n`;
-    emailBody += `🏷️ Total Discount: -$${data.totalDiscountAmount.toFixed(2)}\n`;
-    emailBody += `✨ Subtotal (After Discount): $${data.subtotalAfterDiscount.toFixed(2)}\n`;
-    emailBody += `📋 Tax (12%): $${data.tax.toFixed(2)}\n`;
-    emailBody += `💵 Grand Total: $${data.grandTotal.toFixed(2)}\n`;
-    
-    window.location.href = `mailto:?subject=Skincare Quote&body=${encodeURIComponent(emailBody)}`;
-}
-
-// ==================== 认证函数 ====================
-async function handleLogin() {
-    if (!supabaseClient) { 
-        alert("Supabase not ready. Please refresh the page.");
-        return;
-    }
-    try {
-        const { error } = await supabaseClient.auth.signInWithOAuth({ 
-            provider: 'google',
-            options: { redirectTo: window.location.href }
-        });
-        if (error) {
-            console.error('Login error:', error);
-            alert('Login error: ' + error.message);
-        }
-    } catch (e) {
-        console.error('Login exception:', e);
-        alert('Login failed: ' + e.message);
-    }
-}
-
-async function handleLogout() { 
-    try {
-        if (supabaseClient) await supabaseClient.auth.signOut();
-        localStorage.clear();
-        location.reload();
-    } catch (e) {
-        console.error('Logout error:', e);
-        location.reload();
-    }
-}
-
-async function checkAuth() {
-    if (!supabaseClient) return;
-    try {
-        const { data: { session }, error } = await supabaseClient.auth.getSession();
-        if (error) {
-            console.error('Auth check error:', error);
-            isAuthenticated = false;
-        } else if (session) {
-            isAuthenticated = true;
-            currentUserId = session.user.id;
-            document.getElementById('authStatus').innerHTML = `✅ Signed in as ${session.user.email}`;
-            document.getElementById('loginBtn').style.display = 'none';
-            document.getElementById('logoutBtn').style.display = 'inline-block';
+        // 初始化 Supabase 客户端
+        if (typeof supabase !== 'undefined') {
+            supabaseClient = supabase;
             await loadFromCloud();
+            refreshUI();
+            alert("Password verified! Cloud data loaded.");
         } else {
-            isAuthenticated = false;
-            document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
-            document.getElementById('loginBtn').style.display = 'inline-block';
-            document.getElementById('logoutBtn').style.display = 'none';
-            loadFromLocalStorage();
+            alert("Supabase not ready. Please refresh the page.");
         }
-        refreshUI();
-    } catch (e) {
-        console.error('Auth check exception:', e);
+    } else {
+        alert("Incorrect password! Please try again.");
         isAuthenticated = false;
-        document.getElementById('authStatus').innerHTML = `🔓 Sign in to save changes to cloud`;
-        document.getElementById('loginBtn').style.display = 'inline-block';
-        document.getElementById('logoutBtn').style.display = 'none';
-        loadFromLocalStorage();
-        refreshUI();
     }
+    updateUIBasedOnAuth();
+}
+
+function clearPassword() {
+    isAuthenticated = false;
+    supabaseClient = null;
+    document.getElementById('authStatus').innerHTML = `🔒 Enter password to enable cloud operations`;
+    document.getElementById('verifyPasswordBtn').style.display = 'inline-block';
+    document.getElementById('clearPasswordBtn').style.display = 'none';
+    document.getElementById('cloudPassword').style.display = 'inline-block';
+    document.getElementById('cloudPassword').value = '';
+    
+    // 重新从本地加载
+    loadFromLocalStorage();
+    refreshUI();
+    updateUIBasedOnAuth();
+    alert("Password cleared. Using local data only.");
 }
 
 function refreshUI() {
@@ -1412,17 +1147,6 @@ function refreshUI() {
     updateTotalPrice();
     if (currentRoutineId) highlightActiveRoutine();
     updateUIBasedOnAuth();
-}
-
-function initSupabase() {
-    if (typeof supabase === 'undefined') {
-        setTimeout(initSupabase, 500);
-        return;
-    }
-    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.supabaseClient = supabaseClient;
-    console.log('Supabase initialized');
-    checkAuth();
 }
 
 // 按钮绑定
@@ -1436,36 +1160,74 @@ document.getElementById('cancelFormBtn').onclick = closeForm;
 document.getElementById('saveProductBtn').onclick = saveProduct;
 document.getElementById('printBtn').onclick = printRoutine;
 document.getElementById('editRoutineBtn').onclick = () => { 
-    if (!isAuthenticated) { alert("Please sign in to rename routines."); return; }
+    if (!isAuthenticated) { alert("Please verify password first."); return; }
     let newName = prompt("Edit routine name:", savedRoutines[currentRoutineId]?.name); 
     if(newName) renameCurrentRoutine(newName); 
 };
-document.getElementById('loginBtn').onclick = handleLogin;
-document.getElementById('logoutBtn').onclick = handleLogout;
+document.getElementById('verifyPasswordBtn').onclick = verifyPassword;
+document.getElementById('clearPasswordBtn').onclick = clearPassword;
 document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
 document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutine;
 document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
 document.getElementById('syncAllBtn').onclick = forceSyncAllToCloud;
 
-// Quote 按钮绑定
-document.getElementById('quoteBtn').onclick = generateQuote;
-document.getElementById('closeModalBtn').onclick = () => {
-    document.getElementById('quoteModal').classList.remove('show');
-};
-document.getElementById('printQuoteBtn').onclick = printQuote;
-document.getElementById('emailQuoteBtn').onclick = emailQuote;
-
-// 点击弹窗背景关闭
-document.getElementById('quoteModal').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('quoteModal')) {
-        document.getElementById('quoteModal').classList.remove('show');
+// ==================== 启动应用 ====================
+async function initApp() {
+    // 1. 先加载本地数据作为备用
+    loadFromLocalStorage();
+    refreshUI();
+    
+    // 2. 尝试从云端加载数据（只读，不需要密码）
+    if (typeof supabase !== 'undefined') {
+        supabaseClient = supabase;
+        try {
+            // 从云端加载数据（不依赖 isAuthenticated）
+            const { data: products } = await supabaseClient.from('products').select('*');
+            const { data: routines } = await supabaseClient.from('routines').select('*');
+            const { data: state } = await supabaseClient.from('user_state').select('current_routine_id').maybeSingle();
+            
+            if (products && products.length > 0) {
+                productsData = products;
+                productsData = sortProductsByName(productsData);
+            }
+            
+            if (routines && routines.length > 0) {
+                savedRoutines = {};
+                routines.forEach(r => { savedRoutines[r.id] = { name: r.name, morning: r.morning, evening: r.evening }; });
+                savedRoutines = Object.fromEntries(
+                    Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
+                );
+            }
+            
+            if (state && state.current_routine_id && savedRoutines[state.current_routine_id]) {
+                currentRoutineId = state.current_routine_id;
+            } else {
+                currentRoutineId = Object.keys(savedRoutines)[0] || null;
+            }
+            
+            if (currentRoutineId && savedRoutines[currentRoutineId]) {
+                currentMorningProducts = savedRoutines[currentRoutineId].morning.map(pid => ({ productId: pid, time: "morning" }));
+                currentEveningProducts = savedRoutines[currentRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
+            }
+            
+            saveToLocalStorage();
+            refreshUI();
+            console.log('✅ 云端数据已加载（只读模式）');
+            
+            // 更新状态提示
+            const statusDiv = document.getElementById('authStatus');
+            if (statusDiv && !isAuthenticated) {
+                statusDiv.innerHTML = `🔓 只读模式 · 输入密码以启用云同步`;
+            }
+        } catch (e) {
+            console.log('云端加载失败，使用本地数据:', e);
+        }
     }
-});
+}
 
 // 启动应用
-loadFromLocalStorage();
-refreshUI();
-initSupabase();
+initApp();
+    
 </script>
 </body>
 </html>
