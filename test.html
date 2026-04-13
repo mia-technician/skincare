@@ -1587,66 +1587,75 @@ function generateQuote() {
                     <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">
                         <input type="number" class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" step="1" style="width:70px;">
                     </td>
-                    <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">
-                        <div class="discount-row">
-                            <select class="discount-type-select" data-idx="${idx}">
-                                <option value="%" ${item.discountType === '%' ? 'selected' : ''}>%</option>
-                                <option value="fixed" ${item.discountType === 'fixed' ? 'selected' : ''}>$</option>
-                            </select>
-                            <input type="number" class="discount-input" data-idx="${idx}" value="${item.discountValue}" min="0" step="1" placeholder="0">
-                        </div>
-                    </td>
+                    
+<td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">
+    <div style="display: flex; gap: 0.3rem; align-items: center;">
+        <input type="number" class="discount-percent" data-idx="${idx}" value="${item.discountType === '%' ? item.discountValue : 0}" min="0" max="100" step="1" placeholder="%" style="width: 55px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center;">
+        <span style="color: #b7a99a;">/</span>
+        <input type="number" class="discount-fixed" data-idx="${idx}" value="${item.discountType === 'fixed' ? item.discountValue : 0}" min="0" step="1" placeholder="$" style="width: 65px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center;">
+    </div>
+</td>
+
                     <td class="discounted-price" style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0; font-weight: 500;">$${totalPrice.toFixed(2)}</td>
                 </tr>
             `;
         }).join('');
         
-        // 绑定数量变化事件
-        document.querySelectorAll('.qty-input').forEach(input => {
-            input.removeEventListener('change', handleQuantityChange);
-            input.addEventListener('change', handleQuantityChange);
-        });
-        
-        // 绑定折扣类型变化事件
-        document.querySelectorAll('.discount-type-select').forEach(select => {
-            select.removeEventListener('change', handleDiscountChange);
-            select.addEventListener('change', handleDiscountChange);
-        });
-        
-        // 绑定折扣数值变化事件
-        document.querySelectorAll('.discount-input').forEach(input => {
-            input.removeEventListener('change', handleDiscountChange);
-            input.addEventListener('change', handleDiscountChange);
-        });
-        
-        function handleQuantityChange(e) {
-            const idx = parseInt(e.target.dataset.idx);
-            quoteItems[idx].quantity = parseInt(e.target.value) || 1;
-            updateQuoteTotals(quoteItems);
-            renderQuoteTable();
-        }
-        
-        function handleDiscountChange(e) {
-            const idx = parseInt(e.target.dataset.idx);
-            const row = e.target.closest('tr');
-            const typeSelect = row.querySelector('.discount-type-select');
-            const valueInput = row.querySelector('.discount-input');
-            
-            quoteItems[idx].discountType = typeSelect.value;
-            quoteItems[idx].discountValue = parseFloat(valueInput.value) || 0;
-            
-            // 额度折扣时不能超过原价
-            if (quoteItems[idx].discountType === 'fixed' && quoteItems[idx].discountValue > quoteItems[idx].price) {
-                quoteItems[idx].discountValue = quoteItems[idx].price;
-                valueInput.value = quoteItems[idx].price;
-            }
-            
-            updateQuoteTotals(quoteItems);
-            renderQuoteTable();
-        }
-        
-        updateQuoteTotals(quoteItems);
+// 绑定数量变化事件
+document.querySelectorAll('.qty-input').forEach(input => {
+    input.removeEventListener('change', handleQuantityChange);
+    input.addEventListener('change', handleQuantityChange);
+});
+
+// 绑定百分比折扣变化事件
+document.querySelectorAll('.discount-percent').forEach(input => {
+    input.removeEventListener('change', handlePercentChange);
+    input.addEventListener('change', handlePercentChange);
+});
+
+// 绑定固定金额折扣变化事件
+document.querySelectorAll('.discount-fixed').forEach(input => {
+    input.removeEventListener('change', handleFixedChange);
+    input.addEventListener('change', handleFixedChange);
+});
+
+function handleQuantityChange(e) {
+    const idx = parseInt(e.target.dataset.idx);
+    quoteItems[idx].quantity = parseInt(e.target.value) || 1;
+    updateQuoteTotals(quoteItems);
+    renderQuoteTable();
+}
+
+function handlePercentChange(e) {
+    const idx = parseInt(e.target.dataset.idx);
+    const percentValue = parseFloat(e.target.value) || 0;
+    quoteItems[idx].discountType = '%';
+    quoteItems[idx].discountValue = percentValue;
+    // 清空固定金额输入框
+    const fixedInput = document.querySelector(`.discount-fixed[data-idx="${idx}"]`);
+    if (fixedInput) fixedInput.value = 0;
+    updateQuoteTotals(quoteItems);
+    renderQuoteTable();
+}
+
+function handleFixedChange(e) {
+    const idx = parseInt(e.target.dataset.idx);
+    const fixedValue = parseFloat(e.target.value) || 0;
+    quoteItems[idx].discountType = 'fixed';
+    quoteItems[idx].discountValue = fixedValue;
+    // 清空百分比输入框
+    const percentInput = document.querySelector(`.discount-percent[data-idx="${idx}"]`);
+    if (percentInput) percentInput.value = 0;
+    // 额度折扣时不能超过原价
+    if (quoteItems[idx].discountValue > quoteItems[idx].price) {
+        quoteItems[idx].discountValue = quoteItems[idx].price;
+        e.target.value = quoteItems[idx].price;
     }
+    updateQuoteTotals(quoteItems);
+    renderQuoteTable();
+}
+
+updateQuoteTotals(quoteItems);
     
     function updateQuoteTotals(items) {
         let subtotalBeforeDiscount = 0;
@@ -1728,15 +1737,11 @@ function printQuote() {
         </div>
         <table>
         
-            <thead>
-    <tr>
-        <th>Product</th>
-        <th>Unit Price</th>
-        <th>Quantity</th>
-        <th>Discount (任选其一)</th>
-        <th>Discounted Price</th>
-    </tr>
-</thead>
+// 先检查是否有折扣
+const hasAnyDiscount = data.items.some(item => item.discountValue > 0);
+
+// 然后在 win.document.write 中使用条件判断
+${hasAnyDiscount ? '<th>Discount</th>' : ''}
 
             <tbody>
             
@@ -1753,7 +1758,7 @@ ${data.items.map(item => {
             <td>${escapeHtml(item.name)}</td>
             <td>$${item.price.toFixed(2)}</td>
             <td>${item.quantity}</td>
-            <td>${discountDisplay}</td>
+            ${hasAnyDiscount ? `<td>${item.discountValue > 0 ? discountDisplay : '-'}</td>` : ''}
             <td>$${(discountedUnitPrice * item.quantity).toFixed(2)}</td>
         </tr>
     `;
