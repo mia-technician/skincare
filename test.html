@@ -10,7 +10,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f5efe9; font-family: 'Inter', sans-serif; padding: 2rem 1rem; }
         
-        /* Lock Screen */
         .lock-screen {
             position: fixed;
             top: 0; left: 0;
@@ -32,18 +31,16 @@
             box-shadow: 0 25px 40px rgba(0,0,0,0.2);
         }
         .lock-card h2 { font-family: 'Montserrat', sans-serif; color: #5e4e3c; margin-bottom: 0.5rem; }
-        .lock-card p { font-size: 0.8rem; color: #8f7a66; margin-bottom: 1.2rem; }
         .lock-card input { width: 100%; padding: 12px 16px; margin: 0.5rem 0; border: 1px solid #ddd6ce; border-radius: 60px; font-size: 1rem; outline: none; }
         .lock-card button { background: #b99f87; color: white; border: none; padding: 10px 20px; border-radius: 60px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 0.5rem; }
         .error-msg { color: #c75c3c; font-size: 0.7rem; margin-top: 0.5rem; }
         
-        .skincare-app { display: none; max-width: 1400px; margin: 0 auto; background: #faf7f2; border-radius: 32px; border: 1px solid #e8dfd4; }
+        .skincare-app { display: none; max-width: 1600px; margin: 0 auto; background: #faf7f2; border-radius: 32px; border: 1px solid #e8dfd4; }
         .app-container { padding: 2rem 1.8rem; }
         .ritual-header { text-align: center; margin-bottom: 2rem; }
         .ritual-header h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 1.8rem; color: #7f6e5d; text-transform: uppercase; }
-        .ritual-header p { font-size: 0.85rem; color: #b7a99a; margin-top: 0.5rem; }
+        
         .auth-section { background: #fff9f2; border-radius: 24px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid #e7dbd0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .auth-status { font-size: 0.85rem; color: #8f7e6b; }
         .auth-btn { background: #b99f87; color: white; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
         .auth-btn-outline { background: transparent; border: 1px solid #d2c0b0; color: #5f5347; }
         .admin-badge { background: #e9dfd4; padding: 4px 12px; border-radius: 40px; font-size: 0.7rem; margin-left: 1rem; }
@@ -55,73 +52,70 @@
         .library-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
         .toggle-add-btn { background: #e9dfd4; border: none; padding: 0.4rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.7rem; }
         .brand-products { display: flex; flex-wrap: wrap; gap: 0.7rem; max-height: 200px; overflow-y: auto; padding: 0.3rem 0; }
-        .library-item { background: #e9dfd4; padding: 0.45rem 0.8rem; border-radius: 40px; cursor: grab; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; }
+        .library-item { background: #e9dfd4; padding: 0.45rem 0.8rem; border-radius: 40px; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; }
         .library-price { font-size: 0.7rem; color: #b99f87; }
         .library-actions { display: inline-flex; gap: 0.3rem; margin-left: 0.3rem; }
         .edit-icon, .delete-icon { cursor: pointer; font-size: 0.7rem; opacity: 0.6; }
-        .edit-icon:hover, .delete-icon:hover { opacity: 1; }
         
         /* Package Bar */
         .package-bar { background: #fff9f2; border-radius: 20px; padding: 0.8rem 1.2rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; border: 1px solid #e7dbd0; }
-        .package-select { padding: 0.5rem 1rem; border-radius: 40px; border: 1px solid #ddd0c2; background: white; font-size: 0.8rem; }
+        .package-select { padding: 0.5rem 1rem; border-radius: 40px; border: 1px solid #ddd0c2; background: white; font-size: 0.8rem; min-width: 220px; }
         .load-package-btn { background: #b99f87; color: white; border: none; padding: 0.4rem 1rem; border-radius: 40px; cursor: pointer; font-size: 0.7rem; }
         
-        /* Routine Selector */
         .routine-selector-bar { background: #fff9f2; border-radius: 24px; padding: 1.2rem 1.5rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
         .selector-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
-        .selector-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
         .routine-buttons { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1rem; }
         .routine-btn { background: #e9dfd4; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
         .routine-btn.active { background: #b99f87; color: white; }
         
-        /* Routine Grid (AM/PM) */
-        .routine-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .column { background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.4rem; border: 1px solid #e7dbd0; }
-        .column-title { font-family: 'Montserrat', sans-serif; font-size: 1.2rem; color: #8f7e6b; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; display: flex; justify-content: space-between; }
-        .product-list { display: flex; flex-direction: column; gap: 0.9rem; min-height: 320px; }
+        /* Routine Grid - Now 3 columns: Services, AM, PM */
+        .routine-grid { display: grid; grid-template-columns: 1fr 1.2fr 1.2fr; gap: 1.5rem; }
+        .column { background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.2rem; border: 1px solid #e7dbd0; }
+        .column-title { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; color: #8f7e6b; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .product-list { display: flex; flex-direction: column; gap: 0.9rem; min-height: 280px; max-height: 450px; overflow-y: auto; }
         .product-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; cursor: grab; }
         .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px; z-index: 10; }
-        .product-image { width: 52px; height: 52px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; flex-shrink: 0; }
-        .product-image img { width: 100%; height: 100%; object-fit: cover; }
         .product-info { flex: 1; }
-        .product-name { font-size: 0.9rem; font-weight: 600; color: #5f5347; }
-        .product-price { font-size: 0.75rem; color: #b99f87; margin-left: 0.3rem; }
-        .benefit { font-size: 0.7rem; color: #b7a99a; margin-top: 2px; }
-        .usage { font-size: 0.65rem; color: #8e7e6e; margin-top: 3px; }
+        .product-name { font-size: 0.85rem; font-weight: 600; color: #5f5347; }
+        .product-price { font-size: 0.7rem; color: #b99f87; margin-left: 0.3rem; }
+        .benefit { font-size: 0.65rem; color: #b7a99a; margin-top: 2px; }
+        .usage { font-size: 0.6rem; color: #8e7e6e; margin-top: 3px; }
         .drag-handle { width: 24px; display: flex; align-items: center; justify-content: center; color: #d2c0b0; cursor: grab; }
-        .empty-slot { display: flex; align-items: center; justify-content: center; padding: 0.7rem; background: rgba(233, 223, 212, 0.5); border-radius: 18px; border: 2px dashed #d2c0b0; color: #b7a99a; font-size: 0.8rem; min-height: 70px; margin-bottom: 0.9rem; }
+        .empty-slot { display: flex; align-items: center; justify-content: center; padding: 0.7rem; background: rgba(233, 223, 212, 0.5); border-radius: 18px; border: 2px dashed #d2c0b0; color: #b7a99a; font-size: 0.7rem; min-height: 60px; margin-bottom: 0.6rem; }
+        
+        /* Add to routine dropdown */
+        .add-item-row { margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid #e2d4c6; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .item-search-input { flex: 1; padding: 0.5rem 0.8rem; border: 1px solid #e2d4c6; border-radius: 60px; font-size: 0.75rem; outline: none; min-width: 140px; }
+        .item-suggestions { position: absolute; background: white; border: 1px solid #ddd; border-radius: 16px; max-height: 200px; overflow-y: auto; z-index: 100; width: calc(100% - 100px); display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .suggestion-item { padding: 8px 12px; cursor: pointer; font-size: 0.75rem; border-bottom: 1px solid #f0e5db; }
+        .suggestion-item:hover { background: #f5efe8; }
+        .add-to-routine-btn { background: #b99f87; color: white; border: none; padding: 0.4rem 1rem; border-radius: 40px; cursor: pointer; font-size: 0.7rem; white-space: nowrap; }
         
         .total-bar { padding: 1rem 1.3rem; background: #e9dfd4; border-radius: 20px; margin: 1.5rem 0 1rem; display: flex; justify-content: space-between; align-items: center; }
         .total-amount { font-size: 1.8rem; font-weight: 600; color: #8f7e6b; }
         .quote-btn { background: #b99f87; color: white; border: none; padding: 0.8rem 2rem; border-radius: 50px; cursor: pointer; font-size: 1rem; font-weight: 500; margin: 1rem 0; }
         .action-buttons-bottom { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 1rem; }
-        .action-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; font-size: 0.8rem; }
+        .action-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.6rem 1.2rem; border-radius: 50px; cursor: pointer; font-size: 0.75rem; }
         .update-btn { background: #b99f87; color: white; border-color: #b99f87; }
         
-        /* Quote Modal */
         .quote-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .quote-modal.show { display: flex; }
         .quote-content { background: white; border-radius: 28px; max-width: 900px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 2rem; }
-        .quote-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 2px solid #e2d4c6; padding-bottom: 1rem; }
         .quote-table { width: 100%; border-collapse: collapse; }
         .quote-table th, .quote-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e7dbd0; }
         .quote-table th { background: #f5efe8; }
         .quote-table input { width: 70px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 8px; text-align: center; }
         .quote-totals { margin-top: 1.5rem; text-align: right; }
-        .print-quote-btn, .email-quote-btn { padding: 0.6rem 1.2rem; border-radius: 40px; border: none; cursor: pointer; margin-top: 1rem; margin-left: 1rem; }
-        .print-quote-btn { background: #e9dfd4; }
-        .email-quote-btn { background: #b99f87; color: white; }
+        .print-quote-btn, .email-quote-btn { padding: 0.5rem 1rem; border-radius: 40px; border: none; cursor: pointer; margin-left: 1rem; }
         .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; }
-        @media (max-width: 900px) { .dual-library { grid-template-columns: 1fr; } .routine-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 1100px) { .routine-grid { grid-template-columns: 1fr; } .dual-library { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
-<!-- Lock Screen -->
 <div id="lockScreen" class="lock-screen">
     <div class="lock-card">
         <h2>🔐 Staff Access</h2>
-        <p>Enter page password to continue</p>
         <input type="password" id="pagePasswordInput" placeholder="Password" autocomplete="off">
         <button id="unlockPageBtn">Unlock</button>
         <div id="lockError" class="error-msg"></div>
@@ -130,612 +124,322 @@
 
 <div id="mainApp" class="skincare-app">
     <div class="app-container">
-        <div class="ritual-header">
-            <h1>AURA CLINIC · Smart Quote + Routine Guide</h1>
-            <p>drag to customize · services + products · client guidance</p>
-        </div>
-
+        <div class="ritual-header"><h1>AURA CLINIC · Smart Quote + Routine Guide</h1></div>
         <div class="auth-section">
             <div class="auth-status" id="authStatus">Ready</div>
-            <div>
-                <button id="adminModeBtn" class="auth-btn" style="background:#8f7e6b;">👑 Admin Login</button>
-                <button id="exitAdminBtn" class="auth-btn auth-btn-outline" style="display:none">Exit Admin</button>
-                <span id="adminBadge" class="admin-badge" style="display:none;">Admin Mode</span>
-            </div>
+            <div><button id="adminModeBtn" class="auth-btn" style="background:#8f7e6b;">👑 Admin Login</button>
+            <button id="exitAdminBtn" class="auth-btn auth-btn-outline" style="display:none">Exit Admin</button>
+            <span id="adminBadge" class="admin-badge" style="display:none;">Admin Mode</span></div>
         </div>
 
-        <!-- Services + Products Library -->
         <div class="dual-library">
-            <div class="library-card">
-                <div class="library-header">
-                    <div class="library-title">💆 Clinical Services</div>
-                    <button id="addServiceBtn" class="toggle-add-btn" style="display:none;">+ Add Service</button>
-                </div>
-                <div id="servicesContainer" class="brand-products"></div>
-            </div>
-            <div class="library-card">
-                <div class="library-header">
-                    <div class="library-title">🧴 Skincare Products</div>
-                    <button id="addProductBtn" class="toggle-add-btn" style="display:none;">+ Add Product</button>
-                </div>
-                <div id="brandProductsContainer" class="brand-products"></div>
-            </div>
+            <div class="library-card"><div class="library-header"><div class="library-title">💆 Clinical Services</div><button id="addServiceBtn" class="toggle-add-btn" style="display:none;">+ Add Service</button></div><div id="servicesContainer" class="brand-products"></div></div>
+            <div class="library-card"><div class="library-header"><div class="library-title">🧴 Skincare Products</div><button id="addProductBtn" class="toggle-add-btn" style="display:none;">+ Add Product</button></div><div id="brandProductsContainer" class="brand-products"></div></div>
         </div>
 
-        <!-- Quick Package Loader -->
         <div class="package-bar">
-            <span style="font-size:0.8rem;">📦 Quick Package:</span>
-            <select id="packageSelect" class="package-select">
-                <option value="">-- Select Package --</option>
-                <option value="microneedling">Microneedling Package (Service + Product)</option>
-            </select>
+            <span>📦 Quick Package:</span>
+            <select id="packageSelect" class="package-select"><option value="">-- Select Package --</option><option value="microneedling">Microneedling Package (Service + Product)</option></select>
             <button id="loadPackageBtn" class="load-package-btn">Load to Routine</button>
             <button id="saveAsPackageBtn" class="load-package-btn" style="background:#e9dfd4; color:#5f5347; display:none;">💾 Save as Package</button>
         </div>
 
-        <!-- Routine Selector -->
         <div class="routine-selector-bar">
-            <div class="selector-header">
-                <div class="selector-title">📋 SELECT ROUTINE</div>
-                <button id="editRoutineBtn" class="manage-btn" style="background:transparent; border:1px solid #d2c0b0; padding:0.4rem 1rem; border-radius:40px; display:none;">✏️ Edit Name</button>
-            </div>
+            <div class="selector-header"><div class="selector-title">📋 SELECT ROUTINE</div><button id="editRoutineBtn" class="manage-btn" style="background:transparent; border:1px solid #d2c0b0; padding:0.4rem 1rem; border-radius:40px; display:none;">✏️ Edit Name</button></div>
             <div class="routine-buttons" id="routineButtons"></div>
         </div>
 
-        <!-- AM / PM Routine Grid (Client Guidance) -->
+        <!-- 3-column layout: Services, AM, PM -->
         <div class="routine-grid">
+            <!-- Services Column -->
             <div class="column">
-                <div class="column-title">MORNING ROUTINE <span>AM</span></div>
-                <div class="product-list" id="morningList"></div>
+                <div class="column-title">💆 CLINICAL SERVICES <span>in this routine</span></div>
+                <div class="product-list" id="servicesList"></div>
+                <div class="add-item-row" id="addServiceRow">
+                    <input type="text" class="item-search-input" id="serviceSearchInput" placeholder="Search or select service..." autocomplete="off">
+                    <div id="serviceSuggestions" class="item-suggestions"></div>
+                    <button class="add-to-routine-btn" id="addServiceToRoutineBtn">+ Add to bottom</button>
+                </div>
             </div>
+            <!-- AM Column -->
             <div class="column">
-                <div class="column-title">EVENING ROUTINE <span>PM</span></div>
+                <div class="column-title">🌅 MORNING ROUTINE <span>AM</span></div>
+                <div class="product-list" id="morningList"></div>
+                <div class="add-item-row" id="addProductRowAM">
+                    <input type="text" class="item-search-input" id="productSearchInputAM" placeholder="Search or select product..." autocomplete="off">
+                    <div id="productSuggestionsAM" class="item-suggestions"></div>
+                    <button class="add-to-routine-btn" id="addProductToAMBtn">+ Add to bottom</button>
+                </div>
+            </div>
+            <!-- PM Column -->
+            <div class="column">
+                <div class="column-title">🌙 EVENING ROUTINE <span>PM</span></div>
                 <div class="product-list" id="eveningList"></div>
+                <div class="add-item-row" id="addProductRowPM">
+                    <input type="text" class="item-search-input" id="productSearchInputPM" placeholder="Search or select product..." autocomplete="off">
+                    <div id="productSuggestionsPM" class="item-suggestions"></div>
+                    <button class="add-to-routine-btn" id="addProductToPMBtn">+ Add to bottom</button>
+                </div>
             </div>
         </div>
 
-        <div class="total-bar">
-            <div class="total-label">TOTAL VALUE (Unique Services + Products)</div>
-            <div class="total-amount">$<span id="totalPrice">0.00</span></div>
-        </div>
-        
-        <div style="display: flex; justify-content: center;">
-            <button class="quote-btn" id="quoteBtn">📄 Generate Quote (Services + Products)</button>
-        </div>
-        
+        <div class="total-bar"><div>TOTAL VALUE (Unique Services + Products)</div><div class="total-amount">$<span id="totalPrice">0.00</span></div></div>
+        <div style="display: flex; justify-content: center;"><button class="quote-btn" id="quoteBtn">📄 Generate Quote (Services + Products)</button></div>
         <div class="action-buttons-bottom">
             <button class="action-btn update-btn" id="updateCurrentBtn" style="display:none;">📝 Update Current Routine</button>
             <button class="action-btn" id="deleteCurrentRoutineBtn" style="display:none;">🗑️ Delete Routine</button>
             <button class="action-btn" id="saveStandardBtn" style="display:none;">💾 Save as New Routine</button>
             <button class="action-btn" id="printBtn">🖨️ PRINT ROUTINE (Client Guide)</button>
         </div>
-        <div class="footnote">✦ Admin mode: add/edit/delete services & products ✦ Drag items to AM/PM columns ✦ Click Generate Quote for professional price quote ✦</div>
+        <div class="footnote">✦ Admin mode: add/edit/delete services & products ✦ Drag to reorder within each column ✦ Use dropdown to add items to bottom ✦</div>
     </div>
 </div>
 
-<!-- Quote Modal -->
-<div id="quoteModal" class="quote-modal">
-    <div class="quote-content">
-        <div class="quote-header"><h2>📋 Professional Quote</h2><button id="closeModalBtn" style="background:none; border:none; font-size:1.8rem; cursor:pointer;">&times;</button></div>
-        <div style="margin-bottom:1rem;"><strong>Routine:</strong> <span id="quoteRoutineName"></span></div>
-        <table class="quote-table" id="quoteTable"><thead><tr><th>Item</th><th>Type</th><th>Unit Price</th><th>Qty</th><th>Discount</th><th>Total</th></tr></thead><tbody id="quoteTableBody"></tbody></table>
-        <div class="quote-totals" id="quoteTotals"></div>
-        <div style="text-align:right;"><button class="print-quote-btn" id="printQuoteBtn">🖨️ Print / PDF</button><button class="email-quote-btn" id="emailQuoteBtn">📧 Email Quote</button></div>
-    </div>
-</div>
+<div id="quoteModal" class="quote-modal"><div class="quote-content"><div class="quote-header"><h2>📋 Professional Quote</h2><button id="closeModalBtn" style="background:none; border:none; font-size:1.8rem; cursor:pointer;">&times;</button></div><div><strong>Routine:</strong> <span id="quoteRoutineName"></span></div>
+<table class="quote-table"><thead><tr><th>Item</th><th>Type</th><th>Unit Price</th><th>Qty</th><th>Discount</th><th>Total</th></tr></thead><tbody id="quoteTableBody"></tbody></table>
+<div class="quote-totals" id="quoteTotals"></div><div style="text-align:right;"><button class="print-quote-btn" id="printQuoteBtn">🖨️ Print / PDF</button><button class="email-quote-btn" id="emailQuoteBtn">📧 Email Quote</button></div></div></div>
 
 <script>
-// ==================== PASSWORD CONFIGURATION ====================
 const PAGE_PASSWORD = "clinic2024";
 const ADMIN_PASSWORD = "admin123";
-
-// Persisted state using sessionStorage (survives refresh, cleared when tab closed)
 let isAdminMode = sessionStorage.getItem('aura_admin_mode') === 'true';
 let isPageUnlocked = sessionStorage.getItem('aura_page_unlocked') === 'true';
 
-// ==================== SUPA BASE CONFIG (placeholder for future) ====================
-let supabaseClient = null;
-let isAuthenticated = false;
-let currentUserId = null;
-
-// ==================== DATA ====================
+// Data
 let servicesData = [
-    { id: "srv1", name: "Laser Hair Removal", price: 250, type: "service", benefit: "Permanent reduction", usage: "Treatment per area", image: "" },
-    { id: "srv2", name: "Microneedling", price: 450, type: "service", benefit: "Collagen induction", usage: "30 min session", image: "" },
-    { id: "srv3", name: "Excel V - Rejuvenate", price: 350, type: "service", benefit: "Vascular & pigmentation", usage: "20 min session", image: "" }
+    { id: "srv1", name: "Laser Hair Removal", price: 250, type: "service", benefit: "Permanent reduction", usage: "Treatment per area" },
+    { id: "srv2", name: "Microneedling", price: 450, type: "service", benefit: "Collagen induction", usage: "30 min session" },
+    { id: "srv3", name: "Excel V - Rejuvenate", price: 350, type: "service", benefit: "Vascular & pigmentation", usage: "20 min session" }
 ];
-
 let productsData = [
-    { id: "clarify-cleanser", name: "Clarify Cleanser", brand: "FNL", price: 50, benefit: "Antibacterial", usage: "Pea size - cleanse", type: "product", image: "" },
-    { id: "exo-gf", name: "Exo-GF Serum", brand: "FNL", price: 275, benefit: "Regenerates", usage: "1 pump", type: "product", image: "" },
-    { id: "exfoliating-pad", name: "Exfoliating Pad 10%", brand: "FNL", price: 88, benefit: "Minimizes blackheads", usage: "Wipe face gently", type: "product", image: "" },
-    { id: "glycolic-lotion", name: "Glycolic Lotion 10%", brand: "FNL", price: 98, benefit: "Improves texture", usage: "Pea size - apply", type: "product", image: "" },
-    { id: "silymarin", name: "Silymarin", brand: "Skinceuticals", price: 220, benefit: "Antioxidant for acne", usage: "1 pump", type: "product", image: "" },
-    { id: "spf50", name: "SPF50 Sheer Physical", brand: "SkinMedica", price: 66, benefit: "Physical SPF", usage: "1 pump - last step", type: "product", image: "" },
-    { id: "retinol-fnl", name: "Retinol (FNL)", brand: "FNL", price: 115, benefit: "Cell turnover", usage: "Start 2x/week", type: "product", image: "" },
-    { id: "tns", name: "TNS+ Serum", brand: "SkinMedica", price: 330, benefit: "Lifting & Anti-aging", usage: "1 pump", type: "product", image: "" }
+    { id: "clarify-cleanser", name: "Clarify Cleanser", brand: "FNL", price: 50, benefit: "Antibacterial", usage: "Pea size - cleanse", type: "product" },
+    { id: "exo-gf", name: "Exo-GF Serum", brand: "FNL", price: 275, benefit: "Regenerates", usage: "1 pump", type: "product" },
+    { id: "exfoliating-pad", name: "Exfoliating Pad 10%", brand: "FNL", price: 88, benefit: "Minimizes blackheads", usage: "Wipe face gently", type: "product" },
+    { id: "glycolic-lotion", name: "Glycolic Lotion 10%", brand: "FNL", price: 98, benefit: "Improves texture", usage: "Pea size - apply", type: "product" },
+    { id: "silymarin", name: "Silymarin", brand: "Skinceuticals", price: 220, benefit: "Antioxidant for acne", usage: "1 pump", type: "product" },
+    { id: "spf50", name: "SPF50 Sheer Physical", brand: "SkinMedica", price: 66, benefit: "Physical SPF", usage: "1 pump - last step", type: "product" },
+    { id: "retinol-fnl", name: "Retinol (FNL)", brand: "FNL", price: 115, benefit: "Cell turnover", usage: "Start 2x/week", type: "product" },
+    { id: "tns", name: "TNS+ Serum", brand: "SkinMedica", price: 330, benefit: "Lifting & Anti-aging", usage: "1 pump", type: "product" }
 ];
 
 let savedRoutines = {};
+let currentRoutineId = null;
+let currentServices = [];      // service items in this routine
 let currentMorningProducts = [];
 let currentEveningProducts = [];
-let currentRoutineId = null;
 
-function getItemById(id) {
-    let s = servicesData.find(i => i.id === id);
-    if (s) return s;
-    return productsData.find(i => i.id === id);
+function getItemById(id, type) {
+    if (type === 'service') return servicesData.find(s => s.id === id);
+    return productsData.find(p => p.id === id);
+}
+function getAllItemsForSearch() {
+    let all = [...servicesData.map(s => ({ ...s, searchType: 'service' })), ...productsData.map(p => ({ ...p, searchType: 'product' }))];
+    return all.sort((a,b) => a.name.localeCompare(b.name));
 }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
 function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 
-function getUniqueItemsTotal() {
+function getUniqueTotal() {
     let ids = new Set();
+    currentServices.forEach(i => ids.add(i.id));
     currentMorningProducts.forEach(i => ids.add(i.productId));
     currentEveningProducts.forEach(i => ids.add(i.productId));
     let total = 0;
-    ids.forEach(id => { let item = getItemById(id); if(item) total += item.price; });
+    ids.forEach(id => {
+        let item = servicesData.find(s => s.id === id) || productsData.find(p => p.id === id);
+        if(item) total += item.price;
+    });
     return total;
 }
-function updateTotalPrice() { document.getElementById('totalPrice').innerText = getUniqueItemsTotal().toFixed(2); }
+function updateTotalPrice() { document.getElementById('totalPrice').innerText = getUniqueTotal().toFixed(2); }
 
-function saveAppState() {
+function saveState() {
     localStorage.setItem('aura_services', JSON.stringify(servicesData));
     localStorage.setItem('aura_products', JSON.stringify(productsData));
     localStorage.setItem('aura_routines', JSON.stringify(savedRoutines));
     localStorage.setItem('aura_current_routine_id', currentRoutineId || '');
-    localStorage.setItem('aura_morning', JSON.stringify(currentMorningProducts.map(p => p.productId)));
-    localStorage.setItem('aura_evening', JSON.stringify(currentEveningProducts.map(p => p.productId)));
+    localStorage.setItem('aura_current_services', JSON.stringify(currentServices.map(s => s.id)));
+    localStorage.setItem('aura_current_morning', JSON.stringify(currentMorningProducts.map(p => p.productId)));
+    localStorage.setItem('aura_current_evening', JSON.stringify(currentEveningProducts.map(p => p.productId)));
 }
-function loadAppState() {
-    let savedServices = localStorage.getItem('aura_services');
-    let savedProducts = localStorage.getItem('aura_products');
-    let savedRoutinesData = localStorage.getItem('aura_routines');
-    let savedRoutineId = localStorage.getItem('aura_current_routine_id');
-    let savedMorning = localStorage.getItem('aura_morning');
-    let savedEvening = localStorage.getItem('aura_evening');
-    
-    if (savedServices) servicesData = JSON.parse(savedServices);
-    if (savedProducts) productsData = JSON.parse(savedProducts);
-    if (savedRoutinesData) savedRoutines = JSON.parse(savedRoutinesData);
-    
-    if (savedRoutineId && savedRoutines[savedRoutineId]) currentRoutineId = savedRoutineId;
-    else {
-        let keys = Object.keys(savedRoutines);
-        if (keys.length) currentRoutineId = keys[0];
-        else currentRoutineId = null;
-    }
-    
-    if (savedMorning) currentMorningProducts = JSON.parse(savedMorning).map(pid => ({ productId: pid, time: "morning" }));
+function loadState() {
+    let sS = localStorage.getItem('aura_services'), pP = localStorage.getItem('aura_products'), rR = localStorage.getItem('aura_routines');
+    let rid = localStorage.getItem('aura_current_routine_id'), cs = localStorage.getItem('aura_current_services');
+    let cm = localStorage.getItem('aura_current_morning'), ce = localStorage.getItem('aura_current_evening');
+    if (sS) servicesData = JSON.parse(sS);
+    if (pP) productsData = JSON.parse(pP);
+    if (rR) savedRoutines = JSON.parse(rR);
+    if (rid && savedRoutines[rid]) currentRoutineId = rid;
+    else { let keys = Object.keys(savedRoutines); if (keys.length) currentRoutineId = keys[0]; else currentRoutineId = null; }
+    if (cs) currentServices = JSON.parse(cs).map(id => ({ id, type: 'service' }));
+    else currentServices = [];
+    if (cm) currentMorningProducts = JSON.parse(cm).map(pid => ({ productId: pid, time: "morning" }));
     else currentMorningProducts = [];
-    if (savedEvening) currentEveningProducts = JSON.parse(savedEvening).map(pid => ({ productId: pid, time: "evening" }));
+    if (ce) currentEveningProducts = JSON.parse(ce).map(pid => ({ productId: pid, time: "evening" }));
     else currentEveningProducts = [];
 }
-
 function initDefaultRoutines() {
     if (Object.keys(savedRoutines).length === 0) {
-        savedRoutines = {
-            "default-am": { name: "Standard AM", morning: ["clarify-cleanser", "exfoliating-pad", "silymarin", "glycolic-lotion", "spf50"], evening: [] },
-            "default-pm": { name: "Standard PM", morning: [], evening: ["clarify-cleanser", "exo-gf", "retinol-fnl", "glycolic-lotion"] }
-        };
-        currentRoutineId = "default-am";
-        currentMorningProducts = savedRoutines["default-am"].morning.map(pid => ({ productId: pid, time: "morning" }));
-        currentEveningProducts = savedRoutines["default-am"].evening.map(pid => ({ productId: pid, time: "evening" }));
+        savedRoutines = { "default": { name: "Standard Routine", services: [], morning: [], evening: [] } };
+        currentRoutineId = "default";
+        currentServices = []; currentMorningProducts = []; currentEveningProducts = [];
     }
 }
 
-// Render Services Library
-function renderServicesLibrary() {
-    let container = document.getElementById('servicesContainer');
-    if (!container) return;
-    container.innerHTML = servicesData.map(s => `
-        <div class="library-item" draggable="true" data-id="${s.id}" data-name="${escapeHtml(s.name)}" data-price="${s.price}" data-type="service">
-            ${escapeHtml(s.name)} <span class="library-price">$${s.price}</span>
-            ${isAdminMode ? `<span class="library-actions"><span class="edit-icon" data-id="${s.id}" data-type="service">✎</span><span class="delete-icon" data-id="${s.id}" data-type="service">🗑️</span></span>` : ''}
-        </div>
-    `).join('');
-    attachDragToLibrary();
-    if (isAdminMode) attachServiceEditEvents();
+function renderLibraries() {
+    let sCont = document.getElementById('servicesContainer');
+    if(sCont) sCont.innerHTML = servicesData.map(s => `<div class="library-item">${escapeHtml(s.name)} <span class="library-price">$${s.price}</span>${isAdminMode ? `<span class="library-actions"><span class="edit-icon" data-id="${s.id}" data-type="service">✎</span><span class="delete-icon" data-id="${s.id}" data-type="service">🗑️</span></span>` : ''}</div>`).join('');
+    let pCont = document.getElementById('brandProductsContainer');
+    if(pCont) pCont.innerHTML = productsData.map(p => `<div class="library-item">${escapeHtml(p.name)} <span class="library-price">$${p.price}</span>${isAdminMode ? `<span class="library-actions"><span class="edit-icon" data-id="${p.id}" data-type="product">✎</span><span class="delete-icon" data-id="${p.id}" data-type="product">🗑️</span></span>` : ''}</div>`).join('');
+    if(isAdminMode) attachEditDeleteEvents();
 }
-function attachServiceEditEvents() {
-    document.querySelectorAll('#servicesContainer .edit-icon').forEach(icon => {
-        icon.onclick = (e) => {
-            e.stopPropagation();
-            let id = icon.dataset.id;
-            let service = servicesData.find(s => s.id === id);
-            if (service) {
-                let newName = prompt("New name", service.name);
-                if (newName) service.name = newName;
-                let newPrice = parseFloat(prompt("New price", service.price));
-                if (!isNaN(newPrice)) service.price = newPrice;
-                renderServicesLibrary();
-                renderRoutines();
-                updateTotalPrice();
-                saveAppState();
-            }
-        };
-    });
-    document.querySelectorAll('#servicesContainer .delete-icon').forEach(icon => {
-        icon.onclick = (e) => {
-            e.stopPropagation();
-            if (confirm("Delete this service? It will be removed from all routines.")) {
-                let id = icon.dataset.id;
-                servicesData = servicesData.filter(s => s.id !== id);
-                for (let rid in savedRoutines) {
-                    savedRoutines[rid].morning = savedRoutines[rid].morning.filter(pid => pid !== id);
-                    savedRoutines[rid].evening = savedRoutines[rid].evening.filter(pid => pid !== id);
-                }
-                currentMorningProducts = currentMorningProducts.filter(i => i.productId !== id);
-                currentEveningProducts = currentEveningProducts.filter(i => i.productId !== id);
-                renderServicesLibrary();
-                renderRoutines();
-                updateTotalPrice();
-                saveAppState();
-            }
-        };
-    });
+function attachEditDeleteEvents() {
+    document.querySelectorAll('#servicesContainer .edit-icon').forEach(icon => { icon.onclick = () => { let s = servicesData.find(s => s.id === icon.dataset.id); if(s){ let n=prompt("New name",s.name); if(n) s.name=n; let p=parseFloat(prompt("New price",s.price)); if(!isNaN(p)) s.price=p; renderLibraries(); renderAllRoutineColumns(); updateTotalPrice(); saveState(); } }; });
+    document.querySelectorAll('#servicesContainer .delete-icon').forEach(icon => { icon.onclick = () => { if(confirm("Delete service?")){ servicesData = servicesData.filter(s => s.id !== icon.dataset.id); currentServices = currentServices.filter(s => s.id !== icon.dataset.id); for(let rid in savedRoutines) { savedRoutines[rid].services = (savedRoutines[rid].services||[]).filter(id => id !== icon.dataset.id); } renderLibraries(); renderAllRoutineColumns(); updateTotalPrice(); saveState(); } }; });
+    document.querySelectorAll('#brandProductsContainer .edit-icon').forEach(icon => { icon.onclick = () => { let p = productsData.find(p => p.id === icon.dataset.id); if(p){ let n=prompt("New name",p.name); if(n) p.name=n; let pr=parseFloat(prompt("New price",p.price)); if(!isNaN(pr)) p.price=pr; renderLibraries(); renderAllRoutineColumns(); updateTotalPrice(); saveState(); } }; });
+    document.querySelectorAll('#brandProductsContainer .delete-icon').forEach(icon => { icon.onclick = () => { if(confirm("Delete product?")){ productsData = productsData.filter(p => p.id !== icon.dataset.id); currentMorningProducts = currentMorningProducts.filter(i => i.productId !== icon.dataset.id); currentEveningProducts = currentEveningProducts.filter(i => i.productId !== icon.dataset.id); for(let rid in savedRoutines) { savedRoutines[rid].morning = (savedRoutines[rid].morning||[]).filter(id => id !== icon.dataset.id); savedRoutines[rid].evening = (savedRoutines[rid].evening||[]).filter(id => id !== icon.dataset.id); } renderLibraries(); renderAllRoutineColumns(); updateTotalPrice(); saveState(); } }; });
 }
 
-function renderBrandProducts() {
-    let container = document.getElementById('brandProductsContainer');
-    if (!container) return;
-    container.innerHTML = productsData.map(p => `
-        <div class="library-item" draggable="true" data-id="${p.id}" data-name="${escapeHtml(p.name)}" data-price="${p.price}" data-type="product">
-            ${escapeHtml(p.name)} <span class="library-price">$${p.price}</span>
-            ${isAdminMode ? `<span class="library-actions"><span class="edit-icon" data-id="${p.id}" data-type="product">✎</span><span class="delete-icon" data-id="${p.id}" data-type="product">🗑️</span></span>` : ''}
-        </div>
-    `).join('');
-    attachDragToLibrary();
-    if (isAdminMode) attachProductEditEvents();
+function renderAllRoutineColumns() {
+    // Services column
+    let sList = document.getElementById('servicesList');
+    if(sList) sList.innerHTML = currentServices.map((item, idx) => `<div class="product-card" data-id="${item.id}" data-type="service" data-index="${idx}" draggable="true"><div class="drag-handle">⋮⋮</div><button class="delete-btn" data-col="services" data-index="${idx}">✕</button><div class="product-info"><div class="product-name">💆 ${escapeHtml(servicesData.find(s=>s.id===item.id)?.name || '')} <span class="product-price">$${servicesData.find(s=>s.id===item.id)?.price || 0}</span></div></div></div>`).join('');
+    // AM column
+    let amList = document.getElementById('morningList');
+    if(amList) amList.innerHTML = currentMorningProducts.map((item, idx) => { let p = productsData.find(pr=>pr.id===item.productId); return p ? `<div class="product-card" data-id="${p.id}" data-col="am" data-index="${idx}" draggable="true"><div class="drag-handle">⋮⋮</div><button class="delete-btn" data-col="am" data-index="${idx}">✕</button><div class="product-info"><div class="product-name">🧴 ${escapeHtml(p.name)} <span class="product-price">$${p.price}</span></div><div class="benefit">${escapeHtml(p.benefit || '')}</div><div class="usage">✦ ${escapeHtml((p.usage || '').substring(0, 45))}</div></div></div>` : ''; }).join('');
+    // PM column
+    let pmList = document.getElementById('eveningList');
+    if(pmList) pmList.innerHTML = currentEveningProducts.map((item, idx) => { let p = productsData.find(pr=>pr.id===item.productId); return p ? `<div class="product-card" data-id="${p.id}" data-col="pm" data-index="${idx}" draggable="true"><div class="drag-handle">⋮⋮</div><button class="delete-btn" data-col="pm" data-index="${idx}">✕</button><div class="product-info"><div class="product-name">🧴 ${escapeHtml(p.name)} <span class="product-price">$${p.price}</span></div><div class="benefit">${escapeHtml(p.benefit || '')}</div><div class="usage">✦ ${escapeHtml((p.usage || '').substring(0, 45))}</div></div></div>` : ''; }).join('');
+    
+    attachDragAndDelete();
+    updateTotalPrice();
 }
-function attachProductEditEvents() {
-    document.querySelectorAll('#brandProductsContainer .edit-icon').forEach(icon => {
-        icon.onclick = (e) => {
-            e.stopPropagation();
-            let p = productsData.find(p => p.id === icon.dataset.id);
-            if (p) {
-                let newName = prompt("New name", p.name);
-                if (newName) p.name = newName;
-                let newPrice = parseFloat(prompt("New price", p.price));
-                if (!isNaN(newPrice)) p.price = newPrice;
-                renderBrandProducts();
-                renderRoutines();
-                updateTotalPrice();
-                saveAppState();
-            }
-        };
-    });
-    document.querySelectorAll('#brandProductsContainer .delete-icon').forEach(icon => {
-        icon.onclick = (e) => {
-            e.stopPropagation();
-            if (confirm("Delete this product?")) {
-                let id = icon.dataset.id;
-                productsData = productsData.filter(p => p.id !== id);
-                for (let rid in savedRoutines) {
-                    savedRoutines[rid].morning = savedRoutines[rid].morning.filter(pid => pid !== id);
-                    savedRoutines[rid].evening = savedRoutines[rid].evening.filter(pid => pid !== id);
-                }
-                currentMorningProducts = currentMorningProducts.filter(i => i.productId !== id);
-                currentEveningProducts = currentEveningProducts.filter(i => i.productId !== id);
-                renderBrandProducts();
-                renderRoutines();
-                updateTotalPrice();
-                saveAppState();
-            }
-        };
-    });
+function attachDragAndDelete() {
+    document.querySelectorAll('.product-card').forEach(card => { card.setAttribute('draggable', 'true'); card.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', JSON.stringify({ id: card.dataset.id, col: card.dataset.col, idx: card.dataset.index })); }); });
+    document.querySelectorAll('.product-list').forEach(list => { list.addEventListener('dragover', e => e.preventDefault()); list.addEventListener('drop', e => { e.preventDefault(); let drag = JSON.parse(e.dataTransfer.getData('text/plain')); if(!drag) return; let targetCard = e.target.closest('.product-card'); if(!targetCard) return; let targetCol = targetCard.dataset.col, targetIdx = parseInt(targetCard.dataset.index); if(drag.col === targetCol) { let items = drag.col === 'services' ? currentServices : (drag.col === 'am' ? currentMorningProducts : currentEveningProducts); let dragged = items[drag.idx]; items.splice(drag.idx, 1); items.splice(targetIdx, 0, dragged); renderAllRoutineColumns(); saveState(); } }); });
+    document.querySelectorAll('.delete-btn').forEach(btn => { btn.onclick = () => { let col = btn.dataset.col, idx = parseInt(btn.dataset.index); if(col === 'services') currentServices.splice(idx,1); else if(col === 'am') currentMorningProducts.splice(idx,1); else if(col === 'pm') currentEveningProducts.splice(idx,1); renderAllRoutineColumns(); saveState(); }; });
 }
 
-function attachDragToLibrary() {
-    document.querySelectorAll('.library-item').forEach(el => {
-        el.setAttribute('draggable', 'true');
-        el.addEventListener('dragstart', (e) => {
-            let data = { id: el.dataset.id, name: el.dataset.name, price: parseFloat(el.dataset.price), type: el.dataset.type };
-            e.dataTransfer.setData('text/plain', JSON.stringify(data));
-        });
+// Search dropdown logic
+function setupSearch(inputId, suggestionsId, itemsList, onAdd) {
+    let input = document.getElementById(inputId);
+    let suggestionsDiv = document.getElementById(suggestionsId);
+    if(!input) return;
+    let allItems = getAllItemsForSearch();
+    input.addEventListener('input', (e) => {
+        let term = e.target.value.toLowerCase();
+        if(!term) { suggestionsDiv.style.display = 'none'; return; }
+        let filtered = allItems.filter(i => i.name.toLowerCase().includes(term)).slice(0, 8);
+        if(filtered.length) {
+            suggestionsDiv.innerHTML = filtered.map(i => `<div class="suggestion-item" data-id="${i.id}" data-type="${i.searchType}">${escapeHtml(i.name)} (${i.searchType === 'service' ? 'Service' : 'Product'}) - $${i.price}</div>`).join('');
+            suggestionsDiv.style.display = 'block';
+            suggestionsDiv.querySelectorAll('.suggestion-item').forEach(sug => { sug.onclick = () => { input.value = sug.innerText.split(' (')[0]; suggestionsDiv.style.display = 'none'; onAdd(sug.dataset.id, sug.dataset.type); }; });
+        } else { suggestionsDiv.style.display = 'none'; }
     });
+    document.addEventListener('click', (e) => { if(!input.contains(e.target) && !suggestionsDiv.contains(e.target)) suggestionsDiv.style.display = 'none'; });
 }
+function addServiceToRoutine(serviceId) { let s = servicesData.find(s => s.id === serviceId); if(s && !currentServices.some(ss => ss.id === serviceId)) { currentServices.push({ id: serviceId, type: 'service' }); renderAllRoutineColumns(); saveState(); } else if(s) alert("Service already in routine"); else alert("Service not found"); }
+function addProductToRoutine(productId, target) { let p = productsData.find(p => p.id === productId); if(!p) return; let targetArray = target === 'am' ? currentMorningProducts : currentEveningProducts; if(!targetArray.some(i => i.productId === productId)) { targetArray.push({ productId: productId, time: target }); renderAllRoutineColumns(); saveState(); } else alert("Product already in this routine"); }
 
 function renderRoutineButtons() {
-    let container = document.getElementById('routineButtons');
-    if (!container) return;
-    container.innerHTML = Object.entries(savedRoutines).map(([id, r]) => `<button class="routine-btn ${id === currentRoutineId ? 'active' : ''}" data-id="${id}">${escapeHtml(r.name)}</button>`).join('');
+    let cont = document.getElementById('routineButtons');
+    if(cont) cont.innerHTML = Object.entries(savedRoutines).map(([id,r]) => `<button class="routine-btn ${id===currentRoutineId?'active':''}" data-id="${id}">${escapeHtml(r.name)}</button>`).join('');
     document.querySelectorAll('.routine-btn').forEach(btn => { btn.onclick = () => loadRoutine(btn.dataset.id); });
 }
 function loadRoutine(routineId) {
-    let routine = savedRoutines[routineId];
-    if (routine) {
+    let r = savedRoutines[routineId];
+    if(r) {
         currentRoutineId = routineId;
-        currentMorningProducts = routine.morning.map(pid => ({ productId: pid, time: "morning" }));
-        currentEveningProducts = routine.evening.map(pid => ({ productId: pid, time: "evening" }));
-        renderRoutines();
-        updateTotalPrice();
-        highlightActiveRoutine();
-        saveAppState();
+        currentServices = (r.services || []).map(id => ({ id, type: 'service' }));
+        currentMorningProducts = (r.morning || []).map(pid => ({ productId: pid, time: "morning" }));
+        currentEveningProducts = (r.evening || []).map(pid => ({ productId: pid, time: "evening" }));
+        renderAllRoutineColumns();
+        renderRoutineButtons();
+        saveState();
     }
-}
-function highlightActiveRoutine() {
-    document.querySelectorAll('.routine-btn').forEach(btn => {
-        if (btn.dataset.id === currentRoutineId) btn.classList.add('active');
-        else btn.classList.remove('active');
-    });
-}
-
-function renderRoutines() {
-    let morningContainer = document.getElementById('morningList');
-    let eveningContainer = document.getElementById('eveningList');
-    function renderCard(pid, idx, time) {
-        let item = getItemById(pid);
-        if (!item) return '';
-        let typeIcon = item.type === 'service' ? '💆' : '🧴';
-        return `<div class="product-card" data-product-id="${pid}" data-index="${idx}" data-time="${time}" draggable="true">
-            <div class="drag-handle">⋮⋮</div>
-            <button class="delete-btn" data-time="${time}" data-index="${idx}">✕</button>
-            <div class="product-info" style="flex:1;">
-                <div class="product-name">${typeIcon} ${escapeHtml(item.name)} <span class="product-price">$${item.price}</span></div>
-                <div class="benefit">${escapeHtml(item.benefit || '')}</div>
-                <div class="usage">✦ ${escapeHtml((item.usage || '').substring(0, 55))}</div>
-            </div>
-        </div>`;
-    }
-    morningContainer.innerHTML = `<div class="empty-slot" data-time="morning" data-index="0">+ Drop here to add at top</div>` + currentMorningProducts.map((item, idx) => renderCard(item.productId, idx, 'morning')).join('');
-    eveningContainer.innerHTML = `<div class="empty-slot" data-time="evening" data-index="0">+ Drop here to add at top</div>` + currentEveningProducts.map((item, idx) => renderCard(item.productId, idx, 'evening')).join('');
-    attachDropEvents();
-    attachDeleteEvents();
-}
-function attachDropEvents() {
-    document.querySelectorAll('.product-list').forEach(list => {
-        list.ondragover = (e) => e.preventDefault();
-        list.ondrop = (e) => {
-            e.preventDefault();
-            let targetCard = e.target.closest('.product-card');
-            let targetSlot = e.target.closest('.empty-slot');
-            let dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
-            if (!dragData || !dragData.id) return;
-            let time = targetCard ? targetCard.dataset.time : (targetSlot ? targetSlot.dataset.time : null);
-            if (!time) return;
-            let targetIdx = targetCard ? parseInt(targetCard.dataset.index) : (targetSlot ? parseInt(targetSlot.dataset.index) : 0);
-            let items = time === 'morning' ? currentMorningProducts : currentEveningProducts;
-            if (targetCard) {
-                if (targetIdx >= 0 && targetIdx < items.length) items[targetIdx] = { productId: dragData.id, time: time };
-            } else if (targetSlot) items.splice(targetIdx, 0, { productId: dragData.id, time: time });
-            renderRoutines();
-            updateTotalPrice();
-            saveAppState();
-        };
-    });
-}
-function attachDeleteEvents() {
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.onclick = (e) => {
-            e.stopPropagation();
-            let time = btn.dataset.time, idx = parseInt(btn.dataset.index);
-            if (time === 'morning') currentMorningProducts.splice(idx, 1);
-            else currentEveningProducts.splice(idx, 1);
-            renderRoutines();
-            updateTotalPrice();
-            saveAppState();
-        };
-    });
 }
 
 function loadMicroneedlingPackage() {
     let microneedling = servicesData.find(s => s.name.toLowerCase().includes('microneedling'));
-    if (microneedling && !currentMorningProducts.some(i => i.productId === microneedling.id) && !currentEveningProducts.some(i => i.productId === microneedling.id)) {
-        currentMorningProducts.push({ productId: microneedling.id, time: "morning" });
-    }
+    if(microneedling && !currentServices.some(s => s.id === microneedling.id)) currentServices.push({ id: microneedling.id, type: 'service' });
     let exoGf = productsData.find(p => p.name.toLowerCase().includes('exo-gf'));
-    if (exoGf && !currentMorningProducts.some(i => i.productId === exoGf.id) && !currentEveningProducts.some(i => i.productId === exoGf.id)) {
-        currentEveningProducts.push({ productId: exoGf.id, time: "evening" });
-    }
-    renderRoutines();
-    updateTotalPrice();
-    saveAppState();
-    alert("✓ Microneedling Package loaded (Service + Product)");
+    if(exoGf && !currentEveningProducts.some(i => i.productId === exoGf.id)) currentEveningProducts.push({ productId: exoGf.id, time: "evening" });
+    renderAllRoutineColumns();
+    saveState();
+    alert("✓ Microneedling Package loaded");
 }
 
-// Quote Functions
-let currentQuoteCache = null;
+// Quote
+let quoteCache = null;
 function generateQuote() {
-    let allItems = [...currentMorningProducts, ...currentEveningProducts];
-    let itemMap = new Map();
-    for (let i of allItems) {
-        if (!itemMap.has(i.productId)) {
-            let item = getItemById(i.productId);
-            if (item) itemMap.set(i.productId, { id: item.id, name: item.name, price: item.price, type: item.type === 'service' ? 'Service' : 'Product', quantity: 1, discount: 0 });
-        }
-    }
-    let quoteItems = Array.from(itemMap.values());
-    if (quoteItems.length === 0) { alert("Please add services or products first"); return; }
+    let all = [...currentServices.map(s => ({ id: s.id, type: 'service' })), ...currentMorningProducts.map(p => ({ id: p.productId, type: 'product' })), ...currentEveningProducts.map(p => ({ id: p.productId, type: 'product' }))];
+    let map = new Map();
+    for(let i of all) { if(!map.has(i.id)) { let item = i.type==='service' ? servicesData.find(s=>s.id===i.id) : productsData.find(p=>p.id===i.id); if(item) map.set(i.id, { id: item.id, name: item.name, price: item.price, type: item.type==='service'?'Service':'Product', quantity: 1, discount: 0 }); } }
+    let items = Array.from(map.values());
+    if(!items.length) { alert("No items in routine"); return; }
     document.getElementById('quoteRoutineName').innerText = savedRoutines[currentRoutineId]?.name || 'Current';
     let tbody = document.getElementById('quoteTableBody');
-    function renderQuote() {
-        tbody.innerHTML = quoteItems.map((item, idx) => `
-            <tr><td>${escapeHtml(item.name)}</td><td>${item.type}</td><td>$${item.price.toFixed(2)}</td>
-            <td><input type="number" class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" style="width:60px;"></td>
-            <td><input type="number" class="discount-input" data-idx="${idx}" value="${item.discount}" min="0" max="100" style="width:60px;">%</td>
-            <td class="discounted-price">$${(item.price * item.quantity * (1 - item.discount/100)).toFixed(2)}</td></tr>
-        `).join('');
-        let subtotalBefore = 0, subtotalAfter = 0;
-        quoteItems.forEach(item => { let total = item.price * item.quantity; subtotalBefore += total; subtotalAfter += total * (1 - item.discount/100); });
-        let tax = subtotalAfter * 0.12;
-        document.getElementById('quoteTotals').innerHTML = `
-            <p>💰 Subtotal (before discount): $${subtotalBefore.toFixed(2)}</p>
-            <p style="color:#2d6a4f;">🏷️ Total Discount: -$${(subtotalBefore - subtotalAfter).toFixed(2)}</p>
-            <p>✨ Subtotal (after discount): $${subtotalAfter.toFixed(2)}</p>
-            <p>📋 Tax (12%): $${tax.toFixed(2)}</p>
-            <p style="font-size:1.2rem; font-weight:bold;">💵 Grand Total: $${(subtotalAfter + tax).toFixed(2)}</p>
-        `;
-        currentQuoteCache = { items: quoteItems, subtotalBefore, subtotalAfter, tax, grand: subtotalAfter + tax };
-        document.querySelectorAll('.qty-input, .discount-input').forEach(inp => {
-            inp.onchange = () => {
-                let idx = parseInt(inp.dataset.idx);
-                if (inp.classList.contains('qty-input')) quoteItems[idx].quantity = parseInt(inp.value) || 1;
-                else quoteItems[idx].discount = parseFloat(inp.value) || 0;
-                renderQuote();
-            };
-        });
+    function render() {
+        tbody.innerHTML = items.map((item,idx) => `<tr><td>${escapeHtml(item.name)}</td><td>${item.type}</td><td>$${item.price.toFixed(2)}</td><td><input class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" style="width:60px;"></td><td><input class="discount-input" data-idx="${idx}" value="${item.discount}" min="0" max="100" style="width:60px;">%</td><td class="discounted">$${(item.price * item.quantity * (1 - item.discount/100)).toFixed(2)}</td></tr>`).join('');
+        let subBefore=0, subAfter=0; items.forEach(i=>{ let t=i.price*i.quantity; subBefore+=t; subAfter+=t*(1-i.discount/100); });
+        let tax=subAfter*0.12;
+        document.getElementById('quoteTotals').innerHTML = `<p>Subtotal before: $${subBefore.toFixed(2)}</p><p style="color:#2d6a4f;">Discount: -$${(subBefore-subAfter).toFixed(2)}</p><p>Subtotal after: $${subAfter.toFixed(2)}</p><p>Tax 12%: $${tax.toFixed(2)}</p><p style="font-weight:bold;">Grand Total: $${(subAfter+tax).toFixed(2)}</p>`;
+        quoteCache = { items, subBefore, subAfter, tax, grand: subAfter+tax };
+        document.querySelectorAll('.qty-input, .discount-input').forEach(inp => { inp.onchange = () => { let idx=parseInt(inp.dataset.idx); if(inp.classList.contains('qty-input')) items[idx].quantity=parseInt(inp.value)||1; else items[idx].discount=parseFloat(inp.value)||0; render(); }; });
     }
-    renderQuote();
+    render();
     document.getElementById('quoteModal').classList.add('show');
 }
-function printQuote() {
-    if (!currentQuoteCache) return;
-    let win = window.open('', '_blank');
-    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Aura Clinic Quote</title><style>body{font-family:Inter;padding:0.5in;} table{width:100%;border-collapse:collapse;} th,td{padding:8px;border-bottom:1px solid #ddd;}</style></head><body>
-    <h2>AURA CLINIC</h2><p>Quote Date: ${new Date().toLocaleDateString()}</p><p>Routine: ${escapeHtml(savedRoutines[currentRoutineId]?.name || '')}</p>
-    <table><thead><tr><th>Item</th><th>Type</th><th>Unit Price</th><th>Qty</th><th>Discount</th><th>Total</th></tr></thead><tbody>
-    ${currentQuoteCache.items.map(item => `<tr><td>${escapeHtml(item.name)}</td><td>${item.type}</td><td>$${item.price.toFixed(2)}</td><td>${item.quantity}</td><td>${item.discount}%</td><td>$${(item.price * item.quantity * (1 - item.discount/100)).toFixed(2)}</td></tr>`).join('')}
-    </tbody></table>
-    <div style="text-align:right;"><p>Subtotal: $${currentQuoteCache.subtotalBefore.toFixed(2)}</p><p>Discount: -$${(currentQuoteCache.subtotalBefore - currentQuoteCache.subtotalAfter).toFixed(2)}</p><p>Tax 12%: $${currentQuoteCache.tax.toFixed(2)}</p><h3>Grand Total: $${currentQuoteCache.grand.toFixed(2)}</h3></div></body></html>`);
-    win.document.close(); win.print();
-}
-function emailQuote() { window.location.href = `mailto:?subject=Aura Clinic Quote&body=${encodeURIComponent("Please find attached the quote.")}`; alert("Email client opened"); }
+function printQuote() { let w=window.open('','_blank'); w.document.write(`<html><head><title>Quote</title><style>body{font-family:Inter;padding:0.5in;}table{width:100%;border-collapse:collapse;}th,td{padding:8px;border-bottom:1px solid #ddd;}</style></head><body><h2>AURA CLINIC</h2><p>${new Date().toLocaleDateString()}</p><p>Routine: ${escapeHtml(savedRoutines[currentRoutineId]?.name||'')}</p><table><thead><tr><th>Item</th><th>Type</th><th>Price</th><th>Qty</th><th>Discount</th><th>Total</th></tr></thead><tbody>${quoteCache?.items.map(i=>`<tr><td>${escapeHtml(i.name)}</td><td>${i.type}</td><td>$${i.price.toFixed(2)}</td><td>${i.quantity}</td><td>${i.discount}%</td><td>$${(i.price*i.quantity*(1-i.discount/100)).toFixed(2)}</td></tr>`).join('')}</tbody></table><div style="text-align:right;"><p>Subtotal: $${quoteCache?.subBefore.toFixed(2)}</p><p>Tax: $${quoteCache?.tax.toFixed(2)}</p><h3>Total: $${quoteCache?.grand.toFixed(2)}</h3></div></body></html>`); w.document.close(); w.print(); }
+function emailQuote() { window.location.href=`mailto:?subject=Aura Quote&body=${encodeURIComponent("Please find the attached quote.")}`; alert("Email client opened"); }
 function printRoutine() { window.print(); }
 
-// Admin Mode Persistence
 function setAdminMode(enabled) {
-    isAdminMode = enabled;
-    sessionStorage.setItem('aura_admin_mode', enabled);
-    if (enabled) {
-        document.getElementById('adminBadge').style.display = 'inline-block';
-        document.getElementById('adminModeBtn').style.display = 'none';
-        document.getElementById('exitAdminBtn').style.display = 'inline-block';
-        document.getElementById('addServiceBtn').style.display = 'inline-block';
-        document.getElementById('addProductBtn').style.display = 'inline-block';
-        document.getElementById('saveAsPackageBtn').style.display = 'inline-block';
-        document.getElementById('updateCurrentBtn').style.display = 'inline-block';
-        document.getElementById('deleteCurrentRoutineBtn').style.display = 'inline-block';
-        document.getElementById('saveStandardBtn').style.display = 'inline-block';
-        document.getElementById('editRoutineBtn').style.display = 'inline-block';
-    } else {
-        document.getElementById('adminBadge').style.display = 'none';
-        document.getElementById('adminModeBtn').style.display = 'inline-block';
-        document.getElementById('exitAdminBtn').style.display = 'none';
-        document.getElementById('addServiceBtn').style.display = 'none';
-        document.getElementById('addProductBtn').style.display = 'none';
-        document.getElementById('saveAsPackageBtn').style.display = 'none';
-        document.getElementById('updateCurrentBtn').style.display = 'none';
-        document.getElementById('deleteCurrentRoutineBtn').style.display = 'none';
-        document.getElementById('saveStandardBtn').style.display = 'none';
-        document.getElementById('editRoutineBtn').style.display = 'none';
-    }
-    renderServicesLibrary();
-    renderBrandProducts();
+    isAdminMode = enabled; sessionStorage.setItem('aura_admin_mode', enabled);
+    document.getElementById('adminBadge').style.display = enabled ? 'inline-block' : 'none';
+    document.getElementById('adminModeBtn').style.display = enabled ? 'none' : 'inline-block';
+    document.getElementById('exitAdminBtn').style.display = enabled ? 'inline-block' : 'none';
+    document.getElementById('addServiceBtn').style.display = enabled ? 'inline-block' : 'none';
+    document.getElementById('addProductBtn').style.display = enabled ? 'inline-block' : 'none';
+    document.getElementById('saveAsPackageBtn').style.display = enabled ? 'inline-block' : 'none';
+    document.getElementById('updateCurrentBtn').style.display = enabled ? 'inline-block' : 'none';
+    document.getElementById('deleteCurrentRoutineBtn').style.display = enabled ? 'inline-block' : 'none';
+    document.getElementById('saveStandardBtn').style.display = enabled ? 'inline-block' : 'none';
+    document.getElementById('editRoutineBtn').style.display = enabled ? 'inline-block' : 'none';
+    renderLibraries(); renderAllRoutineColumns();
 }
 
-// Page Unlock with persistence
-function unlockPage(password) {
-    if (password === PAGE_PASSWORD) {
-        sessionStorage.setItem('aura_page_unlocked', 'true');
-        document.getElementById('lockScreen').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        loadAppState();
-        initDefaultRoutines();
-        renderServicesLibrary();
-        renderBrandProducts();
-        renderRoutineButtons();
-        renderRoutines();
-        updateTotalPrice();
-        if (currentRoutineId) highlightActiveRoutine();
-        if (sessionStorage.getItem('aura_admin_mode') === 'true') setAdminMode(true);
-        
-        // Event bindings
+function unlockPage(pwd) {
+    if(pwd === PAGE_PASSWORD) {
+        sessionStorage.setItem('aura_page_unlocked','true');
+        document.getElementById('lockScreen').style.display='none';
+        document.getElementById('mainApp').style.display='block';
+        loadState(); initDefaultRoutines(); renderLibraries(); renderRoutineButtons(); renderAllRoutineColumns(); updateTotalPrice();
+        if(sessionStorage.getItem('aura_admin_mode')==='true') setAdminMode(true);
+        setupSearch('serviceSearchInput','serviceSuggestions', servicesData, (id,type) => addServiceToRoutine(id));
+        setupSearch('productSearchInputAM','productSuggestionsAM', productsData, (id) => addProductToRoutine(id,'am'));
+        setupSearch('productSearchInputPM','productSuggestionsPM', productsData, (id) => addProductToRoutine(id,'pm'));
+        document.getElementById('addServiceToRoutineBtn').onclick = () => { let val = document.getElementById('serviceSearchInput').value; let match = servicesData.find(s => s.name.toLowerCase() === val.toLowerCase()); if(match) addServiceToRoutine(match.id); else alert("Select a service from suggestions"); };
+        document.getElementById('addProductToAMBtn').onclick = () => { let val = document.getElementById('productSearchInputAM').value; let match = productsData.find(p => p.name.toLowerCase() === val.toLowerCase()); if(match) addProductToRoutine(match.id,'am'); else alert("Select a product from suggestions"); };
+        document.getElementById('addProductToPMBtn').onclick = () => { let val = document.getElementById('productSearchInputPM').value; let match = productsData.find(p => p.name.toLowerCase() === val.toLowerCase()); if(match) addProductToRoutine(match.id,'pm'); else alert("Select a product from suggestions"); };
         document.getElementById('quoteBtn').onclick = generateQuote;
         document.getElementById('closeModalBtn').onclick = () => document.getElementById('quoteModal').classList.remove('show');
         document.getElementById('printQuoteBtn').onclick = printQuote;
         document.getElementById('emailQuoteBtn').onclick = emailQuote;
         document.getElementById('printBtn').onclick = printRoutine;
         document.getElementById('loadPackageBtn').onclick = loadMicroneedlingPackage;
-        document.getElementById('adminModeBtn').onclick = () => {
-            let pwd = prompt("Admin password:");
-            if (pwd === ADMIN_PASSWORD) setAdminMode(true);
-            else alert("Wrong password");
-        };
+        document.getElementById('adminModeBtn').onclick = () => { let p = prompt("Admin password:"); if(p===ADMIN_PASSWORD) setAdminMode(true); else alert("Wrong"); };
         document.getElementById('exitAdminBtn').onclick = () => setAdminMode(false);
-        document.getElementById('addServiceBtn').onclick = () => {
-            let name = prompt("Service name"); if(!name) return;
-            let price = parseFloat(prompt("Price")); if(isNaN(price)) return;
-            servicesData.push({ id: generateId(), name, price, type: "service", benefit: "", usage: "", image: "" });
-            renderServicesLibrary();
-            saveAppState();
-        };
-        document.getElementById('addProductBtn').onclick = () => {
-            let name = prompt("Product name"); if(!name) return;
-            let price = parseFloat(prompt("Price")); if(isNaN(price)) return;
-            productsData.push({ id: generateId(), name, brand: "Others", price, benefit: "", usage: "", type: "product", image: "" });
-            renderBrandProducts();
-            saveAppState();
-        };
-        document.getElementById('saveAsPackageBtn').onclick = () => alert("Package save feature can be extended with cloud storage.");
-        document.getElementById('updateCurrentBtn').onclick = () => { saveAppState(); alert("Routine saved locally."); };
-        document.getElementById('deleteCurrentRoutineBtn').onclick = () => {
-            if (currentRoutineId && confirm("Delete current routine?")) {
-                delete savedRoutines[currentRoutineId];
-                let keys = Object.keys(savedRoutines);
-                if (keys.length) loadRoutine(keys[0]);
-                else { currentMorningProducts = []; currentEveningProducts = []; renderRoutines(); updateTotalPrice(); }
-                renderRoutineButtons();
-                saveAppState();
-            }
-        };
-        document.getElementById('saveStandardBtn').onclick = () => {
-            let name = prompt("New routine name:");
-            if (name) {
-                let newId = generateId();
-                savedRoutines[newId] = { name, morning: currentMorningProducts.map(p => p.productId), evening: currentEveningProducts.map(p => p.productId) };
-                renderRoutineButtons();
-                loadRoutine(newId);
-                saveAppState();
-            }
-        };
-        document.getElementById('editRoutineBtn').onclick = () => {
-            let newName = prompt("New routine name:", savedRoutines[currentRoutineId]?.name);
-            if (newName && savedRoutines[currentRoutineId]) {
-                savedRoutines[currentRoutineId].name = newName;
-                renderRoutineButtons();
-                saveAppState();
-            }
-        };
-    } else {
-        document.getElementById('lockError').innerText = 'Wrong password. Access denied.';
-    }
+        document.getElementById('addServiceBtn').onclick = () => { let n=prompt("Service name"); if(n){ let p=parseFloat(prompt("Price")); if(!isNaN(p)){ servicesData.push({id:generateId(),name:n,price:p,type:"service",benefit:"",usage:""}); renderLibraries(); saveState(); } } };
+        document.getElementById('addProductBtn').onclick = () => { let n=prompt("Product name"); if(n){ let p=parseFloat(prompt("Price")); if(!isNaN(p)){ productsData.push({id:generateId(),name:n,brand:"Others",price:p,benefit:"",usage:"",type:"product"}); renderLibraries(); saveState(); } } };
+        document.getElementById('saveAsPackageBtn').onclick = () => alert("Package save: would store current routine as package.");
+        document.getElementById('updateCurrentBtn').onclick = () => { saveState(); alert("Routine saved locally."); };
+        document.getElementById('deleteCurrentRoutineBtn').onclick = () => { if(currentRoutineId && confirm("Delete?")){ delete savedRoutines[currentRoutineId]; let keys=Object.keys(savedRoutines); if(keys.length) loadRoutine(keys[0]); else { currentServices=[]; currentMorningProducts=[]; currentEveningProducts=[]; renderAllRoutineColumns(); updateTotalPrice(); } renderRoutineButtons(); saveState(); } };
+        document.getElementById('saveStandardBtn').onclick = () => { let n=prompt("New routine name:"); if(n){ let newId=generateId(); savedRoutines[newId]={name:n, services:currentServices.map(s=>s.id), morning:currentMorningProducts.map(p=>p.productId), evening:currentEveningProducts.map(p=>p.productId)}; renderRoutineButtons(); loadRoutine(newId); saveState(); } };
+        document.getElementById('editRoutineBtn').onclick = () => { let n=prompt("New name:", savedRoutines[currentRoutineId]?.name); if(n && savedRoutines[currentRoutineId]){ savedRoutines[currentRoutineId].name=n; renderRoutineButtons(); saveState(); } };
+    } else { document.getElementById('lockError').innerText = 'Wrong password.'; }
 }
-
-// Initial load: check if already unlocked
-if (isPageUnlocked) {
-    document.getElementById('lockScreen').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'block';
-    loadAppState();
-    initDefaultRoutines();
-    renderServicesLibrary();
-    renderBrandProducts();
-    renderRoutineButtons();
-    renderRoutines();
-    updateTotalPrice();
-    if (currentRoutineId) highlightActiveRoutine();
-    if (isAdminMode) setAdminMode(true);
-    // Event bindings will be set after DOM ready
-    window.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('quoteBtn').onclick = generateQuote;
-        document.getElementById('closeModalBtn').onclick = () => document.getElementById('quoteModal').classList.remove('show');
-        document.getElementById('printQuoteBtn').onclick = printQuote;
-        document.getElementById('emailQuoteBtn').onclick = emailQuote;
-        document.getElementById('printBtn').onclick = printRoutine;
-        document.getElementById('loadPackageBtn').onclick = loadMicroneedlingPackage;
-        document.getElementById('adminModeBtn').onclick = () => { let pwd = prompt("Admin password:"); if (pwd === ADMIN_PASSWORD) setAdminMode(true); else alert("Wrong password"); };
-        document.getElementById('exitAdminBtn').onclick = () => setAdminMode(false);
-        document.getElementById('addServiceBtn').onclick = () => { let name = prompt("Service name"); if(name){ let price = parseFloat(prompt("Price")); if(!isNaN(price)){ servicesData.push({ id: generateId(), name, price, type: "service", benefit: "", usage: "" }); renderServicesLibrary(); saveAppState(); } } };
-        document.getElementById('addProductBtn').onclick = () => { let name = prompt("Product name"); if(name){ let price = parseFloat(prompt("Price")); if(!isNaN(price)){ productsData.push({ id: generateId(), name, brand: "Others", price, benefit: "", usage: "", type: "product" }); renderBrandProducts(); saveAppState(); } } };
-        document.getElementById('saveAsPackageBtn').onclick = () => alert("Package save feature can be extended.");
-        document.getElementById('updateCurrentBtn').onclick = () => { saveAppState(); alert("Routine saved locally."); };
-        document.getElementById('deleteCurrentRoutineBtn').onclick = () => { if (currentRoutineId && confirm("Delete?")) { delete savedRoutines[currentRoutineId]; let keys = Object.keys(savedRoutines); if (keys.length) loadRoutine(keys[0]); else { currentMorningProducts = []; currentEveningProducts = []; renderRoutines(); updateTotalPrice(); } renderRoutineButtons(); saveAppState(); } };
-        document.getElementById('saveStandardBtn').onclick = () => { let name = prompt("New routine name:"); if(name){ let newId = generateId(); savedRoutines[newId] = { name, morning: currentMorningProducts.map(p => p.productId), evening: currentEveningProducts.map(p => p.productId) }; renderRoutineButtons(); loadRoutine(newId); saveAppState(); } };
-        document.getElementById('editRoutineBtn').onclick = () => { let newName = prompt("New name:", savedRoutines[currentRoutineId]?.name); if(newName && savedRoutines[currentRoutineId]) { savedRoutines[currentRoutineId].name = newName; renderRoutineButtons(); saveAppState(); } };
-    });
-} else {
-    document.getElementById('unlockPageBtn').onclick = () => unlockPage(document.getElementById('pagePasswordInput').value);
-}
+if(isPageUnlocked) { unlockPage(PAGE_PASSWORD); } else { document.getElementById('unlockPageBtn').onclick = () => unlockPage(document.getElementById('pagePasswordInput').value); }
 </script>
 </body>
 </html>
