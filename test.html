@@ -45,21 +45,25 @@
         .auth-btn-outline { background: transparent; border: 1px solid #d2c0b0; color: #5f5347; }
         .admin-badge { background: #e9dfd4; padding: 4px 12px; border-radius: 40px; font-size: 0.7rem; margin-left: 1rem; }
         
-        /* Package bar - simplified, only dropdown */
-        .package-bar { margin-bottom: 1rem; text-align: right; }
-        .package-select { padding: 0.5rem 1rem; border-radius: 40px; border: 1px solid #ddd0c2; background: white; font-size: 0.8rem; min-width: 220px; }
-        
-        /* Routine selector row */
-        .routine-selector-row { display: flex; justify-content: flex-end; margin-bottom: 1rem; align-items: center; gap: 1rem; flex-wrap: wrap; }
-        .routine-label { font-size: 0.8rem; color: #8f7e6b; font-weight: 500; }
-        .routine-dropdown { padding: 0.5rem 1rem; border-radius: 40px; border: 1px solid #ddd0c2; background: white; font-size: 0.8rem; min-width: 200px; }
+        .admin-actions { display: flex; gap: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap; }
         .edit-routine-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.4rem 1rem; border-radius: 40px; cursor: pointer; font-size: 0.7rem; }
         
-        /* 3-Column Grid - no scrollbars, full height */
+        /* 3-Column Grid */
         .routine-grid { display: grid; grid-template-columns: 1fr 1.2fr 1.2fr; gap: 1.5rem; align-items: start; }
         .column { background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.2rem; border: 1px solid #e7dbd0; height: 100%; display: flex; flex-direction: column; }
-        .column-title { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; color: #8f7e6b; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-        .product-list { display: flex; flex-direction: column; gap: 0.9rem; flex: 1; overflow: visible; }
+        .column-title { font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 600; color: #8f7e6b; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; }
+        
+        /* Package dropdown - inside Service column */
+        .package-select { width: 100%; padding: 0.5rem 0.8rem; border-radius: 40px; border: 1px solid #ddd0c2; background: white; font-size: 0.8rem; margin-bottom: 0.8rem; }
+        
+        /* Routine dropdown - inside Morning column */
+        .routine-dropdown { width: 100%; padding: 0.5rem 0.8rem; border-radius: 40px; border: 1px solid #ddd0c2; background: white; font-size: 0.8rem; margin-bottom: 0.8rem; }
+        
+        /* Action buttons - inside Evening column */
+        .action-buttons-row { display: flex; gap: 0.8rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+        .action-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.4rem 0.8rem; border-radius: 40px; cursor: pointer; font-size: 0.7rem; flex: 1; text-align: center; }
+        
+        .product-list { display: flex; flex-direction: column; gap: 0.9rem; flex: 1; overflow: visible; margin-bottom: 1rem; }
         .product-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; cursor: grab; }
         .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px; z-index: 10; }
         .product-info { flex: 1; }
@@ -71,16 +75,11 @@
         .empty-slot { display: flex; align-items: center; justify-content: center; padding: 0.7rem; background: rgba(233, 223, 212, 0.5); border-radius: 18px; border: 2px dashed #d2c0b0; color: #b7a99a; font-size: 0.7rem; min-height: 60px; margin-bottom: 0.6rem; }
         
         /* Add item row */
-        .add-item-row { margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid #e2d4c6; position: relative; }
+        .add-item-row { position: relative; margin-top: 0.5rem; }
         .item-search-input { width: 100%; padding: 0.5rem 0.8rem; border: 1px solid #e2d4c6; border-radius: 60px; font-size: 0.75rem; outline: none; }
         .item-suggestions { position: absolute; bottom: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 16px; max-height: 200px; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 4px; }
         .suggestion-item { padding: 8px 12px; cursor: pointer; font-size: 0.75rem; border-bottom: 1px solid #f0e5db; }
         .suggestion-item:hover { background: #f5efe8; }
-        
-        /* Action buttons row - below Evening column */
-        .action-buttons-row { display: flex; justify-content: flex-end; gap: 1rem; margin: 1rem 0 0.5rem; }
-        .action-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.5rem 1.2rem; border-radius: 50px; cursor: pointer; font-size: 0.75rem; }
-        .update-btn { background: #b99f87; color: white; border-color: #b99f87; }
         
         .total-bar { padding: 1rem 1.3rem; background: #e9dfd4; border-radius: 20px; margin: 1rem 0 1rem; display: flex; justify-content: space-between; align-items: center; }
         .total-amount { font-size: 1.8rem; font-weight: 600; color: #8f7e6b; }
@@ -120,65 +119,66 @@
             <span id="adminBadge" class="admin-badge" style="display:none;">Admin Mode</span></div>
         </div>
 
-        <!-- Package bar - only dropdown, no label, no button -->
-        <div class="package-bar">
-            <select id="packageSelect" class="package-select">
-                <option value="">-- Quick Package --</option>
-                <option value="microneedling">Microneedling Package (Service + Product)</option>
-            </select>
-        </div>
-
-        <!-- Routine Selector Row - above Morning column -->
-        <div class="routine-selector-row">
-            <span class="routine-label">📋 SELECT ROUTINE:</span>
-            <select id="routineDropdown" class="routine-dropdown"></select>
-            <button id="editRoutineBtn" class="edit-routine-btn" style="display:none;">✏️ Edit Name</button>
-            <button id="deleteRoutineBtn" class="edit-routine-btn" style="display:none;">🗑️ Delete</button>
-            <button id="saveAsNewRoutineBtn" class="edit-routine-btn" style="display:none;">💾 Save as New</button>
-        </div>
-
         <!-- 3-Column Grid -->
         <div class="routine-grid">
             <!-- Service Recommend Column -->
             <div class="column">
                 <div class="column-title">💡 SERVICE RECOMMEND</div>
-                <div class="product-list" id="servicesList"></div>
+                <!-- Quick Package dropdown - first line under title -->
+                <select id="packageSelect" class="package-select">
+                    <option value="">-- Quick Package --</option>
+                    <option value="microneedling">Microneedling Package (Service + Product)</option>
+                </select>
+                <!-- Search dropdown - second line -->
                 <div class="add-item-row">
                     <input type="text" class="item-search-input" id="serviceSearchInput" placeholder="Click to search or select service..." autocomplete="off">
                     <div id="serviceSuggestions" class="item-suggestions"></div>
                 </div>
+                <div class="product-list" id="servicesList" style="margin-top: 0.8rem;"></div>
+                <!-- Admin edit buttons for Service column -->
+                <div class="admin-actions" id="serviceAdminActions" style="display:none; margin-top: 0.8rem;">
+                    <button id="editRoutineBtn" class="edit-routine-btn" style="display:none;">✏️ Edit Name</button>
+                    <button id="deleteRoutineBtn" class="edit-routine-btn" style="display:none;">🗑️ Delete</button>
+                    <button id="saveAsNewRoutineBtn" class="edit-routine-btn" style="display:none;">💾 Save as New</button>
+                </div>
             </div>
+            
             <!-- AM Column -->
             <div class="column">
                 <div class="column-title">🌅 MORNING ROUTINE <span>AM</span></div>
-                <div class="product-list" id="morningList"></div>
+                <!-- SELECT ROUTINE dropdown - first line under title -->
+                <select id="routineDropdown" class="routine-dropdown"></select>
+                <!-- Search dropdown - second line -->
                 <div class="add-item-row">
                     <input type="text" class="item-search-input" id="productSearchInputAM" placeholder="Click to search or select product..." autocomplete="off">
                     <div id="productSuggestionsAM" class="item-suggestions"></div>
                 </div>
+                <div class="product-list" id="morningList" style="margin-top: 0.8rem;"></div>
             </div>
+            
             <!-- PM Column -->
             <div class="column">
                 <div class="column-title">🌙 EVENING ROUTINE <span>PM</span></div>
-                <div class="product-list" id="eveningList"></div>
+                <!-- Print/Email buttons - first line under title -->
+                <div class="action-buttons-row">
+                    <button class="action-btn" id="printRoutineBtn">🖨️ PRINT ROUTINE</button>
+                    <button class="action-btn" id="emailRoutineBtn">📧 EMAIL ROUTINE</button>
+                </div>
+                <!-- Search dropdown - second line -->
                 <div class="add-item-row">
                     <input type="text" class="item-search-input" id="productSearchInputPM" placeholder="Click to search or select product..." autocomplete="off">
                     <div id="productSuggestionsPM" class="item-suggestions"></div>
                 </div>
-                <!-- Action buttons inside Evening column, below add item -->
-                <div class="action-buttons-row">
-                    <button class="action-btn" id="printRoutineBtn">🖨️ PRINT ROUTINE</button>
-                    <button class="action-btn" id="emailRoutineBtn">📧 EMAIL ROUTINE</button>
+                <div class="product-list" id="eveningList" style="margin-top: 0.8rem;"></div>
+                <!-- Admin update button -->
+                <div class="admin-actions" style="margin-top: 0.8rem;">
+                    <button class="action-btn update-btn" id="updateCurrentBtn" style="display:none;">📝 Update Current Routine</button>
                 </div>
             </div>
         </div>
 
         <div class="total-bar"><div>TOTAL VALUE (Unique Services + Products)</div><div class="total-amount">$<span id="totalPrice">0.00</span></div></div>
         <button class="quote-btn" id="quoteBtn">📄 Generate Quote (Services + Products)</button>
-        
-        <div class="action-buttons-bottom" style="display: flex; justify-content: center; gap: 1rem; margin-top: 0.5rem;">
-            <button class="action-btn update-btn" id="updateCurrentBtn" style="display:none;">📝 Update Current Routine</button>
-        </div>
         <div class="footnote">✦ Admin mode: add/edit/delete products ✦ Drag to reorder within columns ✦ Click search box to see all items ✦</div>
     </div>
 </div>
@@ -250,10 +250,7 @@ async function loadProductsFromSupabase() {
             ];
         }
         return true;
-    } catch (err) {
-        console.error('Error loading products:', err);
-        return false;
-    }
+    } catch (err) { console.error('Error loading products:', err); return false; }
 }
 
 async function loadRoutinesFromSupabase() {
@@ -263,34 +260,26 @@ async function loadRoutinesFromSupabase() {
         if (error) throw error;
         if (data && data.length > 0) {
             savedRoutines = {};
-            data.forEach(r => {
-                savedRoutines[r.id] = { name: r.name, services: r.services || [], morning: r.morning || [], evening: r.evening || [] };
-            });
+            data.forEach(r => { savedRoutines[r.id] = { name: r.name, services: r.services || [], morning: r.morning || [], evening: r.evening || [] }; });
         } else {
             savedRoutines = { "default": { name: "Standard Routine", services: [], morning: [], evening: [] } };
         }
-        
         const { data: stateData } = await sbClient.from('user_state').select('current_routine_id').maybeSingle();
         if (stateData && stateData.current_routine_id && savedRoutines[stateData.current_routine_id]) {
             currentRoutineId = stateData.current_routine_id;
         } else {
             currentRoutineId = Object.keys(savedRoutines)[0] || null;
         }
-        
         if (currentRoutineId && savedRoutines[currentRoutineId]) {
             currentServices = (savedRoutines[currentRoutineId].services || []).map(id => ({ id, type: 'service' }));
             currentMorningProducts = (savedRoutines[currentRoutineId].morning || []).map(pid => ({ productId: pid, time: "morning" }));
             currentEveningProducts = (savedRoutines[currentRoutineId].evening || []).map(pid => ({ productId: pid, time: "evening" }));
         }
-        
         updateRoutineDropdown();
         renderAllColumns();
         updateTotalPrice();
         return true;
-    } catch (err) {
-        console.error('Error loading routines:', err);
-        return false;
-    }
+    } catch (err) { console.error('Error loading routines:', err); return false; }
 }
 
 async function saveRoutineToSupabase(routineId) {
@@ -298,10 +287,7 @@ async function saveRoutineToSupabase(routineId) {
     let routine = savedRoutines[routineId];
     if (!routine) return;
     try {
-        await sbClient.from('routines').upsert({ 
-            id: routineId, name: routine.name, services: routine.services || [],
-            morning: routine.morning || [], evening: routine.evening || []
-        });
+        await sbClient.from('routines').upsert({ id: routineId, name: routine.name, services: routine.services || [], morning: routine.morning || [], evening: routine.evening || [] });
     } catch (err) { console.error('Error saving routine:', err); }
 }
 
@@ -313,9 +299,7 @@ async function saveCurrentStateToSupabase() {
         savedRoutines[currentRoutineId].evening = currentEveningProducts.map(p => p.productId);
         await saveRoutineToSupabase(currentRoutineId);
     }
-    try {
-        await sbClient.from('user_state').upsert({ current_routine_id: currentRoutineId });
-    } catch (err) { console.error('Error saving user state:', err); }
+    try { await sbClient.from('user_state').upsert({ current_routine_id: currentRoutineId }); } catch (err) { console.error(err); }
 }
 
 // ==================== UI RENDERING ====================
@@ -449,42 +433,17 @@ function getRoutinePlainText() {
     let routineName = savedRoutines[currentRoutineId]?.name || 'Skincare Routine';
     let amItems = currentMorningProducts.map(i => productsData.find(p => p.id === i.productId)).filter(p => p);
     let pmItems = currentEveningProducts.map(i => productsData.find(p => p.id === i.productId)).filter(p => p);
-    
-    let text = `AURA CLINIC - Skincare Routine\n`;
-    text += `================================\n\n`;
-    text += `Routine: ${routineName}\n`;
-    text += `Date: ${new Date().toLocaleDateString()}\n\n`;
-    text += `🌅 MORNING ROUTINE (AM)\n`;
-    text += `------------------------\n`;
+    let text = `AURA CLINIC - Skincare Routine\n================================\n\nRoutine: ${routineName}\nDate: ${new Date().toLocaleDateString()}\n\n🌅 MORNING ROUTINE (AM)\n------------------------\n`;
     if (amItems.length === 0) text += `No products added\n`;
-    else {
-        amItems.forEach((p, i) => {
-            text += `${i+1}. ${p.name}\n`;
-            if (p.benefit) text += `   Benefit: ${p.benefit}\n`;
-            if (p.usage) text += `   Usage: ${p.usage}\n`;
-            text += `\n`;
-        });
-    }
-    text += `\n🌙 EVENING ROUTINE (PM)\n`;
-    text += `------------------------\n`;
+    else { amItems.forEach((p, i) => { text += `${i+1}. ${p.name}\n`; if (p.benefit) text += `   Benefit: ${p.benefit}\n`; if (p.usage) text += `   Usage: ${p.usage}\n`; text += `\n`; }); }
+    text += `\n🌙 EVENING ROUTINE (PM)\n------------------------\n`;
     if (pmItems.length === 0) text += `No products added\n`;
-    else {
-        pmItems.forEach((p, i) => {
-            text += `${i+1}. ${p.name}\n`;
-            if (p.benefit) text += `   Benefit: ${p.benefit}\n`;
-            if (p.usage) text += `   Usage: ${p.usage}\n`;
-            text += `\n`;
-        });
-    }
-    text += `\n---\n`;
-    text += `AURA CLINIC · Personalized Skincare Guidance\n`;
-    text += `This routine is customized for your skin needs.\n`;
+    else { pmItems.forEach((p, i) => { text += `${i+1}. ${p.name}\n`; if (p.benefit) text += `   Benefit: ${p.benefit}\n`; if (p.usage) text += `   Usage: ${p.usage}\n`; text += `\n`; }); }
+    text += `\n---\nAURA CLINIC · Personalized Skincare Guidance\n`;
     return text;
 }
 function emailRoutinePlainText() {
-    let subject = `AURA CLINIC - Skincare Routine`;
-    let body = getRoutinePlainText();
-    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:?subject=${encodeURIComponent("AURA CLINIC - Skincare Routine")}&body=${encodeURIComponent(getRoutinePlainText())}`;
     alert("Email client opened with routine in plain text format.");
 }
 
@@ -523,6 +482,7 @@ function setAdminMode(enabled) {
     document.getElementById('editRoutineBtn').style.display = enabled ? 'inline-block' : 'none';
     document.getElementById('deleteRoutineBtn').style.display = enabled ? 'inline-block' : 'none';
     document.getElementById('saveAsNewRoutineBtn').style.display = enabled ? 'inline-block' : 'none';
+    document.getElementById('serviceAdminActions').style.display = enabled ? 'flex' : 'none';
 }
 
 // ==================== INITIALIZATION ====================
