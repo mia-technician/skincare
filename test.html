@@ -644,6 +644,15 @@
                     <input type="text" id="unifiedSearchInput" class="main-input" placeholder="🔍 Search or select treatment to add...">
                     <div id="unifiedSearchPanel" class="cascade-panel"></div>
                 </div>
+
+<!-- 套餐操作按钮（需要添加） -->
+            <div class="action-buttons-bottom">
+                <div id="packageAuthButtons" style="display: none; gap: 1rem; flex-wrap: wrap;">
+                    <button class="action-btn update-btn" id="updateCurrentPackageBtn">📝 Update Current Package</button>
+                    <button class="action-btn delete-current-btn" id="deleteCurrentPackageBtn">🗑️ Delete Current Package</button>
+                    <button class="action-btn save-standard-btn" id="saveAsNewPackageBtn">💾 Save Current as New Package</button>
+                </div>
+            </div>
                 
                 <table class="quote-table" id="unifiedQuoteTable">
                     <thead>
