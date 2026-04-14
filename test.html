@@ -1315,7 +1315,7 @@ function createSearchableSelect(timeOfDay, containerElement) {
     const input = document.createElement('input');
     input.type = 'text';
     input.className = 'main-input';
-    input.placeholder = timeOfDay === 'morning' ? '🔍 搜索产品 或 点击选择品牌...' : '🔍 搜索产品 或 点击选择品牌...';
+    input.placeholder = timeOfDay === 'morning' ? '🔍 Type in to search or Choose a brand...' : '🔍 Type in to search or Choose a brand...';
     input.autocomplete = 'off';
     
     const panel = document.createElement('div');
@@ -1373,7 +1373,7 @@ function createSearchableSelect(timeOfDay, containerElement) {
         
         let html = `
             <div class="cascade-level">
-                <div class="cascade-back-btn">← 返回品牌列表</div>
+                <div class="cascade-back-btn">← Back to the brand list</div>
                 <div style="padding: 0.4rem 1rem; background: #f5efe8; font-size: 0.7rem; color: #b99f87; border-bottom: 1px solid #e7dbd0;">📦 ${escapeHtml(brand)}</div>
         `;
         
@@ -1427,7 +1427,7 @@ function createSearchableSelect(timeOfDay, containerElement) {
         
         let html = `
             <div class="cascade-level">
-                <div class="cascade-back-btn">← 返回品牌列表</div>
+                <div class="cascade-back-btn">← Back to the brand list</div>
                 <div style="padding: 0.4rem 1rem; background: #f5efe8; font-size: 0.7rem; color: #b99f87; border-bottom: 1px solid #e7dbd0;">🔍 搜索结果 (${filtered.length})</div>
         `;
         
