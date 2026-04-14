@@ -2054,6 +2054,122 @@ function updateUnifiedTotals() {
     document.getElementById('unifiedGrandTotal').innerText = grandTotal.toFixed(2);
 }
 
+    // 打印统一报价
+function printUnifiedQuote() {
+    const items = unifiedItems;
+    const productSubtotal = parseFloat(document.getElementById('unifiedProductSubtotal')?.innerText || 0);
+    const serviceSubtotal = parseFloat(document.getElementById('unifiedServiceSubtotal')?.innerText || 0);
+    const totalDiscount = parseFloat(document.getElementById('unifiedTotalDiscount')?.innerText || 0);
+    const productTax = parseFloat(document.getElementById('unifiedProductTax')?.innerText || 0);
+    const serviceTax = parseFloat(document.getElementById('unifiedServiceTax')?.innerText || 0);
+    const grandTotal = parseFloat(document.getElementById('unifiedGrandTotal')?.innerText || 0);
+    
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Package Quote</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Inter', sans-serif; padding: 0.5in; background: white; }
+            .quote-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2d4c6; padding-bottom: 20px; }
+            .quote-header h1 { font-size: 28px; color: #7f6e5d; margin-bottom: 8px; }
+            .quote-date { font-size: 11px; color: #ccbeaf; margin-top: 5px; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e7dbd0; }
+            th { background: #f5efe8; font-weight: 600; }
+            .totals { text-align: right; margin-top: 20px; padding-top: 20px; border-top: 2px solid #e2d4c6; }
+            .totals p { margin: 8px 0; }
+            .grand-total { font-size: 18px; font-weight: bold; }
+            @media print { body { padding: 0; } }
+        </style>
+    </head>
+    <body>
+        <div class="quote-header">
+            <h1>Package Quote</h1>
+            <div class="quote-date">Generated on ${new Date().toLocaleDateString()}</div>
+            <p style="margin-top: 10px;"><strong>Package:</strong> ${savedPackages[currentPackageId]?.name || 'Current Package'}</p>
+        </div>
+        <table>
+            <thead>
+                <tr><th>Type</th><th>Name</th><th>Unit Price</th><th>Qty</th><th>Discount</th><th>Total</th></tr>
+            </thead>
+            <tbody>
+                ${items.map(item => {
+                    let discountedPrice = item.price;
+                    let discountDisplay = '-';
+                    if (item.discountType === '%' && item.discountValue > 0) {
+                        discountedPrice = item.price * (1 - item.discountValue / 100);
+                        discountDisplay = `${item.discountValue}%`;
+                    } else if (item.discountType === 'fixed' && item.discountValue > 0) {
+                        discountedPrice = Math.max(0, item.price - item.discountValue);
+                        discountDisplay = `$${item.discountValue}`;
+                    }
+                    return `
+                        <tr>
+                            <td>${item.type === 'product' ? 'Product' : 'Treatment'}</td>
+                            <td>${escapeHtml(item.name)}</td>
+                            <td>$${item.price.toFixed(2)}</td>
+                            <td>${item.quantity}</td>
+                            <td>${discountDisplay}</td>
+                            <td>$${(discountedPrice * item.quantity).toFixed(2)}</td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+        <div class="totals">
+            <p>💰 Products Subtotal: $${productSubtotal.toFixed(2)}</p>
+            <p>💆 Treatments Subtotal: $${serviceSubtotal.toFixed(2)}</p>
+            <p>🏷️ Total Discount: -$${totalDiscount.toFixed(2)}</p>
+            <p>📋 Product Tax (12%): $${productTax.toFixed(2)}</p>
+            <p>📋 Treatment Tax (5%): $${serviceTax.toFixed(2)}</p>
+            <p class="grand-total">💵 Grand Total: $${grandTotal.toFixed(2)}</p>
+        </div>
+    </body>
+    </html>`);
+    win.document.close();
+    win.print();
+}
+
+// 邮件发送统一报价
+function emailUnifiedQuote() {
+    const productSubtotal = parseFloat(document.getElementById('unifiedProductSubtotal')?.innerText || 0);
+    const serviceSubtotal = parseFloat(document.getElementById('unifiedServiceSubtotal')?.innerText || 0);
+    const totalDiscount = parseFloat(document.getElementById('unifiedTotalDiscount')?.innerText || 0);
+    const productTax = parseFloat(document.getElementById('unifiedProductTax')?.innerText || 0);
+    const serviceTax = parseFloat(document.getElementById('unifiedServiceTax')?.innerText || 0);
+    const grandTotal = parseFloat(document.getElementById('unifiedGrandTotal')?.innerText || 0);
+    
+    let emailBody = `Package Quote\n\n`;
+    emailBody += `Date: ${new Date().toLocaleDateString()}\n`;
+    emailBody += `Package: ${savedPackages[currentPackageId]?.name || 'Current Package'}\n\n`;
+    emailBody += `Items:\n`;
+    
+    for (const item of unifiedItems) {
+        let discountedPrice = item.price;
+        let discountText = '';
+        if (item.discountType === '%' && item.discountValue > 0) {
+            discountedPrice = item.price * (1 - item.discountValue / 100);
+            discountText = ` (${item.discountValue}% off)`;
+        } else if (item.discountType === 'fixed' && item.discountValue > 0) {
+            discountedPrice = Math.max(0, item.price - item.discountValue);
+            discountText = ` ($${item.discountValue} off)`;
+        }
+        emailBody += `- ${item.name} (${item.type === 'product' ? 'Product' : 'Treatment'}): $${item.price} x ${item.quantity}${discountText} = $${(discountedPrice * item.quantity).toFixed(2)}\n`;
+    }
+    
+    emailBody += `\n💰 Products Subtotal: $${productSubtotal.toFixed(2)}`;
+    emailBody += `\n💆 Treatments Subtotal: $${serviceSubtotal.toFixed(2)}`;
+    emailBody += `\n🏷️ Total Discount: -$${totalDiscount.toFixed(2)}`;
+    emailBody += `\n📋 Product Tax (12%): $${productTax.toFixed(2)}`;
+    emailBody += `\n📋 Treatment Tax (5%): $${serviceTax.toFixed(2)}`;
+    emailBody += `\n💵 Grand Total: $${grandTotal.toFixed(2)}`;
+    
+    window.location.href = `mailto:?subject=Package Quote&body=${encodeURIComponent(emailBody)}`;
+}
+
 // 同步回传统数据结构
 function syncToLegacyData() {
     // 同步产品到 morning/evening routines（只同步有 originalId 的产品）
@@ -2937,6 +3053,15 @@ document.getElementById('editPackageBtn').onclick = () => {
 document.getElementById('updateCurrentPackageBtn').onclick = updateCurrentPackageToCloud;
 document.getElementById('deleteCurrentPackageBtn').onclick = deleteCurrentPackageFromCloud;
 document.getElementById('saveAsNewPackageBtn').onclick = saveAsNewPackageToCloud;
+
+    // 初始化疗程模块数据
+loadServicesFromLocalStorage();
+
+// 打印和邮件按钮绑定
+const printUnifiedBtn = document.getElementById('printUnifiedQuoteBtn');
+const emailUnifiedBtn = document.getElementById('emailUnifiedQuoteBtn');
+if (printUnifiedBtn) printUnifiedBtn.onclick = printUnifiedQuote;
+if (emailUnifiedBtn) emailUnifiedBtn.onclick = emailUnifiedQuote;
 
     // Quote 按钮绑定
 document.getElementById('quoteBtn').onclick = generateQuote;
