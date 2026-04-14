@@ -699,11 +699,11 @@ const DEFAULT_PRODUCTS = [
 
     // 默认疗程数据
 const DEFAULT_SERVICES = [
-    { id: "injection-botox", name: "肉毒杆菌", category: "注射", price: 800 },
-    { id: "injection-filler", name: "玻尿酸", category: "注射", price: 600 },
-    { id: "laser-pico", name: "皮秒激光", category: "镭射", price: 1200 },
-    { id: "laser-co2", name: "二氧化碳激光", category: "镭射", price: 1500 },
-    { id: "other-hydra", name: "水光针", category: "其它", price: 500 }
+    { id: "injection-botox", name: "肉毒杆菌", category: "Injection", price: 800 },
+    { id: "injection-filler", name: "玻尿酸", category: "Injection", price: 600 },
+    { id: "laser-pico", name: "皮秒激光", category: "Laser", price: 1200 },
+    { id: "laser-co2", name: "二氧化碳激光", category: "Laser", price: 1500 },
+    { id: "other-hydra", name: "水光针", category: "Others", price: 500 }
 ];
 
 // 默认套餐数据
@@ -2102,7 +2102,7 @@ function initUnifiedSearch() {
     let searchTimeout = null;
     
     function renderCategoryList() {
-        const categories = ['注射', '镭射', '其它'];
+        const categories = ['Injection', 'Laser', 'Others'];
         let html = `<div class="cascade-level"><div style="padding: 0.5rem 1rem; background: #f5efe8; font-size: 0.7rem; color: #b99f87;">📁 Select Treatment Category</div>`;
         for (const cat of categories) {
             const count = servicesData.filter(s => s.category === cat).length;
