@@ -644,15 +644,6 @@
                     <input type="text" id="unifiedSearchInput" class="main-input" placeholder="🔍 Search or select treatment to add...">
                     <div id="unifiedSearchPanel" class="cascade-panel"></div>
                 </div>
-
-<!-- 套餐操作按钮（需要添加） -->
-            <div class="action-buttons-bottom">
-                <div id="packageAuthButtons" style="display: none; gap: 1rem; flex-wrap: wrap;">
-                    <button class="action-btn update-btn" id="updateCurrentPackageBtn">📝 Update Current Package</button>
-                    <button class="action-btn delete-current-btn" id="deleteCurrentPackageBtn">🗑️ Delete Current Package</button>
-                    <button class="action-btn save-standard-btn" id="saveAsNewPackageBtn">💾 Save Current as New Package</button>
-                </div>
-            </div>
                 
                 <table class="quote-table" id="unifiedQuoteTable">
                     <thead>
@@ -669,8 +660,23 @@
                     <div>📋 Treatment Tax (5%): $<span id="unifiedServiceTax">0.00</span></div>
                     <div style="border-top:2px solid #e2d4c6; margin-top:0.5rem; padding-top:0.5rem; font-weight:bold;">💵 Package Total: $<span id="unifiedGrandTotal">0.00</span></div>
                 </div>
+                
+                <!-- 添加打印按钮 -->
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem;">
+                    <button class="print-quote-btn" id="printUnifiedQuoteBtn">🖨️ Print Quote</button>
+                    <button class="email-quote-btn" id="emailUnifiedQuoteBtn">📧 Email Quote</button>
+                </div>
             </div>
-        </div>
+            
+            <!-- 套餐操作按钮 -->
+            <div class="action-buttons-bottom">
+                <div id="packageAuthButtons" style="display: none; gap: 1rem; flex-wrap: wrap;">
+                    <button class="action-btn update-btn" id="updateCurrentPackageBtn">📝 Update Current Package</button>
+                    <button class="action-btn delete-current-btn" id="deleteCurrentPackageBtn">🗑️ Delete Current Package</button>
+                    <button class="action-btn save-standard-btn" id="saveAsNewPackageBtn">💾 Save Current as New Package</button>
+                </div>
+            </div>
+        </div>  <!-- 这是 treatmentsModeContainer 的结束 -->
         
         <div class="footnote">✦ All editing tools available without password ✦ Enter password to sync changes to cloud ✦ Data saved locally until synced ✦</div>
     </div>
@@ -1935,6 +1941,7 @@ function initUnifiedItems() {
                 productMap.set(item.productId, {
                     type: 'product',
                     id: product.id,
+                    originalId: product.id,
                     name: product.name,
                     price: product.price,
                     quantity: 1,
@@ -1946,13 +1953,14 @@ function initUnifiedItems() {
     }
     unifiedItems.push(...Array.from(productMap.values()));
     
-    // 添加疗程
+    // 添加疗程（允许重复，所以不去重）
     for (const t of currentTreatments) {
         const service = getServiceById(t.serviceId);
         if (service) {
             unifiedItems.push({
                 type: 'service',
-                id: service.id,
+                id: service.id + '_' + Date.now() + '_' + Math.random(),
+                originalId: service.id,
                 name: service.name,
                 price: service.price,
                 quantity: 1,
@@ -1976,28 +1984,58 @@ function renderUnifiedQuote() {
             discountedPrice = Math.max(0, item.price - item.discountValue);
         }
         const totalPrice = discountedPrice * item.quantity;
-        const typeLabel = item.type === 'product' ? '📦 产品' : '💆 疗程';
+        const typeLabel = item.type === 'product' ? '📦 Product' : '💆 Treatment';
         
         return `
             <tr>
                 <td style="padding: 0.5rem;">${typeLabel}</td>
-                <td style="padding: 0.5rem;">${escapeHtml(item.name)}</td>
-                <td style="padding: 0.5rem;">$${item.price.toFixed(2)}</td>
-                <td style="padding: 0.5rem;"><input type="number" class="unified-qty" data-idx="${idx}" value="${item.quantity}" min="1" step="1" style="width:60px;"></td>
+                <td style="padding: 0.5rem;">
+                    <input type="text" class="unified-name" data-idx="${idx}" value="${escapeHtml(item.name)}" style="width: 140px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 6px;">
+                </td>
+                <td style="padding: 0.5rem;">
+                    <input type="number" class="unified-price" data-idx="${idx}" value="${item.price}" step="0.01" min="0" style="width: 80px; padding: 0.3rem; border: 1px solid #e2d4c6; border-radius: 6px;">
+                </td>
+                <td style="padding: 0.5rem;">
+                    <input type="number" class="unified-qty" data-idx="${idx}" value="${item.quantity}" min="1" step="1" style="width: 60px; padding: 0.3rem;">
+                </td>
                 <td style="padding: 0.5rem;">
                     <div style="display: flex; gap: 0.3rem; align-items: center;">
-                        <input type="number" class="unified-percent" data-idx="${idx}" value="${item.discountType === '%' && item.discountValue > 0 ? item.discountValue : ''}" placeholder="%" style="width:55px;">
-                        <span>/</span>
-                        <input type="number" class="unified-fixed" data-idx="${idx}" value="${item.discountType === 'fixed' && item.discountValue > 0 ? item.discountValue : ''}" placeholder="$" style="width:65px;">
+                        <input type="number" class="unified-percent" data-idx="${idx}" value="${item.discountType === '%' && item.discountValue > 0 ? item.discountValue : ''}" placeholder="%" style="width: 55px; padding: 0.3rem;">
+                        <span style="color:#d2c0b0;">/</span>
+                        <input type="number" class="unified-fixed" data-idx="${idx}" value="${item.discountType === 'fixed' && item.discountValue > 0 ? item.discountValue : ''}" placeholder="$" style="width: 65px; padding: 0.3rem;">
                     </div>
                 </td>
                 <td style="padding: 0.5rem;">$${totalPrice.toFixed(2)}</td>
-                <td style="padding: 0.5rem;"><button class="unified-remove-btn" data-idx="${idx}" style="background:#e9dfd4; border:none; border-radius:50%; width:22px; cursor:pointer;">✕</button></td>
-            </tr>
+                <td style="padding: 0.5rem;">
+                    <button class="unified-remove-btn" data-idx="${idx}" style="background:#e9dfd4; border:none; border-radius:50%; width:22px; cursor:pointer;">✕</button>
+                </td>
+            </table>
         `;
     }).join('');
     
-    // 绑定事件
+    // 绑定名称编辑事件
+    document.querySelectorAll('.unified-name').forEach(input => {
+        input.onchange = (e) => {
+            const idx = parseInt(e.target.dataset.idx);
+            unifiedItems[idx].name = e.target.value;
+            renderUnifiedQuote();
+            updateUnifiedTotals();
+            syncToLegacyData();
+        };
+    });
+    
+    // 绑定单价编辑事件
+    document.querySelectorAll('.unified-price').forEach(input => {
+        input.onchange = (e) => {
+            const idx = parseInt(e.target.dataset.idx);
+            unifiedItems[idx].price = parseFloat(e.target.value) || 0;
+            renderUnifiedQuote();
+            updateUnifiedTotals();
+            syncToLegacyData();
+        };
+    });
+    
+    // 绑定数量变化事件
     document.querySelectorAll('.unified-qty').forEach(input => {
         input.onchange = (e) => {
             const idx = parseInt(e.target.dataset.idx);
@@ -2008,6 +2046,7 @@ function renderUnifiedQuote() {
         };
     });
     
+    // 绑定百分比折扣变化事件
     document.querySelectorAll('.unified-percent').forEach(input => {
         input.onchange = (e) => {
             const idx = parseInt(e.target.dataset.idx);
@@ -2022,6 +2061,7 @@ function renderUnifiedQuote() {
         };
     });
     
+    // 绑定固定金额折扣变化事件
     document.querySelectorAll('.unified-fixed').forEach(input => {
         input.onchange = (e) => {
             const idx = parseInt(e.target.dataset.idx);
@@ -2037,6 +2077,7 @@ function renderUnifiedQuote() {
         };
     });
     
+    // 绑定删除事件
     document.querySelectorAll('.unified-remove-btn').forEach(btn => {
         btn.onclick = (e) => {
             const idx = parseInt(btn.dataset.idx);
@@ -2086,18 +2127,19 @@ function updateUnifiedTotals() {
 
 // 同步回传统数据结构
 function syncToLegacyData() {
-    // 同步产品到 currentMorningProducts/currentEveningProducts
-    const products = unifiedItems.filter(item => item.type === 'product');
+    // 同步产品到 morning/evening routines（只同步有 originalId 的产品）
+    const products = unifiedItems.filter(item => item.type === 'product' && item.originalId);
     currentMorningProducts = [];
     currentEveningProducts = [];
     products.forEach(p => {
-        currentMorningProducts.push({ productId: p.id, time: 'morning' });
+        currentMorningProducts.push({ productId: p.originalId || p.id, time: 'morning' });
     });
     
-    // 同步疗程到 currentTreatments
-    currentTreatments = unifiedItems.filter(item => item.type === 'service').map(item => ({ serviceId: item.id }));
+    // 同步疗程到 currentTreatments（只同步有 originalId 的疗程）
+    currentTreatments = unifiedItems
+        .filter(item => item.type === 'service' && item.originalId)
+        .map(item => ({ serviceId: item.originalId }));
     
-    // 保存到本地存储
     saveToLocalStorage();
     saveServicesToLocalStorage();
 }
@@ -2211,24 +2253,26 @@ function initUnifiedSearch() {
         });
     }
     
-    function addTreatment(serviceId) {
-        const service = getServiceById(serviceId);
-        if (service && !unifiedItems.some(i => i.type === 'service' && i.id === serviceId)) {
-            unifiedItems.push({
-                type: 'service',
-                id: service.id,
-                name: service.name,
-                price: service.price,
-                quantity: 1,
-                discountType: '%',
-                discountValue: 0
-            });
-            renderUnifiedQuote();
-            syncToLegacyData();
-        }
-        input.value = '';
-        panel.classList.remove('show');
+function addTreatment(serviceId) {
+    const service = getServiceById(serviceId);
+    if (service) {
+        // 移除重复检查，允许添加相同疗程多次
+        unifiedItems.push({
+            type: 'service',
+            id: service.id + '_' + Date.now(), // 添加时间戳确保唯一ID
+            originalId: service.id,
+            name: service.name,
+            price: service.price,
+            quantity: 1,
+            discountType: '%',
+            discountValue: 0
+        });
+        renderUnifiedQuote();
+        syncToLegacyData();
     }
+    input.value = '';
+    panel.classList.remove('show');
+}
     
     // Input event handlers
     input.oninput = (e) => {
