@@ -42,12 +42,12 @@
             localStorage.setItem('page_auth_time', now.toString());
             window.IS_ADMIN = false;
             location.reload();
-        } else if (pwd !== null) {
+                } else if (pwd !== null) {
             // 密码错误，拒绝访问
             document.body.innerHTML = '<div style="text-align:center; margin-top:20vh; font-family:sans-serif;"><h2>🔒 Access Denied</h2><p>Incorrect password. Please contact administrator.</p></div>';
             throw new Error('Authentication failed');
         } else {
-            // 用户点击取消，重新要求密码
+            // 用户点击取消，重新加载页面重新要求密码
             location.reload();
         }
     }
@@ -738,9 +738,9 @@
         </div>
 
         <!-- Tab 切换 -->
-<div class="tab-container" style="display: flex !important; gap: 1.5rem !important; margin-bottom: 2rem !important; border-bottom: 2px solid #e8dfd4 !important; background: transparent !important; padding: 0 !important;">
-    <button id="tabProductsBtn" class="tab-btn" style="background: transparent !important; color: #b7a99a !important; border: none !important; padding: 0.7rem 0.2rem !important; cursor: pointer !important; font-size: 1rem !important; font-weight: 500 !important; font-family: 'Montserrat', sans-serif !important; position: relative !important; bottom: -2px !important;">📦 Products</button>
-    <button id="tabTreatmentsBtn" class="tab-btn" style="background: transparent !important; color: #b7a99a !important; border: none !important; padding: 0.7rem 0.2rem !important; cursor: pointer !important; font-size: 1rem !important; font-weight: 500 !important; font-family: 'Montserrat', sans-serif !important; position: relative !important; bottom: -2px !important;">💆 Treatments</button>
+<div class="tab-container" style="display: flex; gap: 1.5rem; margin-bottom: 2rem; border-bottom: 2px solid #e8dfd4; padding: 0;">
+    <button id="tabProductsBtn" class="tab-btn active" style="background: transparent; color: #b99f87; border: none; padding: 0.7rem 0.2rem; cursor: pointer; font-size: 1rem; font-weight: 600; font-family: 'Montserrat', sans-serif; border-bottom: 3px solid #b99f87;">📦 Products</button>
+    <button id="tabTreatmentsBtn" class="tab-btn" style="background: transparent; color: #b7a99a; border: none; padding: 0.7rem 0.2rem; cursor: pointer; font-size: 1rem; font-weight: 500; font-family: 'Montserrat', sans-serif;">💆 Treatments</button>
 </div>
 
         <!-- ==================== 产品模式 ==================== -->
@@ -2982,11 +2982,50 @@ const tabTreatments = document.getElementById('tabTreatmentsBtn');
 function switchToProductsMode() {
     productsMode.style.display = 'block';
     treatmentsMode.style.display = 'none';
-    tabProducts.classList.add('active');
-    tabTreatments.classList.remove('active');
+    
+    // 更新 Tab 样式
+    tabProducts.style.color = '#b99f87';
+    tabProducts.style.fontWeight = '600';
+    tabProducts.style.borderBottom = '3px solid #b99f87';
+    tabTreatments.style.color = '#b7a99a';
+    tabTreatments.style.fontWeight = '500';
+    tabTreatments.style.borderBottom = 'none';
+    
     // 刷新产品显示
     if (typeof renderRoutines === 'function') renderRoutines();
     if (typeof updateTotalPrice === 'function') updateTotalPrice();
+}
+
+function switchToTreatmentsMode() {
+    productsMode.style.display = 'none';
+    treatmentsMode.style.display = 'block';
+    
+    // 更新 Tab 样式
+    tabTreatments.style.color = '#b99f87';
+    tabTreatments.style.fontWeight = '600';
+    tabTreatments.style.borderBottom = '3px solid #b99f87';
+    tabProducts.style.color = '#b7a99a';
+    tabProducts.style.fontWeight = '500';
+    tabProducts.style.borderBottom = 'none';
+    
+    // 刷新疗程显示
+    renderPackageButtons();
+    renderServiceLibrary();
+    initUnifiedItems();
+    renderUnifiedQuote();
+    initUnifiedSearch();
+    
+    const isAdmin = isAuthenticated;
+    const editPackageBtn = document.getElementById('editPackageBtn');
+    if (editPackageBtn) editPackageBtn.style.display = isAdmin ? 'inline-block' : 'none';
+    const packageAuthButtons = document.getElementById('packageAuthButtons');
+    if (packageAuthButtons) packageAuthButtons.style.display = isAdmin ? 'flex' : 'none';
+    const toggleAddServiceBtn = document.getElementById('toggleAddServiceBtn');
+    if (toggleAddServiceBtn) toggleAddServiceBtn.style.display = isAdmin ? 'inline-block' : 'none';
+    
+    document.querySelectorAll('.edit-service-icon, .delete-service-icon').forEach(icon => {
+        icon.style.display = isAdmin ? 'inline-block' : 'none';
+    });
 }
 
 function switchToTreatmentsMode() {
