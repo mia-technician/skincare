@@ -1863,44 +1863,6 @@ function printRoutine() {
             .print-product-usage { font-size: 10px; color: #8e7e6e; margin-top: 5px; line-height: 1.4; }
             .print-footer { margin-top: 30px; text-align: center; font-size: 10px; color: #ccbeaf; border-top: 1px solid #e7dbd0; padding-top: 15px; }
             @media print { body { padding: 0; } .print-product { break-inside: avoid; page-break-inside: avoid; } }
-        
-/* Tab 按钮样式 - 下划线风格 */
-.tab-container {
-    display: flex !important;
-    gap: 1.5rem !important;
-    margin-bottom: 2rem !important;
-    border-bottom: 2px solid #e8dfd4 !important;
-    background: transparent !important;
-    border-radius: 0 !important;
-    padding: 0 !important;
-    width: auto !important;
-    box-shadow: none !important;
-}
-.tab-btn {
-    background: transparent !important;
-    color: #b7a99a !important;
-    border: none !important;
-    padding: 0.7rem 0.2rem !important;
-    border-radius: 0 !important;
-    cursor: pointer !important;
-    font-size: 1rem !important;
-    font-weight: 500 !important;
-    transition: all 0.2s ease !important;
-    font-family: 'Montserrat', sans-serif !important;
-    letter-spacing: 0.5px !important;
-    position: relative !important;
-    bottom: -2px !important;
-}
-.tab-btn:hover {
-    color: #8f7e6b !important;
-    background: transparent !important;
-}
-.tab-btn.active {
-    color: #b99f87 !important;
-    background: transparent !important;
-    border-bottom: 2px solid #b99f87 !important;
-    box-shadow: none !important;
-}
 
 /* 疗程库样式 - 与产品库样式一致 */
 .service-library { background: #fff9f2; border-radius: 24px; padding: 1.2rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
@@ -1921,6 +1883,43 @@ function printRoutine() {
 .treatment-list { display: flex; flex-direction: column; gap: 0.9rem; min-height: 200px; }
 .treatment-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; }
 .treatment-card .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px; }
+
+/* 强制 Tab 样式 - 放在最后确保优先级 */
+.tab-container {
+    display: flex !important;
+    gap: 1.5rem !important;
+    margin-bottom: 2rem !important;
+    border-bottom: 2px solid #e8dfd4 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    width: auto !important;
+    box-shadow: none !important;
+}
+.tab-btn {
+    background: transparent !important;
+    color: #b7a99a !important;
+    border: none !important;
+    padding: 0.7rem 0.2rem !important;
+    border-radius: 0 !important;
+    cursor: pointer !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    font-family: 'Montserrat', sans-serif !important;
+    letter-spacing: 0.5px !important;
+    position: relative !important;
+    bottom: -2px !important;
+}
+.tab-btn:hover {
+    color: #8f7e6b !important;
+    background: transparent !important;
+}
+.tab-btn.active {
+    color: #b99f87 !important;
+    background: transparent !important;
+    border-bottom: 2px solid #b99f87 !important;
+    box-shadow: none !important;
+}
         
         </style>
     </head>
