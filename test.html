@@ -641,7 +641,7 @@
                 <div class="column-title">📋 PACKAGE CONTENT (Products + Treatments)</div>
                 
                 <div class="cascade-select" style="margin-bottom: 1rem;">
-                    <input type="text" id="unifiedSearchInput" class="main-input" placeholder="🔍 Search or select product/treatment to add...">
+                    <input type="text" id="unifiedSearchInput" class="main-input" placeholder="🔍 Search or select treatment to add...">
                     <div id="unifiedSearchPanel" class="cascade-panel"></div>
                 </div>
                 
@@ -2033,7 +2033,7 @@ function syncToLegacyData() {
     saveServicesToLocalStorage();
 }
 
-// 初始化统一搜索下拉菜单
+// 初始化统一搜索下拉菜单（只保留疗程）
 function initUnifiedSearch() {
     const input = document.getElementById('unifiedSearchInput');
     const panel = document.getElementById('unifiedSearchPanel');
@@ -2041,163 +2041,81 @@ function initUnifiedSearch() {
     
     let searchTimeout = null;
     
-    function renderMainMenu() {
-        let html = `
-            <div class="cascade-level">
-                <div class="cascade-brand-item" data-type="product">
-                    <span>📦 产品</span>
-                    <span class="arrow">▶</span>
-                </div>
-                <div class="cascade-brand-item" data-type="service">
-                    <span>💆 疗程</span>
-                    <span class="arrow">▶</span>
-                </div>
-            </div>
-        `;
-        panel.innerHTML = html;
-        
-        panel.querySelector('.cascade-brand-item[data-type="product"]').onclick = () => showProductBrands();
-        panel.querySelector('.cascade-brand-item[data-type="service"]').onclick = () => showServiceCategories();
-    }
-    
-    function showProductBrands() {
-        const brands = [...new Set(productsData.map(p => p.brand).filter(b => b))].sort();
-        let html = `<div class="cascade-level"><div class="cascade-back-btn">← 返回</div><div style="padding: 0.4rem 1rem; background: #f5efe8;">📁 选择品牌</div>`;
-        for (const brand of brands) {
-            const count = productsData.filter(p => p.brand === brand).length;
-            html += `<div class="cascade-brand-item" data-brand="${escapeHtml(brand)}"><span>📁 ${escapeHtml(brand)}</span><span class="arrow">▶ ${count}</span></div>`;
-        }
-        html += `</div>`;
-        panel.innerHTML = html;
-        
-        panel.querySelector('.cascade-back-btn').onclick = () => renderMainMenu();
-        panel.querySelectorAll('.cascade-brand-item[data-brand]').forEach(item => {
-            item.onclick = () => showProductsByBrand(item.dataset.brand);
-        });
-    }
-    
-    function showProductsByBrand(brand) {
-        const products = productsData.filter(p => p.brand === brand).sort((a, b) => a.name.localeCompare(b.name));
-        let html = `<div class="cascade-level"><div class="cascade-back-btn">← 返回品牌</div><div style="padding: 0.4rem 1rem; background: #f5efe8;">📦 ${escapeHtml(brand)}</div>`;
-        for (const p of products) {
-            html += `<div class="cascade-product-item" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}">
-                        <span>${escapeHtml(p.name)}</span>
-                        <span>$${p.price}</span>
-                     </div>`;
-        }
-        html += `</div>`;
-        panel.innerHTML = html;
-        
-        panel.querySelector('.cascade-back-btn').onclick = () => showProductBrands();
-        panel.querySelectorAll('.cascade-product-item').forEach(item => {
-            item.onclick = () => addItem('product', item.dataset.productId);
-        });
-    }
-    
-    function showServiceCategories() {
+    function renderCategoryList() {
         const categories = ['注射', '镭射', '其它'];
-        let html = `<div class="cascade-level"><div class="cascade-back-btn">← 返回</div><div style="padding: 0.4rem 1rem; background: #f5efe8;">📁 选择类别</div>`;
+        let html = `<div class="cascade-level"><div style="padding: 0.5rem 1rem; background: #f5efe8; font-size: 0.7rem; color: #b99f87;">📁 Select Treatment Category</div>`;
         for (const cat of categories) {
             const count = servicesData.filter(s => s.category === cat).length;
-            html += `<div class="cascade-brand-item" data-category="${cat}"><span>📁 ${cat}</span><span class="arrow">▶ ${count}</span></div>`;
+            html += `<div class="cascade-brand-item" data-category="${cat}" style="cursor:pointer;"><span>📁 ${cat}</span><span class="arrow">▶ ${count}</span></div>`;
         }
         html += `</div>`;
         panel.innerHTML = html;
         
-        panel.querySelector('.cascade-back-btn').onclick = () => renderMainMenu();
-        panel.querySelectorAll('.cascade-brand-item[data-category]').forEach(item => {
-            item.onclick = () => showServicesByCategory(item.dataset.category);
+        panel.querySelectorAll('.cascade-brand-item').forEach(item => {
+            item.onclick = () => {
+                const category = item.dataset.category;
+                renderTreatmentsByCategory(category);
+            };
         });
     }
     
-    function showServicesByCategory(category) {
-        const services = servicesData.filter(s => s.category === category).sort((a, b) => a.name.localeCompare(b.name));
-        let html = `<div class="cascade-level"><div class="cascade-back-btn">← 返回类别</div><div style="padding: 0.4rem 1rem; background: #f5efe8;">💆 ${escapeHtml(category)}</div>`;
-        for (const s of services) {
-            html += `<div class="cascade-product-item" data-service-id="${s.id}" data-service-name="${escapeHtml(s.name)}" data-service-price="${s.price}">
-                        <span>${escapeHtml(s.name)}</span>
-                        <span>$${s.price}</span>
+    function renderTreatmentsByCategory(category) {
+        const treatments = servicesData.filter(s => s.category === category).sort((a, b) => a.name.localeCompare(b.name));
+        let html = `<div class="cascade-level"><div class="cascade-back-btn" style="cursor:pointer;">← Back to Categories</div><div style="padding: 0.4rem 1rem; background: #f5efe8; font-size: 0.7rem;">💆 ${category}</div>`;
+        for (const t of treatments) {
+            html += `<div class="cascade-product-item" data-service-id="${t.id}" style="cursor:pointer;">
+                        <span>${escapeHtml(t.name)}</span>
+                        <span>$${t.price}</span>
                      </div>`;
         }
         html += `</div>`;
         panel.innerHTML = html;
         
-        panel.querySelector('.cascade-back-btn').onclick = () => showServiceCategories();
+        const backBtn = panel.querySelector('.cascade-back-btn');
+        if (backBtn) backBtn.onclick = () => renderCategoryList();
+        
         panel.querySelectorAll('.cascade-product-item').forEach(item => {
-            item.onclick = () => addItem('service', item.dataset.serviceId);
+            item.onclick = () => addTreatment(item.dataset.serviceId);
         });
     }
     
     function renderSearchResults(term) {
         const lowerTerm = term.toLowerCase();
-        const matchedProducts = productsData.filter(p => p.name.toLowerCase().includes(lowerTerm) || (p.brand && p.brand.toLowerCase().includes(lowerTerm)));
-        const matchedServices = servicesData.filter(s => s.name.toLowerCase().includes(lowerTerm) || s.category.toLowerCase().includes(lowerTerm));
+        const matched = servicesData.filter(s => s.name.toLowerCase().includes(lowerTerm) || s.category.toLowerCase().includes(lowerTerm));
         
-        let html = `<div class="cascade-level"><div class="cascade-back-btn">← 返回</div><div style="padding: 0.4rem 1rem; background: #f5efe8;">🔍 搜索结果</div>`;
-        
-        if (matchedProducts.length > 0) {
-            html += `<div style="padding: 0.3rem 1rem; background: #e9dfd4; font-size: 0.7rem;">📦 产品 (${matchedProducts.length})</div>`;
-            for (const p of matchedProducts) {
-                html += `<div class="cascade-product-item" data-product-id="${p.id}"><span>${escapeHtml(p.name)}</span><span>$${p.price}</span></div>`;
-            }
+        let html = `<div class="cascade-level"><div class="cascade-back-btn" style="cursor:pointer;">← Back to Categories</div><div style="padding: 0.4rem 1rem; background: #f5efe8; font-size: 0.7rem;">🔍 Search Results (${matched.length})</div>`;
+        for (const t of matched) {
+            html += `<div class="cascade-product-item" data-service-id="${t.id}" style="cursor:pointer;">
+                        <div><span>${escapeHtml(t.name)}</span><span style="font-size:0.65rem; margin-left:0.5rem;">${escapeHtml(t.category)}</span></div>
+                        <span>$${t.price}</span>
+                     </div>`;
         }
-        
-        if (matchedServices.length > 0) {
-            html += `<div style="padding: 0.3rem 1rem; background: #e9dfd4; font-size: 0.7rem;">💆 疗程 (${matchedServices.length})</div>`;
-            for (const s of matchedServices) {
-                html += `<div class="cascade-product-item" data-service-id="${s.id}"><span>${escapeHtml(s.name)}</span><span>$${s.price}</span></div>`;
-            }
-        }
-        
-        if (matchedProducts.length === 0 && matchedServices.length === 0) {
-            html += `<div style="padding: 1rem; text-align: center; color: #b7a99a;">未找到 "${escapeHtml(term)}"</div>`;
-        }
-        
         html += `</div>`;
         panel.innerHTML = html;
         
-        panel.querySelector('.cascade-back-btn').onclick = () => renderMainMenu();
-        panel.querySelectorAll('.cascade-product-item[data-product-id]').forEach(item => {
-            item.onclick = () => addItem('product', item.dataset.productId);
-        });
-        panel.querySelectorAll('.cascade-product-item[data-service-id]').forEach(item => {
-            item.onclick = () => addItem('service', item.dataset.serviceId);
+        const backBtn = panel.querySelector('.cascade-back-btn');
+        if (backBtn) backBtn.onclick = () => renderCategoryList();
+        
+        panel.querySelectorAll('.cascade-product-item').forEach(item => {
+            item.onclick = () => addTreatment(item.dataset.serviceId);
         });
     }
     
-    function addItem(type, id) {
-        let item;
-        if (type === 'product') {
-            const product = getProductById(id);
-            if (product && !unifiedItems.some(i => i.type === 'product' && i.id === id)) {
-                item = {
-                    type: 'product',
-                    id: product.id,
-                    name: product.name,
-                    price: product.price,
-                    quantity: 1,
-                    discountType: '%',
-                    discountValue: 0
-                };
-                unifiedItems.push(item);
-            }
-        } else {
-            const service = getServiceById(id);
-            if (service && !unifiedItems.some(i => i.type === 'service' && i.id === id)) {
-                item = {
-                    type: 'service',
-                    id: service.id,
-                    name: service.name,
-                    price: service.price,
-                    quantity: 1,
-                    discountType: '%',
-                    discountValue: 0
-                };
-                unifiedItems.push(item);
-            }
+    function addTreatment(serviceId) {
+        const service = getServiceById(serviceId);
+        if (service && !unifiedItems.some(i => i.type === 'service' && i.id === serviceId)) {
+            unifiedItems.push({
+                type: 'service',
+                id: service.id,
+                name: service.name,
+                price: service.price,
+                quantity: 1,
+                discountType: '%',
+                discountValue: 0
+            });
+            renderUnifiedQuote();
+            syncToLegacyData();
         }
-        renderUnifiedQuote();
-        syncToLegacyData();
         input.value = '';
         panel.classList.remove('show');
     }
@@ -2206,14 +2124,17 @@ function initUnifiedSearch() {
         if (searchTimeout) clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
             const term = e.target.value.trim();
-            if (term) renderSearchResults(term.toLowerCase());
-            else renderMainMenu();
+            if (term) {
+                renderSearchResults(term.toLowerCase());
+            } else {
+                renderCategoryList();
+            }
             panel.classList.add('show');
         }, 300);
     };
     
     input.onclick = () => {
-        renderMainMenu();
+        renderCategoryList();
         panel.classList.add('show');
     };
     
@@ -2223,8 +2144,10 @@ function initUnifiedSearch() {
         }
     });
     
-    renderMainMenu();
-}    
+    renderCategoryList();
+} 
+
+    
 // 渲染疗程库
 function renderServiceLibrary() {
     const container = document.getElementById('serviceList');
