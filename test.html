@@ -1092,10 +1092,18 @@ function updateTotalPrice() {
 function updateUIBasedOnAuth() {
     const isAdmin = window.IS_ADMIN === true || isAuthenticated === true;
     
-    // 产品模块 - 只有管理员可编辑
+    // ========== 产品模块 ==========
+    // 产品库整个区域 - 只有管理员可见
+    const productLibrary = document.querySelector('.product-library');
+    if (productLibrary) {
+        productLibrary.style.display = isAdmin ? 'block' : 'none';
+    }
+    
+    // Add Product 按钮
     const toggleAddBtn = document.getElementById('toggleAddBtn');
     if (toggleAddBtn) toggleAddBtn.style.display = isAdmin ? 'inline-block' : 'none';
     
+    // 产品编辑/删除图标
     const editIcons = document.querySelectorAll('.edit-icon');
     const deleteIcons = document.querySelectorAll('.delete-product-icon');
     if (isAdmin) {
@@ -1106,13 +1114,35 @@ function updateUIBasedOnAuth() {
         deleteIcons.forEach(icon => icon.style.display = 'none');
     }
     
-    // 疗程模块 - 只有管理员可编辑
+    // 产品模块云操作按钮 (Update/Delete/Save as New Routine)
+    const authButtons = document.getElementById('authButtons');
+    if (authButtons) {
+        authButtons.style.display = isAdmin ? 'flex' : 'none';
+    }
+    
+    // 编辑 Routine 名称按钮
+    const editRoutineBtn = document.getElementById('editRoutineBtn');
+    if (editRoutineBtn) editRoutineBtn.style.display = isAdmin ? 'inline-block' : 'none';
+    
+    // ========== 疗程模块 ==========
+    // Add Service 按钮
     const toggleAddServiceBtn = document.getElementById('toggleAddServiceBtn');
     if (toggleAddServiceBtn) toggleAddServiceBtn.style.display = isAdmin ? 'inline-block' : 'none';
     
+    // 疗程编辑/删除图标
     document.querySelectorAll('.edit-service-icon, .delete-service-icon').forEach(icon => {
         icon.style.display = isAdmin ? 'inline-block' : 'none';
     });
+    
+    // 套餐云操作按钮
+    const packageAuthButtons = document.getElementById('packageAuthButtons');
+    if (packageAuthButtons) {
+        packageAuthButtons.style.display = isAdmin ? 'flex' : 'none';
+    }
+    
+    // 编辑套餐名称按钮
+    const editPackageBtn = document.getElementById('editPackageBtn');
+    if (editPackageBtn) editPackageBtn.style.display = isAdmin ? 'inline-block' : 'none';
 }
     
 function renderBrandProducts() {
