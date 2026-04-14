@@ -3131,6 +3131,10 @@ async function initApp() {
                 initUnifiedSearch();
             }
             
+// ✅ 添加这一行：加载疗程和套餐数据
+            await loadServicesFromCloud();
+            
+            refreshUI();
             console.log('✅ 云端数据已加载');
             
         } catch (e) {
