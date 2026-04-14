@@ -490,45 +490,123 @@
     background: #e9dfd4;
 }
 
-/* 强制套餐按钮样式 */
-.package-selector-bar .package-btn {
-    background: #e9dfd4 !important;
-    border: none !important;
-    padding: 0.5rem 1.2rem !important;
-    border-radius: 40px !important;
-    cursor: pointer !important;
-    font-size: 0.8rem !important;
-    transition: all 0.2s !important;
-    color: #5f5347 !important;
+/* 套餐选择栏 - 与 SELECT ROUTINE 样式一致 */
+.package-selector-bar { 
+    background: #fff9f2; 
+    border-radius: 24px; 
+    padding: 1.2rem 1.5rem; 
+    margin-bottom: 1.8rem; 
+    border: 1px solid #e7dbd0; 
 }
-.package-selector-bar .package-btn:hover {
-    background: #d2c0b0 !important;
+.package-selector-bar .selector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
 }
-.package-selector-bar .package-btn.active {
-    background: #b99f87 !important;
-    color: white !important;
+.package-selector-bar .selector-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #8f7e6b;
+}
+.package-selector-bar .selector-actions {
+    display: flex;
+    gap: 0.8rem;
+}
+.package-selector-bar .manage-btn {
+    background: transparent;
+    border: 1px solid #d2c0b0;
+    padding: 0.4rem 1rem;
+    border-radius: 40px;
+    cursor: pointer;
+    font-size: 0.75rem;
+}
+.package-buttons { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 0.8rem; 
+    margin-top: 1rem; 
+}
+.package-btn { 
+    background: #e9dfd4; 
+    border: none; 
+    padding: 0.5rem 1.2rem; 
+    border-radius: 40px; 
+    cursor: pointer; 
+    font-size: 0.8rem; 
+    transition: all 0.2s; 
+}
+.package-btn:hover { 
+    background: #d2c0b0; 
+}
+.package-btn.active { 
+    background: #b99f87; 
+    color: white; 
 }
 
-/* 强制疗程库样式 */
-.service-library .service-item {
-    background: #e9dfd4 !important;
-    padding: 0.45rem 0.8rem !important;
-    border-radius: 40px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 0.5rem !important;
-    font-size: 0.75rem !important;
-    color: #5f5347 !important;
+/* 疗程库 - 与 PRODUCT LIBRARY 样式一致 */
+.service-library { 
+    background: #fff9f2; 
+    border-radius: 24px; 
+    padding: 1.2rem; 
+    margin-bottom: 1.8rem; 
+    border: 1px solid #e7dbd0; 
 }
-.service-library .service-item .edit-service-icon,
-.service-library .service-item .delete-service-icon {
-    cursor: pointer !important;
-    font-size: 0.7rem !important;
-    opacity: 0.6 !important;
+.service-library .library-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
 }
-.service-library .service-item .edit-service-icon:hover,
-.service-library .service-item .delete-service-icon:hover {
-    opacity: 1 !important;
+.service-library .library-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #8f7e6b;
+}
+.service-library .toggle-add-btn {
+    background: #e9dfd4;
+    border: none;
+    padding: 0.4rem 1.2rem;
+    border-radius: 40px;
+    cursor: pointer;
+}
+.service-list { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 0.7rem; 
+    max-height: 200px; 
+    overflow-y: auto; 
+    padding: 0.3rem 0; 
+}
+.service-item { 
+    background: #e9dfd4; 
+    padding: 0.45rem 0.8rem; 
+    border-radius: 40px; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 0.5rem; 
+    font-size: 0.75rem; 
+    position: relative; 
+}
+.service-item .service-actions { 
+    display: inline-flex; 
+    gap: 0.3rem; 
+    margin-left: 0.3rem; 
+}
+.service-item .edit-service-icon, 
+.service-item .delete-service-icon { 
+    cursor: pointer; 
+    font-size: 0.7rem; 
+    opacity: 0.6; 
+}
+.service-item .edit-service-icon:hover, 
+.service-item .delete-service-icon:hover { 
+    opacity: 1; 
 }
         
     </style>
@@ -635,7 +713,7 @@
                 <div class="package-buttons" id="packageButtons"></div>
             </div>
 
-                        <!-- 疗程库 -->
+             <!-- 疗程库 -->
             <div class="service-library">
                 <div class="library-header">
                     <div class="library-title">💆 SERVICE LIBRARY</div>
