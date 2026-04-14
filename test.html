@@ -3063,19 +3063,6 @@ const emailUnifiedBtn = document.getElementById('emailUnifiedQuoteBtn');
 if (printUnifiedBtn) printUnifiedBtn.onclick = printUnifiedQuote;
 if (emailUnifiedBtn) emailUnifiedBtn.onclick = emailUnifiedQuote;
 
-    // Quote 按钮绑定
-document.getElementById('quoteBtn').onclick = generateQuote;
-document.getElementById('closeModalBtn').onclick = () => {
-    document.getElementById('quoteModal').classList.remove('show');
-};
-
-// 点击弹窗背景关闭
-document.getElementById('quoteModal').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('quoteModal')) {
-        document.getElementById('quoteModal').classList.remove('show');
-    }
-});
-
 // ==================== 启动应用 ====================
 async function initApp() {
     // 1. 先加载本地数据作为备用
