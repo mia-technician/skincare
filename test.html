@@ -2287,7 +2287,6 @@ async function saveService() {
     closeServiceForm();
     renderServiceLibrary();
     renderPackageButtons();
-    updateTreatmentTotal();
     saveServicesToLocalStorage();
     
     // 同步到云端
@@ -2313,8 +2312,6 @@ async function deleteService(serviceId) {
         currentTreatments = currentTreatments.filter(t => t.serviceId !== serviceId);
         renderServiceLibrary();
         renderPackageButtons();
-        renderTreatments();
-        updateTreatmentTotal();
         saveServicesToLocalStorage();
         
         if (isAuthenticated && supabaseClient) {
@@ -2361,10 +2358,10 @@ function loadPackage(packageId) {
         if (typeof updateTotalPrice === 'function') updateTotalPrice();
     }
     
-    // 替换疗程区
+        // 替换疗程区
     currentTreatments = (pkg.services || []).map(sid => ({ serviceId: sid }));
-    renderTreatments();
-    updateTreatmentTotal();
+    if (typeof initUnifiedItems === 'function') initUnifiedItems();
+    if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
     
     highlightActivePackage();
     saveServicesToLocalStorage();
@@ -2417,8 +2414,6 @@ async function deleteCurrentPackageFromCloud() {
     if (firstKey) await loadPackage(firstKey);
     else {
         currentTreatments = [];
-        renderTreatments();
-        updateTreatmentTotal();
         currentPackageId = null;
     }
     renderPackageButtons();
