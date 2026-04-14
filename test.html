@@ -737,7 +737,7 @@
             </div>
         </div>
 
-        <!-- Tab 切换 -->
+<!-- Tab 切换 - Products 默认激活 -->
 <div class="tab-container">
     <button id="tabProductsBtn" class="tab-btn active">📦 Products</button>
     <button id="tabTreatmentsBtn" class="tab-btn">💆 Treatments</button>
@@ -1904,25 +1904,26 @@ function printRoutine() {
 /* Tab 容器样式 */
 .tab-container {
     display: flex;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-    border-bottom: 2px solid #e8dfd4;
+    gap: 2rem;  /* 增加 Tab 之间的间距 */
+    margin-bottom: 2.5rem;  /* 增加与下方模块的距离（原来太小） */
+    border-bottom: none;  /* 移除容器的下划线 */
     padding: 0;
+    position: relative;
 }
 
 /* Tab 按钮基础样式 */
 .tab-btn {
     background: transparent;
     border: none;
-    padding: 0.7rem 0.2rem;
+    padding: 0.7rem 0.2rem 0.7rem 0.2rem;  /* 上 右 下 左 */
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.1rem;  /* 文字稍微大一点（原来是 1rem） */
     font-family: 'Montserrat', sans-serif;
     transition: all 0.2s ease;
     color: #b7a99a;
     font-weight: 500;
     position: relative;
-    bottom: -2px;
+    bottom: auto;  /* 取消原来的 bottom: -2px */
 }
 
 /* Tab 悬停样式 */
@@ -1930,11 +1931,12 @@ function printRoutine() {
     color: #8f7e6b;
 }
 
-/* Tab 激活样式 */
+/* Tab 激活样式 - 只在这里显示下划线 */
 .tab-btn.active {
     color: #b99f87;
     font-weight: 600;
-    border-bottom: 3px solid #b99f87;
+    border-bottom: 3px solid #b99f87;  /* 激活的 Tab 才有下划线 */
+    padding-bottom: 0.7rem;  /* 保持与未激活 Tab 一致的内边距 */
 }
 
         </style>
@@ -2979,13 +2981,9 @@ function switchToProductsMode() {
     productsMode.style.display = 'block';
     treatmentsMode.style.display = 'none';
     
-    // 更新 Tab 样式
-    tabProducts.style.color = '#b99f87';
-    tabProducts.style.fontWeight = '600';
-    tabProducts.style.borderBottom = '3px solid #b99f87';
-    tabTreatments.style.color = '#b7a99a';
-    tabTreatments.style.fontWeight = '500';
-    tabTreatments.style.borderBottom = 'none';
+    // 只操作 class，不操作内联样式
+    tabProducts.classList.add('active');
+    tabTreatments.classList.remove('active');
     
     // 刷新产品显示
     if (typeof renderRoutines === 'function') renderRoutines();
@@ -2996,13 +2994,9 @@ function switchToTreatmentsMode() {
     productsMode.style.display = 'none';
     treatmentsMode.style.display = 'block';
     
-    // 更新 Tab 样式
-    tabTreatments.style.color = '#b99f87';
-    tabTreatments.style.fontWeight = '600';
-    tabTreatments.style.borderBottom = '3px solid #b99f87';
-    tabProducts.style.color = '#b7a99a';
-    tabProducts.style.fontWeight = '500';
-    tabProducts.style.borderBottom = 'none';
+    // 只操作 class，不操作内联样式
+    tabTreatments.classList.add('active');
+    tabProducts.classList.remove('active');
     
     // 刷新疗程显示
     renderPackageButtons();
@@ -3011,6 +3005,7 @@ function switchToTreatmentsMode() {
     renderUnifiedQuote();
     initUnifiedSearch();
     
+    // 权限控制部分保持不变
     const isAdmin = isAuthenticated;
     const editPackageBtn = document.getElementById('editPackageBtn');
     if (editPackageBtn) editPackageBtn.style.display = isAdmin ? 'inline-block' : 'none';
