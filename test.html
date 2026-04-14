@@ -1125,6 +1125,13 @@ function updateUIBasedOnAuth() {
     if (editRoutineBtn) editRoutineBtn.style.display = isAdmin ? 'inline-block' : 'none';
     
     // ========== 疗程模块 ==========
+
+    // 疗程库整个区域 - 只有管理员可见
+const serviceLibrary = document.querySelector('.service-library');
+if (serviceLibrary) {
+    serviceLibrary.style.display = isAdmin ? 'block' : 'none';
+}
+    
     // Add Service 按钮
     const toggleAddServiceBtn = document.getElementById('toggleAddServiceBtn');
     if (toggleAddServiceBtn) toggleAddServiceBtn.style.display = isAdmin ? 'inline-block' : 'none';
@@ -1769,13 +1776,12 @@ function loadServicesFromLocalStorage() {
     }
 }
 
-    // 从云端加载疗程和套餐数据
 // 从云端加载疗程和套餐数据
 async function loadServicesFromCloud() {
     if (!supabaseClient) return false;
     
     try {
-        // 加载疗程库
+        // 加载疗程库（所有人可读，不需要 user_id 过滤）
         const { data: services, error: servicesError } = await supabaseClient
             .from('services')
             .select('*');
@@ -1788,7 +1794,7 @@ async function loadServicesFromCloud() {
             servicesData = JSON.parse(JSON.stringify(DEFAULT_SERVICES));
         }
         
-        // 加载套餐
+        // 加载套餐（所有人可读）
         const { data: packages, error: packagesError } = await supabaseClient
             .from('packages')
             .select('*');
@@ -1806,21 +1812,6 @@ async function loadServicesFromCloud() {
             });
         } else {
             savedPackages = JSON.parse(JSON.stringify(INITIAL_PACKAGES));
-        }
-        
-        // 加载当前选中的套餐
-        const { data: state, error: stateError } = await supabaseClient
-            .from('user_state')
-            .select('current_package_id, current_treatments')
-            .maybeSingle();
-        
-        if (state && !stateError) {
-            if (state.current_package_id && savedPackages[state.current_package_id]) {
-                currentPackageId = state.current_package_id;
-                currentTreatments = savedPackages[currentPackageId].services.map(sid => ({ serviceId: sid }));
-            } else if (state.current_treatments) {
-                currentTreatments = state.current_treatments.map(sid => ({ serviceId: sid }));
-            }
         }
         
         saveServicesToLocalStorage();
