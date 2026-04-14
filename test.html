@@ -635,17 +635,17 @@
                 <div class="package-buttons" id="packageButtons"></div>
             </div>
 
-            <!-- 疗程库 -->
+                        <!-- 疗程库 -->
             <div class="service-library">
                 <div class="library-header">
                     <div class="library-title">💆 SERVICE LIBRARY</div>
                     <button class="toggle-add-btn" id="toggleAddServiceBtn">+ Add Service</button>
                 </div>
                 <div class="service-list" id="serviceList"></div>
-                <div id="serviceForm" class="service-form">
+                <div id="serviceForm" class="product-form" style="display: none;">
                     <div class="form-row">
                         <div class="form-group"><label>Service Name *</label><input type="text" id="serviceName" placeholder="e.g., Laser Treatment"></div>
-                        <div class="form-group"><label>Category</label><select id="serviceCategory"><option>Injection</option><option>Laser</option><option>others</option></select></div>
+                        <div class="form-group"><label>Category</label><select id="serviceCategory"><option>Injection</option><option>Laser</option><option>Others</option></select></div>
                         <div class="form-group"><label>Price ($)</label><input type="number" id="servicePrice" step="0.01"></div>
                     </div>
                     <div class="form-actions"><button class="btn-cancel" id="cancelServiceBtn">Cancel</button><button class="btn-save" id="saveServiceBtn">Save</button></div>
@@ -2405,6 +2405,7 @@ function renderServiceLibrary() {
 }
 
 // 打开编辑疗程表单
+// 打开编辑疗程表单
 function openEditService(serviceId) {
     const service = getServiceById(serviceId);
     if (service) {
@@ -2433,7 +2434,7 @@ async function saveService() {
     if (existing >= 0) servicesData[existing] = newService;
     else servicesData.push(newService);
     
-    closeServiceForm();
+    closeServiceForm();  // 关闭表单
     renderServiceLibrary();
     renderPackageButtons();
     saveServicesToLocalStorage();
@@ -2448,6 +2449,8 @@ function closeServiceForm() {
     document.getElementById('serviceForm').classList.remove('show');
     document.getElementById('toggleAddServiceBtn').style.display = '';
     document.getElementById('serviceName').value = '';
+    document.getElementById('servicePrice').value = '';
+    document.getElementById('serviceCategory').value = 'Injection';
     document.getElementById('editServiceId').value = '';
 }
 
