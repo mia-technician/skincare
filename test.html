@@ -489,6 +489,95 @@
     background: #e9dfd4;
 }
 
+        /* 疗程下拉菜单 - 与产品下拉菜单样式一致 */
+.treatment-cascade-select {
+    position: relative;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+.treatment-cascade-select .main-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px dashed #d2c0b0;
+    border-radius: 18px;
+    background: rgba(233, 223, 212, 0.3);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #5f5347;
+}
+.treatment-cascade-select .main-input:focus {
+    outline: none;
+    border-color: #b99f87;
+    background: white;
+}
+.treatment-cascade-select .cascade-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e2d4c6;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 100;
+    display: none;
+    max-height: 320px;
+    overflow-y: auto;
+}
+.treatment-cascade-select .cascade-panel.show {
+    display: block;
+}
+.treatment-cascade-select .cascade-brand-item {
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+    font-weight: 500;
+    color: #5f5347;
+    font-size: 0.75rem;
+}
+.treatment-cascade-select .cascade-brand-item:hover {
+    background: #f5efe9;
+}
+.treatment-cascade-select .cascade-brand-item .arrow {
+    color: #b99f87;
+    font-size: 0.7rem;
+}
+.treatment-cascade-select .cascade-product-item {
+    padding: 0.4rem 0.8rem 0.4rem 1.5rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f0e8e0;
+    transition: background 0.2s;
+}
+.treatment-cascade-select .cascade-product-item:hover {
+    background: #f5efe9;
+}
+.treatment-cascade-select .cascade-product-item .product-name {
+    font-size: 0.7rem;
+    color: #5f5347;
+}
+.treatment-cascade-select .cascade-product-item .product-price {
+    font-size: 0.7rem;
+    color: #b99f87;
+}
+.treatment-cascade-select .cascade-back-btn {
+    padding: 0.5rem 1rem;
+    background: #f5efe8;
+    cursor: pointer;
+    font-size: 0.75rem;
+    color: #b99f87;
+    border-bottom: 1px solid #e7dbd0;
+}
+.treatment-cascade-select .cascade-back-btn:hover {
+    background: #e9dfd4;
+}
+        
 /* 套餐选择栏 - 与 SELECT ROUTINE 样式一致 */
 .package-selector-bar { 
     background: #fff9f2; 
@@ -2301,6 +2390,12 @@ function initUnifiedSearch() {
         console.log('Waiting for services data...');
         setTimeout(initUnifiedSearch, 500);
         return;
+    }
+    
+    // 将父容器的类名改为 treatment-cascade-select
+    const parentContainer = input.closest('.cascade-select');
+    if (parentContainer) {
+        parentContainer.className = 'treatment-cascade-select';
     }
     
     let searchTimeout = null;
