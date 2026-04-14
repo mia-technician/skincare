@@ -1684,17 +1684,21 @@ function createSearchableSelect(timeOfDay, containerElement) {
     }
     
     // 渲染搜索结果
-    function renderSearchResults(searchTerm) {
-        const term = searchTerm.toLowerCase().trim();
-        if (!term) {
-            renderBrandList();
-            return;
-        }
-        
-        const filtered = productsData.filter(p => 
-            p.name.toLowerCase().includes(term) || 
-            (p.brand && p.brand.toLowerCase().includes(term))
-        ).sort((a, b) => a.name.localeCompare(b.name));
+function renderSearchResults(searchTerm) {
+    const term = searchTerm.toLowerCase().trim();
+    if (!term) {
+        renderBrandList();
+        return;
+    }
+    
+    // 将搜索词按空格拆分成多个关键词
+    const keywords = term.split(/\s+/).filter(k => k.length > 0);
+    
+    // 匹配逻辑：所有关键词都必须出现在产品名称或品牌中（AND逻辑）
+    const filtered = productsData.filter(p => {
+        const searchText = (p.name + ' ' + (p.brand || '')).toLowerCase();
+        return keywords.every(kw => searchText.includes(kw));
+    }).sort((a, b) => a.name.localeCompare(b.name));
         
         if (filtered.length === 0) {
             panel.innerHTML = `<div class="cascade-level"><div style="padding: 1rem; text-align: center; color: #b7a99a;">未找到 "${escapeHtml(term)}" 相关产品</div></div>`;
