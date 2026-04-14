@@ -2021,7 +2021,7 @@ function renderTreatments() {
         treatmentCard.className = 'treatment-card';
         treatmentCard.setAttribute('data-idx', idx);
         treatmentCard.innerHTML = `
-            <button class="delete-btn" data-idx="${idx}" style="position: absolute; top: 6px; right: 6px;">✕</button>
+            <button class="treatment-delete-btn" data-idx="${idx}" style="position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px;">✕</button>
             <div class="product-info">
                 <div class="product-name">${escapeHtml(service.name)}</div>
                 <div class="product-price">$${service.price}</div>
@@ -2034,17 +2034,27 @@ function renderTreatments() {
     // 创建下拉菜单
     createTreatmentSelect();
     
-    // 绑定删除事件
-    container.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.onclick = (e) => {
-            e.stopPropagation();
-            const idx = parseInt(btn.dataset.idx);
-            currentTreatments.splice(idx, 1);
-            renderTreatments();
-            updateTreatmentTotal();
-            saveServicesToLocalStorage();
-        };
-    });
+    // 绑定删除事件 - 使用更可靠的方式
+    setTimeout(() => {
+        document.querySelectorAll('.treatment-delete-btn').forEach(btn => {
+            // 移除已有事件，避免重复绑定
+            btn.removeEventListener('click', handleDeleteClick);
+            btn.addEventListener('click', handleDeleteClick);
+        });
+    }, 50);
+}
+
+// 删除事件处理函数
+function handleDeleteClick(e) {
+    e.stopPropagation();
+    const btn = e.target;
+    const idx = parseInt(btn.dataset.idx);
+    if (!isNaN(idx) && idx >= 0 && idx < currentTreatments.length) {
+        currentTreatments.splice(idx, 1);
+        renderTreatments();
+        updateTreatmentTotal();
+        saveServicesToLocalStorage();
+    }
 }
 
 // 创建疗程下拉菜单（按类别分组）
@@ -2118,16 +2128,16 @@ function createTreatmentSelect() {
         });
     }
     
-    function addTreatmentById(serviceId) {
-        if (!currentTreatments.some(t => t.serviceId === serviceId)) {
-            currentTreatments.push({ serviceId: serviceId });
-            renderTreatments();
-            updateTreatmentTotal();
-            saveServicesToLocalStorage();
-        }
-        input.value = '';
-        panel.classList.remove('show');
+function addTreatmentById(serviceId) {
+    if (!currentTreatments.some(t => t.serviceId === serviceId)) {
+        currentTreatments.push({ serviceId: serviceId });
+        renderTreatments();  // 重新渲染
+        updateTreatmentTotal();
+        saveServicesToLocalStorage();
     }
+    input.value = '';
+    panel.classList.remove('show');
+}
     
     input.oninput = (e) => {
         if (searchTimeout) clearTimeout(searchTimeout);
