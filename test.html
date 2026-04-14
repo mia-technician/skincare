@@ -704,7 +704,7 @@
 .tab-btn.active {
     color: #b99f87 !important;
     border-bottom: 3px solid #b99f87 !important;
-    font-weight: 600 !important;
+    font-weight: 800 !important;
 }
 
 /* 可选：添加微妙的背景色过渡 */
@@ -1901,42 +1901,34 @@ function printRoutine() {
 .treatment-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; }
 .treatment-card .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px; }
 
-/* Tab 容器样式 */
+/* Tab 容器 - 简单的 flex 布局 */
 .tab-container {
     display: flex;
-    gap: 2rem;  /* 增加 Tab 之间的间距 */
-    margin-bottom: 2.5rem;  /* 增加与下方模块的距离（原来太小） */
-    border-bottom: none;  /* 移除容器的下划线 */
-    padding: 0;
-    position: relative;
+    gap: 2rem;
+    margin-bottom: 2rem;
 }
 
-/* Tab 按钮基础样式 */
+/* Tab 按钮 - 基础样式 */
 .tab-btn {
     background: transparent;
     border: none;
-    padding: 0.7rem 0.2rem 0.7rem 0.2rem;  /* 上 右 下 左 */
+    padding: 0.5rem 0;
     cursor: pointer;
-    font-size: 1.1rem;  /* 文字稍微大一点（原来是 1rem） */
+    font-size: 1.1rem;
     font-family: 'Montserrat', sans-serif;
-    transition: all 0.2s ease;
     color: #b7a99a;
-    font-weight: 500;
-    position: relative;
-    bottom: auto;  /* 取消原来的 bottom: -2px */
 }
 
-/* Tab 悬停样式 */
-.tab-btn:hover {
-    color: #8f7e6b;
-}
-
-/* Tab 激活样式 - 只在这里显示下划线 */
+/* 当前激活的 Tab - 有下划线 + 深色文字 */
 .tab-btn.active {
     color: #b99f87;
-    font-weight: 600;
-    border-bottom: 3px solid #b99f87;  /* 激活的 Tab 才有下划线 */
-    padding-bottom: 0.7rem;  /* 保持与未激活 Tab 一致的内边距 */
+    border-bottom: 3px solid #b99f87;
+    padding-bottom: 0.5rem;
+}
+
+/* 悬停效果 */
+.tab-btn:hover {
+    color: #8f7e6b;
 }
 
         </style>
