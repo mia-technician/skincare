@@ -2357,19 +2357,22 @@ function loadPackage(packageId) {
     
     currentPackageId = packageId;
     
-    // 替换产品区（如果产品模式存在）
+    // 无论套餐是否有产品，都清空产品区
+    currentMorningProducts = [];
+    currentEveningProducts = [];
+    
+    // 如果套餐有产品，则添加产品
     if (pkg.products && pkg.products.length > 0) {
-        currentMorningProducts = [];
-        currentEveningProducts = [];
-        // 产品添加到早上（简化处理，实际可按需分配）
         pkg.products.forEach(pid => {
             currentMorningProducts.push({ productId: pid, time: "morning" });
         });
-        if (typeof renderRoutines === 'function') renderRoutines();
-        if (typeof updateTotalPrice === 'function') updateTotalPrice();
     }
     
-        // 替换疗程区
+    // 刷新产品界面
+    if (typeof renderRoutines === 'function') renderRoutines();
+    if (typeof updateTotalPrice === 'function') updateTotalPrice();
+    
+    // 替换疗程区
     currentTreatments = (pkg.services || []).map(sid => ({ serviceId: sid }));
     if (typeof initUnifiedItems === 'function') initUnifiedItems();
     if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
