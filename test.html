@@ -1134,53 +1134,44 @@ function updateTotalPrice() {
 }
 
 function updateUIBasedOnAuth() {
-    const isLoggedIn = isAuthenticated;
+    const isAdmin = isAuthenticated;  // true=管理员, false=员工或未登录
     
+    // 产品模块 - 只有管理员可编辑云端
     const editBtn = document.getElementById('editRoutineBtn');
-    if (editBtn) editBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
+    if (editBtn) editBtn.style.display = isAdmin ? 'inline-block' : 'none';
     
     const authButtons = document.getElementById('authButtons');
     if (authButtons) {
-        authButtons.style.display = isLoggedIn ? 'flex' : 'none';
+        authButtons.style.display = isAdmin ? 'flex' : 'none';
     }
-
-    // ========== 新增：控制产品库的编辑/删除按钮 ==========
-    // 控制 "Add Product" 按钮
+    
     const toggleAddBtn = document.getElementById('toggleAddBtn');
     if (toggleAddBtn) {
-        toggleAddBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
+        toggleAddBtn.style.display = isAdmin ? 'inline-block' : 'none';
     }
     
-    // 控制产品库中每个产品的编辑图标(✎)和删除图标(🗑️)
     const editIcons = document.querySelectorAll('.edit-icon');
     const deleteIcons = document.querySelectorAll('.delete-product-icon');
-    
-    if (isLoggedIn) {
-        // 验证密码后：显示编辑和删除按钮
+    if (isAdmin) {
         editIcons.forEach(icon => icon.style.display = 'inline-block');
         deleteIcons.forEach(icon => icon.style.display = 'inline-block');
     } else {
-        // 未验证密码：隐藏编辑和删除按钮
         editIcons.forEach(icon => icon.style.display = 'none');
         deleteIcons.forEach(icon => icon.style.display = 'none');
     }
-
-// 在 updateUIBasedOnAuth 函数末尾添加
-const editPackageBtn = document.getElementById('editPackageBtn');
-if (editPackageBtn) editPackageBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
-const packageAuthButtons = document.getElementById('packageAuthButtons');
-if (packageAuthButtons) packageAuthButtons.style.display = isLoggedIn ? 'flex' : 'none';
-const toggleAddServiceBtn = document.getElementById('toggleAddServiceBtn');
-if (toggleAddServiceBtn) toggleAddServiceBtn.style.display = isLoggedIn ? 'inline-block' : 'none';    
- }    
-
-    // 检查是否需要密码验证才能编辑产品
-function checkAuthForProductAction(actionName) {
-    if (!isAuthenticated) {
-        alert(`Please verify cloud password first to ${actionName}.`);
-        return false;
-    }
-    return true;
+    
+    // 疗程模块 - 只有管理员可编辑
+    const editPackageBtn = document.getElementById('editPackageBtn');
+    if (editPackageBtn) editPackageBtn.style.display = isAdmin ? 'inline-block' : 'none';
+    const packageAuthButtons = document.getElementById('packageAuthButtons');
+    if (packageAuthButtons) packageAuthButtons.style.display = isAdmin ? 'flex' : 'none';
+    const toggleAddServiceBtn = document.getElementById('toggleAddServiceBtn');
+    if (toggleAddServiceBtn) toggleAddServiceBtn.style.display = isAdmin ? 'inline-block' : 'none';
+    
+    // 控制疗程库的编辑/删除按钮
+    document.querySelectorAll('.edit-service-icon, .delete-service-icon').forEach(icon => {
+        icon.style.display = isAdmin ? 'inline-block' : 'none';
+    });
 }
     
 function renderBrandProducts() {
@@ -2381,21 +2372,44 @@ async function verifyPassword() {
     const passwordInput = document.getElementById('cloudPassword');
     const enteredPassword = passwordInput.value;
     
-    if (enteredPassword === CLOUD_PASSWORD) {
+    // 管理员密码
+    const ADMIN_PASSWORD = "laserVersante";
+    // 员工密码
+    const STAFF_PASSWORD = "laser2024";
+    
+    if (enteredPassword === ADMIN_PASSWORD) {
+        // 管理员 - 可读写云端
         isAuthenticated = true;
-        // 👇 添加这一行：设置系统用户 ID
         currentUserId = SYSTEM_USER_ID;
-        document.getElementById('authStatus').innerHTML = `✅ Cloud access verified!`;
+        document.getElementById('authStatus').innerHTML = `✅ 管理员模式 · 可读写云端数据`;
         document.getElementById('verifyPasswordBtn').style.display = 'none';
         document.getElementById('clearPasswordBtn').style.display = 'inline-block';
         passwordInput.style.display = 'none';
         
-        // 初始化 Supabase 客户端
         if (typeof supabase !== 'undefined') {
             supabaseClient = supabase;
             await loadFromCloud();
+            await loadServicesFromCloud();
             refreshUI();
-            alert("Password verified! Cloud data loaded.");
+            alert("管理员模式已激活！可读写云端数据。");
+        } else {
+            alert("Supabase not ready. Please refresh the page.");
+        }
+    } else if (enteredPassword === STAFF_PASSWORD) {
+        // 员工 - 只读云端，可本地编辑
+        isAuthenticated = false;
+        currentUserId = SYSTEM_USER_ID;
+        document.getElementById('authStatus').innerHTML = `✅ 员工模式 · 只读云端数据`;
+        document.getElementById('verifyPasswordBtn').style.display = 'none';
+        document.getElementById('clearPasswordBtn').style.display = 'inline-block';
+        passwordInput.style.display = 'none';
+        
+        if (typeof supabase !== 'undefined') {
+            supabaseClient = supabase;
+            await loadFromCloud();
+            await loadServicesFromCloud();
+            refreshUI();
+            alert("员工模式已激活！可查看云端数据，编辑本地内容。需要保存到云端请使用管理员密码。");
         } else {
             alert("Supabase not ready. Please refresh the page.");
         }
@@ -2777,19 +2791,21 @@ function switchToTreatmentsMode() {
     tabProducts.classList.remove('active');
     tabTreatments.classList.add('active');
     
-    // 初始化统一表格
     initUnifiedItems();
     renderUnifiedQuote();
     initUnifiedSearch();
     
-    // 根据登录状态显示/隐藏编辑按钮
-    const isLoggedIn = isAuthenticated;
+    const isAdmin = isAuthenticated;
     const editPackageBtn = document.getElementById('editPackageBtn');
-    if (editPackageBtn) editPackageBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
+    if (editPackageBtn) editPackageBtn.style.display = isAdmin ? 'inline-block' : 'none';
     const packageAuthButtons = document.getElementById('packageAuthButtons');
-    if (packageAuthButtons) packageAuthButtons.style.display = isLoggedIn ? 'flex' : 'none';
+    if (packageAuthButtons) packageAuthButtons.style.display = isAdmin ? 'flex' : 'none';
     const toggleAddServiceBtn = document.getElementById('toggleAddServiceBtn');
-    if (toggleAddServiceBtn) toggleAddServiceBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
+    if (toggleAddServiceBtn) toggleAddServiceBtn.style.display = isAdmin ? 'inline-block' : 'none';
+    
+    document.querySelectorAll('.edit-service-icon, .delete-service-icon').forEach(icon => {
+        icon.style.display = isAdmin ? 'inline-block' : 'none';
+    });
 }
 
 // Tab 按钮事件
@@ -2885,10 +2901,10 @@ async function initApp() {
             console.log('✅ 云端数据已加载（只读模式）');
             
             // 更新状态提示
-            const statusDiv = document.getElementById('authStatus');
-            if (statusDiv && !isAuthenticated) {
-                statusDiv.innerHTML = `🔓 只读模式 · 输入密码以启用云同步`;
-            }
+const statusDiv = document.getElementById('authStatus');
+if (statusDiv && !isAuthenticated) {
+    statusDiv.innerHTML = `🔒 请输入密码 (员工: laser2024 / 管理员: laserVersante)`;
+}
         } catch (e) {
             console.log('云端加载失败，使用本地数据:', e);
         }
