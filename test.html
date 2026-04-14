@@ -1307,8 +1307,7 @@ function attachReorderDrag(containerId, itemsArray, updateCallback) {
     });
 }
 
-// 创建可搜索下拉菜单
-// 创建多层级下拉菜单（品牌 → 产品）
+// 创建多层级下拉菜单（支持搜索 + 品牌选择）
 function createSearchableSelect(timeOfDay, containerElement) {
     const wrapper = document.createElement('div');
     wrapper.className = 'cascade-select';
@@ -1316,9 +1315,8 @@ function createSearchableSelect(timeOfDay, containerElement) {
     const input = document.createElement('input');
     input.type = 'text';
     input.className = 'main-input';
-    input.placeholder = timeOfDay === 'morning' ? '🔍 Choose a brand...' : '🔍 Choose a brand...';
+    input.placeholder = timeOfDay === 'morning' ? '🔍 搜索产品 或 点击选择品牌...' : '🔍 搜索产品 或 点击选择品牌...';
     input.autocomplete = 'off';
-    input.readOnly = true;
     
     const panel = document.createElement('div');
     panel.className = 'cascade-panel';
@@ -1327,19 +1325,23 @@ function createSearchableSelect(timeOfDay, containerElement) {
     wrapper.appendChild(panel);
     containerElement.appendChild(wrapper);
     
-    let currentLevel = 'brand'; // 'brand' 或 'product'
+    let currentMode = 'brand'; // 'brand', 'product', 'search'
     let currentBrand = '';
-    let allBrands = [];
+    let searchTimeout = null;
     
-    function rebuildBrandList() {
-        // 获取所有品牌并排序
+    // 获取所有品牌并排序
+    function getAllBrands() {
         const brandsSet = new Set();
         productsData.forEach(p => {
             if (p.brand) brandsSet.add(p.brand);
         });
-        allBrands = Array.from(brandsSet).sort((a, b) => a.localeCompare(b));
-        
-        let html = `<div class="cascade-level">`;
+        return Array.from(brandsSet).sort((a, b) => a.localeCompare(b));
+    }
+    
+    // 渲染品牌列表
+    function renderBrandList() {
+        const allBrands = getAllBrands();
+        let html = `<div class="cascade-level"><div style="padding: 0.5rem 1rem; background: #f5efe8; font-size: 0.7rem; color: #b99f87; border-bottom: 1px solid #e7dbd0;">📁 按品牌选择</div>`;
         for (const brand of allBrands) {
             const productCount = productsData.filter(p => p.brand === brand).length;
             html += `
@@ -1352,26 +1354,27 @@ function createSearchableSelect(timeOfDay, containerElement) {
         html += `</div>`;
         panel.innerHTML = html;
         
-        // 绑定品牌点击事件
         panel.querySelectorAll('.cascade-brand-item').forEach(item => {
             item.onclick = (e) => {
                 e.stopPropagation();
                 currentBrand = item.dataset.brand;
-                currentLevel = 'product';
+                currentMode = 'product';
                 input.value = currentBrand;
-                showProductsByBrand(currentBrand);
+                renderProductList(currentBrand);
             };
         });
     }
     
-    function showProductsByBrand(brand) {
+    // 渲染某品牌下的产品列表
+    function renderProductList(brand) {
         const brandProducts = productsData
             .filter(p => p.brand === brand)
             .sort((a, b) => a.name.localeCompare(b.name));
         
         let html = `
             <div class="cascade-level">
-                <div class="cascade-back-btn">← Back to the brand list</div>
+                <div class="cascade-back-btn">← 返回品牌列表</div>
+                <div style="padding: 0.4rem 1rem; background: #f5efe8; font-size: 0.7rem; color: #b99f87; border-bottom: 1px solid #e7dbd0;">📦 ${escapeHtml(brand)}</div>
         `;
         
         for (const p of brandProducts) {
@@ -1385,13 +1388,13 @@ function createSearchableSelect(timeOfDay, containerElement) {
         html += `</div>`;
         panel.innerHTML = html;
         
-        // 绑定返回按钮
+        // 返回按钮
         const backBtn = panel.querySelector('.cascade-back-btn');
         if (backBtn) {
             backBtn.onclick = () => {
-                currentLevel = 'brand';
+                currentMode = 'brand';
                 input.value = '';
-                rebuildBrandList();
+                renderBrandList();
             };
         }
         
@@ -1399,32 +1402,114 @@ function createSearchableSelect(timeOfDay, containerElement) {
         panel.querySelectorAll('.cascade-product-item').forEach(item => {
             item.onclick = (e) => {
                 e.stopPropagation();
-                const productId = item.dataset.productId;
-                const product = getProductById(productId);
-                if (product) {
-                    if (timeOfDay === 'morning') {
-                        currentMorningProducts.push({ productId: product.id, time: 'morning' });
-                    } else {
-                        currentEveningProducts.push({ productId: product.id, time: 'evening' });
-                    }
-                    renderRoutines();
-                    updateTotalPrice();
-                    saveToLocalStorage();
-                }
-                input.value = '';
-                panel.classList.remove('show');
-                currentLevel = 'brand';
-                rebuildBrandList();
+                addProductById(item.dataset.productId);
             };
         });
     }
     
+    // 渲染搜索结果
+    function renderSearchResults(searchTerm) {
+        const term = searchTerm.toLowerCase().trim();
+        if (!term) {
+            renderBrandList();
+            return;
+        }
+        
+        const filtered = productsData.filter(p => 
+            p.name.toLowerCase().includes(term) || 
+            (p.brand && p.brand.toLowerCase().includes(term))
+        ).sort((a, b) => a.name.localeCompare(b.name));
+        
+        if (filtered.length === 0) {
+            panel.innerHTML = `<div class="cascade-level"><div style="padding: 1rem; text-align: center; color: #b7a99a;">未找到 "${escapeHtml(term)}" 相关产品</div></div>`;
+            return;
+        }
+        
+        let html = `
+            <div class="cascade-level">
+                <div class="cascade-back-btn">← 返回品牌列表</div>
+                <div style="padding: 0.4rem 1rem; background: #f5efe8; font-size: 0.7rem; color: #b99f87; border-bottom: 1px solid #e7dbd0;">🔍 搜索结果 (${filtered.length})</div>
+        `;
+        
+        for (const p of filtered) {
+            html += `
+                <div class="cascade-product-item" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}">
+                    <div>
+                        <span class="product-name">${escapeHtml(p.name)}</span>
+                        <span style="font-size: 0.65rem; color: #b99f87; margin-left: 0.5rem;">${escapeHtml(p.brand || '')}</span>
+                    </div>
+                    <span class="product-price">$${p.price}</span>
+                </div>
+            `;
+        }
+        html += `</div>`;
+        panel.innerHTML = html;
+        
+        // 返回按钮
+        const backBtn = panel.querySelector('.cascade-back-btn');
+        if (backBtn) {
+            backBtn.onclick = () => {
+                currentMode = 'brand';
+                input.value = '';
+                renderBrandList();
+            };
+        }
+        
+        // 绑定产品点击事件
+        panel.querySelectorAll('.cascade-product-item').forEach(item => {
+            item.onclick = (e) => {
+                e.stopPropagation();
+                addProductById(item.dataset.productId);
+            };
+        });
+    }
+    
+    // 添加产品到 routine
+    function addProductById(productId) {
+        const product = getProductById(productId);
+        if (product) {
+            if (timeOfDay === 'morning') {
+                currentMorningProducts.push({ productId: product.id, time: 'morning' });
+            } else {
+                currentEveningProducts.push({ productId: product.id, time: 'evening' });
+            }
+            renderRoutines();
+            updateTotalPrice();
+            saveToLocalStorage();
+        }
+        input.value = '';
+        panel.classList.remove('show');
+        currentMode = 'brand';
+        renderBrandList();
+    }
+    
+    // 输入搜索（带防抖）
+    input.oninput = (e) => {
+        const searchTerm = e.target.value;
+        if (searchTimeout) clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            if (searchTerm.trim()) {
+                currentMode = 'search';
+                renderSearchResults(searchTerm);
+                panel.classList.add('show');
+            } else {
+                currentMode = 'brand';
+                renderBrandList();
+                panel.classList.add('show');
+            }
+        }, 300);
+    };
+    
     // 点击输入框显示品牌列表
     input.onclick = () => {
-        if (currentLevel === 'brand') {
-            rebuildBrandList();
-        } else if (currentLevel === 'product') {
-            showProductsByBrand(currentBrand);
+        if (currentMode === 'brand') {
+            renderBrandList();
+        } else if (currentMode === 'product' && currentBrand) {
+            renderProductList(currentBrand);
+        } else if (currentMode === 'search' && input.value.trim()) {
+            renderSearchResults(input.value);
+        } else {
+            renderBrandList();
         }
         panel.classList.add('show');
     };
@@ -1438,14 +1523,14 @@ function createSearchableSelect(timeOfDay, containerElement) {
     
     // 监听产品库更新
     const observer = new MutationObserver(() => {
-        if (currentLevel === 'brand') {
-            rebuildBrandList();
+        if (currentMode === 'brand') {
+            renderBrandList();
         }
     });
     observer.observe(document.getElementById('brandProductsContainer') || document.body, { childList: true, subtree: true });
     
     // 初始化
-    rebuildBrandList();
+    renderBrandList();
 }
     
 function renderRoutines() {
