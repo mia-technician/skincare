@@ -1781,7 +1781,38 @@ async function loadServicesFromCloud() {
     if (!supabaseClient) return false;
     
     try {
-        // ... 加载数据的代码 ...
+        // 加载疗程库
+        const { data: services, error: servicesError } = await supabaseClient
+            .from('services')
+            .select('*');
+        
+        if (servicesError) throw servicesError;
+        
+        if (services && services.length > 0) {
+            servicesData = services;
+        } else {
+            servicesData = JSON.parse(JSON.stringify(DEFAULT_SERVICES));
+        }
+        
+        // 加载套餐
+        const { data: packages, error: packagesError } = await supabaseClient
+            .from('packages')
+            .select('*');
+        
+        if (packagesError) throw packagesError;
+        
+        if (packages && packages.length > 0) {
+            savedPackages = {};
+            packages.forEach(p => {
+                savedPackages[p.id] = {
+                    name: p.name,
+                    products: p.products || [],
+                    services: p.services || []
+                };
+            });
+        } else {
+            savedPackages = JSON.parse(JSON.stringify(INITIAL_PACKAGES));
+        }
         
         saveServicesToLocalStorage();
         
@@ -2716,11 +2747,7 @@ if (emailUnifiedBtn) emailUnifiedBtn.onclick = emailUnifiedQuote;
 
 // ==================== 启动应用 ====================
 async function initApp() {
-    // 1. 先加载本地数据作为备用
-    loadFromLocalStorage();
-    refreshUI();
-    
-    // 2. 尝试从云端加载数据
+    // 只从云端加载数据
     if (typeof supabase !== 'undefined') {
         supabaseClient = supabase;
         try {
@@ -2732,6 +2759,8 @@ async function initApp() {
             if (products && products.length > 0) {
                 productsData = products;
                 productsData = sortProductsByName(productsData);
+            } else {
+                productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
             }
             
             if (routines && routines.length > 0) {
@@ -2740,6 +2769,8 @@ async function initApp() {
                 savedRoutines = Object.fromEntries(
                     Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
                 );
+            } else {
+                savedRoutines = JSON.parse(JSON.stringify(INITIAL_ROUTINES));
             }
             
             if (state && state.current_routine_id && savedRoutines[state.current_routine_id]) {
@@ -2753,16 +2784,18 @@ async function initApp() {
                 currentEveningProducts = savedRoutines[currentRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
             }
             
-            // 👇 添加这一行：加载疗程和套餐数据
+            // 加载疗程和套餐数据
             await loadServicesFromCloud();
             
-            saveToLocalStorage();
             refreshUI();
             console.log('✅ 云端数据已加载');
             
         } catch (e) {
-            console.log('云端加载失败，使用本地数据:', e);
+            console.error('云端加载失败:', e);
+            alert('无法连接服务器，请检查网络后刷新页面');
         }
+    } else {
+        alert('Supabase 未初始化，请刷新页面');
     }
 }
 
