@@ -2094,25 +2094,46 @@ function syncToLegacyData() {
 }
 
 // 初始化统一搜索下拉菜单（只保留疗程）
+// 初始化统一搜索下拉菜单（只保留疗程）
 function initUnifiedSearch() {
     const input = document.getElementById('unifiedSearchInput');
     const panel = document.getElementById('unifiedSearchPanel');
-    if (!input || !panel) return;
+    if (!input || !panel) {
+        console.error('Search elements not found');
+        return;
+    }
+    
+    // 等待 servicesData 有数据
+    if (!servicesData || servicesData.length === 0) {
+        console.log('Waiting for services data...');
+        setTimeout(initUnifiedSearch, 500);
+        return;
+    }
     
     let searchTimeout = null;
     
     function renderCategoryList() {
-        const categories = ['Injection', 'Laser', 'Others'];
+        const categories = [...new Set(servicesData.map(s => s.category))].sort();
+        if (categories.length === 0) {
+            panel.innerHTML = `<div class="cascade-level"><div style="padding: 1rem; text-align: center;">No categories available</div></div>`;
+            return;
+        }
+        
         let html = `<div class="cascade-level"><div style="padding: 0.5rem 1rem; background: #f5efe8; font-size: 0.7rem; color: #b99f87;">📁 Select Treatment Category</div>`;
         for (const cat of categories) {
             const count = servicesData.filter(s => s.category === cat).length;
-            html += `<div class="cascade-brand-item" data-category="${cat}" style="cursor:pointer;"><span>📁 ${cat}</span><span class="arrow">▶ ${count}</span></div>`;
+            html += `<div class="cascade-brand-item" data-category="${escapeHtml(cat)}" style="cursor:pointer; padding: 0.5rem 0.8rem; display: flex; justify-content: space-between; align-items: center;">
+                        <span>📁 ${escapeHtml(cat)}</span>
+                        <span class="arrow">▶ ${count}</span>
+                     </div>`;
         }
         html += `</div>`;
         panel.innerHTML = html;
         
+        // 绑定类别点击事件
         panel.querySelectorAll('.cascade-brand-item').forEach(item => {
-            item.onclick = () => {
+            item.onclick = (e) => {
+                e.stopPropagation();
                 const category = item.dataset.category;
                 renderTreatmentsByCategory(category);
             };
@@ -2121,9 +2142,16 @@ function initUnifiedSearch() {
     
     function renderTreatmentsByCategory(category) {
         const treatments = servicesData.filter(s => s.category === category).sort((a, b) => a.name.localeCompare(b.name));
-        let html = `<div class="cascade-level"><div class="cascade-back-btn" style="cursor:pointer;">← Back to Categories</div><div style="padding: 0.4rem 1rem; background: #f5efe8; font-size: 0.7rem;">💆 ${category}</div>`;
+        if (treatments.length === 0) {
+            panel.innerHTML = `<div class="cascade-level"><div class="cascade-back-btn" style="cursor:pointer; padding: 0.5rem; background: #f5efe8;">← Back</div><div style="padding: 1rem; text-align: center;">No treatments in this category</div></div>`;
+            const backBtn = panel.querySelector('.cascade-back-btn');
+            if (backBtn) backBtn.onclick = () => renderCategoryList();
+            return;
+        }
+        
+        let html = `<div class="cascade-level"><div class="cascade-back-btn" style="cursor:pointer; padding: 0.5rem; background: #f5efe8;">← Back to Categories</div><div style="padding: 0.4rem 1rem; background: #f5efe8; font-size: 0.7rem;">💆 ${escapeHtml(category)}</div>`;
         for (const t of treatments) {
-            html += `<div class="cascade-product-item" data-service-id="${t.id}" style="cursor:pointer;">
+            html += `<div class="cascade-product-item" data-service-id="${t.id}" style="cursor:pointer; padding: 0.5rem 0.8rem 0.5rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                         <span>${escapeHtml(t.name)}</span>
                         <span>$${t.price}</span>
                      </div>`;
@@ -2135,18 +2163,28 @@ function initUnifiedSearch() {
         if (backBtn) backBtn.onclick = () => renderCategoryList();
         
         panel.querySelectorAll('.cascade-product-item').forEach(item => {
-            item.onclick = () => addTreatment(item.dataset.serviceId);
+            item.onclick = (e) => {
+                e.stopPropagation();
+                addTreatment(item.dataset.serviceId);
+            };
         });
     }
     
     function renderSearchResults(term) {
         const lowerTerm = term.toLowerCase();
-        const matched = servicesData.filter(s => s.name.toLowerCase().includes(lowerTerm) || s.category.toLowerCase().includes(lowerTerm));
+        const matched = servicesData.filter(s => s.name.toLowerCase().includes(lowerTerm) || (s.category && s.category.toLowerCase().includes(lowerTerm)));
         
-        let html = `<div class="cascade-level"><div class="cascade-back-btn" style="cursor:pointer;">← Back to Categories</div><div style="padding: 0.4rem 1rem; background: #f5efe8; font-size: 0.7rem;">🔍 Search Results (${matched.length})</div>`;
+        if (matched.length === 0) {
+            panel.innerHTML = `<div class="cascade-level"><div class="cascade-back-btn" style="cursor:pointer; padding: 0.5rem; background: #f5efe8;">← Back</div><div style="padding: 1rem; text-align: center;">No results found for "${escapeHtml(term)}"</div></div>`;
+            const backBtn = panel.querySelector('.cascade-back-btn');
+            if (backBtn) backBtn.onclick = () => renderCategoryList();
+            return;
+        }
+        
+        let html = `<div class="cascade-level"><div class="cascade-back-btn" style="cursor:pointer; padding: 0.5rem; background: #f5efe8;">← Back to Categories</div><div style="padding: 0.4rem 1rem; background: #f5efe8; font-size: 0.7rem;">🔍 Search Results (${matched.length})</div>`;
         for (const t of matched) {
-            html += `<div class="cascade-product-item" data-service-id="${t.id}" style="cursor:pointer;">
-                        <div><span>${escapeHtml(t.name)}</span><span style="font-size:0.65rem; margin-left:0.5rem;">${escapeHtml(t.category)}</span></div>
+            html += `<div class="cascade-product-item" data-service-id="${t.id}" style="cursor:pointer; padding: 0.5rem 0.8rem 0.5rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                        <div><span>${escapeHtml(t.name)}</span><span style="font-size:0.65rem; margin-left:0.5rem;">${escapeHtml(t.category || '')}</span></div>
                         <span>$${t.price}</span>
                      </div>`;
         }
@@ -2157,7 +2195,10 @@ function initUnifiedSearch() {
         if (backBtn) backBtn.onclick = () => renderCategoryList();
         
         panel.querySelectorAll('.cascade-product-item').forEach(item => {
-            item.onclick = () => addTreatment(item.dataset.serviceId);
+            item.onclick = (e) => {
+                e.stopPropagation();
+                addTreatment(item.dataset.serviceId);
+            };
         });
     }
     
@@ -2180,6 +2221,7 @@ function initUnifiedSearch() {
         panel.classList.remove('show');
     }
     
+    // Input event handlers
     input.oninput = (e) => {
         if (searchTimeout) clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
@@ -2193,19 +2235,23 @@ function initUnifiedSearch() {
         }, 300);
     };
     
-    input.onclick = () => {
+    input.onclick = (e) => {
+        e.stopPropagation();
         renderCategoryList();
         panel.classList.add('show');
     };
     
-    document.addEventListener('click', (e) => {
+    // Close panel when clicking outside
+    document.addEventListener('click', function(e) {
         if (!input.contains(e.target) && !panel.contains(e.target)) {
             panel.classList.remove('show');
         }
     });
     
+    // Initial render
     renderCategoryList();
-} 
+    console.log('Unified search initialized with', servicesData.length, 'treatments');
+}
 
     
 // 渲染疗程库
