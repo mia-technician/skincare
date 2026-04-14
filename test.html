@@ -5,29 +5,51 @@
 <script>
 (function(){
     // 设置您想要的访问密码
-    var ACCESS_PASSWORD = 'laser2024';  // 请修改为您的密码
+    var ACCESS_PASSWORD = 'laser2024';  // 员工密码
+    var ADMIN_PASSWORD = 'laserVersante';  // 管理员密码
     
     // 检查 localStorage 中的认证标记及其时间戳
     var auth = localStorage.getItem('page_authenticated');
+    var authType = localStorage.getItem('page_auth_type'); // 'staff' 或 'admin'
     var authTime = localStorage.getItem('page_auth_time');
     var now = Date.now();
-    var SESSION_DURATION = 24 * 60 * 60 * 1000; // 24小时有效（可根据需要调整，例如 8*3600000 为8小时）
+    var SESSION_DURATION = 24 * 60 * 60 * 1000; // 24小时有效
     
     // 如果认证标记存在且未超时，则允许直接访问
     if (auth === 'true' && authTime && (now - parseInt(authTime)) < SESSION_DURATION) {
         // 有效期内，直接显示页面，无需再次输入密码
+        // 恢复认证类型
+        if (authType === 'admin') {
+            window.IS_ADMIN = true;
+        } else {
+            window.IS_ADMIN = false;
+        }
     } else {
         // 标记不存在或已过期，需要验证密码
-        var pwd = prompt('此页面受密码保护，请输入访问密码：');
-        if (pwd !== ACCESS_PASSWORD) {
-            document.body.innerHTML = '<div style="text-align:center; margin-top:20vh; font-family:sans-serif;"><h2>🔒 访问被拒绝</h2><p>密码错误，无法查看页面内容。</p></div>';
+        var pwd = prompt('🔒 Restricted Access\n\nPlease enter password:');
+        
+        if (pwd === ADMIN_PASSWORD) {
+            // 管理员登录
+            localStorage.setItem('page_authenticated', 'true');
+            localStorage.setItem('page_auth_type', 'admin');
+            localStorage.setItem('page_auth_time', now.toString());
+            window.IS_ADMIN = true;
+            location.reload();
+        } else if (pwd === ACCESS_PASSWORD) {
+            // 员工登录
+            localStorage.setItem('page_authenticated', 'true');
+            localStorage.setItem('page_auth_type', 'staff');
+            localStorage.setItem('page_auth_time', now.toString());
+            window.IS_ADMIN = false;
+            location.reload();
+        } else if (pwd !== null) {
+            // 密码错误，拒绝访问
+            document.body.innerHTML = '<div style="text-align:center; margin-top:20vh; font-family:sans-serif;"><h2>🔒 Access Denied</h2><p>Incorrect password. Please contact administrator.</p></div>';
             throw new Error('Authentication failed');
         } else {
-            // 密码正确，存储认证标记和当前时间
-            localStorage.setItem('page_authenticated', 'true');
-            localStorage.setItem('page_auth_time', now.toString());
-            // 刷新页面以正常加载
-            location.reload();
+            // 用户点击取消
+            document.body.innerHTML = '<div style="text-align:center; margin-top:20vh; font-family:sans-serif;"><h2>🔒 Access Required</h2><p>Password is required to view this page.</p></div>';
+            throw new Error('Authentication cancelled');
         }
     }
 })();
@@ -2565,7 +2587,9 @@ async function verifyPassword() {
         } else {
             alert("Supabase not ready. Please refresh the page.");
         }
+        
     } else if (enteredPassword === STAFF_PASSWORD) {
+        // 员工 - 只读云端，可本地编辑
         isAuthenticated = false;
         currentUserId = SYSTEM_USER_ID;
         document.getElementById('authStatus').innerHTML = `✅ Staff Mode - Read Only Cloud Data`;
@@ -2575,18 +2599,24 @@ async function verifyPassword() {
         
         if (typeof supabase !== 'undefined') {
             supabaseClient = supabase;
+            // 加载产品数据
             await loadFromCloud();
+            // 加载疗程和套餐数据
             await loadServicesFromCloud();
-            renderServiceLibrary();
-            renderPackageButtons();
-            if (typeof initUnifiedItems === 'function') initUnifiedItems();
-            if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
+            // 刷新产品界面
             refreshUI();
+            // 刷新疗程界面（如果当前在疗程模式）
+            if (treatmentsMode && treatmentsMode.style.display !== 'none') {
+                renderServiceLibrary();
+                renderPackageButtons();
+                if (typeof initUnifiedItems === 'function') initUnifiedItems();
+                if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
+                if (typeof initUnifiedSearch === 'function') initUnifiedSearch();
+            }
             alert("Staff mode activated! View only. Use admin password to edit cloud data.");
         } else {
             alert("Supabase not ready. Please refresh the page.");
-        }
-    } else {
+        } else {
         alert("Incorrect password! Please try again.");
         isAuthenticated = false;
     }
