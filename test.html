@@ -2483,7 +2483,6 @@ function renderServiceLibrary() {
 }
 
 // 打开编辑疗程表单
-// 打开编辑疗程表单
 function openEditService(serviceId) {
     const service = getServiceById(serviceId);
     if (service) {
@@ -2847,6 +2846,7 @@ document.getElementById('toggleAddServiceBtn').onclick = () => {
     document.getElementById('serviceForm').classList.add('show');
     document.getElementById('toggleAddServiceBtn').style.display = 'none';
 };
+    
 document.getElementById('cancelServiceBtn').onclick = closeServiceForm;
 document.getElementById('saveServiceBtn').onclick = saveService;
 document.getElementById('editPackageBtn').onclick = () => {
