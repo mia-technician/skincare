@@ -532,6 +532,137 @@
             </div>
         </div>
 
+        <!-- Tab 切换 -->
+        <div class="tab-container">
+            <button id="tabProductsBtn" class="tab-btn active">📦 产品模式</button>
+            <button id="tabTreatmentsBtn" class="tab-btn">💆 疗程模式</button>
+            <button id="tabCombinedBtn" class="tab-btn">💰 合并报价</button>
+        </div>
+
+        <!-- ==================== 产品模式 ==================== -->
+        <div id="productsModeContainer">
+            <div class="routine-selector-bar">
+                <div class="selector-header">
+                    <div class="selector-title">📋 SELECT ROUTINE</div>
+                    <div class="selector-actions">
+                        <button id="editRoutineBtn" class="manage-btn" style="display:none">✏️ Edit Routine Name</button>
+                    </div>
+                </div>
+                <div class="routine-buttons" id="routineButtons"></div>
+            </div>
+
+            <div class="product-library">
+                <div class="library-header">
+                    <div class="library-title">📦 PRODUCT LIBRARY · drag to add or replace</div>
+                    <button class="toggle-add-btn" id="toggleAddBtn">+ Add Product</button>
+                </div>
+                <div class="brand-tabs" id="brandTabs"></div>
+                <div id="brandProductsContainer" class="brand-products"></div>
+                <div id="productForm" class="product-form">
+                    <div class="form-row">
+                        <div class="form-group"><label>Product Name *</label><input type="text" id="productName" placeholder="e.g., Vitamin C"></div>
+                        <div class="form-group"><label>Brand</label><select id="productBrand"><option>SkinMedica</option><option>Skinceuticals</option><option>FNL</option><option>ColorScience</option><option>Others</option></select></div>
+                        <div class="form-group"><label>Price ($)</label><input type="number" id="productPrice" step="0.01"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Benefit</label><input type="text" id="productBenefit"></div>
+                        <div class="form-group"><label>Image URL</label><input type="text" id="productImage"></div>
+                    </div>
+                    <div class="form-group"><label>Usage</label><textarea id="productUsage" rows="2"></textarea></div>
+                    <div class="form-actions"><button class="btn-cancel" id="cancelFormBtn">Cancel</button><button class="btn-save" id="saveProductBtn">Save</button></div>
+                    <input type="hidden" id="editProductId">
+                </div>
+            </div>
+
+            <div class="routine-grid">
+                <div class="column morning-icon">
+                    <div class="column-title">MORNING ROUTINE <span>AM</span></div>
+                    <div class="product-list" id="morningList"></div>
+                </div>
+                <div class="column evening-icon">
+                    <div class="column-title">EVENING ROUTINE <span>PM</span></div>
+                    <div class="product-list" id="eveningList"></div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 1rem;">
+                <div class="total-bar" style="flex: 2; margin: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 1.3rem;">
+                    <div class="total-label">TOTAL VALUE (Estimate)</div>
+                    <div class="total-amount">$<span id="totalPrice">0.00</span></div>
+                </div>
+                <div style="display: flex; gap: 0.8rem;">
+                    <button class="quote-btn" id="quoteBtn" style="padding: 0 1.5rem; font-size: 0.9rem; height: 100%;">📄 Generate Quote</button>
+                    <button class="action-btn print-btn" id="printBtn" style="margin: 0; padding: 0 1.5rem; height: 100%;">🖨️ PRINT ROUTINE</button>
+                </div>
+            </div>
+
+            <div class="action-buttons-bottom">
+                <div id="authButtons" style="display: none; gap: 1rem; flex-wrap: wrap;">
+                    <button class="action-btn update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
+                    <button class="action-btn delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
+                    <button class="action-btn save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
+                    <button class="action-btn sync-all-btn" id="syncAllBtn">☁️ Force Sync All to Cloud</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 疗程模式 ==================== -->
+        <div id="treatmentsModeContainer" style="display: none;">
+            <!-- 套餐选择栏 -->
+            <div class="package-selector-bar">
+                <div class="selector-header">
+                    <div class="selector-title">📋 SELECT PACKAGE</div>
+                    <div class="selector-actions">
+                        <button id="editPackageBtn" class="manage-btn" style="display:none">✏️ Edit Package Name</button>
+                    </div>
+                </div>
+                <div class="package-buttons" id="packageButtons"></div>
+            </div>
+
+            <!-- 疗程库 -->
+            <div class="service-library">
+                <div class="library-header">
+                    <div class="library-title">💆 SERVICE LIBRARY</div>
+                    <button class="toggle-add-btn" id="toggleAddServiceBtn">+ Add Service</button>
+                </div>
+                <div class="service-list" id="serviceList"></div>
+                <div id="serviceForm" class="service-form">
+                    <div class="form-row">
+                        <div class="form-group"><label>Service Name *</label><input type="text" id="serviceName" placeholder="e.g., Laser Treatment"></div>
+                        <div class="form-group"><label>Category</label><select id="serviceCategory"><option>注射</option><option>镭射</option><option>其它</option></select></div>
+                        <div class="form-group"><label>Price ($)</label><input type="number" id="servicePrice" step="0.01"></div>
+                    </div>
+                    <div class="form-actions"><button class="btn-cancel" id="cancelServiceBtn">Cancel</button><button class="btn-save" id="saveServiceBtn">Save</button></div>
+                    <input type="hidden" id="editServiceId">
+                </div>
+            </div>
+
+            <!-- 推荐疗程区（单区） -->
+            <div class="column" style="background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.4rem; border: 1px solid #e7dbd0;">
+                <div class="column-title">📋 SELECTED TREATMENTS</div>
+                <div class="treatment-list" id="treatmentList"></div>
+            </div>
+
+            <!-- 疗程总价和按钮 -->
+            <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 1rem;">
+                <div class="total-bar" style="flex: 2; margin: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 1.3rem;">
+                    <div class="total-label">TREATMENT TOTAL</div>
+                    <div class="total-amount">$<span id="treatmentTotalPrice">0.00</span></div>
+                </div>
+            </div>
+
+            <div class="action-buttons-bottom">
+                <div id="packageAuthButtons" style="display: none; gap: 1rem; flex-wrap: wrap;">
+                    <button class="action-btn update-btn" id="updateCurrentPackageBtn">📝 Update Current Package</button>
+                    <button class="action-btn delete-current-btn" id="deleteCurrentPackageBtn">🗑️ Delete Current Package</button>
+                    <button class="action-btn save-standard-btn" id="saveAsNewPackageBtn">💾 Save Current as New Package</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 合并报价弹窗（复用现有）==================== -->
+        <!-- 合并报价使用单独的弹窗，稍后在 JS 中添加 -->
+
         <div class="routine-selector-bar">
             <div class="selector-header">
                 <div class="selector-title">📋 SELECT ROUTINE</div>
@@ -682,6 +813,29 @@ const DEFAULT_PRODUCTS = [
     { id: "tns", name: "TNS+ Serum", brand: "SkinMedica", price: 330, benefit: "Lifting · Anti-aging", usage: "1 pump - apply to face", image: "https://static.wixstatic.com/media/11a6e1_8eb00266d932471483652b5a40828272~mv2.jpg" }
 ].sort((a, b) => a.name.localeCompare(b.name));
 
+    // 默认疗程数据
+const DEFAULT_SERVICES = [
+    { id: "injection-botox", name: "肉毒杆菌", category: "注射", price: 800 },
+    { id: "injection-filler", name: "玻尿酸", category: "注射", price: 600 },
+    { id: "laser-pico", name: "皮秒激光", category: "镭射", price: 1200 },
+    { id: "laser-co2", name: "二氧化碳激光", category: "镭射", price: 1500 },
+    { id: "other-hydra", name: "水光针", category: "其它", price: 500 }
+];
+
+// 默认套餐数据
+const INITIAL_PACKAGES = {
+    "package-1": {
+        name: "抗衰老套餐",
+        products: ["tns", "ha5"],
+        services: ["injection-botox", "laser-pico"]
+    },
+    "package-2": {
+        name: "美白套餐",
+        products: ["lytera", "spf50"],
+        services: ["injection-filler", "laser-co2"]
+    }
+};
+
 const INITIAL_ROUTINES = {
     "standard-1774409503226": { 
         name: "FNL Acne", 
@@ -717,6 +871,13 @@ let currentRoutineId = null;
 let currentBrand = "all";
 let isLoading = false;
 
+// ==================== 疗程模块全局变量 ====================
+let servicesData = [];           // 疗程库数据
+let savedPackages = {};          // 套餐数据 { id: { name, products, services } }
+let currentPackageId = null;     // 当前选中的套餐 ID
+let currentTreatments = [];       // 当前选中的疗程列表 [{ serviceId, ... }]
+let currentServiceCategory = "all";
+    
 function getProductById(id) { return productsData.find(p => p.id === id); }
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
 function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m; }); }
@@ -1119,7 +1280,16 @@ function updateUIBasedOnAuth() {
         editIcons.forEach(icon => icon.style.display = 'none');
         deleteIcons.forEach(icon => icon.style.display = 'none');
     }
+
+// 在 updateUIBasedOnAuth 函数末尾添加
+const editPackageBtn = document.getElementById('editPackageBtn');
+if (editPackageBtn) editPackageBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
+const packageAuthButtons = document.getElementById('packageAuthButtons');
+if (packageAuthButtons) packageAuthButtons.style.display = isLoggedIn ? 'flex' : 'none';
+const toggleAddServiceBtn = document.getElementById('toggleAddServiceBtn');
+if (toggleAddServiceBtn) toggleAddServiceBtn.style.display = isLoggedIn ? 'inline-block' : 'none';    
  }    
+
     // 检查是否需要密码验证才能编辑产品
 function checkAuthForProductAction(actionName) {
     if (!isAuthenticated) {
@@ -1672,6 +1842,31 @@ function printRoutine() {
             .print-product-usage { font-size: 10px; color: #8e7e6e; margin-top: 5px; line-height: 1.4; }
             .print-footer { margin-top: 30px; text-align: center; font-size: 10px; color: #ccbeaf; border-top: 1px solid #e7dbd0; padding-top: 15px; }
             @media print { body { padding: 0; } .print-product { break-inside: avoid; page-break-inside: avoid; } }
+        
+/* Tab 按钮样式 */
+.tab-container { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid #e7dbd0; padding-bottom: 0.5rem; }
+.tab-btn { background: #e9dfd4; color: #5f5347; border: none; padding: 0.5rem 1.5rem; border-radius: 40px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+.tab-btn.active { background: #b99f87; color: white; }
+
+/* 疗程库样式（复用产品库样式） */
+.service-library { background: #fff9f2; border-radius: 24px; padding: 1.2rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
+.service-list { display: flex; flex-wrap: wrap; gap: 0.7rem; max-height: 200px; overflow-y: auto; padding: 0.3rem 0; }
+.service-item { background: #e9dfd4; padding: 0.45rem 0.8rem; border-radius: 40px; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; }
+.service-actions { display: inline-flex; gap: 0.3rem; margin-left: 0.3rem; }
+.service-form { background: #f5efe8; border-radius: 20px; padding: 1.2rem; margin-top: 1.2rem; display: none; }
+.service-form.show { display: block; }
+
+/* 套餐选择栏 */
+.package-selector-bar { background: #fff9f2; border-radius: 24px; padding: 1.2rem 1.5rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
+.package-buttons { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1rem; }
+.package-btn { background: #e9dfd4; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
+.package-btn.active { background: #b99f87; color: white; }
+
+/* 推荐疗程区 */
+.treatment-list { display: flex; flex-direction: column; gap: 0.9rem; min-height: 200px; }
+.treatment-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; }
+.treatment-card .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px; }
+        
         </style>
     </head>
     <body>
@@ -1727,6 +1922,435 @@ function renderBrandTabs() {
     if (!container) return; 
     container.innerHTML = brands.map(b => `<button class="brand-tab ${b === currentBrand ? 'active' : ''}" data-brand="${b}">${b === 'all' ? 'All' : b}</button>`).join(''); 
     document.querySelectorAll('.brand-tab').forEach(tab => { tab.onclick = () => { currentBrand = tab.dataset.brand; renderBrandTabs(); renderBrandProducts(); }; }); 
+}
+
+    // ==================== 疗程模块函数 ====================
+
+// 获取疗程信息
+function getServiceById(id) { return servicesData.find(s => s.id === id); }
+
+// 保存疗程数据到本地存储
+function saveServicesToLocalStorage() {
+    localStorage.setItem('skincare_services', JSON.stringify(servicesData));
+    localStorage.setItem('skincare_packages', JSON.stringify(savedPackages));
+    localStorage.setItem('skincare_current_treatments', JSON.stringify(currentTreatments.map(t => t.serviceId)));
+    localStorage.setItem('skincare_current_package_id', currentPackageId || '');
+}
+
+// 加载疗程数据从本地存储
+function loadServicesFromLocalStorage() {
+    const savedServices = localStorage.getItem('skincare_services');
+    const savedPackagesData = localStorage.getItem('skincare_packages');
+    const savedTreatments = localStorage.getItem('skincare_current_treatments');
+    const savedPackageId = localStorage.getItem('skincare_current_package_id');
+    
+    if (savedServices) servicesData = JSON.parse(savedServices);
+    else servicesData = JSON.parse(JSON.stringify(DEFAULT_SERVICES));
+    
+    if (savedPackagesData) savedPackages = JSON.parse(savedPackagesData);
+    else savedPackages = JSON.parse(JSON.stringify(INITIAL_PACKAGES));
+    
+    if (savedTreatments && JSON.parse(savedTreatments).length > 0) {
+        currentTreatments = JSON.parse(savedTreatments).map(sid => ({ serviceId: sid }));
+    } else if (savedPackageId && savedPackages[savedPackageId]) {
+        currentTreatments = savedPackages[savedPackageId].services.map(sid => ({ serviceId: sid }));
+    } else {
+        currentTreatments = [];
+    }
+    
+    if (savedPackageId && savedPackages[savedPackageId]) {
+        currentPackageId = savedPackageId;
+    } else {
+        currentPackageId = Object.keys(savedPackages)[0] || null;
+    }
+}
+
+// 渲染疗程库
+function renderServiceLibrary() {
+    const container = document.getElementById('serviceList');
+    if (!container) return;
+    
+    let filtered = servicesData;
+    if (currentServiceCategory !== "all") {
+        filtered = servicesData.filter(s => s.category === currentServiceCategory);
+    }
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+    
+    container.innerHTML = filtered.map(s => `
+        <div class="service-item">
+            ${escapeHtml(s.name)} - $${s.price}
+            <span class="service-actions">
+                <span class="edit-service-icon" data-id="${s.id}" style="cursor:pointer; opacity:0.6;">✎</span>
+                <span class="delete-service-icon" data-id="${s.id}" style="cursor:pointer; opacity:0.6;">🗑️</span>
+            </span>
+        </div>
+    `).join('');
+    
+    // 绑定编辑/删除事件
+    document.querySelectorAll('.edit-service-icon').forEach(icon => {
+        icon.onclick = () => openEditService(icon.dataset.id);
+    });
+    document.querySelectorAll('.delete-service-icon').forEach(icon => {
+        icon.onclick = () => deleteService(icon.dataset.id);
+    });
+}
+
+// 打开编辑疗程表单
+function openEditService(serviceId) {
+    const service = getServiceById(serviceId);
+    if (service) {
+        document.getElementById('serviceName').value = service.name;
+        document.getElementById('serviceCategory').value = service.category;
+        document.getElementById('servicePrice').value = service.price;
+        document.getElementById('editServiceId').value = service.id;
+        document.getElementById('serviceForm').classList.add('show');
+        document.getElementById('toggleAddServiceBtn').style.display = 'none';
+    }
+}
+
+// 保存疗程
+async function saveService() {
+    const name = document.getElementById('serviceName').value.trim();
+    if (!name) { alert("Enter service name"); return; }
+    
+    const newService = {
+        id: document.getElementById('editServiceId').value || generateId(),
+        name: name,
+        category: document.getElementById('serviceCategory').value,
+        price: parseFloat(document.getElementById('servicePrice').value) || 0
+    };
+    
+    const existing = servicesData.findIndex(s => s.id === newService.id);
+    if (existing >= 0) servicesData[existing] = newService;
+    else servicesData.push(newService);
+    
+    closeServiceForm();
+    renderServiceLibrary();
+    renderPackageButtons();
+    updateTreatmentTotal();
+    saveServicesToLocalStorage();
+    
+    // 同步到云端
+    if (isAuthenticated && supabaseClient) {
+        await supabaseClient.from('services').upsert({ ...newService, user_id: currentUserId });
+    }
+}
+
+function closeServiceForm() {
+    document.getElementById('serviceForm').classList.remove('show');
+    document.getElementById('toggleAddServiceBtn').style.display = '';
+    document.getElementById('serviceName').value = '';
+    document.getElementById('editServiceId').value = '';
+}
+
+async function deleteService(serviceId) {
+    if (confirm('Delete this service?')) {
+        servicesData = servicesData.filter(s => s.id !== serviceId);
+        // 从套餐中移除
+        for (let id in savedPackages) {
+            savedPackages[id].services = savedPackages[id].services.filter(sid => sid !== serviceId);
+        }
+        currentTreatments = currentTreatments.filter(t => t.serviceId !== serviceId);
+        renderServiceLibrary();
+        renderPackageButtons();
+        renderTreatments();
+        updateTreatmentTotal();
+        saveServicesToLocalStorage();
+        
+        if (isAuthenticated && supabaseClient) {
+            await supabaseClient.from('services').delete().eq('id', serviceId);
+        }
+    }
+}
+
+// 渲染套餐按钮
+function renderPackageButtons() {
+    const container = document.getElementById('packageButtons');
+    if (!container) return;
+    
+    if (Object.keys(savedPackages).length === 0) {
+        container.innerHTML = '<div style="color: #b7a99a; padding: 0.5rem;">No packages available.</div>';
+        return;
+    }
+    
+    container.innerHTML = Object.entries(savedPackages).map(([id, p]) => 
+        `<button class="package-btn ${id === currentPackageId ? 'active' : ''}" data-id="${id}">${escapeHtml(p.name)}</button>`
+    ).join('');
+    
+    document.querySelectorAll('.package-btn').forEach(btn => {
+        btn.onclick = () => loadPackage(btn.dataset.id);
+    });
+}
+
+// 加载套餐（清空现有，替换为套餐内容）
+function loadPackage(packageId) {
+    const pkg = savedPackages[packageId];
+    if (!pkg) return;
+    
+    currentPackageId = packageId;
+    
+    // 替换产品区（如果产品模式存在）
+    if (pkg.products && pkg.products.length > 0) {
+        currentMorningProducts = [];
+        currentEveningProducts = [];
+        // 产品添加到早上（简化处理，实际可按需分配）
+        pkg.products.forEach(pid => {
+            currentMorningProducts.push({ productId: pid, time: "morning" });
+        });
+        if (typeof renderRoutines === 'function') renderRoutines();
+        if (typeof updateTotalPrice === 'function') updateTotalPrice();
+    }
+    
+    // 替换疗程区
+    currentTreatments = (pkg.services || []).map(sid => ({ serviceId: sid }));
+    renderTreatments();
+    updateTreatmentTotal();
+    
+    highlightActivePackage();
+    saveServicesToLocalStorage();
+}
+
+function highlightActivePackage() {
+    document.querySelectorAll('.package-btn').forEach(btn => {
+        if (btn.dataset.id === currentPackageId) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+}
+
+// 渲染推荐疗程区
+function renderTreatments() {
+    const container = document.getElementById('treatmentList');
+    if (!container) return;
+    
+    let html = `<div class="cascade-select" id="treatmentDropdown"></div>`;
+    html += currentTreatments.map((item, idx) => {
+        const service = getServiceById(item.serviceId);
+        if (!service) return '';
+        return `
+            <div class="treatment-card" data-idx="${idx}">
+                <button class="delete-btn" data-idx="${idx}" style="position: absolute; top: 6px; right: 6px;">✕</button>
+                <div class="product-info">
+                    <div class="product-name">${escapeHtml(service.name)}</div>
+                    <div class="product-price">$${service.price}</div>
+                    <div class="benefit">${escapeHtml(service.category || '')}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = html;
+    
+    // 创建疗程下拉菜单
+    createTreatmentSelect();
+    
+    // 绑定删除事件
+    container.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            const idx = parseInt(btn.dataset.idx);
+            currentTreatments.splice(idx, 1);
+            renderTreatments();
+            updateTreatmentTotal();
+            saveServicesToLocalStorage();
+        };
+    });
+}
+
+// 创建疗程下拉菜单（按类别分组）
+function createTreatmentSelect() {
+    const container = document.getElementById('treatmentDropdown');
+    if (!container) return;
+    
+    const wrapper = document.createElement('div');
+    wrapper.className = 'cascade-select';
+    wrapper.style.marginBottom = '1rem';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'main-input';
+    input.placeholder = '🔍 选择疗程...';
+    input.autocomplete = 'off';
+    
+    const panel = document.createElement('div');
+    panel.className = 'cascade-panel';
+    
+    wrapper.appendChild(input);
+    wrapper.appendChild(panel);
+    container.parentNode.insertBefore(wrapper, container);
+    container.previousElementSibling?.remove();
+    
+    let searchTimeout = null;
+    
+    function renderCategoryList() {
+        const categories = ['注射', '镭射', '其它'];
+        let html = `<div class="cascade-level"><div style="padding: 0.5rem 1rem; background: #f5efe8; font-size: 0.7rem; color: #b99f87;">📁 按类别选择</div>`;
+        for (const cat of categories) {
+            const count = servicesData.filter(s => s.category === cat).length;
+            html += `<div class="cascade-brand-item" data-category="${cat}"><span>📁 ${cat}</span><span class="arrow">▶ ${count}</span></div>`;
+        }
+        html += `</div>`;
+        panel.innerHTML = html;
+        
+        panel.querySelectorAll('.cascade-brand-item').forEach(item => {
+            item.onclick = () => {
+                const category = item.dataset.category;
+                renderServiceByCategory(category);
+            };
+        });
+    }
+    
+    function renderServiceByCategory(category) {
+        const filtered = servicesData.filter(s => s.category === category).sort((a, b) => a.name.localeCompare(b.name));
+        let html = `<div class="cascade-level"><div class="cascade-back-btn">← 返回类别</div><div style="padding: 0.4rem 1rem; background: #f5efe8; font-size: 0.7rem;">📦 ${category}</div>`;
+        for (const s of filtered) {
+            html += `<div class="cascade-product-item" data-service-id="${s.id}"><span class="product-name">${escapeHtml(s.name)}</span><span class="product-price">$${s.price}</span></div>`;
+        }
+        html += `</div>`;
+        panel.innerHTML = html;
+        
+        panel.querySelector('.cascade-back-btn').onclick = () => renderCategoryList();
+        panel.querySelectorAll('.cascade-product-item').forEach(item => {
+            item.onclick = () => addTreatmentById(item.dataset.serviceId);
+        });
+    }
+    
+    function renderSearchResults(term) {
+        const filtered = servicesData.filter(s => s.name.toLowerCase().includes(term) || s.category.toLowerCase().includes(term));
+        let html = `<div class="cascade-level"><div class="cascade-back-btn">← 返回类别</div><div style="padding: 0.4rem 1rem; background: #f5efe8; font-size: 0.7rem;">🔍 搜索结果 (${filtered.length})</div>`;
+        for (const s of filtered) {
+            html += `<div class="cascade-product-item" data-service-id="${s.id}"><div><span class="product-name">${escapeHtml(s.name)}</span><span style="font-size:0.65rem; margin-left:0.5rem;">${escapeHtml(s.category)}</span></div><span class="product-price">$${s.price}</span></div>`;
+        }
+        html += `</div>`;
+        panel.innerHTML = html;
+        
+        const backBtn = panel.querySelector('.cascade-back-btn');
+        if (backBtn) backBtn.onclick = () => renderCategoryList();
+        panel.querySelectorAll('.cascade-product-item').forEach(item => {
+            item.onclick = () => addTreatmentById(item.dataset.serviceId);
+        });
+    }
+    
+    function addTreatmentById(serviceId) {
+        if (!currentTreatments.some(t => t.serviceId === serviceId)) {
+            currentTreatments.push({ serviceId: serviceId });
+            renderTreatments();
+            updateTreatmentTotal();
+            saveServicesToLocalStorage();
+        }
+        input.value = '';
+        panel.classList.remove('show');
+    }
+    
+    input.oninput = (e) => {
+        if (searchTimeout) clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            const term = e.target.value.trim();
+            if (term) renderSearchResults(term.toLowerCase());
+            else renderCategoryList();
+            panel.classList.add('show');
+        }, 300);
+    };
+    
+    input.onclick = () => {
+        renderCategoryList();
+        panel.classList.add('show');
+    };
+    
+    document.addEventListener('click', (e) => {
+        if (!wrapper.contains(e.target)) panel.classList.remove('show');
+    });
+}
+
+// 更新疗程总价
+function updateTreatmentTotal() {
+    const span = document.getElementById('treatmentTotalPrice');
+    if (!span) return;
+    let total = 0;
+    currentTreatments.forEach(t => {
+        const service = getServiceById(t.serviceId);
+        if (service) total += service.price;
+    });
+    span.innerText = total.toFixed(2);
+}
+
+// 套餐云操作
+async function updateCurrentPackageToCloud() {
+    if (!supabaseClient || !isAuthenticated) { alert("请先验证密码"); return false; }
+    if (!currentPackageId) { alert("没有选中的套餐"); return false; }
+    
+    // 获取当前产品（从产品模式）
+    const currentProducts = [...currentMorningProducts, ...currentEveningProducts].map(p => p.productId);
+    const uniqueProducts = [...new Set(currentProducts)];
+    
+    savedPackages[currentPackageId] = {
+        name: savedPackages[currentPackageId].name,
+        products: uniqueProducts,
+        services: currentTreatments.map(t => t.serviceId)
+    };
+    
+    await supabaseClient.from('packages').upsert({
+        id: currentPackageId,
+        name: savedPackages[currentPackageId].name,
+        products: uniqueProducts,
+        services: currentTreatments.map(t => t.serviceId),
+        user_id: currentUserId
+    });
+    
+    saveServicesToLocalStorage();
+    renderPackageButtons();
+    alert(`套餐 "${savedPackages[currentPackageId].name}" 已保存到云端`);
+    return true;
+}
+
+async function deleteCurrentPackageFromCloud() {
+    if (!supabaseClient || !isAuthenticated) { alert("请先验证密码"); return false; }
+    if (!currentPackageId) { alert("没有选中的套餐"); return false; }
+    
+    await supabaseClient.from('packages').delete().eq('id', currentPackageId);
+    delete savedPackages[currentPackageId];
+    
+    const firstKey = Object.keys(savedPackages)[0];
+    if (firstKey) await loadPackage(firstKey);
+    else {
+        currentTreatments = [];
+        renderTreatments();
+        updateTreatmentTotal();
+        currentPackageId = null;
+    }
+    renderPackageButtons();
+    saveServicesToLocalStorage();
+    alert("套餐已删除");
+    return true;
+}
+
+async function saveAsNewPackageToCloud() {
+    if (!supabaseClient || !isAuthenticated) { alert("请先验证密码"); return false; }
+    
+    let name = prompt("请输入新套餐名称:");
+    if (!name) return false;
+    
+    const currentProducts = [...currentMorningProducts, ...currentEveningProducts].map(p => p.productId);
+    const uniqueProducts = [...new Set(currentProducts)];
+    const newId = "package-" + Date.now();
+    
+    await supabaseClient.from('packages').insert({
+        id: newId,
+        name: name.trim(),
+        products: uniqueProducts,
+        services: currentTreatments.map(t => t.serviceId),
+        user_id: currentUserId
+    });
+    
+    savedPackages[newId] = {
+        name: name.trim(),
+        products: uniqueProducts,
+        services: currentTreatments.map(t => t.serviceId)
+    };
+    
+    renderPackageButtons();
+    await loadPackage(newId);
+    saveServicesToLocalStorage();
+    alert(`新套餐 "${name}" 已创建`);
+    return true;
 }
 
 // ==================== 密码验证函数 ====================
@@ -2107,6 +2731,320 @@ document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
 document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutine;
 document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
 document.getElementById('syncAllBtn').onclick = forceSyncAllToCloud;
+
+    // ==================== Tab 切换逻辑 ====================
+const productsMode = document.getElementById('productsModeContainer');
+const treatmentsMode = document.getElementById('treatmentsModeContainer');
+const tabProducts = document.getElementById('tabProductsBtn');
+const tabTreatments = document.getElementById('tabTreatmentsBtn');
+const tabCombined = document.getElementById('tabCombinedBtn');
+
+function switchToProductsMode() {
+    productsMode.style.display = 'block';
+    treatmentsMode.style.display = 'none';
+    if (combinedQuoteModal) combinedQuoteModal.style.display = 'none';
+    tabProducts.classList.add('active');
+    tabTreatments.classList.remove('active');
+    tabCombined.classList.remove('active');
+    // 刷新产品显示
+    if (typeof renderRoutines === 'function') renderRoutines();
+    if (typeof updateTotalPrice === 'function') updateTotalPrice();
+}
+
+function switchToTreatmentsMode() {
+    productsMode.style.display = 'none';
+    treatmentsMode.style.display = 'block';
+    if (combinedQuoteModal) combinedQuoteModal.style.display = 'none';
+    tabProducts.classList.remove('active');
+    tabTreatments.classList.add('active');
+    tabCombined.classList.remove('active');
+    // 刷新疗程显示
+    renderServiceLibrary();
+    renderPackageButtons();
+    renderTreatments();
+    updateTreatmentTotal();
+    if (currentPackageId) highlightActivePackage();
+    // 根据登录状态显示/隐藏编辑按钮
+    const isLoggedIn = isAuthenticated;
+    const editPackageBtn = document.getElementById('editPackageBtn');
+    if (editPackageBtn) editPackageBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
+    const packageAuthButtons = document.getElementById('packageAuthButtons');
+    if (packageAuthButtons) packageAuthButtons.style.display = isLoggedIn ? 'flex' : 'none';
+    const toggleAddServiceBtn = document.getElementById('toggleAddServiceBtn');
+    if (toggleAddServiceBtn) toggleAddServiceBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
+    // 控制疗程库的编辑/删除按钮
+    document.querySelectorAll('.edit-service-icon, .delete-service-icon').forEach(icon => {
+        icon.style.display = isLoggedIn ? 'inline-block' : 'none';
+    });
+}
+
+// 合并报价弹窗
+let combinedQuoteModal = null;
+function showCombinedQuote() {
+    // 获取产品数据
+    const allProducts = [...currentMorningProducts, ...currentEveningProducts];
+    const productMap = new Map();
+    for (const item of allProducts) {
+        if (!productMap.has(item.productId)) {
+            const product = getProductById(item.productId);
+            if (product) {
+                productMap.set(item.productId, {
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    discountType: '%',
+                    discountValue: 0,
+                    type: 'product',
+                    taxRate: 0.12
+                });
+            }
+        }
+    }
+    
+    // 获取疗程数据
+    const treatmentItems = [];
+    for (const item of currentTreatments) {
+        const service = getServiceById(item.serviceId);
+        if (service) {
+            treatmentItems.push({
+                id: service.id,
+                name: service.name,
+                price: service.price,
+                quantity: 1,
+                discountType: '%',
+                discountValue: 0,
+                type: 'service',
+                taxRate: 0.05
+            });
+        }
+    }
+    
+    const allItems = [...Array.from(productMap.values()), ...treatmentItems];
+    if (allItems.length === 0) {
+        alert('没有产品和疗程，请先添加内容');
+        return;
+    }
+    
+    // 创建合并报价弹窗
+    if (!combinedQuoteModal) {
+        combinedQuoteModal = document.createElement('div');
+        combinedQuoteModal.className = 'quote-modal';
+        combinedQuoteModal.innerHTML = `
+            <div class="quote-content" style="max-width: 1000px;">
+                <div class="quote-header">
+                    <h2>📋 合并报价 (产品 + 疗程)</h2>
+                    <button class="close-modal" id="closeCombinedModalBtn">&times;</button>
+                </div>
+                <div style="margin-bottom: 1rem; font-size: 0.85rem; color: #8f7e6b;">
+                    <strong>套餐:</strong> <span id="combinedRoutineName"></span>
+                </div>
+                <table class="quote-table" id="combinedQuoteTable">
+                    <thead><tr><th>项目</th><th>类型</th><th>单价</th><th>数量</th><th>折扣</th><th>折后价</th></tr></thead>
+                    <tbody id="combinedQuoteBody"></tbody>
+                </table>
+                <div class="quote-totals" id="combinedQuoteTotals">
+                    <div>💰 产品小计: $<span id="combinedProductSubtotal">0.00</span></div>
+                    <div>💆 疗程小计: $<span id="combinedServiceSubtotal">0.00</span></div>
+                    <div>🏷️ 总折扣: -$<span id="combinedTotalDiscount">0.00</span></div>
+                    <div>📋 产品税(12%): $<span id="combinedProductTax">0.00</span></div>
+                    <div>📋 疗程税(5%): $<span id="combinedServiceTax">0.00</span></div>
+                    <div style="border-top:2px solid #e2d4c6; margin-top:0.5rem; padding-top:0.5rem; font-weight:bold;">💵 总计: $<span id="combinedGrandTotal">0.00</span></div>
+                </div>
+                <div class="quote-footer">
+                    <button class="print-quote-btn" id="printCombinedBtn">🖨️ 打印</button>
+                    <button class="email-quote-btn" id="emailCombinedBtn">📧 邮件</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(combinedQuoteModal);
+        
+        document.getElementById('closeCombinedModalBtn').onclick = () => combinedQuoteModal.classList.remove('show');
+        combinedQuoteModal.onclick = (e) => { if (e.target === combinedQuoteModal) combinedQuoteModal.classList.remove('show'); };
+    }
+    
+    document.getElementById('combinedRoutineName').innerText = savedRoutines[currentRoutineId]?.name || 'Current Routine';
+    
+    function renderCombinedTable() {
+        const tbody = document.getElementById('combinedQuoteBody');
+        tbody.innerHTML = allItems.map((item, idx) => {
+            let discountedPrice = item.price;
+            if (item.discountType === '%') discountedPrice = item.price * (1 - item.discountValue / 100);
+            else if (item.discountType === 'fixed') discountedPrice = Math.max(0, item.price - item.discountValue);
+            const total = discountedPrice * item.quantity;
+            return `<tr>
+                <td>${escapeHtml(item.name)}</td>
+                <td>${item.type === 'product' ? '产品' : '疗程'}</td>
+                <td>$${item.price.toFixed(2)}</td>
+                <td><input type="number" class="combined-qty" data-idx="${idx}" value="${item.quantity}" min="1" style="width:60px;"></td>
+                <td><div style="display:flex; gap:0.3rem;"><input type="number" class="combined-percent" data-idx="${idx}" value="${item.discountType === '%' && item.discountValue > 0 ? item.discountValue : ''}" placeholder="%" style="width:55px;"><span>/</span><input type="number" class="combined-fixed" data-idx="${idx}" value="${item.discountType === 'fixed' && item.discountValue > 0 ? item.discountValue : ''}" placeholder="$" style="width:65px;"></div></td>
+                <td>$${total.toFixed(2)}</td>
+            </tr>`;
+        }).join('');
+        
+        document.querySelectorAll('.combined-qty').forEach(input => {
+            input.onchange = (e) => {
+                const idx = parseInt(e.target.dataset.idx);
+                allItems[idx].quantity = parseInt(e.target.value) || 1;
+                renderCombinedTable();
+                updateCombinedTotals();
+            };
+        });
+        
+        document.querySelectorAll('.combined-percent').forEach(input => {
+            input.onchange = (e) => {
+                const idx = parseInt(e.target.dataset.idx);
+                const val = parseFloat(e.target.value) || 0;
+                allItems[idx].discountType = '%';
+                allItems[idx].discountValue = val;
+                const fixedInput = document.querySelector(`.combined-fixed[data-idx="${idx}"]`);
+                if (fixedInput) fixedInput.value = '';
+                renderCombinedTable();
+                updateCombinedTotals();
+            };
+        });
+        
+        document.querySelectorAll('.combined-fixed').forEach(input => {
+            input.onchange = (e) => {
+                const idx = parseInt(e.target.dataset.idx);
+                let val = parseFloat(e.target.value) || 0;
+                if (val > allItems[idx].price) val = allItems[idx].price;
+                allItems[idx].discountType = 'fixed';
+                allItems[idx].discountValue = val;
+                const percentInput = document.querySelector(`.combined-percent[data-idx="${idx}"]`);
+                if (percentInput) percentInput.value = '';
+                renderCombinedTable();
+                updateCombinedTotals();
+            };
+        });
+        
+        updateCombinedTotals();
+    }
+    
+    function updateCombinedTotals() {
+        let productSubtotal = 0, serviceSubtotal = 0, totalDiscount = 0;
+        for (const item of allItems) {
+            const itemTotal = item.price * item.quantity;
+            let discountedTotal = itemTotal;
+            if (item.discountType === '%') discountedTotal = itemTotal * (1 - item.discountValue / 100);
+            else if (item.discountType === 'fixed') discountedTotal = Math.max(0, itemTotal - item.discountValue * item.quantity);
+            const discount = itemTotal - discountedTotal;
+            totalDiscount += discount;
+            if (item.type === 'product') productSubtotal += discountedTotal;
+            else serviceSubtotal += discountedTotal;
+        }
+        const productTax = productSubtotal * 0.12;
+        const serviceTax = serviceSubtotal * 0.05;
+        const grandTotal = productSubtotal + serviceSubtotal + productTax + serviceTax;
+        
+        document.getElementById('combinedProductSubtotal').innerText = productSubtotal.toFixed(2);
+        document.getElementById('combinedServiceSubtotal').innerText = serviceSubtotal.toFixed(2);
+        document.getElementById('combinedTotalDiscount').innerText = totalDiscount.toFixed(2);
+        document.getElementById('combinedProductTax').innerText = productTax.toFixed(2);
+        document.getElementById('combinedServiceTax').innerText = serviceTax.toFixed(2);
+        document.getElementById('combinedGrandTotal').innerText = grandTotal.toFixed(2);
+        
+        window.combinedQuoteData = { allItems, productSubtotal, serviceSubtotal, totalDiscount, productTax, serviceTax, grandTotal };
+    }
+    
+    renderCombinedTable();
+    combinedQuoteModal.classList.add('show');
+}
+
+// 打印合并报价
+function printCombinedQuote() {
+    const data = window.combinedQuoteData;
+    if (!data) { alert('没有报价数据'); return; }
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>合并报价</title><style>body{font-family:Inter,sans-serif;padding:0.5in;}table{width:100%;border-collapse:collapse;}th,td{padding:8px;text-align:left;border-bottom:1px solid #ddd;}th{background:#f5efe8;}</style></head><body>
+        <h2>合并报价 (产品 + 疗程)</h2>
+        <p>日期: ${new Date().toLocaleDateString()}</p>
+        <table><thead><tr><th>项目</th><th>类型</th><th>单价</th><th>数量</th><th>折后价</th></tr></thead><tbody>
+        ${data.allItems.map(item => {
+            let discountedPrice = item.price;
+            if (item.discountType === '%') discountedPrice = item.price * (1 - item.discountValue / 100);
+            else if (item.discountType === 'fixed') discountedPrice = Math.max(0, item.price - item.discountValue);
+            return `<tr><td>${escapeHtml(item.name)}</td><td>${item.type === 'product' ? '产品' : '疗程'}</td><td>$${item.price.toFixed(2)}</td><td>${item.quantity}</td><td>$${(discountedPrice * item.quantity).toFixed(2)}</td></tr>`;
+        }).join('')}
+        </tbody></table>
+        <p>💰 产品小计: $${data.productSubtotal.toFixed(2)}</p>
+        <p>💆 疗程小计: $${data.serviceSubtotal.toFixed(2)}</p>
+        <p>🏷️ 总折扣: -$${data.totalDiscount.toFixed(2)}</p>
+        <p>📋 产品税(12%): $${data.productTax.toFixed(2)}</p>
+        <p>📋 疗程税(5%): $${data.serviceTax.toFixed(2)}</p>
+        <h3>💵 总计: $${data.grandTotal.toFixed(2)}</h3>
+    </body></html>`);
+    win.document.close();
+    win.print();
+}
+
+function emailCombinedQuote() {
+    const data = window.combinedQuoteData;
+    if (!data) { alert('没有报价数据'); return; }
+    let body = `合并报价\n\n日期: ${new Date().toLocaleDateString()}\n\n`;
+    for (const item of data.allItems) {
+        let discountedPrice = item.price;
+        if (item.discountType === '%') discountedPrice = item.price * (1 - item.discountValue / 100);
+        else if (item.discountType === 'fixed') discountedPrice = Math.max(0, item.price - item.discountValue);
+        body += `- ${item.name} (${item.type === 'product' ? '产品' : '疗程'}): $${item.price} x ${item.quantity} = $${(discountedPrice * item.quantity).toFixed(2)}\n`;
+    }
+    body += `\n产品小计: $${data.productSubtotal.toFixed(2)}`;
+    body += `\n疗程小计: $${data.serviceSubtotal.toFixed(2)}`;
+    body += `\n总折扣: -$${data.totalDiscount.toFixed(2)}`;
+    body += `\n产品税(12%): $${data.productTax.toFixed(2)}`;
+    body += `\n疗程税(5%): $${data.serviceTax.toFixed(2)}`;
+    body += `\n总计: $${data.grandTotal.toFixed(2)}`;
+    window.location.href = `mailto:?subject=合并报价&body=${encodeURIComponent(body)}`;
+}
+
+// Tab 按钮事件
+tabProducts.onclick = switchToProductsMode;
+tabTreatments.onclick = switchToTreatmentsMode;
+tabCombined.onclick = () => {
+    productsMode.style.display = 'none';
+    treatmentsMode.style.display = 'none';
+    if (combinedQuoteModal) combinedQuoteModal.style.display = 'none';
+    tabProducts.classList.remove('active');
+    tabTreatments.classList.remove('active');
+    tabCombined.classList.add('active');
+    showCombinedQuote();
+};
+
+// 疗程模块按钮绑定
+document.getElementById('toggleAddServiceBtn').onclick = () => {
+    document.getElementById('editServiceId').value = '';
+    closeServiceForm();
+    document.getElementById('serviceForm').classList.add('show');
+    document.getElementById('toggleAddServiceBtn').style.display = 'none';
+};
+document.getElementById('cancelServiceBtn').onclick = closeServiceForm;
+document.getElementById('saveServiceBtn').onclick = saveService;
+document.getElementById('editPackageBtn').onclick = () => {
+    if (!isAuthenticated) { alert("请先验证密码"); return; }
+    if (!currentPackageId) { alert("没有选中的套餐"); return; }
+    let newName = prompt("编辑套餐名称:", savedPackages[currentPackageId]?.name);
+    if (newName) {
+        savedPackages[currentPackageId].name = newName;
+        renderPackageButtons();
+        highlightActivePackage();
+        saveServicesToLocalStorage();
+        if (isAuthenticated && supabaseClient) {
+            supabaseClient.from('packages').update({ name: newName }).eq('id', currentPackageId);
+        }
+    }
+};
+document.getElementById('updateCurrentPackageBtn').onclick = updateCurrentPackageToCloud;
+document.getElementById('deleteCurrentPackageBtn').onclick = deleteCurrentPackageFromCloud;
+document.getElementById('saveAsNewPackageBtn').onclick = saveAsNewPackageToCloud;
+
+// 合并报价按钮
+const printCombinedBtn = document.getElementById('printCombinedBtn');
+const emailCombinedBtn = document.getElementById('emailCombinedBtn');
+if (printCombinedBtn) printCombinedBtn.onclick = printCombinedQuote;
+if (emailCombinedBtn) emailCombinedBtn.onclick = emailCombinedQuote;
+
+// 初始化疗程模块数据
+loadServicesFromLocalStorage();
 
     // Quote 按钮绑定
 document.getElementById('quoteBtn').onclick = generateQuote;
