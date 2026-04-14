@@ -738,9 +738,9 @@
         </div>
 
         <!-- Tab 切换 -->
-<div class="tab-container" style="display: flex; gap: 1.5rem; margin-bottom: 2rem; border-bottom: 2px solid #e8dfd4; padding: 0;">
-    <button id="tabProductsBtn" class="tab-btn active" style="background: transparent; color: #b99f87; border: none; padding: 0.7rem 0.2rem; cursor: pointer; font-size: 1rem; font-weight: 600; font-family: 'Montserrat', sans-serif; border-bottom: 3px solid #b99f87;">📦 Products</button>
-    <button id="tabTreatmentsBtn" class="tab-btn" style="background: transparent; color: #b7a99a; border: none; padding: 0.7rem 0.2rem; cursor: pointer; font-size: 1rem; font-weight: 500; font-family: 'Montserrat', sans-serif;">💆 Treatments</button>
+<div class="tab-container">
+    <button id="tabProductsBtn" class="tab-btn active">📦 Products</button>
+    <button id="tabTreatmentsBtn" class="tab-btn">💆 Treatments</button>
 </div>
 
         <!-- ==================== 产品模式 ==================== -->
@@ -1901,46 +1901,42 @@ function printRoutine() {
 .treatment-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; }
 .treatment-card .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px; }
 
-/* 强制 Tab 样式 - 放在最后确保优先级 */
+/* Tab 容器样式 */
 .tab-container {
-    display: flex !important;
-    gap: 1.5rem !important;
-    margin-bottom: 2rem !important;
-    border-bottom: 2px solid #e8dfd4 !important;
-    background: transparent !important;
-    border-radius: 0 !important;
-    padding: 0 !important;
-    width: auto !important;
-    box-shadow: none !important;
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #e8dfd4;
+    padding: 0;
 }
+
+/* Tab 按钮基础样式 */
 .tab-btn {
-    background: transparent !important;
-    color: #b7a99a !important;
-    border: none !important;
-    padding: 0.7rem 0.2rem !important;
-    border-radius: 0 !important;
-    cursor: pointer !important;
-    font-size: 1rem !important;
-    font-weight: 500 !important;
-    font-family: 'Montserrat', sans-serif !important;
-    letter-spacing: 0.5px !important;
-    position: relative !important;
-    bottom: -2px !important;
+    background: transparent;
+    border: none;
+    padding: 0.7rem 0.2rem;
+    cursor: pointer;
+    font-size: 1rem;
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.2s ease;
+    color: #b7a99a;
+    font-weight: 500;
+    position: relative;
+    bottom: -2px;
 }
+
+/* Tab 悬停样式 */
 .tab-btn:hover {
-    color: #8f7e6b !important;
-    background: transparent !important;
+    color: #8f7e6b;
 }
+
+/* Tab 激活样式 */
 .tab-btn.active {
-    color: #b99f87 !important;
-    background: transparent !important;
-    border-bottom: 2px solid #b99f87 !important;
-    box-shadow: none !important;
+    color: #b99f87;
+    font-weight: 600;
+    border-bottom: 3px solid #b99f87;
 }
-      .tab-btn.active {
-    color: #b99f87 !important;
-    border-bottom: 2px solid #b99f87 !important;
-}  
+
         </style>
     </head>
     <body>
@@ -3009,32 +3005,6 @@ function switchToTreatmentsMode() {
     tabProducts.style.borderBottom = 'none';
     
     // 刷新疗程显示
-    renderPackageButtons();
-    renderServiceLibrary();
-    initUnifiedItems();
-    renderUnifiedQuote();
-    initUnifiedSearch();
-    
-    const isAdmin = isAuthenticated;
-    const editPackageBtn = document.getElementById('editPackageBtn');
-    if (editPackageBtn) editPackageBtn.style.display = isAdmin ? 'inline-block' : 'none';
-    const packageAuthButtons = document.getElementById('packageAuthButtons');
-    if (packageAuthButtons) packageAuthButtons.style.display = isAdmin ? 'flex' : 'none';
-    const toggleAddServiceBtn = document.getElementById('toggleAddServiceBtn');
-    if (toggleAddServiceBtn) toggleAddServiceBtn.style.display = isAdmin ? 'inline-block' : 'none';
-    
-    document.querySelectorAll('.edit-service-icon, .delete-service-icon').forEach(icon => {
-        icon.style.display = isAdmin ? 'inline-block' : 'none';
-    });
-}
-
-function switchToTreatmentsMode() {
-    productsMode.style.display = 'none';
-    treatmentsMode.style.display = 'block';
-    tabProducts.classList.remove('active');
-    tabTreatments.classList.add('active');
-    
-    // 强制刷新所有数据
     renderPackageButtons();
     renderServiceLibrary();
     initUnifiedItems();
