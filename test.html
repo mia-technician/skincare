@@ -2742,6 +2742,12 @@ function showCombinedQuote() {
         
         document.getElementById('closeCombinedModalBtn').onclick = () => combinedQuoteModal.classList.remove('show');
         combinedQuoteModal.onclick = (e) => { if (e.target === combinedQuoteModal) combinedQuoteModal.classList.remove('show'); };
+
+// 合并报价按钮
+const printCombinedBtn = document.getElementById('printCombinedBtn');
+const emailCombinedBtn = document.getElementById('emailCombinedBtn');
+if (printCombinedBtn) printCombinedBtn.onclick = printCombinedQuote;
+if (emailCombinedBtn) emailCombinedBtn.onclick = emailCombinedQuote;       
     }
     
     document.getElementById('combinedRoutineName').innerText = savedRoutines[currentRoutineId]?.name || 'Current Routine';
@@ -2884,7 +2890,6 @@ tabTreatments.onclick = switchToTreatmentsMode;
 tabCombined.onclick = () => {
     productsMode.style.display = 'none';
     treatmentsMode.style.display = 'none';
-    if (combinedQuoteModal) combinedQuoteModal.style.display = 'none';
     tabProducts.classList.remove('active');
     tabTreatments.classList.remove('active');
     tabCombined.classList.add('active');
@@ -2917,12 +2922,6 @@ document.getElementById('editPackageBtn').onclick = () => {
 document.getElementById('updateCurrentPackageBtn').onclick = updateCurrentPackageToCloud;
 document.getElementById('deleteCurrentPackageBtn').onclick = deleteCurrentPackageFromCloud;
 document.getElementById('saveAsNewPackageBtn').onclick = saveAsNewPackageToCloud;
-
-// 合并报价按钮
-const printCombinedBtn = document.getElementById('printCombinedBtn');
-const emailCombinedBtn = document.getElementById('emailCombinedBtn');
-if (printCombinedBtn) printCombinedBtn.onclick = printCombinedQuote;
-if (emailCombinedBtn) emailCombinedBtn.onclick = emailCombinedQuote;
 
 // 初始化疗程模块数据
 loadServicesFromLocalStorage();
