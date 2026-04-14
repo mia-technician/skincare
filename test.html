@@ -2043,13 +2043,14 @@ async function loadServicesFromCloud() {
         
         if (packagesError) throw packagesError;
         
-        if (packages && packages.length > 0) {
+                if (packages && packages.length > 0) {
             savedPackages = {};
             packages.forEach(p => {
                 savedPackages[p.id] = {
                     name: p.name,
                     products: p.products || [],
-                    services: p.services || []
+                    services: p.services || [],
+                    unifiedItems: p.unified_items || []  // 添加这一行：加载保存的报价数据
                 };
             });
         } else {
@@ -2705,25 +2706,35 @@ function loadPackage(packageId) {
     
     currentPackageId = packageId;
     
-    // 无论套餐是否有产品，都清空产品区
+    // 清空产品区
     currentMorningProducts = [];
     currentEveningProducts = [];
     
-    // 如果套餐有产品，则添加产品
-    if (pkg.products && pkg.products.length > 0) {
-        pkg.products.forEach(pid => {
-            currentMorningProducts.push({ productId: pid, time: "morning" });
-        });
+    // 如果有保存的完整报价数据，直接恢复
+    if (pkg.unifiedItems && pkg.unifiedItems.length > 0) {
+        unifiedItems = pkg.unifiedItems.map(item => ({
+            ...item,
+            id: item.type === 'product' ? item.id : (item.id + '_' + Date.now() + '_' + Math.random())
+        }));
+        
+        // 同步到传统数据结构
+        syncToLegacyData();
+        renderUnifiedQuote();
+    } else {
+        // 兼容旧数据：从 products 和 services 重建
+        if (pkg.products && pkg.products.length > 0) {
+            pkg.products.forEach(pid => {
+                currentMorningProducts.push({ productId: pid, time: "morning" });
+            });
+        }
+        currentTreatments = (pkg.services || []).map(sid => ({ serviceId: sid }));
+        if (typeof initUnifiedItems === 'function') initUnifiedItems();
+        if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
     }
     
     // 刷新产品界面
     if (typeof renderRoutines === 'function') renderRoutines();
     if (typeof updateTotalPrice === 'function') updateTotalPrice();
-    
-    // 替换疗程区
-    currentTreatments = (pkg.services || []).map(sid => ({ serviceId: sid }));
-    if (typeof initUnifiedItems === 'function') initUnifiedItems();
-    if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
     
     highlightActivePackage();
     saveServicesToLocalStorage();
@@ -2741,21 +2752,31 @@ async function updateCurrentPackageToCloud() {
     if (!supabaseClient || !isAuthenticated) { alert("请先验证密码"); return false; }
     if (!currentPackageId) { alert("没有选中的套餐"); return false; }
     
-    // 获取当前产品（从产品模式）
-    const currentProducts = [...currentMorningProducts, ...currentEveningProducts].map(p => p.productId);
-    const uniqueProducts = [...new Set(currentProducts)];
+    // 保存完整报价数据（包括数量、折扣等）
+    const unifiedItemsForSave = unifiedItems.map(item => ({
+        type: item.type,
+        id: item.type === 'product' ? item.id : item.originalId,
+        originalId: item.originalId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        discountType: item.discountType,
+        discountValue: item.discountValue
+    }));
     
     savedPackages[currentPackageId] = {
         name: savedPackages[currentPackageId].name,
-        products: uniqueProducts,
-        services: currentTreatments.map(t => t.serviceId)
+        products: [...currentMorningProducts, ...currentEveningProducts].map(p => p.productId),
+        services: currentTreatments.map(t => t.serviceId),
+        unifiedItems: unifiedItemsForSave  // 新增：保存完整报价数据
     };
     
     await supabaseClient.from('packages').upsert({
         id: currentPackageId,
         name: savedPackages[currentPackageId].name,
-        products: uniqueProducts,
-        services: currentTreatments.map(t => t.serviceId),
+        products: savedPackages[currentPackageId].products,
+        services: savedPackages[currentPackageId].services,
+        unified_items: unifiedItemsForSave,  // 新增字段
         user_id: currentUserId
     });
     
@@ -2790,22 +2811,33 @@ async function saveAsNewPackageToCloud() {
     let name = prompt("请输入新套餐名称:");
     if (!name) return false;
     
-    const currentProducts = [...currentMorningProducts, ...currentEveningProducts].map(p => p.productId);
-    const uniqueProducts = [...new Set(currentProducts)];
+    const unifiedItemsForSave = unifiedItems.map(item => ({
+        type: item.type,
+        id: item.type === 'product' ? item.id : item.originalId,
+        originalId: item.originalId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        discountType: item.discountType,
+        discountValue: item.discountValue
+    }));
+    
     const newId = "package-" + Date.now();
     
     await supabaseClient.from('packages').insert({
         id: newId,
         name: name.trim(),
-        products: uniqueProducts,
+        products: [...currentMorningProducts, ...currentEveningProducts].map(p => p.productId),
         services: currentTreatments.map(t => t.serviceId),
+        unified_items: unifiedItemsForSave,
         user_id: currentUserId
     });
     
     savedPackages[newId] = {
         name: name.trim(),
-        products: uniqueProducts,
-        services: currentTreatments.map(t => t.serviceId)
+        products: [...currentMorningProducts, ...currentEveningProducts].map(p => p.productId),
+        services: currentTreatments.map(t => t.serviceId),
+        unifiedItems: unifiedItemsForSave
     };
     
     renderPackageButtons();
