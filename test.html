@@ -2,58 +2,6 @@
 <html lang="en">
 <head>
     
-<script>
-(function(){
-    // 设置您想要的访问密码
-    var ACCESS_PASSWORD = 'laser2024';  // 员工密码
-    var ADMIN_PASSWORD = 'laserVersante';  // 管理员密码
-    
-    // 检查 localStorage 中的认证标记及其时间戳
-    var auth = localStorage.getItem('page_authenticated');
-    var authType = localStorage.getItem('page_auth_type'); // 'staff' 或 'admin'
-    var authTime = localStorage.getItem('page_auth_time');
-    var now = Date.now();
-    var SESSION_DURATION = 24 * 60 * 60 * 1000; // 24小时有效
-    
-    // 如果认证标记存在且未超时，则允许直接访问
-    if (auth === 'true' && authTime && (now - parseInt(authTime)) < SESSION_DURATION) {
-        // 有效期内，直接显示页面，无需再次输入密码
-        // 恢复认证类型
-        if (authType === 'admin') {
-            window.IS_ADMIN = true;
-        } else {
-            window.IS_ADMIN = false;
-        }
-    } else {
-        // 标记不存在或已过期，需要验证密码
-        var pwd = prompt('🔒 Restricted Access\n\nPlease enter password:');
-        
-        if (pwd === ADMIN_PASSWORD) {
-            // 管理员登录
-            localStorage.setItem('page_authenticated', 'true');
-            localStorage.setItem('page_auth_type', 'admin');
-            localStorage.setItem('page_auth_time', now.toString());
-            window.IS_ADMIN = true;
-            location.reload();
-        } else if (pwd === ACCESS_PASSWORD) {
-            // 员工登录
-            localStorage.setItem('page_authenticated', 'true');
-            localStorage.setItem('page_auth_type', 'staff');
-            localStorage.setItem('page_auth_time', now.toString());
-            window.IS_ADMIN = false;
-            location.reload();
-                } else if (pwd !== null) {
-            // 密码错误，拒绝访问
-            document.body.innerHTML = '<div style="text-align:center; margin-top:20vh; font-family:sans-serif;"><h2>🔒 Access Denied</h2><p>Incorrect password. Please contact administrator.</p></div>';
-            throw new Error('Authentication failed');
-        } else {
-            // 用户点击取消，重新加载页面重新要求密码
-            location.reload();
-        }
-    }
-})();
-</script>
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase.js"></script>
     <meta charset="UTF-8">
@@ -3116,7 +3064,7 @@ async function initApp() {
                 currentEveningProducts = savedRoutines[currentRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
             }
             
-            // 2. 加载疗程和套餐数据（关键！）
+            // 2. 加载疗程和套餐数据（只调用一次）
             await loadServicesFromCloud();
             
             // 3. 刷新界面
@@ -3131,10 +3079,6 @@ async function initApp() {
                 initUnifiedSearch();
             }
             
-// ✅ 添加这一行：加载疗程和套餐数据
-            await loadServicesFromCloud();
-            
-            refreshUI();
             console.log('✅ 云端数据已加载');
             
         } catch (e) {
