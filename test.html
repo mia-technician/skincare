@@ -721,10 +721,10 @@
         </div>
 
         <!-- Tab 切换 -->
-        <div class="tab-container">
-            <button id="tabProductsBtn" class="tab-btn active">📦 Products</button>
-            <button id="tabTreatmentsBtn" class="tab-btn">💆 Treatments</button>
-        </div>
+<div class="tab-container" style="display: flex !important; gap: 1.5rem !important; margin-bottom: 2rem !important; border-bottom: 2px solid #e8dfd4 !important; background: transparent !important; padding: 0 !important;">
+    <button id="tabProductsBtn" class="tab-btn" style="background: transparent !important; color: #b7a99a !important; border: none !important; padding: 0.7rem 0.2rem !important; cursor: pointer !important; font-size: 1rem !important; font-weight: 500 !important; font-family: 'Montserrat', sans-serif !important; position: relative !important; bottom: -2px !important;">📦 Products</button>
+    <button id="tabTreatmentsBtn" class="tab-btn" style="background: transparent !important; color: #b7a99a !important; border: none !important; padding: 0.7rem 0.2rem !important; cursor: pointer !important; font-size: 1rem !important; font-weight: 500 !important; font-family: 'Montserrat', sans-serif !important; position: relative !important; bottom: -2px !important;">💆 Treatments</button>
+</div>
 
         <!-- ==================== 产品模式 ==================== -->
         <div id="productsModeContainer">
@@ -1920,7 +1920,10 @@ function printRoutine() {
     border-bottom: 2px solid #b99f87 !important;
     box-shadow: none !important;
 }
-        
+      .tab-btn.active {
+    color: #b99f87 !important;
+    border-bottom: 2px solid #b99f87 !important;
+}  
         </style>
     </head>
     <body>
