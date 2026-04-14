@@ -3,55 +3,202 @@
 <head>
     
 <script>
-(function(){
-    // 设置您想要的访问密码
-    var ACCESS_PASSWORD = 'laser2024';  // 员工密码
-    var ADMIN_PASSWORD = 'laserVersante';  // 管理员密码
-    
-    // 检查 localStorage 中的认证标记及其时间戳
-    var auth = localStorage.getItem('page_authenticated');
-    var authType = localStorage.getItem('page_auth_type'); // 'staff' 或 'admin'
-    var authTime = localStorage.getItem('page_auth_time');
-    var now = Date.now();
-    var SESSION_DURATION = 24 * 60 * 60 * 1000; // 24小时有效
-    
-    // 如果认证标记存在且未超时，则允许直接访问
-    if (auth === 'true' && authTime && (now - parseInt(authTime)) < SESSION_DURATION) {
-        // 有效期内，直接显示页面，无需再次输入密码
-        // 恢复认证类型
-        if (authType === 'admin') {
-            window.IS_ADMIN = true;
+// ==================== Supabase 初始化 ====================
+// 注意：supabase.js 已经初始化了 window.supabase，这里直接使用
+
+// ==================== 认证配置 ====================
+// 员工共享密码（保持不变）
+const SHARED_STAFF_PASSWORD = 'laser2024';
+
+// 固定的员工 Supabase 账号（只读权限）
+// ⚠️ 请到 Supabase 创建这个账号，然后把密码填进来
+const STAFF_EMAIL = 'staff@skincare.local';
+const STAFF_PASSWORD = '4rfn8q34yt[2g';  // 👈 替换成你设置的密码
+
+let currentUser = null;
+let isAdmin = false;
+
+// 等待 supabaseClient 初始化
+function waitForSupabase() {
+    return new Promise((resolve) => {
+        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+            resolve();
         } else {
-            window.IS_ADMIN = false;
+            const checkInterval = setInterval(() => {
+                if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 100);
         }
-    } else {
-        // 标记不存在或已过期，需要验证密码
-        var pwd = prompt('🔒 Restricted Access\n\nPlease enter password:');
-        
-        if (pwd === ADMIN_PASSWORD) {
-            // 管理员登录
-            localStorage.setItem('page_authenticated', 'true');
-            localStorage.setItem('page_auth_type', 'admin');
-            localStorage.setItem('page_auth_time', now.toString());
-            window.IS_ADMIN = true;
-            location.reload();
-        } else if (pwd === ACCESS_PASSWORD) {
-            // 员工登录
-            localStorage.setItem('page_authenticated', 'true');
-            localStorage.setItem('page_auth_type', 'staff');
-            localStorage.setItem('page_auth_time', now.toString());
-            window.IS_ADMIN = false;
-            location.reload();
-                } else if (pwd !== null) {
-            // 密码错误，拒绝访问
-            document.body.innerHTML = '<div style="text-align:center; margin-top:20vh; font-family:sans-serif;"><h2>🔒 Access Denied</h2><p>Incorrect password. Please contact administrator.</p></div>';
-            throw new Error('Authentication failed');
-        } else {
-            // 用户点击取消，重新加载页面重新要求密码
-            location.reload();
-        }
+    });
+}
+
+// 员工登录（使用共享密码）
+async function staffLogin() {
+    const enteredPassword = document.getElementById('staffPassword').value;
+    
+    if (enteredPassword !== SHARED_STAFF_PASSWORD) {
+        alert('Invalid password');
+        return false;
     }
-})();
+    
+    // 用固定员工账号登录 Supabase
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: STAFF_EMAIL,
+        password: STAFF_PASSWORD
+    });
+    
+    if (error) {
+        console.error('Staff login error:', error);
+        alert('Login failed. Please try again.');
+        return false;
+    }
+    
+    currentUser = data.user;
+    isAdmin = false;
+    window.IS_ADMIN = false;
+    
+    // 更新 UI
+    document.getElementById('staffLoginArea').style.display = 'none';
+    document.getElementById('adminLoginArea').style.display = 'none';
+    document.getElementById('logoutArea').style.display = 'flex';
+    document.getElementById('userInfo').innerHTML = '👤 Staff Mode (Read Only)';
+    document.getElementById('authStatus').innerHTML = '✅ Logged in as Staff';
+    
+    // 加载数据
+    if (typeof loadFromCloud === 'function') await loadFromCloud();
+    if (typeof loadServicesFromCloud === 'function') await loadServicesFromCloud();
+    if (typeof refreshUI === 'function') refreshUI();
+    if (typeof updateUIBasedOnAuth === 'function') updateUIBasedOnAuth();
+    
+    return true;
+}
+
+// 管理员登录（使用 Supabase 邮箱密码）
+async function adminLogin() {
+    const email = document.getElementById('adminEmail').value.trim();
+    const password = document.getElementById('adminPassword').value;
+    
+    if (!email || !password) {
+        alert('Please enter email and password');
+        return false;
+    }
+    
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+    });
+    
+    if (error) {
+        alert('Login failed: ' + error.message);
+        return false;
+    }
+    
+    currentUser = data.user;
+    isAdmin = true;
+    window.IS_ADMIN = true;
+    
+    // 更新 UI
+    document.getElementById('staffLoginArea').style.display = 'none';
+    document.getElementById('adminLoginArea').style.display = 'none';
+    document.getElementById('logoutArea').style.display = 'flex';
+    document.getElementById('userInfo').innerHTML = '👑 Admin Mode (Read/Write)';
+    document.getElementById('authStatus').innerHTML = '✅ Logged in as Admin';
+    
+    // 加载数据
+    if (typeof loadFromCloud === 'function') await loadFromCloud();
+    if (typeof loadServicesFromCloud === 'function') await loadServicesFromCloud();
+    if (typeof refreshUI === 'function') refreshUI();
+    if (typeof updateUIBasedOnAuth === 'function') updateUIBasedOnAuth();
+    
+    return true;
+}
+
+// 登出
+async function logout() {
+    await supabaseClient.auth.signOut();
+    currentUser = null;
+    isAdmin = false;
+    window.IS_ADMIN = false;
+    
+    // 重置 UI
+    document.getElementById('staffLoginArea').style.display = 'flex';
+    document.getElementById('adminLoginArea').style.display = 'none';
+    document.getElementById('logoutArea').style.display = 'none';
+    document.getElementById('staffPassword').value = '';
+    document.getElementById('adminEmail').value = '';
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('authStatus').innerHTML = '🔒 Enter password to continue';
+    
+    // 清空并刷新数据
+    if (typeof productsData !== 'undefined') productsData = [];
+    if (typeof savedRoutines !== 'undefined') savedRoutines = {};
+    if (typeof servicesData !== 'undefined') servicesData = [];
+    if (typeof savedPackages !== 'undefined') savedPackages = {};
+    if (typeof refreshUI === 'function') refreshUI();
+    if (typeof updateUIBasedOnAuth === 'function') updateUIBasedOnAuth();
+}
+
+// 切换显示
+function showAdminLogin() {
+    document.getElementById('staffLoginArea').style.display = 'none';
+    document.getElementById('adminLoginArea').style.display = 'flex';
+}
+
+function showStaffLogin() {
+    document.getElementById('staffLoginArea').style.display = 'flex';
+    document.getElementById('adminLoginArea').style.display = 'none';
+}
+
+// 检查是否已有登录会话
+async function checkExistingSession() {
+    if (!supabaseClient) return;
+    
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    
+    if (session) {
+        const userEmail = session.user.email;
+        const isStaffAccount = userEmail === STAFF_EMAIL;
+        isAdmin = !isStaffAccount;
+        window.IS_ADMIN = isAdmin;
+        currentUser = session.user;
+        
+        // 更新 UI
+        document.getElementById('staffLoginArea').style.display = 'none';
+        document.getElementById('adminLoginArea').style.display = 'none';
+        document.getElementById('logoutArea').style.display = 'flex';
+        document.getElementById('userInfo').innerHTML = isAdmin ? '👑 Admin Mode (Read/Write)' : '👤 Staff Mode (Read Only)';
+        document.getElementById('authStatus').innerHTML = `✅ Logged in as ${isAdmin ? 'Admin' : 'Staff'}`;
+        
+        // 加载数据
+        if (typeof loadFromCloud === 'function') await loadFromCloud();
+        if (typeof loadServicesFromCloud === 'function') await loadServicesFromCloud();
+        if (typeof refreshUI === 'function') refreshUI();
+        if (typeof updateUIBasedOnAuth === 'function') updateUIBasedOnAuth();
+    }
+}
+
+// 等待 DOM 加载完成后绑定按钮
+document.addEventListener('DOMContentLoaded', async () => {
+    await waitForSupabase();
+    
+    // 绑定按钮（如果元素存在）
+    const staffBtn = document.getElementById('staffLoginBtn');
+    const adminBtn = document.getElementById('adminLoginBtn');
+    const showAdminBtn = document.getElementById('showAdminBtn');
+    const backBtn = document.getElementById('backToStaffBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    
+    if (staffBtn) staffBtn.onclick = staffLogin;
+    if (adminBtn) adminBtn.onclick = adminLogin;
+    if (showAdminBtn) showAdminBtn.onclick = showAdminLogin;
+    if (backBtn) backBtn.onclick = showStaffLogin;
+    if (logoutBtn) logoutBtn.onclick = logout;
+    
+    // 检查已有会话
+    await checkExistingSession();
+});
 </script>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -750,14 +897,30 @@
         </div>
 
         <!-- 密码验证区域 -->
-        <div class="password-section">
-            <div class="password-status" id="authStatus">🔒 Enter password to enable cloud operations</div>
-            <div class="password-input-group">
-                <input type="password" id="cloudPassword" placeholder="Enter password" autocomplete="off">
-                <button id="verifyPasswordBtn" class="password-btn">Verify</button>
-                <button id="clearPasswordBtn" class="password-btn password-btn-outline" style="display:none">Clear</button>
-            </div>
-        </div>
+<div class="password-section">
+    <div class="password-status" id="authStatus">🔒 Enter password to continue</div>
+    
+    <!-- 员工登录区域（默认显示） -->
+    <div id="staffLoginArea" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <input type="password" id="staffPassword" placeholder="Enter password" autocomplete="off" style="padding: 0.5rem 1rem; border: 1px solid #e2d4c6; border-radius: 40px; font-size: 0.8rem;">
+        <button id="staffLoginBtn" class="password-btn">Access</button>
+        <button id="showAdminBtn" class="password-btn password-btn-outline">Admin Login →</button>
+    </div>
+    
+    <!-- 管理员登录区域（初始隐藏） -->
+    <div id="adminLoginArea" style="display: none; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <input type="email" id="adminEmail" placeholder="Admin Email" style="padding: 0.5rem 1rem; border: 1px solid #e2d4c6; border-radius: 40px; font-size: 0.8rem;">
+        <input type="password" id="adminPassword" placeholder="Password" style="padding: 0.5rem 1rem; border: 1px solid #e2d4c6; border-radius: 40px; font-size: 0.8rem;">
+        <button id="adminLoginBtn" class="password-btn">Login as Admin</button>
+        <button id="backToStaffBtn" class="password-btn password-btn-outline">← Back</button>
+    </div>
+    
+    <!-- 登出区域 -->
+    <div id="logoutArea" style="display: none;">
+        <div id="userInfo" style="font-size: 0.8rem; margin-right: 1rem;"></div>
+        <button id="logoutBtn" class="password-btn password-btn-outline">Logout</button>
+    </div>
+</div>
 
 <!-- Tab 切换 - Products 默认激活 -->
 <div class="tab-container">
