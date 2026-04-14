@@ -1,92 +1,1258 @@
-// 创建多层级下拉菜单（品牌 → 产品）
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+<script>
+(function(){
+    // 设置您想要的访问密码
+    var ACCESS_PASSWORD = 'laser2024';  // 请修改为您的密码
+    
+    // 检查 localStorage 中的认证标记及其时间戳
+    var auth = localStorage.getItem('page_authenticated');
+    var authTime = localStorage.getItem('page_auth_time');
+    var now = Date.now();
+    var SESSION_DURATION = 24 * 60 * 60 * 1000; // 24小时有效（可根据需要调整，例如 8*3600000 为8小时）
+    
+    // 如果认证标记存在且未超时，则允许直接访问
+    if (auth === 'true' && authTime && (now - parseInt(authTime)) < SESSION_DURATION) {
+        // 有效期内，直接显示页面，无需再次输入密码
+    } else {
+        // 标记不存在或已过期，需要验证密码
+        var pwd = prompt('此页面受密码保护，请输入访问密码：');
+        if (pwd !== ACCESS_PASSWORD) {
+            document.body.innerHTML = '<div style="text-align:center; margin-top:20vh; font-family:sans-serif;"><h2>🔒 访问被拒绝</h2><p>密码错误，无法查看页面内容。</p></div>';
+            throw new Error('Authentication failed');
+        } else {
+            // 密码正确，存储认证标记和当前时间
+            localStorage.setItem('page_authenticated', 'true');
+            localStorage.setItem('page_auth_time', now.toString());
+            // 刷新页面以正常加载
+            location.reload();
+        }
+    }
+})();
+</script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Skincare Routine Builder</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="sheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f5efe9; font-family: 'Inter', sans-serif; padding: 2rem 1rem; }
+        .skincare-app { max-width: 1400px; margin: 0 auto; background: #faf7f2; border-radius: 32px; border: 1px solid #e8dfd4; }
+        .app-container { padding: 2rem 1.8rem; }
+        .ritual-header { text-align: center; margin-bottom: 2rem; }
+        .ritual-header h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 1.8rem; color: #7f6e5d; text-transform: uppercase; }
+        .ritual-header p { font-size: 0.85rem; color: #b7a99a; margin-top: 0.5rem; }
+        
+        /* 密码验证区域 */
+        .password-section {
+            background: #fff9f2;
+            border-radius: 24px;
+            padding: 0.8rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e7dbd0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .password-status {
+            font-size: 0.85rem;
+            color: #8f7e6b;
+        }
+        .password-input-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .password-input-group input {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2d4c6;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            width: 150px;
+        }
+        .password-btn {
+            background: #b99f87;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .password-btn-outline {
+            background: transparent;
+            border: 1px solid #d2c0b0;
+            color: #5f5347;
+        }
+        
+        .routine-selector-bar { background: #fff9f2; border-radius: 24px; padding: 1.2rem 1.5rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
+        .selector-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+        .selector-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
+        .selector-actions { display: flex; gap: 0.8rem; }
+        .manage-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.4rem 1rem; border-radius: 40px; cursor: pointer; font-size: 0.75rem; }
+        .routine-buttons { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1rem; }
+        .routine-btn { background: #e9dfd4; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
+        .routine-btn.active { background: #b99f87; color: white; }
+        .product-library { background: #fff9f2; border-radius: 24px; padding: 1.2rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
+        .library-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+        .library-title { font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600; color: #8f7e6b; }
+        .toggle-add-btn { background: #e9dfd4; border: none; padding: 0.4rem 1.2rem; border-radius: 40px; cursor: pointer; }
+        .brand-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid #e7dbd0; padding-bottom: 0.8rem; }
+        .brand-tab { padding: 0.3rem 1rem; background: transparent; border: none; cursor: pointer; border-radius: 30px; font-size: 0.75rem; color: #b7a99a; }
+        .brand-tab.active { background: #e9dfd4; color: #5f5347; }
+        .brand-products { display: flex; flex-wrap: wrap; gap: 0.7rem; max-height: 200px; overflow-y: auto; padding: 0.3rem 0; }
+        .library-item { background: #e9dfd4; padding: 0.45rem 0.8rem; border-radius: 40px; cursor: grab; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; position: relative; }
+        .library-price { font-size: 0.7rem; color: #b99f87; }
+        .library-actions { display: inline-flex; gap: 0.3rem; margin-left: 0.3rem; }
+        .edit-icon, .delete-product-icon { cursor: pointer; font-size: 0.7rem; opacity: 0.6; transition: opacity 0.2s; }
+        .edit-icon:hover, .delete-product-icon:hover { opacity: 1; }
+        .delete-product-icon { color: #b99f87; }
+        .product-form { background: #f5efe8; border-radius: 20px; padding: 1.2rem; margin-top: 1.2rem; display: none; }
+        .product-form.show { display: block; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 0.7rem; font-weight: 600; color: #8f7e6b; margin-bottom: 0.3rem; }
+        .form-group input, .form-group select, .form-group textarea { padding: 0.6rem; border: 1px solid #e2d4c6; border-radius: 14px; background: white; font-size: 0.8rem; }
+        .form-actions { display: flex; gap: 1rem; justify-content: flex-end; }
+        .btn-save { background: #b99f87; color: white; padding: 0.5rem 1.5rem; border-radius: 40px; border: none; cursor: pointer; }
+        .btn-cancel { background: #e9dfd4; padding: 0.5rem 1.5rem; border-radius: 40px; border: none; cursor: pointer; }
+        .routine-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .column { background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.4rem; border: 1px solid #e7dbd0; }
+        .column-title { font-family: 'Montserrat', sans-serif; font-size: 1.2rem; color: #8f7e6b; margin-bottom: 1.2rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2d4c6; display: flex; justify-content: space-between; }
+        .product-list { display: flex; flex-direction: column; gap: 0.9rem; min-height: 320px; }
+        .product-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.7rem; background: white; border-radius: 18px; border: 1px solid #e7dbd0; position: relative; cursor: grab; transition: all 0.2s; }
+        .product-card:active { cursor: grabbing; }
+        .product-card.drag-over { border: 2px dashed #b99f87; background: #fef7ef; }
+        .product-card.dragging { opacity: 0.4; }
+        .empty-slot { display: flex; align-items: center; justify-content: center; gap: 0.9rem; padding: 0.7rem; background: rgba(233, 223, 212, 0.5); border-radius: 18px; border: 2px dashed #d2c0b0; color: #b7a99a; font-size: 0.8rem; min-height: 70px; transition: all 0.2s; margin-bottom: 0.9rem; }
+        .empty-slot.drag-over { background: #e9dfd4; border-color: #b99f87; }
+        .empty-slot:hover { background: #e9dfd4; }
+        .delete-btn { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #e9dfd4; border: none; cursor: pointer; font-size: 12px; z-index: 10; }
+        .delete-btn:hover { background: #d2c0b0; color: white; }
+        .product-image { width: 52px; height: 52px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; flex-shrink: 0; }
+        .product-image img { width: 100%; height: 100%; object-fit: cover; }
+        .product-info { flex: 1; }
+        .product-name { font-size: 0.9rem; font-weight: 600; color: #5f5347; }
+        .product-price { font-size: 0.75rem; color: #b99f87; margin-left: 0.3rem; }
+        .benefit { font-size: 0.7rem; color: #b7a99a; margin-top: 2px; }
+        .usage { font-size: 0.65rem; color: #8e7e6e; margin-top: 3px; display: flex; align-items: flex-start; gap: 4px; white-space: normal; word-wrap: break-word; line-height: 1.4; }
+        .drag-handle { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #d2c0b0; cursor: grab; flex-shrink: 0; }
+        .drag-handle:active { cursor: grabbing; }
+        .morning-icon .icon-hand::before { content: "☀️"; font-size: 0.8rem; margin-right: 3px; }
+        .evening-icon .icon-hand::before { content: "☾"; font-size: 0.8rem; margin-right: 3px; }
+        .total-bar { padding: 1rem 1.3rem; background: #e9dfd4; border-radius: 20px; margin: 1.5rem 0 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .total-label { font-weight: 300; color: #5f5347; }
+        .total-amount { font-size: 1.2rem; font-weight: 600; color: #8f7e6b; }
+        .action-buttons-bottom { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 1rem; }
+        .action-btn { background: transparent; border: 1px solid #d2c0b0; padding: 0.7rem 1.5rem; border-radius: 50px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
+        .update-btn { background: #b99f87; color: white; border-color: #b99f87; }
+        .delete-current-btn { background: #e9dfd4; color: #5f5347; }
+        .save-standard-btn { background: #b99f87; color: white; border-color: #b99f87; }
+        .sync-all-btn { background: #b99f87; color: white; border-color: #b99f87; }
+        .print-btn { background: #e9dfd4; }
+        .footnote { margin-top: 1rem; text-align: center; font-size: 0.65rem; color: #ccbeaf; padding-top: 1rem; border-top: 1px solid #e1d4c6; }
+        @media (max-width: 750px) { .routine-grid { grid-template-columns: 1fr; } }
+
+        /* 可搜索下拉菜单样式 */
+.searchable-select {
+    position: relative;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+.searchable-select input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px dashed #d2c0b0;
+    border-radius: 18px;
+    background: rgba(233, 223, 212, 0.3);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #5f5347;
+}
+.searchable-select input:focus {
+    outline: none;
+    border-color: #b99f87;
+    background: white;
+}
+.searchable-select .dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 280px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #e2d4c6;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 100;
+    display: none;
+}
+.searchable-select .dropdown-list.show {
+    display: block;
+}
+.searchable-select .dropdown-item {
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f0e8e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+}
+.searchable-select .dropdown-item:hover {
+    background: #f5efe9;
+}
+.searchable-select .dropdown-item .item-name {
+    font-weight: 500;
+    color: #5f5347;
+}
+.searchable-select .dropdown-item .item-brand {
+    font-size: 0.7rem;
+    color: #b99f87;
+}
+.searchable-select .dropdown-item .item-price {
+    font-size: 0.75rem;
+    color: #8f7e6b;
+}
+
+        /* Quote 按钮样式 */
+.quote-button-container {
+    margin: 1.5rem 0 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+.quote-btn {
+    background: #b99f87;
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+.quote-btn:hover {
+    background: #9f8468;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Quote 弹窗样式 */
+.quote-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.quote-modal.show {
+    display: flex;
+}
+        
+.quote-content {
+    background: white;
+    border-radius: 28px;
+    max-width: 850px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 1.2rem 1.5rem;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+        
+.quote-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e2d4c6;
+}
+        
+.quote-header h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.5rem;
+    color: #7f6e5d;
+}
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: #b7a99a;
+}
+.quote-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+        
+.quote-table th, .quote-table td {
+    padding: 0.5rem 0.6rem;
+    text-align: left;
+    border-bottom: 1px solid #e7dbd0;
+    font-size: 0.8rem;
+}
+        
+.quote-table th {
+    background: #f5efe8;
+    font-weight: 600;
+    color: #5f5347;
+}
+        
+.quote-table input {
+    width: 60px;
+    padding: 0.3rem;
+    border: 1px solid #e2d4c6;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.75rem;
+}
+        
+.quote-table input:focus {
+    outline: none;
+    border-color: #b99f87;
+}
+        
+.discount-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+.discount-type-select {
+    width: 50px;
+    padding: 0.3rem;
+    border: 1px solid #e2d4c6;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.75rem;
+    background: white;
+    cursor: pointer;
+}
+.discount-input {
+    width: 80px;
+    padding: 0.3rem;
+    border: 1px solid #e2d4c6;
+    border-radius: 8px;
+    text-align: center;
+}
+.discount-input:focus {
+    outline: none;
+    border-color: #b99f87;
+}
+.discount-note {
+    font-size: 0.7rem;
+    color: #b7a99a;
+    margin-left: 0.3rem;
+}
+        
+.quote-totals {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 2px solid #e2d4c6;
+    text-align: right;
+    font-size: 0.85rem;
+}
+.quote-totals div {
+    margin-bottom: 0.3rem;
+}
+        
+.quote-totals p {
+    margin: 0.5rem 0;
+}
+.savings {
+    color: #2d6a4f;
+    font-weight: 600;
+}
+.quote-footer {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+.print-quote-btn, .email-quote-btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 40px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+.print-quote-btn {
+    background: #e9dfd4;
+    color: #5f5347;
+}
+.email-quote-btn {
+    background: #b99f87;
+    color: white;
+}
+@media print { .quote-modal { position: static; display: block !important; background: white; } .quote-content { padding: 0; max-height: none; overflow: visible; } }
+        
+    </style>
+</head>
+<body>
+<div class="skincare-app">
+    <div class="app-container">
+        <div class="ritual-header">
+            <h1>Skincare Routine Builder</h1>
+            <p>drag to customize · enter password to save to cloud</p>
+        </div>
+
+        <!-- 密码验证区域 -->
+        <div class="password-section">
+            <div class="password-status" id="authStatus">🔒 Enter password to enable cloud operations</div>
+            <div class="password-input-group">
+                <input type="password" id="cloudPassword" placeholder="Enter password" autocomplete="off">
+                <button id="verifyPasswordBtn" class="password-btn">Verify</button>
+                <button id="clearPasswordBtn" class="password-btn password-btn-outline" style="display:none">Clear</button>
+            </div>
+        </div>
+
+        <div class="routine-selector-bar">
+            <div class="selector-header">
+                <div class="selector-title">📋 SELECT ROUTINE</div>
+                <div class="selector-actions">
+                    <button id="editRoutineBtn" class="manage-btn" style="display:none">✏️ Edit Routine Name</button>
+                </div>
+            </div>
+            <div class="routine-buttons" id="routineButtons"></div>
+        </div>
+
+        <div class="product-library">
+            <div class="library-header">
+                <div class="library-title">📦 PRODUCT LIBRARY · drag to add or replace</div>
+                <button class="toggle-add-btn" id="toggleAddBtn">+ Add Product</button>
+            </div>
+            <div class="brand-tabs" id="brandTabs"></div>
+            <div id="brandProductsContainer" class="brand-products"></div>
+            <div id="productForm" class="product-form">
+                <div class="form-row">
+                    <div class="form-group"><label>Product Name *</label><input type="text" id="productName" placeholder="e.g., Vitamin C"></div>
+                    <div class="form-group"><label>Brand</label><select id="productBrand"><option>SkinMedica</option><option>Skinceuticals</option><option>FNL</option><option>ColorScience</option><option>Others</option></select></div>
+                    <div class="form-group"><label>Price ($)</label><input type="number" id="productPrice" step="0.01"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Benefit</label><input type="text" id="productBenefit"></div>
+                    <div class="form-group"><label>Image URL</label><input type="text" id="productImage"></div>
+                </div>
+                <div class="form-group"><label>Usage</label><textarea id="productUsage" rows="2"></textarea></div>
+                <div class="form-actions"><button class="btn-cancel" id="cancelFormBtn">Cancel</button><button class="btn-save" id="saveProductBtn">Save</button></div>
+                <input type="hidden" id="editProductId">
+            </div>
+        </div>
+
+        <div class="routine-grid">
+            <div class="column morning-icon">
+                <div class="column-title">MORNING ROUTINE <span>AM</span></div>
+                <div class="product-list" id="morningList"></div>
+            </div>
+            <div class="column evening-icon">
+                <div class="column-title">EVENING ROUTINE <span>PM</span></div>
+                <div class="product-list" id="eveningList"></div>
+            </div>
+        </div>
+
+<div style="display: flex; justify-content: space-between; align-items: stretch; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 1rem;">
+    <div class="total-bar" style="flex: 2; margin: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 1.3rem;">
+        <div class="total-label">TOTAL VALUE (Estimate)</div>
+        <div class="total-amount">$<span id="totalPrice">0.00</span></div>
+    </div>
+    <div style="display: flex; gap: 0.8rem;">
+        <button class="quote-btn" id="quoteBtn" style="padding: 0 1.5rem; font-size: 0.9rem; height: 100%;">📄 Generate Quote</button>
+        <button class="action-btn print-btn" id="printBtn" style="margin: 0; padding: 0 1.5rem; height: 100%;">🖨️ PRINT ROUTINE</button>
+    </div>
+</div>
+
+<!-- Quote 弹窗 -->
+<div id="quoteModal" class="quote-modal">
+    <div class="quote-content">
+        <div class="quote-header">
+            <h2>📋 Price Quote</h2>
+            <button class="close-modal" id="closeModalBtn">&times;</button>
+        </div>
+        <div style="margin-bottom: 1rem; font-size: 0.85rem; color: #8f7e6b;">
+            <strong>Routine:</strong> <span id="quoteRoutineName"></span>
+        </div>
+        <table class="quote-table" id="quoteTable">
+            
+<thead>
+    <tr>
+        <th>Product</th>
+        <th>Unit Price</th>
+        <th>Quantity</th>
+        <th>Discount</th>
+        <th>Discounted Price</th>
+    </tr>
+</thead>
+            <tbody id="quoteTableBody"></tbody>
+        </table>
+        <div class="quote-totals" id="quoteTotals">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>💰 Subtotal (Before Discount):</span>
+                <span>$<span id="subtotalBeforeDiscount">0.00</span></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: #2d6a4f;">
+                <span>🏷️ Total Discount:</span>
+                <span>-$<span id="totalDiscountAmount">0.00</span></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; border-bottom: 1px dashed #e2d4c6; padding-bottom: 0.5rem;">
+                <span>✨ Subtotal (After Discount):</span>
+                <span>$<span id="subtotalAfterDiscount">0.00</span></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span>📋 Tax (12%):</span>
+                <span>$<span id="taxAmount">0.00</span></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 2px solid #e2d4c6; font-size: 1.1rem; font-weight: bold;">
+                <span>💵 Grand Total:</span>
+                <span>$<span id="grandTotal">0.00</span></span>
+            </div>
+        </div>
+        <div class="quote-footer">
+            <button class="print-quote-btn" id="printQuoteBtn">🖨️ Print Quote</button>
+            <button class="email-quote-btn" id="emailQuoteBtn">📧 Email Quote</button>
+        </div>
+    </div>
+</div>
+        
+<div class="action-buttons-bottom">
+    <div id="authButtons" style="display: none; gap: 1rem; flex-wrap: wrap;">
+        <button class="action-btn update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
+        <button class="action-btn delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
+        <button class="action-btn save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
+        <button class="action-btn sync-all-btn" id="syncAllBtn">☁️ Force Sync All to Cloud</button>
+    </div>
+</div>
+        
+        <div class="footnote">✦ All editing tools available without password ✦ Enter password to sync changes to cloud ✦ Data saved locally until synced ✦</div>
+    </div>
+</div>
+
+<script>
+// ==================== 配置 ====================
+const CLOUD_PASSWORD = "laserVersante"; // 云存储密码，可修改
+// 固定系统用户 ID - 必须与数据库中的一致
+const SYSTEM_USER_ID = "2c9b8bce-b2ab-47bb-92a1-f0d5143b4788";  // 👈 改成您在 SQL 中使用的 ID
+
+let isAuthenticated = false;
+let currentUserId = SYSTEM_USER_ID; // 默认使用系统用户 ID（未验证时无法操作）
+let supabaseClient = null;
+
+// ==================== 默认数据 ====================
+const DEFAULT_PRODUCTS = [
+    { id: "clarify-cleanser", name: "Clarify Cleanser", brand: "FNL", price: 50, benefit: "Antibacterial", usage: "Pea size - cleanse", image: "https://static.wixstatic.com/media/11a6e1_964680bfdf1b4efa9039db6f52428325~mv2.webp" },
+    { id: "cleanser", name: "Cleanser", brand: "SkinMedica", price: 46, benefit: "Cleans · Removes SPF", usage: "Pea size - add water - cleanse", image: "https://static.wixstatic.com/media/11a6e1_cd31f58211984ecabef518ed158ea4dc~mv2.webp" },
+    { id: "exo-gf", name: "Exo-GF Serum", brand: "FNL", price: 275, benefit: "Regenerates", usage: "1 pump", image: "https://static.wixstatic.com/media/11a6e1_62da2e3f71ff44229d4e90fc5289cf18~mv2.jpg" },
+    { id: "exfoliating-pad", name: "Exfoliating Pad 10%", brand: "FNL", price: 88, benefit: "Minimizes blackheads", usage: "Wipe face gently", image: "https://static.wixstatic.com/media/11a6e1_c4491a22e89846ba84ef28f5820ff427~mv2.webp" },
+    { id: "glycolic-lotion", name: "Glycolic Lotion 10%", brand: "FNL", price: 98, benefit: "Improves texture", usage: "Pea size - apply", image: "https://static.wixstatic.com/media/11a6e1_74ebb016820f45008058763526dfad76~mv2.webp" },
+    { id: "ha5", name: "HA5", brand: "SkinMedica", price: 196, benefit: "Hydrator", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_20f2ce9ce07a4ccaa0b5d5c6631fc0dc~mv2.webp" },
+    { id: "lumivive-day", name: "Lumivive - Day", brand: "SkinMedica", price: 285, benefit: "Antioxidant", usage: "1 pump - face & neck", image: "https://static.wixstatic.com/media/11a6e1_b12de65e4f8d4240ab28bdeecda8f811~mv2.webp" },
+    { id: "lumivive-night", name: "Lumivive - Night", brand: "SkinMedica", price: 285, benefit: "Night Repair", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_b12de65e4f8d4240ab28bdeecda8f811~mv2.webp" },
+    { id: "lytera", name: "Lytera", brand: "SkinMedica", price: 170, benefit: "Brightener", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_daddf6362e3b4bb0871467d485dcc76b~mv2.jpg" },
+    { id: "moisturizer", name: "Moisturizer", brand: "SkinMedica", price: 155, benefit: "Soothing", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_0f0aeb5de10d4a7ca110e93adb057e80~mv2.webp" },
+    { id: "retinol", name: "Retinol", brand: "Skinceuticals", price: 66, benefit: "Cell turnover", usage: "Start 2x/week", image: "https://static.wixstatic.com/media/11a6e1_4f3763842728442482947369cfee0b18~mv2.png" },
+    { id: "retinol-fnl", name: "Retinol (FNL)", brand: "FNL", price: 115, benefit: "Cell turnover", usage: "Start 2x/week", image: "https://static.wixstatic.com/media/11a6e1_c1094fd984f449a6bdd6a96bf13623ac~mv2.webp" },
+    { id: "silymarin", name: "Silymarin", brand: "Skinceuticals", price: 220, benefit: "Antioxidant for acne", usage: "1 pump", image: "https://static.wixstatic.com/media/11a6e1_8868dfe199c3466dafa239c238115433~mv2.webp" },
+    { id: "spf-powder", name: "SPF Powder Brush", brand: "ColorScience", price: 93.90, benefit: "Easy reapply", usage: "Brush over face", image: "https://static.wixstatic.com/media/11a6e1_02ac891ebdc24945ad2bb305d9be5579~mv2.jpg" },
+    { id: "spf50", name: "SPF50 Sheer Physical", brand: "SkinMedica", price: 66, benefit: "Physical SPF", usage: "1 pump - last step", image: "https://static.wixstatic.com/media/11a6e1_d2faad5c91134e0589fb5538c8f76d86~mv2.webp" },
+    { id: "tns", name: "TNS+ Serum", brand: "SkinMedica", price: 330, benefit: "Lifting · Anti-aging", usage: "1 pump - apply to face", image: "https://static.wixstatic.com/media/11a6e1_8eb00266d932471483652b5a40828272~mv2.jpg" }
+].sort((a, b) => a.name.localeCompare(b.name));
+
+const INITIAL_ROUTINES = {
+    "standard-1774409503226": { 
+        name: "FNL Acne", 
+        morning: ["clarify-cleanser", "exfoliating-pad", "silymarin", "glycolic-lotion", "spf50", "spf-powder"], 
+        evening: ["clarify-cleanser", "exo-gf", "retinol-fnl", "glycolic-lotion"] 
+    },
+    "fnl-pigmentation": { 
+        name: "FNL Pigment", 
+        morning: ["clarify-cleanser", "lytera", "silymarin", "spf50"], 
+        evening: ["clarify-cleanser", "exo-gf", "lytera", "retinol-fnl"] 
+    },
+    "standard-1774423030345": { 
+        name: "My New Routine", 
+        morning: [], 
+        evening: [] 
+    },
+    "standard-1774407153349": { 
+        name: "SM Acne & Pigment", 
+        morning: ["cleanser", "lytera", "ha5", "moisturizer", "spf50"], 
+        evening: ["cleanser", "lytera", "retinol", "ha5", "moisturizer"] 
+    },
+    "standard-1774409269378": { 
+        name: "SM Age & Pigment", 
+        morning: ["cleanser", "tns", "lumivive-day", "lytera", "ha5", "moisturizer", "spf50"], 
+        evening: ["cleanser", "lumivive-night", "lytera", "retinol", "ha5", "moisturizer"] 
+    }
+};
+
+// 全局变量
+let productsData = [], savedRoutines = {};
+let currentMorningProducts = [], currentEveningProducts = [];
+let currentRoutineId = null;
+let currentBrand = "all";
+let isLoading = false;
+
+function getProductById(id) { return productsData.find(p => p.id === id); }
+function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 4); }
+function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m; }); }
+function sortProductsByName(arr) { return [...arr].sort((a, b) => a.name.localeCompare(b.name)); }
+
+function isRoutineNameExists(name, excludeId = null) {
+    return Object.entries(savedRoutines).some(([id, r]) => {
+        if (excludeId && id === excludeId) return false;
+        return r.name.toLowerCase() === name.toLowerCase();
+    });
+}
+
+function saveToLocalStorage() {
+    localStorage.setItem('skincare_products', JSON.stringify(productsData));
+    localStorage.setItem('skincare_routines', JSON.stringify(savedRoutines));
+    localStorage.setItem('skincare_current_morning', JSON.stringify(currentMorningProducts.map(p => p.productId)));
+    localStorage.setItem('skincare_current_evening', JSON.stringify(currentEveningProducts.map(p => p.productId)));
+    localStorage.setItem('skincare_current_routine_id', currentRoutineId || '');
+}
+
+function loadFromLocalStorage() {
+    const savedProducts = localStorage.getItem('skincare_products');
+    const savedRoutinesData = localStorage.getItem('skincare_routines');
+    const savedMorning = localStorage.getItem('skincare_current_morning');
+    const savedEvening = localStorage.getItem('skincare_current_evening');
+    const savedRoutineId = localStorage.getItem('skincare_current_routine_id');
+    
+    if (savedProducts) productsData = JSON.parse(savedProducts);
+    else productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+    
+    if (savedRoutinesData) savedRoutines = JSON.parse(savedRoutinesData);
+    else savedRoutines = JSON.parse(JSON.stringify(INITIAL_ROUTINES));
+    
+    if (savedMorning && JSON.parse(savedMorning).length > 0) {
+        currentMorningProducts = JSON.parse(savedMorning).map(pid => ({ productId: pid, time: "morning" }));
+    } else if (savedRoutineId && savedRoutines[savedRoutineId]) {
+        currentMorningProducts = savedRoutines[savedRoutineId].morning.map(pid => ({ productId: pid, time: "morning" }));
+    } else {
+        const firstKey = Object.keys(savedRoutines)[0];
+        if (firstKey && savedRoutines[firstKey]) {
+            currentMorningProducts = savedRoutines[firstKey].morning.map(pid => ({ productId: pid, time: "morning" }));
+        } else {
+            currentMorningProducts = [];
+        }
+    }
+    
+    if (savedEvening && JSON.parse(savedEvening).length > 0) {
+        currentEveningProducts = JSON.parse(savedEvening).map(pid => ({ productId: pid, time: "evening" }));
+    } else if (savedRoutineId && savedRoutines[savedRoutineId]) {
+        currentEveningProducts = savedRoutines[savedRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
+    } else {
+        const firstKey = Object.keys(savedRoutines)[0];
+        if (firstKey && savedRoutines[firstKey]) {
+            currentEveningProducts = savedRoutines[firstKey].evening.map(pid => ({ productId: pid, time: "evening" }));
+        } else {
+            currentEveningProducts = [];
+        }
+    }
+    
+    if (savedRoutineId && savedRoutines[savedRoutineId]) {
+        currentRoutineId = savedRoutineId;
+    } else {
+        currentRoutineId = Object.keys(savedRoutines)[0] || null;
+    }
+}
+
+// ==================== 云端操作（需要密码验证）====================
+async function loadFromCloud() {
+    if (!supabaseClient || isLoading) return false;
+    isLoading = true;
+    try {
+        const { data: products } = await supabaseClient.from('products').select('*');
+        const { data: routines } = await supabaseClient.from('routines').select('*');
+        const { data: state } = await supabaseClient.from('user_state').select('current_routine_id').maybeSingle();
+        
+        if (products && products.length > 0) {
+            productsData = products;
+        } else {
+            productsData = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+        }
+        productsData = sortProductsByName(productsData);
+        
+        if (routines && routines.length > 0) {
+            savedRoutines = {};
+            routines.forEach(r => { savedRoutines[r.id] = { name: r.name, morning: r.morning, evening: r.evening }; });
+            savedRoutines = Object.fromEntries(
+                Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
+            );
+        } else {
+            savedRoutines = JSON.parse(JSON.stringify(INITIAL_ROUTINES));
+        }
+        
+        if (state && state.current_routine_id && savedRoutines[state.current_routine_id]) {
+            currentRoutineId = state.current_routine_id;
+        } else {
+            currentRoutineId = Object.keys(savedRoutines)[0] || null;
+        }
+        
+        if (currentRoutineId && savedRoutines[currentRoutineId]) {
+            currentMorningProducts = savedRoutines[currentRoutineId].morning.map(pid => ({ productId: pid, time: "morning" }));
+            currentEveningProducts = savedRoutines[currentRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
+        } else {
+            currentMorningProducts = [];
+            currentEveningProducts = [];
+        }
+        
+        saveToLocalStorage();
+        return true;
+    } catch (e) {
+        console.error('Cloud load error:', e);
+        return false;
+    } finally {
+        isLoading = false;
+    }
+}
+
+async function forceSyncAllToCloud() {
+    if (!supabaseClient || !isAuthenticated) {
+        alert("Please verify password first.");
+        return false;
+    }
+    
+    try {
+        const products = JSON.parse(localStorage.getItem('skincare_products') || '[]');
+        const routines = JSON.parse(localStorage.getItem('skincare_routines') || '{}');
+        const currentRoutineId = localStorage.getItem('skincare_current_routine_id');
+        
+        for (const p of products) {
+            await supabaseClient.from('products').upsert({ ...p, user_id: currentUserId });
+        }
+        
+        for (const [id, r] of Object.entries(routines)) {
+            await supabaseClient.from('routines').upsert({ id, name: r.name, morning: r.morning, evening: r.evening, user_id: currentUserId });
+        }
+        
+        if (currentRoutineId) {
+            await supabaseClient.from('user_state').upsert({ current_routine_id: currentRoutineId, user_id: currentUserId });
+        }
+        
+        productsData = products;
+        savedRoutines = routines;
+        
+        alert("✓ All local data synced to cloud!");
+        return true;
+    } catch (e) {
+        console.error('Force sync error:', e);
+        alert("Sync failed: " + e.message);
+        return false;
+    }
+}
+
+async function saveCurrentRoutineToCloud() {
+    if (!supabaseClient || !isAuthenticated) {
+        alert("Please verify password first.");
+        return false;
+    }
+    if (!currentRoutineId) {
+        alert("No routine selected.");
+        return false;
+    }
+    try {
+        savedRoutines[currentRoutineId] = { 
+            name: savedRoutines[currentRoutineId].name, 
+            morning: currentMorningProducts.map(p => p.productId), 
+            evening: currentEveningProducts.map(p => p.productId) 
+        };
+        
+        await supabaseClient.from('routines').upsert({ 
+            id: currentRoutineId, 
+            name: savedRoutines[currentRoutineId].name, 
+            morning: savedRoutines[currentRoutineId].morning, 
+            evening: savedRoutines[currentRoutineId].evening, 
+            user_id: currentUserId 
+        });
+        
+        await supabaseClient.from('user_state').upsert({ current_routine_id: currentRoutineId, user_id: currentUserId });
+        
+        saveToLocalStorage();
+        alert(`✓ Routine "${savedRoutines[currentRoutineId].name}" saved to cloud!`);
+        return true;
+    } catch (e) {
+        console.error('Save to cloud error:', e);
+        alert("Save failed: " + e.message);
+        return false;
+    }
+}
+
+async function deleteCurrentRoutineFromCloud() {
+    if (!supabaseClient || !isAuthenticated) {
+        alert("Please verify password first.");
+        return false;
+    }
+    if (!currentRoutineId) {
+        alert("No routine selected.");
+        return false;
+    }
+    try {
+        await supabaseClient.from('routines').delete().eq('id', currentRoutineId);
+        
+        delete savedRoutines[currentRoutineId];
+        savedRoutines = Object.fromEntries(
+            Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
+        );
+        
+        const firstKey = Object.keys(savedRoutines)[0];
+        if (firstKey) {
+            await loadRoutine(firstKey);
+        } else {
+            currentMorningProducts = [];
+            currentEveningProducts = [];
+            currentRoutineId = null;
+            renderRoutines();
+            updateTotalPrice();
+        }
+        
+        renderRoutineButtons();
+        saveToLocalStorage();
+        alert("Routine deleted from cloud!");
+        return true;
+    } catch (e) {
+        console.error('Delete from cloud error:', e);
+        alert("Delete failed: " + e.message);
+        return false;
+    }
+}
+
+async function saveAsNewRoutineToCloud() {
+    if (!supabaseClient || !isAuthenticated) {
+        alert("Please verify password first.");
+        return false;
+    }
+    
+    let name = prompt("Enter a name for your new routine:");
+    if (!name) return false;
+    
+    if (isRoutineNameExists(name)) {
+        alert(`A routine named "${name}" already exists. Please choose a different name.`);
+        return false;
+    }
+    
+    let newId = "standard-" + Date.now();
+    let newMorning = currentMorningProducts.map(p => p.productId);
+    let newEvening = currentEveningProducts.map(p => p.productId);
+    
+    try {
+        await supabaseClient.from('routines').insert({ 
+            id: newId, 
+            name: name.trim(), 
+            morning: newMorning, 
+            evening: newEvening, 
+            user_id: currentUserId 
+        });
+        
+        savedRoutines[newId] = { 
+            name: name.trim(), 
+            morning: newMorning, 
+            evening: newEvening 
+        };
+        savedRoutines = Object.fromEntries(
+            Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
+        );
+        
+        renderRoutineButtons();
+        await loadRoutine(newId);
+        saveToLocalStorage();
+        alert(`New routine "${name}" created and saved to cloud!`);
+        return true;
+    } catch (e) {
+        console.error('Save new routine error:', e);
+        alert("Save failed: " + e.message);
+        return false;
+    }
+}
+
+// ==================== UI 渲染函数 ====================
+async function loadRoutine(routineId) {
+    let routine = savedRoutines[routineId];
+    if (routine) {
+        currentRoutineId = routineId;
+        currentMorningProducts = routine.morning.map(pid => ({ productId: pid, time: "morning" }));
+        currentEveningProducts = routine.evening.map(pid => ({ productId: pid, time: "evening" }));
+        renderRoutines();
+        updateTotalPrice();
+        highlightActiveRoutine();
+        saveToLocalStorage();
+    }
+}
+
+function highlightActiveRoutine() {
+    document.querySelectorAll('.routine-btn').forEach(btn => {
+        if (btn.dataset.id === currentRoutineId) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+}
+
+async function updateCurrentRoutine() {
+    if (!currentRoutineId) {
+        alert("No routine selected.");
+        return;
+    }
+    await saveCurrentRoutineToCloud();
+    renderRoutineButtons();
+    highlightActiveRoutine();
+}
+
+async function deleteCurrentRoutine() {
+    if (!currentRoutineId) {
+        alert("No routine selected.");
+        return;
+    }
+    if (confirm(`Delete routine "${savedRoutines[currentRoutineId]?.name}"? This will also delete from cloud.`)) { 
+        await deleteCurrentRoutineFromCloud();
+    }
+}
+
+async function saveAsNewRoutine() {
+    await saveAsNewRoutineToCloud();
+}
+
+async function renameCurrentRoutine(newName) {
+    if (!currentRoutineId || !savedRoutines[currentRoutineId]) return;
+    if (!isAuthenticated) {
+        alert("Please verify password first.");
+        return;
+    }
+    
+    if (isRoutineNameExists(newName, currentRoutineId)) {
+        alert(`A routine named "${newName}" already exists. Please choose a different name.`);
+        return;
+    }
+    
+    savedRoutines[currentRoutineId].name = newName;
+    savedRoutines = Object.fromEntries(
+        Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
+    );
+    
+    if (isAuthenticated && supabaseClient) {
+        await supabaseClient.from('routines').update({ name: newName }).eq('id', currentRoutineId);
+    }
+    
+    renderRoutineButtons();
+    highlightActiveRoutine();
+    saveToLocalStorage();
+    alert(`Routine renamed to "${newName}"!`);
+}
+
+function renderRoutineButtons() {
+    let container = document.getElementById('routineButtons');
+    if (!container) return;
+    if (Object.keys(savedRoutines).length === 0) {
+        container.innerHTML = '<div style="color: #b7a99a; padding: 0.5rem;">No routines available.</div>';
+        return;
+    }
+    container.innerHTML = Object.entries(savedRoutines).map(([id, r]) => `<button class="routine-btn ${id === currentRoutineId ? 'active' : ''}" data-id="${id}">${escapeHtml(r.name)}</button>`).join('');
+    document.querySelectorAll('.routine-btn').forEach(btn => { btn.onclick = () => loadRoutine(btn.dataset.id); });
+}
+
+function getUniqueProductsTotal() { 
+    let ids = new Set(); 
+    currentMorningProducts.forEach(i => ids.add(i.productId)); 
+    currentEveningProducts.forEach(i => ids.add(i.productId)); 
+    let total = 0; 
+    ids.forEach(id => { let p = getProductById(id); if(p) total += p.price; }); 
+    return total; 
+}
+
+function updateTotalPrice() { 
+    let span = document.getElementById('totalPrice'); 
+    if (span) span.innerText = getUniqueProductsTotal().toFixed(2); 
+}
+
+function updateUIBasedOnAuth() {
+    const isLoggedIn = isAuthenticated;
+    
+    const editBtn = document.getElementById('editRoutineBtn');
+    if (editBtn) editBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
+    
+    const authButtons = document.getElementById('authButtons');
+    if (authButtons) {
+        authButtons.style.display = isLoggedIn ? 'flex' : 'none';
+    }
+
+    // ========== 新增：控制产品库的编辑/删除按钮 ==========
+    // 控制 "Add Product" 按钮
+    const toggleAddBtn = document.getElementById('toggleAddBtn');
+    if (toggleAddBtn) {
+        toggleAddBtn.style.display = isLoggedIn ? 'inline-block' : 'none';
+    }
+    
+    // 控制产品库中每个产品的编辑图标(✎)和删除图标(🗑️)
+    const editIcons = document.querySelectorAll('.edit-icon');
+    const deleteIcons = document.querySelectorAll('.delete-product-icon');
+    
+    if (isLoggedIn) {
+        // 验证密码后：显示编辑和删除按钮
+        editIcons.forEach(icon => icon.style.display = 'inline-block');
+        deleteIcons.forEach(icon => icon.style.display = 'inline-block');
+    } else {
+        // 未验证密码：隐藏编辑和删除按钮
+        editIcons.forEach(icon => icon.style.display = 'none');
+        deleteIcons.forEach(icon => icon.style.display = 'none');
+    }
+ }    
+    // 检查是否需要密码验证才能编辑产品
+function checkAuthForProductAction(actionName) {
+    if (!isAuthenticated) {
+        alert(`Please verify cloud password first to ${actionName}.`);
+        return false;
+    }
+    return true;
+}
+    
+function renderBrandProducts() {
+    let container = document.getElementById('brandProductsContainer');
+    if (!container) return;
+    let filtered = currentBrand === "all" ? productsData : productsData.filter(p => p.brand === currentBrand);
+    filtered = sortProductsByName(filtered);
+container.innerHTML = filtered.map(p => `<div class="library-item" draggable="true" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}" data-product-benefit="${escapeHtml(p.benefit || '')}" data-product-usage="${escapeHtml(p.usage || '')}" data-product-image="${p.image || ''}">
+    ${escapeHtml(p.name)}
+    <span class="library-actions">
+        <span class="edit-icon" data-id="${p.id}" title="Edit" style="display: ${isAuthenticated ? 'inline-block' : 'none'}">✎</span>
+        <span class="delete-product-icon" data-id="${p.id}" title="Delete" style="display: ${isAuthenticated ? 'inline-block' : 'none'}">🗑️</span>
+    </span>
+</div>`).join('');
+    attachDragEvents(); 
+    attachEditEvents();
+    attachProductDeleteEvents();
+    updateUIBasedOnAuth();
+}
+
+async function deleteProduct(productId) {
+    if (confirm('Delete product from library? It will be removed from all routines.')) {
+        const index = productsData.findIndex(p => p.id === productId);
+        if (index !== -1) {
+            productsData.splice(index, 1);
+            for (let id in savedRoutines) {
+                savedRoutines[id].morning = savedRoutines[id].morning.filter(pid => pid !== productId);
+                savedRoutines[id].evening = savedRoutines[id].evening.filter(pid => pid !== productId);
+            }
+            currentMorningProducts = currentMorningProducts.filter(item => item.productId !== productId);
+            currentEveningProducts = currentEveningProducts.filter(item => item.productId !== productId);
+            renderBrandProducts();
+            renderRoutineButtons();
+            renderRoutines();
+            updateTotalPrice();
+            saveToLocalStorage();
+            
+            // ========== 自动同步到云端 ==========
+            if (isAuthenticated && supabaseClient) {
+                try {
+                    // 从云端删除产品
+                    await supabaseClient.from('products').delete().eq('id', productId);
+                    
+                    // 更新所有受影响的 routines
+                    for (let id in savedRoutines) {
+                        await supabaseClient.from('routines').update({
+                            morning: savedRoutines[id].morning,
+                            evening: savedRoutines[id].evening
+                        }).eq('id', id);
+                    }
+                    
+                    console.log('✅ Product deleted from cloud:', deletedProduct.name);
+                } catch (e) {
+                    console.error('❌ Cloud delete failed:', e);
+                    alert('Product deleted locally but cloud sync failed: ' + e.message);
+                }
+            } else {
+                console.log('📝 Product deleted locally only (not authenticated)');
+            }
+        }
+    }
+}
+
+async function attachProductDeleteEvents() {
+    document.querySelectorAll('.delete-product-icon').forEach(icon => {
+        icon.onclick = async (e) => {
+            e.stopPropagation();
+            await deleteProduct(icon.dataset.id);
+        };
+    });
+}
+
+function attachDragEvents() { 
+    document.querySelectorAll('.library-item').forEach(el => { 
+        el.setAttribute('draggable', 'true'); 
+        el.addEventListener('dragstart', (e) => { 
+            let data = { id: el.dataset.productId, name: el.dataset.productName, price: parseFloat(el.dataset.productPrice), benefit: el.dataset.productBenefit, usage: el.dataset.productUsage, image: el.dataset.productImage }; 
+            e.dataTransfer.setData('text/plain', JSON.stringify(data)); 
+        }); 
+    }); 
+}
+
+function attachEditEvents() { 
+    document.querySelectorAll('.edit-icon').forEach(icon => { 
+        icon.onclick = (e) => { 
+            e.stopPropagation(); 
+            let product = getProductById(icon.dataset.id); 
+            if (product) openEditForm(product); 
+        }; 
+    }); 
+}
+
+function openEditForm(product) { 
+    document.getElementById('productName').value = product.name; 
+    document.getElementById('productBrand').value = product.brand; 
+    document.getElementById('productPrice').value = product.price; 
+    document.getElementById('productBenefit').value = product.benefit || ''; 
+    document.getElementById('productUsage').value = product.usage || ''; 
+    document.getElementById('productImage').value = product.image || ''; 
+    document.getElementById('editProductId').value = product.id; 
+    document.getElementById('productForm').classList.add('show'); 
+    document.getElementById('toggleAddBtn').style.display = 'none'; 
+}
+
+async function saveProduct() { 
+    let name = document.getElementById('productName').value.trim(); 
+    if (!name) { alert("Enter product name"); return; } 
+    let newProduct = { 
+        id: document.getElementById('editProductId').value || generateId(), 
+        name: name, 
+        brand: document.getElementById('productBrand').value, 
+        price: parseFloat(document.getElementById('productPrice').value) || 0, 
+        benefit: document.getElementById('productBenefit').value, 
+        usage: document.getElementById('productUsage').value, 
+        image: document.getElementById('productImage').value 
+    }; 
+    let existing = productsData.findIndex(p => p.id === newProduct.id); 
+    if (existing >= 0) productsData[existing] = newProduct; 
+    else productsData.push(newProduct); 
+    productsData = sortProductsByName(productsData); 
+    closeForm(); 
+    renderBrandProducts(); 
+    renderRoutines(); 
+    updateTotalPrice(); 
+    saveToLocalStorage(); 
+    
+        // ========== 新增：自动同步到云端 ==========
+    if (isAuthenticated && supabaseClient) {
+        try {
+            await supabaseClient.from('products').upsert({ 
+                ...newProduct, 
+                user_id: currentUserId 
+            });
+            console.log('Product synced to cloud:', newProduct.name);
+        } catch (e) {
+            console.error('Sync to cloud failed:', e);
+            alert('Product saved locally but cloud sync failed: ' + e.message);
+        }
+    }
+}
+
+function closeForm() { 
+    document.getElementById('productForm').classList.remove('show'); 
+    document.getElementById('toggleAddBtn').style.display = ''; 
+    document.getElementById('productName').value = ''; 
+    document.getElementById('editProductId').value = ''; 
+}
+
+function attachReorderDrag(containerId, itemsArray, updateCallback) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    let dragStartIndex = null;
+    container.querySelectorAll('.product-card').forEach(card => {
+        card.setAttribute('draggable', 'true');
+        card.addEventListener('dragstart', (e) => {
+            dragStartIndex = parseInt(card.dataset.index);
+            e.dataTransfer.setData('text/plain', dragStartIndex);
+            e.dataTransfer.effectAllowed = 'move';
+            card.style.opacity = '0.4';
+        });
+        card.addEventListener('dragend', (e) => {
+            card.style.opacity = '';
+            dragStartIndex = null;
+        });
+        card.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+        card.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            const dragIndex = dragStartIndex;
+            const dropIndex = parseInt(card.dataset.index);
+            if (dragIndex !== null && dragIndex !== dropIndex) {
+                const draggedItem = itemsArray[dragIndex];
+                itemsArray.splice(dragIndex, 1);
+                itemsArray.splice(dropIndex, 0, draggedItem);
+                updateCallback();
+                renderRoutines();
+                saveToLocalStorage();
+            }
+        });
+    });
+}
+
+// 创建可搜索下拉菜单
 function createSearchableSelect(timeOfDay, containerElement) {
     const wrapper = document.createElement('div');
-    wrapper.className = 'cascade-select';
+    wrapper.className = 'searchable-select';
     
     const input = document.createElement('input');
     input.type = 'text';
-    input.className = 'main-input';
-    input.placeholder = timeOfDay === 'morning' ? '🔍 选择品牌...' : '🔍 选择品牌...';
+    input.placeholder = timeOfDay === 'morning' ? '🔍 Search & add a product to the moring Routing...' : '🔍 Search & add a product to the evening Routing...';
     input.autocomplete = 'off';
-    input.readOnly = true;
     
-    const panel = document.createElement('div');
-    panel.className = 'cascade-panel';
+    const dropdown = document.createElement('div');
+    dropdown.className = 'dropdown-list';
     
     wrapper.appendChild(input);
-    wrapper.appendChild(panel);
+    wrapper.appendChild(dropdown);
     containerElement.appendChild(wrapper);
     
-    let currentLevel = 'brand'; // 'brand' 或 'product'
-    let currentBrand = '';
-    let allBrands = [];
+    let allProducts = [...productsData];
+    allProducts.sort((a, b) => a.name.localeCompare(b.name));
     
-    function rebuildBrandList() {
-        // 获取所有品牌并排序
-        const brandsSet = new Set();
-        productsData.forEach(p => {
-            if (p.brand) brandsSet.add(p.brand);
-        });
-        allBrands = Array.from(brandsSet).sort((a, b) => a.localeCompare(b));
+    function renderDropdownItems(searchTerm = '') {
+        const term = searchTerm.toLowerCase().trim();
+        let filtered = allProducts;
+        if (term) {
+            filtered = allProducts.filter(p => 
+                p.name.toLowerCase().includes(term) || 
+                (p.brand && p.brand.toLowerCase().includes(term))
+            );
+        }
         
-        let html = `<div class="cascade-level">`;
-        for (const brand of allBrands) {
-            const productCount = productsData.filter(p => p.brand === brand).length;
-            html += `
-                <div class="cascade-brand-item" data-brand="${escapeHtml(brand)}">
-                    <span>📁 ${escapeHtml(brand)}</span>
-                    <span class="arrow">▶ ${productCount}</span>
+        if (filtered.length === 0) {
+            dropdown.innerHTML = '<div class="dropdown-item" style="justify-content:center; color:#b7a99a;">未找到产品</div>';
+            return;
+        }
+        
+        dropdown.innerHTML = filtered.map(p => `
+            <div class="dropdown-item" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" 
+                 data-product-brand="${escapeHtml(p.brand || '')}" data-product-price="${p.price}">
+                <div>
+                    <div class="item-name">${escapeHtml(p.name)}</div>
+                    <div class="item-brand">${escapeHtml(p.brand || '')}</div>
                 </div>
-            `;
-        }
-        html += `</div>`;
-        panel.innerHTML = html;
+                <div class="item-price">$${p.price}</div>
+            </div>
+        `).join('');
         
-        // 绑定品牌点击事件
-        panel.querySelectorAll('.cascade-brand-item').forEach(item => {
-            item.onclick = (e) => {
-                e.stopPropagation();
-                currentBrand = item.dataset.brand;
-                currentLevel = 'product';
-                input.value = currentBrand;
-                showProductsByBrand(currentBrand);
-            };
-        });
-    }
-    
-    function showProductsByBrand(brand) {
-        const brandProducts = productsData
-            .filter(p => p.brand === brand)
-            .sort((a, b) => a.name.localeCompare(b.name));
-        
-        let html = `
-            <div class="cascade-level">
-                <div class="cascade-back-btn">← 返回品牌列表</div>
-        `;
-        
-        for (const p of brandProducts) {
-            html += `
-                <div class="cascade-product-item" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}">
-                    <span class="product-name">${escapeHtml(p.name)}</span>
-                    <span class="product-price">$${p.price}</span>
-                </div>
-            `;
-        }
-        html += `</div>`;
-        panel.innerHTML = html;
-        
-        // 绑定返回按钮
-        const backBtn = panel.querySelector('.cascade-back-btn');
-        if (backBtn) {
-            backBtn.onclick = () => {
-                currentLevel = 'brand';
-                input.value = '';
-                rebuildBrandList();
-            };
-        }
-        
-        // 绑定产品点击事件
-        panel.querySelectorAll('.cascade-product-item').forEach(item => {
+        dropdown.querySelectorAll('.dropdown-item').forEach(item => {
             item.onclick = (e) => {
                 e.stopPropagation();
                 const productId = item.dataset.productId;
@@ -100,40 +1266,684 @@ function createSearchableSelect(timeOfDay, containerElement) {
                     renderRoutines();
                     updateTotalPrice();
                     saveToLocalStorage();
+                    // 仅保存到本地，不触发云同步
                 }
                 input.value = '';
-                panel.classList.remove('show');
-                currentLevel = 'brand';
-                rebuildBrandList();
+                dropdown.classList.remove('show');
             };
         });
     }
     
-    // 点击输入框显示品牌列表
-    input.onclick = () => {
-        if (currentLevel === 'brand') {
-            rebuildBrandList();
-        } else if (currentLevel === 'product') {
-            showProductsByBrand(currentBrand);
-        }
-        panel.classList.add('show');
+    input.onfocus = () => {
+        renderDropdownItems('');
+        dropdown.classList.add('show');
     };
     
-    // 点击其他地方关闭
+    input.oninput = (e) => {
+        renderDropdownItems(e.target.value);
+        dropdown.classList.add('show');
+    };
+    
     document.addEventListener('click', function(e) {
         if (!wrapper.contains(e.target)) {
-            panel.classList.remove('show');
+            dropdown.classList.remove('show');
         }
     });
     
     // 监听产品库更新
     const observer = new MutationObserver(() => {
-        if (currentLevel === 'brand') {
-            rebuildBrandList();
+        allProducts = [...productsData];
+        allProducts.sort((a, b) => a.name.localeCompare(b.name));
+        if (dropdown.classList.contains('show') && input.value !== undefined) {
+            renderDropdownItems(input.value);
         }
     });
     observer.observe(document.getElementById('brandProductsContainer') || document.body, { childList: true, subtree: true });
-    
-    // 初始化
-    rebuildBrandList();
 }
+    
+function renderRoutines() {
+    let morningContainer = document.getElementById('morningList');
+    let eveningContainer = document.getElementById('eveningList');
+    
+    if (morningContainer) {
+        let morningHtml = currentMorningProducts.map((item, idx) => renderCard(item.productId, idx, 'morning')).join('');
+        morningContainer.innerHTML = morningHtml;
+        // 添加搜索下拉菜单
+        createSearchableSelect('morning', morningContainer);
+    }
+    if (eveningContainer) {
+        let eveningHtml = currentEveningProducts.map((item, idx) => renderCard(item.productId, idx, 'evening')).join('');
+        eveningContainer.innerHTML = eveningHtml;
+        // 添加搜索下拉菜单
+        createSearchableSelect('evening', eveningContainer);
+    }
+    
+    document.querySelectorAll('#morningList .product-card').forEach((card, newIdx) => { card.dataset.index = newIdx; });
+    document.querySelectorAll('#eveningList .product-card').forEach((card, newIdx) => { card.dataset.index = newIdx; });
+    
+    attachReorderDrag('morningList', currentMorningProducts, () => {
+        updateTotalPrice();
+    });
+    attachReorderDrag('eveningList', currentEveningProducts, () => {
+        updateTotalPrice();
+    });
+    
+    attachDropEvents('morningList', 'morning');
+    attachDropEvents('eveningList', 'evening');
+    attachDeleteEvents();
+}
+
+function renderCard(pid, idx, time) { 
+    let p = getProductById(pid); 
+    if (!p) return ''; 
+    return `<div class="product-card" data-product-id="${p.id}" data-index="${idx}" data-time="${time}" draggable="true">
+        <div class="drag-handle">⋮⋮</div>
+        <button class="delete-btn" data-time="${time}" data-index="${idx}">✕</button>
+        <div class="product-image"><img src="${p.image || 'https://via.placeholder.com/52/f1e8e0/8f7e6b?text=Product'}" alt="${escapeHtml(p.name)}"></div>
+        <div class="product-info">
+            <div class="product-name">${escapeHtml(p.name)} <span class="product-price">$${p.price}</span></div>
+            <div class="benefit">${escapeHtml(p.benefit || '')}</div>
+            <div class="usage"><i class="icon-hand"></i> ${escapeHtml(p.usage || 'No usage instructions provided')}</div>
+        </div>
+    </div>`; 
+}
+
+function attachEmptySlotEvents() {
+    document.querySelectorAll('.empty-slot').forEach(slot => {
+        slot.ondragover = (e) => { e.preventDefault(); slot.classList.add('drag-over'); };
+        slot.ondragleave = () => { slot.classList.remove('drag-over'); };
+        slot.ondrop = async (e) => {
+            e.preventDefault();
+            slot.classList.remove('drag-over');
+            const time = slot.dataset.time;
+            const targetIndex = parseInt(slot.dataset.index);
+            let dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
+            if (dragData && dragData.id) {
+                if (time === 'morning') {
+                    currentMorningProducts.splice(targetIndex, 0, { productId: dragData.id, time: 'morning' });
+                } else {
+                    currentEveningProducts.splice(targetIndex, 0, { productId: dragData.id, time: 'evening' });
+                }
+                renderRoutines();
+                updateTotalPrice();
+                saveToLocalStorage();
+            }
+        };
+    });
+}
+
+function attachDropEvents(containerId, time) { 
+    let container = document.getElementById(containerId); 
+    if (!container) return; 
+    container.ondragover = (e) => e.preventDefault(); 
+    container.ondrop = async (e) => { 
+        e.preventDefault(); 
+        let targetCard = e.target.closest('.product-card'); 
+        if (!targetCard) return; 
+        let targetIdx = parseInt(targetCard.dataset.index); 
+        let dragData = JSON.parse(e.dataTransfer.getData('text/plain')); 
+        if (dragData && dragData.id) { 
+            if (time === 'morning' && currentMorningProducts[targetIdx]) currentMorningProducts[targetIdx] = { productId: dragData.id, time: 'morning' }; 
+            if (time === 'evening' && currentEveningProducts[targetIdx]) currentEveningProducts[targetIdx] = { productId: dragData.id, time: 'evening' }; 
+            renderRoutines();
+            updateTotalPrice();
+            saveToLocalStorage();
+        } 
+    }; 
+}
+
+function attachDeleteEvents() { 
+    document.querySelectorAll('.delete-btn').forEach(btn => { 
+        btn.onclick = async (e) => { 
+            e.stopPropagation(); 
+            let time = btn.dataset.time, idx = parseInt(btn.dataset.index); 
+            if (time === 'morning') currentMorningProducts.splice(idx, 1); 
+            else currentEveningProducts.splice(idx, 1); 
+            renderRoutines();
+            updateTotalPrice();
+            saveToLocalStorage();
+        }; 
+    }); 
+}
+
+function printRoutine() { 
+    let uniqueMorning = currentMorningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx);
+    let uniqueEvening = currentEveningProducts.filter((item, idx, self) => self.findIndex(i => i.productId === item.productId) === idx);
+    
+    let win = window.open('', '_blank'); 
+    win.document.write(`<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Skincare Routine</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 0.5in; background: white; color: #3e3c39; line-height: 1.5; }
+            .print-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2d4c6; padding-bottom: 15px; }
+            .print-header h1 { font-family: 'Montserrat', sans-serif; font-weight: 300; font-size: 28px; color: #7f6e5d; margin-bottom: 8px; }
+            .print-header p { font-size: 12px; color: #b7a99a; }
+            .print-date { font-size: 11px; color: #ccbeaf; margin-top: 5px; }
+            .print-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
+            .print-column { border: 1px solid #e7dbd0; border-radius: 16px; padding: 20px; background: #fefcf8; }
+            .print-column h2 { font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 400; color: #8f7e6b; border-bottom: 1px solid #e2d4c6; padding-bottom: 10px; margin-bottom: 15px; }
+            .print-product { display: flex; gap: 12px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px dashed #e7dbd0; page-break-inside: avoid; break-inside: avoid; }
+            .print-product:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+            .print-product-image { width: 50px; height: 50px; border-radius: 50%; background: #f1e8e0; border: 1px solid #dacbbb; overflow: hidden; flex-shrink: 0; }
+            .print-product-image img { width: 100%; height: 100%; object-fit: cover; }
+            .print-product-info { flex: 1; }
+            .print-product-name { font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 14px; color: #5f5347; margin-bottom: 4px; }
+            .print-product-benefit { font-size: 11px; color: #b7a99a; margin-top: 3px; font-style: italic; }
+            .print-product-usage { font-size: 10px; color: #8e7e6e; margin-top: 5px; line-height: 1.4; }
+            .print-footer { margin-top: 30px; text-align: center; font-size: 10px; color: #ccbeaf; border-top: 1px solid #e7dbd0; padding-top: 15px; }
+            @media print { body { padding: 0; } .print-product { break-inside: avoid; page-break-inside: avoid; } }
+        </style>
+    </head>
+    <body>
+        <div class="print-header">
+            <h1>${escapeHtml(savedRoutines[currentRoutineId]?.name || 'Skincare Routine')}</h1>
+            <p>Personalized Skincare Routine</p>
+            <div class="print-date">Printed on ${new Date().toLocaleDateString()}</div>
+        </div>
+        <div class="print-grid">
+            <div class="print-column">
+                <h2>MORNING ROUTINE ☀️</h2>
+                ${uniqueMorning.map(i => { 
+                    let p = getProductById(i.productId); 
+                    return p ? `
+                    <div class="print-product">
+                        <div class="print-product-image"><img src="${p.image || ''}" alt="${escapeHtml(p.name)}"></div>
+                        <div class="print-product-info">
+                            <div class="print-product-name">${escapeHtml(p.name)}</div>
+                            <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
+                            <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions provided')}</div>
+                        </div>
+                    </div>` : '';
+                }).join('')}
+                ${uniqueMorning.length === 0 ? '<div style="color: #b7a99a; text-align: center; padding: 20px;">No products in morning routine</div>' : ''}
+            </div>
+            <div class="print-column">
+                <h2>EVENING ROUTINE 🌙</h2>
+                ${uniqueEvening.map(i => { 
+                    let p = getProductById(i.productId); 
+                    return p ? `
+                    <div class="print-product">
+                        <div class="print-product-image"><img src="${p.image || ''}" alt="${escapeHtml(p.name)}"></div>
+                        <div class="print-product-info">
+                            <div class="print-product-name">${escapeHtml(p.name)}</div>
+                            <div class="print-product-benefit">${escapeHtml(p.benefit || '')}</div>
+                            <div class="print-product-usage">✦ ${escapeHtml(p.usage || 'No usage instructions provided')}</div>
+                        </div>
+                    </div>` : '';
+                }).join('')}
+                ${uniqueEvening.length === 0 ? '<div style="color: #b7a99a; text-align: center; padding: 20px;">No products in evening routine</div>' : ''}
+            </div>
+        </div>
+        <div class="print-footer">✦ ${savedRoutines[currentRoutineId]?.name || 'Skincare Routine'} ✦</div>
+    </body>
+    </html>`); 
+    win.document.close(); 
+    win.print(); 
+}
+
+function renderBrandTabs() { 
+    let brands = ["all", "SkinMedica", "Skinceuticals", "FNL", "ColorScience", "Others"]; 
+    let container = document.getElementById('brandTabs'); 
+    if (!container) return; 
+    container.innerHTML = brands.map(b => `<button class="brand-tab ${b === currentBrand ? 'active' : ''}" data-brand="${b}">${b === 'all' ? 'All' : b}</button>`).join(''); 
+    document.querySelectorAll('.brand-tab').forEach(tab => { tab.onclick = () => { currentBrand = tab.dataset.brand; renderBrandTabs(); renderBrandProducts(); }; }); 
+}
+
+// ==================== 密码验证函数 ====================
+async function verifyPassword() {
+    const passwordInput = document.getElementById('cloudPassword');
+    const enteredPassword = passwordInput.value;
+    
+    if (enteredPassword === CLOUD_PASSWORD) {
+        isAuthenticated = true;
+        // 👇 添加这一行：设置系统用户 ID
+        currentUserId = SYSTEM_USER_ID;
+        document.getElementById('authStatus').innerHTML = `✅ Cloud access verified!`;
+        document.getElementById('verifyPasswordBtn').style.display = 'none';
+        document.getElementById('clearPasswordBtn').style.display = 'inline-block';
+        passwordInput.style.display = 'none';
+        
+        // 初始化 Supabase 客户端
+        if (typeof supabase !== 'undefined') {
+            supabaseClient = supabase;
+            await loadFromCloud();
+            refreshUI();
+            alert("Password verified! Cloud data loaded.");
+        } else {
+            alert("Supabase not ready. Please refresh the page.");
+        }
+    } else {
+        alert("Incorrect password! Please try again.");
+        isAuthenticated = false;
+    }
+    updateUIBasedOnAuth();
+}
+
+function clearPassword() {
+    isAuthenticated = false;
+    supabaseClient = null;
+    document.getElementById('authStatus').innerHTML = `🔒 Enter password to enable cloud operations`;
+    document.getElementById('verifyPasswordBtn').style.display = 'inline-block';
+    document.getElementById('clearPasswordBtn').style.display = 'none';
+    document.getElementById('cloudPassword').style.display = 'inline-block';
+    document.getElementById('cloudPassword').value = '';
+    
+    // 重新从本地加载
+    loadFromLocalStorage();
+    refreshUI();
+    updateUIBasedOnAuth();
+    alert("Password cleared. Using local data only.");
+}
+
+function refreshUI() {
+    renderBrandTabs();
+    renderBrandProducts();
+    renderRoutineButtons();
+    renderRoutines();
+    updateTotalPrice();
+    if (currentRoutineId) highlightActiveRoutine();
+    updateUIBasedOnAuth();
+}
+
+    // ==================== Quote 功能（无需登录，完全本地使用）====================
+function generateQuote() {
+    // 获取所有唯一产品（去重）- 直接从当前页面数据获取
+    const allProducts = [...currentMorningProducts, ...currentEveningProducts];
+    const productMap = new Map();
+    
+    for (const item of allProducts) {
+        if (!productMap.has(item.productId)) {
+            const product = getProductById(item.productId);
+            if (product) {
+                productMap.set(item.productId, {
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    discountType: '%',     // '%' 或 'fixed'
+                    discountValue: 0       // 折扣数值（百分比或固定金额）
+                });
+            }
+        }
+    }
+    
+    const quoteItems = Array.from(productMap.values());
+    
+    if (quoteItems.length === 0) {
+        alert('No products in your routine. Please add products first.');
+        return;
+    }
+    
+    const modal = document.getElementById('quoteModal');
+    const routineNameSpan = document.getElementById('quoteRoutineName');
+    const tableBody = document.getElementById('quoteTableBody');
+    
+    routineNameSpan.textContent = savedRoutines[currentRoutineId]?.name || 'Current Routine';
+    
+    function renderQuoteTable() {
+        tableBody.innerHTML = quoteItems.map((item, idx) => {
+            // 计算折扣后的单价和总价
+            let discountedUnitPrice = item.price;
+            if (item.discountType === '%') {
+                discountedUnitPrice = item.price * (1 - item.discountValue / 100);
+            } else if (item.discountType === 'fixed') {
+                discountedUnitPrice = Math.max(0, item.price - item.discountValue);
+            }
+            const totalPrice = discountedUnitPrice * item.quantity;
+            
+            return `
+                <tr>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">${escapeHtml(item.name)}</td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">$${item.price.toFixed(2)}</td>
+                    <td style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0;">
+                        <input type="number" class="qty-input" data-idx="${idx}" value="${item.quantity}" min="1" step="1" style="width:55px; padding: 0.3rem;">
+                    </td>
+                    
+<td style="padding: 0.5rem; border-bottom: 1px solid #e7dbd0;">
+    <div style="display: flex; gap: 0.3rem; align-items: center;">
+        <input type="number" class="discount-percent" data-idx="${idx}" value="${item.discountType === '%' && item.discountValue > 0 ? item.discountValue : ''}" min="0" max="100" step="1" placeholder="0" style="width: 65px; padding: 0.35rem; border: 1px solid #e2d4c6; border-radius: 6px; text-align: center; font-size: 0.75rem;">
+        <span style="color: #d2c0b0; font-size: 0.7rem;">% off OR $</span>
+        <input type="number" class="discount-fixed" data-idx="${idx}" value="${item.discountType === 'fixed' && item.discountValue > 0 ? item.discountValue : ''}" min="0" step="1" placeholder="0" style="width: 65px; padding: 0.35rem; border: 1px solid #e2d4c6; border-radius: 6px; text-align: center; font-size: 0.75rem;">
+        <span style="color: #d2c0b0; font-size: 0.7rem;">off each</span>
+    </div>
+</td>
+
+                    <td class="discounted-price" style="padding: 0.75rem; border-bottom: 1px solid #e7dbd0; font-weight: 500;">$${totalPrice.toFixed(2)}</td>
+                </tr>
+            `;
+        }).join('');
+        
+// 绑定数量变化事件
+document.querySelectorAll('.qty-input').forEach(input => {
+    input.removeEventListener('change', handleQuantityChange);
+    input.addEventListener('change', handleQuantityChange);
+});
+
+// 绑定百分比折扣变化事件
+document.querySelectorAll('.discount-percent').forEach(input => {
+    input.removeEventListener('change', handlePercentChange);
+    input.addEventListener('change', handlePercentChange);
+});
+
+// 绑定固定金额折扣变化事件
+document.querySelectorAll('.discount-fixed').forEach(input => {
+    input.removeEventListener('change', handleFixedChange);
+    input.addEventListener('change', handleFixedChange);
+});
+
+function handleQuantityChange(e) {
+    const idx = parseInt(e.target.dataset.idx);
+    quoteItems[idx].quantity = parseInt(e.target.value) || 1;
+    updateQuoteTotals(quoteItems);
+    renderQuoteTable();
+}
+
+function handlePercentChange(e) {
+    const idx = parseInt(e.target.dataset.idx);
+    let percentValue = parseFloat(e.target.value);
+    // 如果输入为空或无效，设为 0
+    if (isNaN(percentValue) || e.target.value === '') {
+        percentValue = 0;
+    }
+    quoteItems[idx].discountType = '%';
+    quoteItems[idx].discountValue = percentValue;
+    // 清空固定金额输入框
+    const fixedInput = document.querySelector(`.discount-fixed[data-idx="${idx}"]`);
+    if (fixedInput) fixedInput.value = '';
+    updateQuoteTotals(quoteItems);
+    renderQuoteTable();
+}
+
+function handleFixedChange(e) {
+    const idx = parseInt(e.target.dataset.idx);
+    let fixedValue = parseFloat(e.target.value);
+    // 如果输入为空或无效，设为 0
+    if (isNaN(fixedValue) || e.target.value === '') {
+        fixedValue = 0;
+    }
+    quoteItems[idx].discountType = 'fixed';
+    quoteItems[idx].discountValue = fixedValue;
+    // 清空百分比输入框
+    const percentInput = document.querySelector(`.discount-percent[data-idx="${idx}"]`);
+    if (percentInput) percentInput.value = '';
+    // 额度折扣时不能超过原价
+    if (quoteItems[idx].discountValue > quoteItems[idx].price) {
+        quoteItems[idx].discountValue = quoteItems[idx].price;
+        e.target.value = quoteItems[idx].price;
+    }
+    updateQuoteTotals(quoteItems);
+    renderQuoteTable();
+}
+
+updateQuoteTotals(quoteItems);
+}    
+    
+    function updateQuoteTotals(items) {
+        let subtotalBeforeDiscount = 0;
+        let subtotalAfterDiscount = 0;
+        
+        for (const item of items) {
+            const itemTotal = item.price * item.quantity;
+            subtotalBeforeDiscount += itemTotal;
+            
+            let discountedTotal = itemTotal;
+            if (item.discountType === '%') {
+                discountedTotal = itemTotal * (1 - item.discountValue / 100);
+            } else if (item.discountType === 'fixed') {
+                discountedTotal = itemTotal - (item.discountValue * item.quantity);
+                discountedTotal = Math.max(0, discountedTotal);
+            }
+            subtotalAfterDiscount += discountedTotal;
+        }
+        
+        const totalDiscountAmount = subtotalBeforeDiscount - subtotalAfterDiscount;
+        const tax = subtotalAfterDiscount * 0.12;
+        const grandTotal = subtotalAfterDiscount + tax;
+        
+        document.getElementById('subtotalBeforeDiscount').innerText = subtotalBeforeDiscount.toFixed(2);
+        document.getElementById('totalDiscountAmount').innerText = totalDiscountAmount.toFixed(2);
+        document.getElementById('subtotalAfterDiscount').innerText = subtotalAfterDiscount.toFixed(2);
+        document.getElementById('taxAmount').innerText = tax.toFixed(2);
+        document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
+        
+        window.currentQuoteData = { 
+            items, 
+            subtotalBeforeDiscount,
+            totalDiscountAmount,
+            subtotalAfterDiscount,
+            tax, 
+            grandTotal, 
+            routineName: savedRoutines[currentRoutineId]?.name 
+        };
+    }
+    
+    renderQuoteTable();
+    modal.classList.add('show');
+}
+
+function printQuote() {
+    const data = window.currentQuoteData;
+    if (!data) {
+        alert('No quote data to print.');
+        return;
+    }
+    
+    // 先检查是否有折扣
+    const hasAnyDiscount = data.items.some(item => item.discountValue > 0);
+    
+    const win = window.open('', '_blank');
+    win.document.write(`<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Price Quote</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Inter', sans-serif; padding: 0.5in; background: white; }
+            .quote-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e2d4c6; padding-bottom: 20px; }
+            .quote-header h1 { font-size: 28px; color: #7f6e5d; margin-bottom: 8px; }
+            .quote-date { font-size: 11px; color: #ccbeaf; margin-top: 5px; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e7dbd0; }
+            th { background: #f5efe8; font-weight: 600; }
+            .totals { text-align: right; margin-top: 20px; padding-top: 20px; border-top: 2px solid #e2d4c6; }
+            .totals p { margin: 8px 0; }
+            .savings { color: #2d6a4f; font-weight: 600; }
+            .grand-total { font-size: 18px; font-weight: bold; }
+            @media print { body { padding: 0; } }
+        </style>
+    </head>
+    <body>
+        <div class="quote-header">
+            <h1>Price Quote</h1>
+            <div class="quote-date">Generated on ${new Date().toLocaleDateString()}</div>
+            <p style="margin-top: 10px;"><strong>Routine:</strong> ${escapeHtml(data.routineName || 'Skincare Routine')}</p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Unit Price</th>
+                    <th>Quantity</th>
+                    ${hasAnyDiscount ? '<th>Discount</th>' : ''}
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${data.items.map(item => {
+                    let discountedUnitPrice = item.price;
+                    if (item.discountType === '%') {
+                        discountedUnitPrice = item.price * (1 - item.discountValue / 100);
+                    } else if (item.discountType === 'fixed') {
+                        discountedUnitPrice = Math.max(0, item.price - item.discountValue);
+                    }
+                    const discountDisplay = item.discountType === '%' ? `${item.discountValue}%` : `$${item.discountValue}`;
+                    return `
+                        <tr>
+                            <td>${escapeHtml(item.name)}</td>
+                            <td>$${item.price.toFixed(2)}</td>
+                            <td>${item.quantity}</td>
+                            ${hasAnyDiscount ? `<td>${item.discountValue > 0 ? discountDisplay : '-'}</td>` : ''}
+                            <td>$${(discountedUnitPrice * item.quantity).toFixed(2)}</td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+        <div class="totals">
+            <p>💰 Subtotal (Before Discount): $${data.subtotalBeforeDiscount.toFixed(2)}</p>
+            <p class="savings">🏷️ Total Discount: -$${data.totalDiscountAmount.toFixed(2)}</p>
+            <p>✨ Subtotal (After Discount): $${data.subtotalAfterDiscount.toFixed(2)}</p>
+            <p>📋 Tax (12%): $${data.tax.toFixed(2)}</p>
+            <p class="grand-total">💵 Grand Total: $${data.grandTotal.toFixed(2)}</p>
+        </div>
+    </body>
+    </html>`);
+    win.document.close();
+    win.print();
+}
+
+function emailQuote() {
+    const data = window.currentQuoteData;
+    if (!data) {
+        alert('No quote data to email.');
+        return;
+    }
+    
+    // 检查是否有任何折扣
+    const hasAnyDiscount = data.items.some(item => item.discountValue > 0);
+    
+    let emailBody = `Price Quote\n\n`;
+    emailBody += `Routine: ${data.routineName || 'Skincare Routine'}\n`;
+    emailBody += `Generated on: ${new Date().toLocaleDateString()}\n\n`;
+    emailBody += `Products:\n`;
+    
+    for (const item of data.items) {
+        let discountedUnitPrice = item.price;
+        let discountText = '';
+        if (hasAnyDiscount && item.discountValue > 0) {
+            if (item.discountType === '%') {
+                discountedUnitPrice = item.price * (1 - item.discountValue / 100);
+                discountText = ` (${item.discountValue}% off)`;
+            } else if (item.discountType === 'fixed') {
+                discountedUnitPrice = Math.max(0, item.price - item.discountValue);
+                discountText = ` ($${item.discountValue} off each)`;
+            }
+        } else {
+            discountedUnitPrice = item.price;
+        }
+        emailBody += `- ${item.name}: $${item.price.toFixed(2)} x ${item.quantity}${discountText} = $${(discountedUnitPrice * item.quantity).toFixed(2)}\n`;
+    }
+    
+    emailBody += `\n💰 Subtotal (Before Discount): $${data.subtotalBeforeDiscount.toFixed(2)}\n`;
+    if (hasAnyDiscount) {
+        emailBody += `🏷️ Total Discount: -$${data.totalDiscountAmount.toFixed(2)}\n`;
+    }
+    emailBody += `✨ Subtotal (After Discount): $${data.subtotalAfterDiscount.toFixed(2)}\n`;
+    emailBody += `📋 Tax (12%): $${data.tax.toFixed(2)}\n`;
+    emailBody += `💵 Grand Total: $${data.grandTotal.toFixed(2)}\n`;
+    
+    window.location.href = `mailto:?subject=Skincare Quote&body=${encodeURIComponent(emailBody)}`;
+}
+    
+// 按钮绑定
+document.getElementById('toggleAddBtn').onclick = () => { 
+    document.getElementById('editProductId').value = ''; 
+    closeForm(); 
+    document.getElementById('productForm').classList.add('show'); 
+    document.getElementById('toggleAddBtn').style.display = 'none'; 
+};
+document.getElementById('cancelFormBtn').onclick = closeForm;
+document.getElementById('saveProductBtn').onclick = saveProduct;
+document.getElementById('printBtn').onclick = printRoutine;
+document.getElementById('editRoutineBtn').onclick = () => { 
+    if (!isAuthenticated) { alert("Please verify password first."); return; }
+    let newName = prompt("Edit routine name:", savedRoutines[currentRoutineId]?.name); 
+    if(newName) renameCurrentRoutine(newName); 
+};
+document.getElementById('verifyPasswordBtn').onclick = verifyPassword;
+document.getElementById('clearPasswordBtn').onclick = clearPassword;
+document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
+document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutine;
+document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
+document.getElementById('syncAllBtn').onclick = forceSyncAllToCloud;
+
+    // Quote 按钮绑定
+document.getElementById('quoteBtn').onclick = generateQuote;
+document.getElementById('closeModalBtn').onclick = () => {
+    document.getElementById('quoteModal').classList.remove('show');
+};
+document.getElementById('printQuoteBtn').onclick = printQuote;
+document.getElementById('emailQuoteBtn').onclick = emailQuote;
+
+// 点击弹窗背景关闭
+document.getElementById('quoteModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('quoteModal')) {
+        document.getElementById('quoteModal').classList.remove('show');
+    }
+});
+
+// ==================== 启动应用 ====================
+async function initApp() {
+    // 1. 先加载本地数据作为备用
+    loadFromLocalStorage();
+    refreshUI();
+    
+    // 2. 尝试从云端加载数据（只读，不需要密码）
+    if (typeof supabase !== 'undefined') {
+        supabaseClient = supabase;
+        try {
+            // 从云端加载数据（不依赖 isAuthenticated）
+            const { data: products } = await supabaseClient.from('products').select('*');
+            const { data: routines } = await supabaseClient.from('routines').select('*');
+            const { data: state } = await supabaseClient.from('user_state').select('current_routine_id').maybeSingle();
+            
+            if (products && products.length > 0) {
+                productsData = products;
+                productsData = sortProductsByName(productsData);
+            }
+            
+            if (routines && routines.length > 0) {
+                savedRoutines = {};
+                routines.forEach(r => { savedRoutines[r.id] = { name: r.name, morning: r.morning, evening: r.evening }; });
+                savedRoutines = Object.fromEntries(
+                    Object.entries(savedRoutines).sort((a, b) => a[1].name.localeCompare(b[1].name))
+                );
+            }
+            
+            if (state && state.current_routine_id && savedRoutines[state.current_routine_id]) {
+                currentRoutineId = state.current_routine_id;
+            } else {
+                currentRoutineId = Object.keys(savedRoutines)[0] || null;
+            }
+            
+            if (currentRoutineId && savedRoutines[currentRoutineId]) {
+                currentMorningProducts = savedRoutines[currentRoutineId].morning.map(pid => ({ productId: pid, time: "morning" }));
+                currentEveningProducts = savedRoutines[currentRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
+            }
+            
+            saveToLocalStorage();
+            refreshUI();
+            console.log('✅ 云端数据已加载（只读模式）');
+            
+            // 更新状态提示
+            const statusDiv = document.getElementById('authStatus');
+            if (statusDiv && !isAuthenticated) {
+                statusDiv.innerHTML = `🔓 只读模式 · 输入密码以启用云同步`;
+            }
+        } catch (e) {
+            console.log('云端加载失败，使用本地数据:', e);
+        }
+    }
+}
+
+// 启动应用
+initApp();
+    
+</script>
+</body>
+</html>
