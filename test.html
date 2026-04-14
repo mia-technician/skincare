@@ -636,9 +636,601 @@
                 </div>
             </div>
 
-<!-- 推荐疗程区（统一报价单结构） -->
-<div class="column" style="background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.4rem; border: 1px solid #e7dbd0;">
-    <div class="column-title">📋 套餐内容（产品 + 疗程）</div>
+// ==================== Treatment Module Functions ====================
+
+// Get treatment info
+function getServiceById(id) { return servicesData.find(s => s.id === id); }
+
+// Save treatment data to local storage
+function saveServicesToLocalStorage() {
+    localStorage.setItem('skincare_services', JSON.stringify(servicesData));
+    localStorage.setItem('skincare_packages', JSON.stringify(savedPackages));
+    localStorage.setItem('skincare_current_treatments', JSON.stringify(currentTreatments.map(t => t.serviceId)));
+    localStorage.setItem('skincare_current_package_id', currentPackageId || '');
+}
+
+// Load treatment data from local storage
+function loadServicesFromLocalStorage() {
+    const savedServices = localStorage.getItem('skincare_services');
+    const savedPackagesData = localStorage.getItem('skincare_packages');
+    const savedTreatments = localStorage.getItem('skincare_current_treatments');
+    const savedPackageId = localStorage.getItem('skincare_current_package_id');
+    
+    if (savedServices) servicesData = JSON.parse(savedServices);
+    else servicesData = JSON.parse(JSON.stringify(DEFAULT_SERVICES));
+    
+    if (savedPackagesData) savedPackages = JSON.parse(savedPackagesData);
+    else savedPackages = JSON.parse(JSON.stringify(INITIAL_PACKAGES));
+    
+    if (savedTreatments && JSON.parse(savedTreatments).length > 0) {
+        currentTreatments = JSON.parse(savedTreatments).map(sid => ({ serviceId: sid }));
+    } else if (savedPackageId && savedPackages[savedPackageId]) {
+        currentTreatments = savedPackages[savedPackageId].services.map(sid => ({ serviceId: sid }));
+    } else {
+        currentTreatments = [];
+    }
+    
+    if (savedPackageId && savedPackages[savedPackageId]) {
+        currentPackageId = savedPackageId;
+    } else {
+        currentPackageId = Object.keys(savedPackages)[0] || null;
+    }
+}
+
+// Render service library
+function renderServiceLibrary() {
+    const container = document.getElementById('serviceList');
+    if (!container) return;
+    
+    let filtered = servicesData;
+    if (currentServiceCategory !== "all") {
+        filtered = servicesData.filter(s => s.category === currentServiceCategory);
+    }
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+    
+    container.innerHTML = filtered.map(s => `
+        <div class="service-item">
+            ${escapeHtml(s.name)} - $${s.price}
+            <span class="service-actions">
+                <span class="edit-service-icon" data-id="${s.id}" style="cursor:pointer; opacity:0.6;">✎</span>
+                <span class="delete-service-icon" data-id="${s.id}" style="cursor:pointer; opacity:0.6;">🗑️</span>
+            </span>
+        </div>
+    `).join('');
+    
+    document.querySelectorAll('.edit-service-icon').forEach(icon => {
+        icon.onclick = () => openEditService(icon.dataset.id);
+    });
+    document.querySelectorAll('.delete-service-icon').forEach(icon => {
+        icon.onclick = () => deleteService(icon.dataset.id);
+    });
+}
+
+// Open edit service form
+function openEditService(serviceId) {
+    const service = getServiceById(serviceId);
+    if (service) {
+        document.getElementById('serviceName').value = service.name;
+        document.getElementById('serviceCategory').value = service.category;
+        document.getElementById('servicePrice').value = service.price;
+        document.getElementById('editServiceId').value = service.id;
+        document.getElementById('serviceForm').classList.add('show');
+        document.getElementById('toggleAddServiceBtn').style.display = 'none';
+    }
+}
+
+// Save service
+async function saveService() {
+    const name = document.getElementById('serviceName').value.trim();
+    if (!name) { alert("Enter service name"); return; }
+    
+    const newService = {
+        id: document.getElementById('editServiceId').value || generateId(),
+        name: name,
+        category: document.getElementById('serviceCategory').value,
+        price: parseFloat(document.getElementById('servicePrice').value) || 0
+    };
+    
+    const existing = servicesData.findIndex(s => s.id === newService.id);
+    if (existing >= 0) servicesData[existing] = newService;
+    else servicesData.push(newService);
+    
+    closeServiceForm();
+    renderServiceLibrary();
+    renderPackageButtons();
+    if (typeof initUnifiedItems === 'function') initUnifiedItems();
+    if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
+    saveServicesToLocalStorage();
+    
+    if (isAuthenticated && supabaseClient) {
+        await supabaseClient.from('services').upsert({ ...newService, user_id: currentUserId });
+    }
+}
+
+function closeServiceForm() {
+    document.getElementById('serviceForm').classList.remove('show');
+    document.getElementById('toggleAddServiceBtn').style.display = '';
+    document.getElementById('serviceName').value = '';
+    document.getElementById('editServiceId').value = '';
+}
+
+async function deleteService(serviceId) {
+    if (confirm('Delete this service?')) {
+        servicesData = servicesData.filter(s => s.id !== serviceId);
+        for (let id in savedPackages) {
+            savedPackages[id].services = savedPackages[id].services.filter(sid => sid !== serviceId);
+        }
+        currentTreatments = currentTreatments.filter(t => t.serviceId !== serviceId);
+        renderServiceLibrary();
+        renderPackageButtons();
+        if (typeof initUnifiedItems === 'function') initUnifiedItems();
+        if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
+        saveServicesToLocalStorage();
+        
+        if (isAuthenticated && supabaseClient) {
+            await supabaseClient.from('services').delete().eq('id', serviceId);
+        }
+    }
+}
+
+// Render package buttons
+function renderPackageButtons() {
+    const container = document.getElementById('packageButtons');
+    if (!container) return;
+    
+    if (Object.keys(savedPackages).length === 0) {
+        container.innerHTML = '<div style="color: #b7a99a; padding: 0.5rem;">No packages available.</div>';
+        return;
+    }
+    
+    container.innerHTML = Object.entries(savedPackages).map(([id, p]) => 
+        `<button class="package-btn ${id === currentPackageId ? 'active' : ''}" data-id="${id}">${escapeHtml(p.name)}</button>`
+    ).join('');
+    
+    document.querySelectorAll('.package-btn').forEach(btn => {
+        btn.onclick = () => loadPackage(btn.dataset.id);
+    });
+}
+
+// Load package (replace current content)
+function loadPackage(packageId) {
+    const pkg = savedPackages[packageId];
+    if (!pkg) return;
+    
+    currentPackageId = packageId;
+    
+    if (pkg.products && pkg.products.length > 0) {
+        currentMorningProducts = [];
+        currentEveningProducts = [];
+        pkg.products.forEach(pid => {
+            currentMorningProducts.push({ productId: pid, time: "morning" });
+        });
+        if (typeof renderRoutines === 'function') renderRoutines();
+        if (typeof updateTotalPrice === 'function') updateTotalPrice();
+    }
+    
+    currentTreatments = (pkg.services || []).map(sid => ({ serviceId: sid }));
+    if (typeof initUnifiedItems === 'function') initUnifiedItems();
+    if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
+    
+    highlightActivePackage();
+    saveServicesToLocalStorage();
+}
+
+function highlightActivePackage() {
+    document.querySelectorAll('.package-btn').forEach(btn => {
+        if (btn.dataset.id === currentPackageId) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+}
+
+// ==================== Unified Quote Functions ====================
+
+let unifiedItems = [];
+
+// Initialize unified items from products and treatments
+function initUnifiedItems() {
+    unifiedItems = [];
+    
+    // Add products (deduplicated)
+    const allProducts = [...currentMorningProducts, ...currentEveningProducts];
+    const productMap = new Map();
+    for (const item of allProducts) {
+        if (!productMap.has(item.productId)) {
+            const product = getProductById(item.productId);
+            if (product) {
+                productMap.set(item.productId, {
+                    type: 'product',
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    discountType: '%',
+                    discountValue: 0
+                });
+            }
+        }
+    }
+    unifiedItems.push(...Array.from(productMap.values()));
+    
+    // Add treatments
+    for (const t of currentTreatments) {
+        const service = getServiceById(t.serviceId);
+        if (service && !unifiedItems.some(i => i.type === 'service' && i.id === service.id)) {
+            unifiedItems.push({
+                type: 'service',
+                id: service.id,
+                name: service.name,
+                price: service.price,
+                quantity: 1,
+                discountType: '%',
+                discountValue: 0
+            });
+        }
+    }
+}
+
+// Render unified quote table
+function renderUnifiedQuote() {
+    const tbody = document.getElementById('unifiedQuoteBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = unifiedItems.map((item, idx) => {
+        let discountedPrice = item.price;
+        if (item.discountType === '%') {
+            discountedPrice = item.price * (1 - item.discountValue / 100);
+        } else if (item.discountType === 'fixed') {
+            discountedPrice = Math.max(0, item.price - item.discountValue);
+        }
+        const totalPrice = discountedPrice * item.quantity;
+        const typeLabel = item.type === 'product' ? '📦 Product' : '💆 Treatment';
+        
+        return `
+            <tr>
+                <td style="padding: 0.5rem;">${typeLabel}</td>
+                <td style="padding: 0.5rem;">${escapeHtml(item.name)}</td>
+                <td style="padding: 0.5rem;">$${item.price.toFixed(2)}</td>
+                <td style="padding: 0.5rem;"><input type="number" class="unified-qty" data-idx="${idx}" value="${item.quantity}" min="1" step="1" style="width:60px; padding:0.3rem;"></td>
+                <td style="padding: 0.5rem;">
+                    <div style="display: flex; gap: 0.3rem; align-items: center;">
+                        <input type="number" class="unified-percent" data-idx="${idx}" value="${item.discountType === '%' && item.discountValue > 0 ? item.discountValue : ''}" placeholder="%" style="width:55px; padding:0.3rem;">
+                        <span style="color:#d2c0b0;">/</span>
+                        <input type="number" class="unified-fixed" data-idx="${idx}" value="${item.discountType === 'fixed' && item.discountValue > 0 ? item.discountValue : ''}" placeholder="$" style="width:65px; padding:0.3rem;">
+                    </div>
+                </td>
+                <td style="padding: 0.5rem;">$${totalPrice.toFixed(2)}</td>
+                <td style="padding: 0.5rem;"><button class="unified-remove-btn" data-idx="${idx}" style="background:#e9dfd4; border:none; border-radius:50%; width:22px; cursor:pointer;">✕</button></td>
+            </tr>
+        `;
+    }).join('');
+    
+    // Bind events
+    document.querySelectorAll('.unified-qty').forEach(input => {
+        input.onchange = (e) => {
+            const idx = parseInt(e.target.dataset.idx);
+            unifiedItems[idx].quantity = parseInt(e.target.value) || 1;
+            renderUnifiedQuote();
+            updateUnifiedTotals();
+            syncToLegacyData();
+        };
+    });
+    
+    document.querySelectorAll('.unified-percent').forEach(input => {
+        input.onchange = (e) => {
+            const idx = parseInt(e.target.dataset.idx);
+            const val = parseFloat(e.target.value) || 0;
+            unifiedItems[idx].discountType = '%';
+            unifiedItems[idx].discountValue = val;
+            const fixedInput = document.querySelector(`.unified-fixed[data-idx="${idx}"]`);
+            if (fixedInput) fixedInput.value = '';
+            renderUnifiedQuote();
+            updateUnifiedTotals();
+            syncToLegacyData();
+        };
+    });
+    
+    document.querySelectorAll('.unified-fixed').forEach(input => {
+        input.onchange = (e) => {
+            const idx = parseInt(e.target.dataset.idx);
+            let val = parseFloat(e.target.value) || 0;
+            if (val > unifiedItems[idx].price) val = unifiedItems[idx].price;
+            unifiedItems[idx].discountType = 'fixed';
+            unifiedItems[idx].discountValue = val;
+            const percentInput = document.querySelector(`.unified-percent[data-idx="${idx}"]`);
+            if (percentInput) percentInput.value = '';
+            renderUnifiedQuote();
+            updateUnifiedTotals();
+            syncToLegacyData();
+        };
+    });
+    
+    document.querySelectorAll('.unified-remove-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            const idx = parseInt(btn.dataset.idx);
+            unifiedItems.splice(idx, 1);
+            renderUnifiedQuote();
+            updateUnifiedTotals();
+            syncToLegacyData();
+        };
+    });
+    
+    updateUnifiedTotals();
+}
+
+// Update totals
+function updateUnifiedTotals() {
+    let productSubtotal = 0, serviceSubtotal = 0, totalDiscount = 0;
+    
+    for (const item of unifiedItems) {
+        const itemTotal = item.price * item.quantity;
+        let discountedTotal = itemTotal;
+        if (item.discountType === '%') {
+            discountedTotal = itemTotal * (1 - item.discountValue / 100);
+        } else if (item.discountType === 'fixed') {
+            discountedTotal = Math.max(0, itemTotal - item.discountValue * item.quantity);
+        }
+        const discount = itemTotal - discountedTotal;
+        totalDiscount += discount;
+        
+        if (item.type === 'product') {
+            productSubtotal += discountedTotal;
+        } else {
+            serviceSubtotal += discountedTotal;
+        }
+    }
+    
+    const productTax = productSubtotal * 0.12;
+    const serviceTax = serviceSubtotal * 0.05;
+    const grandTotal = productSubtotal + serviceSubtotal + productTax + serviceTax;
+    
+    const productSubtotalEl = document.getElementById('unifiedProductSubtotal');
+    const serviceSubtotalEl = document.getElementById('unifiedServiceSubtotal');
+    const totalDiscountEl = document.getElementById('unifiedTotalDiscount');
+    const productTaxEl = document.getElementById('unifiedProductTax');
+    const serviceTaxEl = document.getElementById('unifiedServiceTax');
+    const grandTotalEl = document.getElementById('unifiedGrandTotal');
+    
+    if (productSubtotalEl) productSubtotalEl.innerText = productSubtotal.toFixed(2);
+    if (serviceSubtotalEl) serviceSubtotalEl.innerText = serviceSubtotal.toFixed(2);
+    if (totalDiscountEl) totalDiscountEl.innerText = totalDiscount.toFixed(2);
+    if (productTaxEl) productTaxEl.innerText = productTax.toFixed(2);
+    if (serviceTaxEl) serviceTaxEl.innerText = serviceTax.toFixed(2);
+    if (grandTotalEl) grandTotalEl.innerText = grandTotal.toFixed(2);
+}
+
+// Sync back to legacy data structures
+function syncToLegacyData() {
+    // Sync products to morning/evening routines
+    const products = unifiedItems.filter(item => item.type === 'product');
+    currentMorningProducts = [];
+    currentEveningProducts = [];
+    products.forEach(p => {
+        currentMorningProducts.push({ productId: p.id, time: 'morning' });
+    });
+    
+    // Sync treatments
+    currentTreatments = unifiedItems.filter(item => item.type === 'service').map(item => ({ serviceId: item.id }));
+    
+    saveToLocalStorage();
+    saveServicesToLocalStorage();
+}
+
+// Initialize unified search dropdown
+function initUnifiedSearch() {
+    const input = document.getElementById('unifiedSearchInput');
+    const panel = document.getElementById('unifiedSearchPanel');
+    if (!input || !panel) {
+        console.error('Search elements not found');
+        return;
+    }
+    
+    let searchTimeout = null;
+    
+    function renderMainMenu() {
+        let html = `
+            <div class="cascade-level">
+                <div class="cascade-brand-item" data-type="product" style="cursor:pointer;">
+                    <span>📦 Products</span>
+                    <span class="arrow">▶</span>
+                </div>
+                <div class="cascade-brand-item" data-type="service" style="cursor:pointer;">
+                    <span>💆 Treatments</span>
+                    <span class="arrow">▶</span>
+                </div>
+            </div>
+        `;
+        panel.innerHTML = html;
+        
+        const productBtn = panel.querySelector('.cascade-brand-item[data-type="product"]');
+        const serviceBtn = panel.querySelector('.cascade-brand-item[data-type="service"]');
+        if (productBtn) productBtn.onclick = () => showProductBrands();
+        if (serviceBtn) serviceBtn.onclick = () => showServiceCategories();
+    }
+    
+    function showProductBrands() {
+        const brands = [...new Set(productsData.map(p => p.brand).filter(b => b))].sort();
+        let html = `<div class="cascade-level"><div class="cascade-back-btn" style="cursor:pointer;">← Back</div><div style="padding: 0.4rem 1rem; background: #f5efe8;">📁 Select Brand</div>`;
+        for (const brand of brands) {
+            const count = productsData.filter(p => p.brand === brand).length;
+            html += `<div class="cascade-brand-item" data-brand="${escapeHtml(brand)}" style="cursor:pointer;"><span>📁 ${escapeHtml(brand)}</span><span class="arrow">▶ ${count}</span></div>`;
+        }
+        html += `</div>`;
+        panel.innerHTML = html;
+        
+        const backBtn = panel.querySelector('.cascade-back-btn');
+        if (backBtn) backBtn.onclick = () => renderMainMenu();
+        
+        panel.querySelectorAll('.cascade-brand-item[data-brand]').forEach(item => {
+            item.onclick = () => showProductsByBrand(item.dataset.brand);
+        });
+    }
+    
+    function showProductsByBrand(brand) {
+        const products = productsData.filter(p => p.brand === brand).sort((a, b) => a.name.localeCompare(b.name));
+        let html = `<div class="cascade-level"><div class="cascade-back-btn" style="cursor:pointer;">← Back to Brands</div><div style="padding: 0.4rem 1rem; background: #f5efe8;">📦 ${escapeHtml(brand)}</div>`;
+        for (const p of products) {
+            html += `<div class="cascade-product-item" data-product-id="${p.id}" style="cursor:pointer;">
+                        <span>${escapeHtml(p.name)}</span>
+                        <span>$${p.price}</span>
+                     </div>`;
+        }
+        html += `</div>`;
+        panel.innerHTML = html;
+        
+        const backBtn = panel.querySelector('.cascade-back-btn');
+        if (backBtn) backBtn.onclick = () => showProductBrands();
+        
+        panel.querySelectorAll('.cascade-product-item[data-product-id]').forEach(item => {
+            item.onclick = () => addItem('product', item.dataset.productId);
+        });
+    }
+    
+    function showServiceCategories() {
+        const categories = ['注射', '镭射', '其它'];
+        let html = `<div class="cascade-level"><div class="cascade-back-btn" style="cursor:pointer;">← Back</div><div style="padding: 0.4rem 1rem; background: #f5efe8;">📁 Select Category</div>`;
+        for (const cat of categories) {
+            const count = servicesData.filter(s => s.category === cat).length;
+            html += `<div class="cascade-brand-item" data-category="${cat}" style="cursor:pointer;"><span>📁 ${cat}</span><span class="arrow">▶ ${count}</span></div>`;
+        }
+        html += `</div>`;
+        panel.innerHTML = html;
+        
+        const backBtn = panel.querySelector('.cascade-back-btn');
+        if (backBtn) backBtn.onclick = () => renderMainMenu();
+        
+        panel.querySelectorAll('.cascade-brand-item[data-category]').forEach(item => {
+            item.onclick = () => showServicesByCategory(item.dataset.category);
+        });
+    }
+    
+    function showServicesByCategory(category) {
+        const services = servicesData.filter(s => s.category === category).sort((a, b) => a.name.localeCompare(b.name));
+        let html = `<div class="cascade-level"><div class="cascade-back-btn" style="cursor:pointer;">← Back to Categories</div><div style="padding: 0.4rem 1rem; background: #f5efe8;">💆 ${escapeHtml(category)}</div>`;
+        for (const s of services) {
+            html += `<div class="cascade-product-item" data-service-id="${s.id}" style="cursor:pointer;">
+                        <span>${escapeHtml(s.name)}</span>
+                        <span>$${s.price}</span>
+                     </div>`;
+        }
+        html += `</div>`;
+        panel.innerHTML = html;
+        
+        const backBtn = panel.querySelector('.cascade-back-btn');
+        if (backBtn) backBtn.onclick = () => showServiceCategories();
+        
+        panel.querySelectorAll('.cascade-product-item[data-service-id]').forEach(item => {
+            item.onclick = () => addItem('service', item.dataset.serviceId);
+        });
+    }
+    
+    function renderSearchResults(term) {
+        const lowerTerm = term.toLowerCase();
+        const matchedProducts = productsData.filter(p => p.name.toLowerCase().includes(lowerTerm) || (p.brand && p.brand.toLowerCase().includes(lowerTerm)));
+        const matchedServices = servicesData.filter(s => s.name.toLowerCase().includes(lowerTerm) || s.category.toLowerCase().includes(lowerTerm));
+        
+        let html = `<div class="cascade-level"><div class="cascade-back-btn" style="cursor:pointer;">← Back</div><div style="padding: 0.4rem 1rem; background: #f5efe8;">🔍 Search Results</div>`;
+        
+        if (matchedProducts.length > 0) {
+            html += `<div style="padding: 0.3rem 1rem; background: #e9dfd4; font-size: 0.7rem;">📦 Products (${matchedProducts.length})</div>`;
+            for (const p of matchedProducts) {
+                html += `<div class="cascade-product-item" data-product-id="${p.id}" style="cursor:pointer;">
+                            <span>${escapeHtml(p.name)}</span>
+                            <span>$${p.price}</span>
+                         </div>`;
+            }
+        }
+        
+        if (matchedServices.length > 0) {
+            html += `<div style="padding: 0.3rem 1rem; background: #e9dfd4; font-size: 0.7rem;">💆 Treatments (${matchedServices.length})</div>`;
+            for (const s of matchedServices) {
+                html += `<div class="cascade-product-item" data-service-id="${s.id}" style="cursor:pointer;">
+                            <span>${escapeHtml(s.name)}</span>
+                            <span>$${s.price}</span>
+                         </div>`;
+            }
+        }
+        
+        if (matchedProducts.length === 0 && matchedServices.length === 0) {
+            html += `<div style="padding: 1rem; text-align: center; color: #b7a99a;">No results for "${escapeHtml(term)}"</div>`;
+        }
+        
+        html += `</div>`;
+        panel.innerHTML = html;
+        
+        const backBtn = panel.querySelector('.cascade-back-btn');
+        if (backBtn) backBtn.onclick = () => renderMainMenu();
+        
+        panel.querySelectorAll('.cascade-product-item[data-product-id]').forEach(item => {
+            item.onclick = () => addItem('product', item.dataset.productId);
+        });
+        panel.querySelectorAll('.cascade-product-item[data-service-id]').forEach(item => {
+            item.onclick = () => addItem('service', item.dataset.serviceId);
+        });
+    }
+    
+    function addItem(type, id) {
+        if (type === 'product') {
+            const product = getProductById(id);
+            if (product && !unifiedItems.some(i => i.type === 'product' && i.id === id)) {
+                unifiedItems.push({
+                    type: 'product',
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    discountType: '%',
+                    discountValue: 0
+                });
+            }
+        } else {
+            const service = getServiceById(id);
+            if (service && !unifiedItems.some(i => i.type === 'service' && i.id === id)) {
+                unifiedItems.push({
+                    type: 'service',
+                    id: service.id,
+                    name: service.name,
+                    price: service.price,
+                    quantity: 1,
+                    discountType: '%',
+                    discountValue: 0
+                });
+            }
+        }
+        renderUnifiedQuote();
+        syncToLegacyData();
+        input.value = '';
+        panel.classList.remove('show');
+    }
+    
+    // Input event handlers
+    input.oninput = (e) => {
+        if (searchTimeout) clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            const term = e.target.value.trim();
+            if (term) {
+                renderSearchResults(term.toLowerCase());
+            } else {
+                renderMainMenu();
+            }
+            panel.classList.add('show');
+        }, 300);
+    };
+    
+    input.onclick = () => {
+        renderMainMenu();
+        panel.classList.add('show');
+    };
+    
+    // Close panel when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !panel.contains(e.target)) {
+            panel.classList.remove('show');
+        }
+    });
+    
+    // Initial render
+    renderMainMenu();
+}
     
     <!-- 统一添加按钮 -->
     <div class="cascade-select" style="margin-bottom: 1rem;">
