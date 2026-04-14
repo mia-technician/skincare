@@ -1659,18 +1659,19 @@ function printRoutine() {
 .tab-btn { background: #e9dfd4; color: #5f5347; border: none; padding: 0.5rem 1.5rem; border-radius: 40px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
 .tab-btn.active { background: #b99f87; color: white; }
 
-/* 疗程库样式（复用产品库样式） */
+/* 疗程库样式 - 与产品库样式一致 */
 .service-library { background: #fff9f2; border-radius: 24px; padding: 1.2rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
 .service-list { display: flex; flex-wrap: wrap; gap: 0.7rem; max-height: 200px; overflow-y: auto; padding: 0.3rem 0; }
-.service-item { background: #e9dfd4; padding: 0.45rem 0.8rem; border-radius: 40px; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; }
-.service-actions { display: inline-flex; gap: 0.3rem; margin-left: 0.3rem; }
-.service-form { background: #f5efe8; border-radius: 20px; padding: 1.2rem; margin-top: 1.2rem; display: none; }
-.service-form.show { display: block; }
+.service-item { background: #e9dfd4; padding: 0.45rem 0.8rem; border-radius: 40px; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; position: relative; }
+.service-item .service-actions { display: inline-flex; gap: 0.3rem; margin-left: 0.3rem; }
+.service-item .edit-service-icon, .service-item .delete-service-icon { cursor: pointer; font-size: 0.7rem; opacity: 0.6; }
+.service-item .edit-service-icon:hover, .service-item .delete-service-icon:hover { opacity: 1; }
 
-/* 套餐选择栏 */
+/* 套餐选择栏 - 与 SELECT ROUTINE 样式一致 */
 .package-selector-bar { background: #fff9f2; border-radius: 24px; padding: 1.2rem 1.5rem; margin-bottom: 1.8rem; border: 1px solid #e7dbd0; }
 .package-buttons { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1rem; }
-.package-btn { background: #e9dfd4; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; }
+.package-btn { background: #e9dfd4; border: none; padding: 0.5rem 1.2rem; border-radius: 40px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.package-btn:hover { background: #d2c0b0; }
 .package-btn.active { background: #b99f87; color: white; }
 
 /* 推荐疗程区 */
@@ -2072,27 +2073,31 @@ function printUnifiedQuote() {
                 <tr><th>Type</th><th>Name</th><th>Unit Price</th><th>Qty</th><th>Discount</th><th>Total</th></tr>
             </thead>
             <tbody>
-                ${items.map(item => {
-                    let discountedPrice = item.price;
-                    let discountDisplay = '-';
-                    if (item.discountType === '%' && item.discountValue > 0) {
-                        discountedPrice = item.price * (1 - item.discountValue / 100);
-                        discountDisplay = `${item.discountValue}%`;
-                    } else if (item.discountType === 'fixed' && item.discountValue > 0) {
-                        discountedPrice = Math.max(0, item.price - item.discountValue);
-                        discountDisplay = `$${item.discountValue}`;
-                    }
-                    return `
-                        <tr>
-                            <td>${item.type === 'product' ? 'Product' : 'Treatment'}</td>
-                            <td>${escapeHtml(item.name)}</td>
-                            <td>$${item.price.toFixed(2)}</td>
-                            <td>${item.quantity}</td>
-                            <td>${discountDisplay}</td>
-                            <td>$${(discountedPrice * item.quantity).toFixed(2)}</td>
-                        </tr>
-                    `;
-                }).join('')}
+                // 在 printUnifiedQuote 函数中，修改表格的折扣列
+${items.map(item => {
+    let discountedPrice = item.price;
+    let discountDisplay = '';
+    let hasDiscount = false;
+    if (item.discountType === '%' && item.discountValue > 0) {
+        discountedPrice = item.price * (1 - item.discountValue / 100);
+        discountDisplay = `${item.discountValue}%`;
+        hasDiscount = true;
+    } else if (item.discountType === 'fixed' && item.discountValue > 0) {
+        discountedPrice = Math.max(0, item.price - item.discountValue);
+        discountDisplay = `$${item.discountValue}`;
+        hasDiscount = true;
+    }
+    return `
+        <tr>
+            <td>${item.type === 'product' ? 'Product' : 'Treatment'}</td>
+            <td>${escapeHtml(item.name)}</td>
+            <td>$${item.price.toFixed(2)}</td>
+            <td>${item.quantity}</td>
+            ${hasDiscount ? `<td>${discountDisplay}</td>` : '<td>-</td>'}
+            <td>$${(discountedPrice * item.quantity).toFixed(2)}</td>
+        </tr>
+    `;
+}).join('')}
             </tbody>
         </table>
         <div class="totals">
@@ -2123,18 +2128,18 @@ function emailUnifiedQuote() {
     emailBody += `Package: ${savedPackages[currentPackageId]?.name || 'Current Package'}\n\n`;
     emailBody += `Items:\n`;
     
-    for (const item of unifiedItems) {
-        let discountedPrice = item.price;
-        let discountText = '';
-        if (item.discountType === '%' && item.discountValue > 0) {
-            discountedPrice = item.price * (1 - item.discountValue / 100);
-            discountText = ` (${item.discountValue}% off)`;
-        } else if (item.discountType === 'fixed' && item.discountValue > 0) {
-            discountedPrice = Math.max(0, item.price - item.discountValue);
-            discountText = ` ($${item.discountValue} off)`;
-        }
-        emailBody += `- ${item.name} (${item.type === 'product' ? 'Product' : 'Treatment'}): $${item.price} x ${item.quantity}${discountText} = $${(discountedPrice * item.quantity).toFixed(2)}\n`;
+for (const item of unifiedItems) {
+    let discountedPrice = item.price;
+    let discountText = '';
+    if (item.discountType === '%' && item.discountValue > 0) {
+        discountedPrice = item.price * (1 - item.discountValue / 100);
+        discountText = ` (${item.discountValue}% off)`;
+    } else if (item.discountType === 'fixed' && item.discountValue > 0) {
+        discountedPrice = Math.max(0, item.price - item.discountValue);
+        discountText = ` ($${item.discountValue} off)`;
     }
+    emailBody += `- ${item.name} (${item.type === 'product' ? 'Product' : 'Treatment'}): $${item.price} x ${item.quantity}${discountText} = $${(discountedPrice * item.quantity).toFixed(2)}\n`;
+}
     
     emailBody += `\n💰 Products Subtotal: $${productSubtotal.toFixed(2)}`;
     emailBody += `\n💆 Treatments Subtotal: $${serviceSubtotal.toFixed(2)}`;
@@ -2336,6 +2341,7 @@ function renderServiceLibrary() {
     if (currentServiceCategory !== "all") {
         filtered = servicesData.filter(s => s.category === currentServiceCategory);
     }
+    // 按名称字母排序
     filtered.sort((a, b) => a.name.localeCompare(b.name));
     
     container.innerHTML = filtered.map(s => `
@@ -2432,7 +2438,10 @@ function renderPackageButtons() {
         return;
     }
     
-    container.innerHTML = Object.entries(savedPackages).map(([id, p]) => 
+    // 按套餐名称字母排序
+    const sortedPackages = Object.entries(savedPackages).sort((a, b) => a[1].name.localeCompare(b[1].name));
+    
+    container.innerHTML = sortedPackages.map(([id, p]) => 
         `<button class="package-btn ${id === currentPackageId ? 'active' : ''}" data-id="${id}">${escapeHtml(p.name)}</button>`
     ).join('');
     
