@@ -2329,7 +2329,7 @@ ${items.map(item => {
         <div class="totals">
             <p>💰 Products Subtotal: $${productSubtotal.toFixed(2)}</p>
             <p>💆 Treatments Subtotal: $${serviceSubtotal.toFixed(2)}</p>
-            <p>🏷️ Total Discount: -$${totalDiscount.toFixed(2)}</p>
+            ${totalDiscount > 0 ? `<p>🏷️ Total Discount: -$${totalDiscount.toFixed(2)}</p>` : ''}
             <p>📋 Product Tax (12%): $${productTax.toFixed(2)}</p>
             <p>📋 Treatment Tax (5%): $${serviceTax.toFixed(2)}</p>
             <p class="grand-total">💵 Grand Total: $${grandTotal.toFixed(2)}</p>
@@ -2354,22 +2354,24 @@ function emailUnifiedQuote() {
     emailBody += `Package: ${savedPackages[currentPackageId]?.name || 'Current Package'}\n\n`;
     emailBody += `Items:\n`;
     
-for (const item of unifiedItems) {
-    let discountedPrice = item.price;
-    let discountText = '';
-    if (item.discountType === '%' && item.discountValue > 0) {
-        discountedPrice = item.price * (1 - item.discountValue / 100);
-        discountText = ` (${item.discountValue}% off)`;
-    } else if (item.discountType === 'fixed' && item.discountValue > 0) {
-        discountedPrice = Math.max(0, item.price - item.discountValue);
-        discountText = ` ($${item.discountValue} off)`;
+    for (const item of unifiedItems) {
+        let discountedPrice = item.price;
+        let discountText = '';
+        if (item.discountType === '%' && item.discountValue > 0) {
+            discountedPrice = item.price * (1 - item.discountValue / 100);
+            discountText = ` (${item.discountValue}% off)`;
+        } else if (item.discountType === 'fixed' && item.discountValue > 0) {
+            discountedPrice = Math.max(0, item.price - item.discountValue);
+            discountText = ` ($${item.discountValue} off)`;
+        }
+        emailBody += `- ${item.name} (${item.type === 'product' ? 'Product' : 'Treatment'}): $${item.price} x ${item.quantity}${discountText} = $${(discountedPrice * item.quantity).toFixed(2)}\n`;
     }
-    emailBody += `- ${item.name} (${item.type === 'product' ? 'Product' : 'Treatment'}): $${item.price} x ${item.quantity}${discountText} = $${(discountedPrice * item.quantity).toFixed(2)}\n`;
-}
     
     emailBody += `\n💰 Products Subtotal: $${productSubtotal.toFixed(2)}`;
     emailBody += `\n💆 Treatments Subtotal: $${serviceSubtotal.toFixed(2)}`;
-    emailBody += `\n🏷️ Total Discount: -$${totalDiscount.toFixed(2)}`;
+    if (totalDiscount > 0) {
+        emailBody += `\n🏷️ Total Discount: -$${totalDiscount.toFixed(2)}`;
+    }
     emailBody += `\n📋 Product Tax (12%): $${productTax.toFixed(2)}`;
     emailBody += `\n📋 Treatment Tax (5%): $${serviceTax.toFixed(2)}`;
     emailBody += `\n💵 Grand Total: $${grandTotal.toFixed(2)}`;
