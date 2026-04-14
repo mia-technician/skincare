@@ -1781,48 +1781,15 @@ async function loadServicesFromCloud() {
     if (!supabaseClient) return false;
     
     try {
-        // 加载疗程库
-        const { data: services, error: servicesError } = await supabaseClient
-            .from('services')
-            .select('*');
-        
-        if (servicesError) throw servicesError;
-        
-        if (services && services.length > 0) {
-            servicesData = services;
-        } else {
-            servicesData = JSON.parse(JSON.stringify(DEFAULT_SERVICES));
-        }
-        
-        // 加载套餐
-        const { data: packages, error: packagesError } = await supabaseClient
-            .from('packages')
-            .select('*');
-        
-        if (packagesError) throw packagesError;
-        
-        if (packages && packages.length > 0) {
-            savedPackages = {};
-            packages.forEach(p => {
-                savedPackages[p.id] = {
-                    name: p.name,
-                    products: p.products || [],
-                    services: p.services || []
-                };
-            });
-        } else {
-            savedPackages = JSON.parse(JSON.stringify(INITIAL_PACKAGES));
-        }
+        // ... 加载数据的代码 ...
         
         saveServicesToLocalStorage();
         
-        // 强制刷新界面 - 使用 setTimeout 确保 DOM 已准备
-        setTimeout(() => {
-            renderServiceLibrary();
-            renderPackageButtons();
-            if (typeof initUnifiedItems === 'function') initUnifiedItems();
-            if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
-        }, 100);
+        // 刷新界面
+        renderServiceLibrary();
+        renderPackageButtons();
+        if (typeof initUnifiedItems === 'function') initUnifiedItems();
+        if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
         
         return true;
     } catch (e) {
@@ -2753,11 +2720,11 @@ async function initApp() {
     loadFromLocalStorage();
     refreshUI();
     
-    // 2. 尝试从云端加载数据（只读，不需要密码）
+    // 2. 尝试从云端加载数据
     if (typeof supabase !== 'undefined') {
         supabaseClient = supabase;
         try {
-            // 从云端加载数据（不依赖 isAuthenticated）
+            // 从云端加载产品数据
             const { data: products } = await supabaseClient.from('products').select('*');
             const { data: routines } = await supabaseClient.from('routines').select('*');
             const { data: state } = await supabaseClient.from('user_state').select('current_routine_id').maybeSingle();
@@ -2786,9 +2753,12 @@ async function initApp() {
                 currentEveningProducts = savedRoutines[currentRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
             }
             
+            // 👇 添加这一行：加载疗程和套餐数据
+            await loadServicesFromCloud();
+            
             saveToLocalStorage();
             refreshUI();
-            console.log('✅ 云端数据已加载（只读模式）');
+            console.log('✅ 云端数据已加载');
             
         } catch (e) {
             console.log('云端加载失败，使用本地数据:', e);
