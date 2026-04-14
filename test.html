@@ -700,21 +700,39 @@
     opacity: 1; 
 }
 
-        /* Tab 高亮样式 - 更明显 */
-.tab-btn.active {
-    color: #b99f87 !important;
-    border-bottom: 3px solid #b99f87 !important;
-    font-weight: 800 !important;
+/* Tab 容器 */
+.tab-container {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2.5rem;  /* 增加与下方模块的距离 */
 }
 
-/* 可选：添加微妙的背景色过渡 */
+/* Tab 按钮 - 去掉背景框，调大文字 */
 .tab-btn {
-    transition: all 0.2s ease !important;
+    background: transparent !important;  /* 强制去掉背景 */
+    border: none;
+    padding: 0.8rem 0;
+    cursor: pointer;
+    font-size: 1.2rem;  /* 调大文字 */
+    font-weight: 500;
+    font-family: 'Montserrat', sans-serif;
+    color: #b7a99a;
+    box-shadow: none !important;  /* 去掉任何阴影 */
+    outline: none;
 }
 
-.tab-btn:hover:not(.active) {
-    color: #8f7e6b !important;
-    border-bottom: 2px solid #e8dfd4 !important;
+/* 当前激活的 Tab */
+.tab-btn.active {
+    color: #b99f87;
+    border-bottom: 3px solid #b99f87;
+    padding-bottom: 0.8rem;
+    background: transparent !important;  /* 确保激活时也没有背景 */
+}
+
+/* 悬停效果 */
+.tab-btn:hover {
+    color: #8f7e6b;
+    background: transparent !important;
 }
         
     </style>
