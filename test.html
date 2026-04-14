@@ -1781,7 +1781,7 @@ async function loadServicesFromCloud() {
     if (!supabaseClient) return false;
     
     try {
-        // 加载疗程库（所有人可读，不需要 user_id 过滤）
+        // 加载疗程库
         const { data: services, error: servicesError } = await supabaseClient
             .from('services')
             .select('*');
@@ -1794,7 +1794,7 @@ async function loadServicesFromCloud() {
             servicesData = JSON.parse(JSON.stringify(DEFAULT_SERVICES));
         }
         
-        // 加载套餐（所有人可读）
+        // 加载套餐
         const { data: packages, error: packagesError } = await supabaseClient
             .from('packages')
             .select('*');
@@ -1816,11 +1816,13 @@ async function loadServicesFromCloud() {
         
         saveServicesToLocalStorage();
         
-        // 刷新界面
-        renderServiceLibrary();
-        renderPackageButtons();
-        if (typeof initUnifiedItems === 'function') initUnifiedItems();
-        if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
+        // 强制刷新界面 - 使用 setTimeout 确保 DOM 已准备
+        setTimeout(() => {
+            renderServiceLibrary();
+            renderPackageButtons();
+            if (typeof initUnifiedItems === 'function') initUnifiedItems();
+            if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
+        }, 100);
         
         return true;
     } catch (e) {
@@ -2165,7 +2167,6 @@ function syncToLegacyData() {
     saveServicesToLocalStorage();
 }
 
-// 初始化统一搜索下拉菜单（只保留疗程）
 // 初始化统一搜索下拉菜单（只保留疗程）
 function initUnifiedSearch() {
     const input = document.getElementById('unifiedSearchInput');
@@ -2577,7 +2578,6 @@ async function verifyPassword() {
         document.getElementById('clearPasswordBtn').style.display = 'inline-block';
         passwordInput.style.display = 'none';
         
-        // 更新 localStorage
         localStorage.setItem('page_auth_type', 'admin');
         
         if (typeof supabase !== 'undefined') {
@@ -2606,11 +2606,17 @@ async function verifyPassword() {
             supabaseClient = supabase;
             await loadFromCloud();
             await loadServicesFromCloud();
-            renderServiceLibrary();
-            renderPackageButtons();
-            if (typeof initUnifiedItems === 'function') initUnifiedItems();
-            if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
             refreshUI();
+            
+            // 如果当前在治疗 Tab，额外刷新
+            if (treatmentsMode && treatmentsMode.style.display !== 'none') {
+                renderServiceLibrary();
+                renderPackageButtons();
+                if (typeof initUnifiedItems === 'function') initUnifiedItems();
+                if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
+                if (typeof initUnifiedSearch === 'function') initUnifiedSearch();
+            }
+            
             alert("Staff mode activated! View only.");
         }
     } else {
