@@ -1171,9 +1171,9 @@ function updateTotalPrice() {
 }
 
 function updateUIBasedOnAuth() {
-    const isAdmin = isAuthenticated;  // true=管理员, false=员工或未登录
+    const isAdmin = window.IS_ADMIN === true || isAuthenticated === true;
     
-    // 产品模块 - 只有管理员可编辑云端
+    // 产品模块 - 只有管理员可编辑
     const editBtn = document.getElementById('editRoutineBtn');
     if (editBtn) editBtn.style.display = isAdmin ? 'inline-block' : 'none';
     
@@ -1183,9 +1183,7 @@ function updateUIBasedOnAuth() {
     }
     
     const toggleAddBtn = document.getElementById('toggleAddBtn');
-    if (toggleAddBtn) {
-        toggleAddBtn.style.display = isAdmin ? 'inline-block' : 'none';
-    }
+    if (toggleAddBtn) toggleAddBtn.style.display = isAdmin ? 'inline-block' : 'none';
     
     const editIcons = document.querySelectorAll('.edit-icon');
     const deleteIcons = document.querySelectorAll('.delete-product-icon');
@@ -1205,7 +1203,6 @@ function updateUIBasedOnAuth() {
     const toggleAddServiceBtn = document.getElementById('toggleAddServiceBtn');
     if (toggleAddServiceBtn) toggleAddServiceBtn.style.display = isAdmin ? 'inline-block' : 'none';
     
-    // 控制疗程库的编辑/删除按钮
     document.querySelectorAll('.edit-service-icon, .delete-service-icon').forEach(icon => {
         icon.style.display = isAdmin ? 'inline-block' : 'none';
     });
@@ -2559,6 +2556,7 @@ async function saveAsNewPackageToCloud() {
 
 // ==================== 密码验证函数 ====================
 async function verifyPassword() {
+    // 密码已经在页面加载时验证，这里只是重新确认
     const passwordInput = document.getElementById('cloudPassword');
     const enteredPassword = passwordInput.value;
     
@@ -2567,76 +2565,62 @@ async function verifyPassword() {
     
     if (enteredPassword === ADMIN_PASSWORD) {
         isAuthenticated = true;
+        window.IS_ADMIN = true;
         currentUserId = SYSTEM_USER_ID;
         document.getElementById('authStatus').innerHTML = `✅ Admin Mode - Read/Write Cloud Data`;
         document.getElementById('verifyPasswordBtn').style.display = 'none';
         document.getElementById('clearPasswordBtn').style.display = 'inline-block';
         passwordInput.style.display = 'none';
         
+        // 更新 localStorage
+        localStorage.setItem('page_auth_type', 'admin');
+        
         if (typeof supabase !== 'undefined') {
             supabaseClient = supabase;
             await loadFromCloud();
             await loadServicesFromCloud();
-            // 强制刷新所有界面
             renderServiceLibrary();
             renderPackageButtons();
             if (typeof initUnifiedItems === 'function') initUnifiedItems();
             if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
             refreshUI();
             alert("Admin mode activated! You can read/write cloud data.");
-        } else {
-            alert("Supabase not ready. Please refresh the page.");
         }
-        
     } else if (enteredPassword === STAFF_PASSWORD) {
-        // 员工 - 只读云端，可本地编辑
         isAuthenticated = false;
+        window.IS_ADMIN = false;
         currentUserId = SYSTEM_USER_ID;
         document.getElementById('authStatus').innerHTML = `✅ Staff Mode - Read Only Cloud Data`;
         document.getElementById('verifyPasswordBtn').style.display = 'none';
         document.getElementById('clearPasswordBtn').style.display = 'inline-block';
         passwordInput.style.display = 'none';
         
+        localStorage.setItem('page_auth_type', 'staff');
+        
         if (typeof supabase !== 'undefined') {
             supabaseClient = supabase;
-            // 加载产品数据
             await loadFromCloud();
-            // 加载疗程和套餐数据
             await loadServicesFromCloud();
-            // 刷新产品界面
+            renderServiceLibrary();
+            renderPackageButtons();
+            if (typeof initUnifiedItems === 'function') initUnifiedItems();
+            if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
             refreshUI();
-            // 刷新疗程界面（如果当前在疗程模式）
-            if (treatmentsMode && treatmentsMode.style.display !== 'none') {
-                renderServiceLibrary();
-                renderPackageButtons();
-                if (typeof initUnifiedItems === 'function') initUnifiedItems();
-                if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
-                if (typeof initUnifiedSearch === 'function') initUnifiedSearch();
-            }
-            alert("Staff mode activated! View only. Use admin password to edit cloud data.");
-        } else {
-            alert("Supabase not ready. Please refresh the page.");
-        } else {
-        alert("Incorrect password! Please try again.");
-        isAuthenticated = false;
+            alert("Staff mode activated! View only.");
+        }
+    } else {
+        alert("Incorrect password!");
     }
     updateUIBasedOnAuth();
 }
 
 function clearPassword() {
-    isAuthenticated = false;
-    supabaseClient = null;
-    document.getElementById('authStatus').innerHTML = `🔒 Enter password to enable cloud operations`;
-    document.getElementById('verifyPasswordBtn').style.display = 'inline-block';
-    document.getElementById('clearPasswordBtn').style.display = 'none';
-    document.getElementById('cloudPassword').style.display = 'inline-block';
-    document.getElementById('cloudPassword').value = '';
-    
-    // 重新从本地加载
-    loadFromLocalStorage();
-    refreshUI();
-    updateUIBasedOnAuth();
-    alert("Password cleared. Using local data only.");
+    // 清除 localStorage 中的认证信息
+    localStorage.removeItem('page_authenticated');
+    localStorage.removeItem('page_auth_type');
+    localStorage.removeItem('page_auth_time');
+    // 刷新页面重新要求密码
+    location.reload();
 }
 
 function refreshUI() {
