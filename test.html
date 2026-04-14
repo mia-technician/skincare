@@ -3080,11 +3080,10 @@ if (emailUnifiedBtn) emailUnifiedBtn.onclick = emailUnifiedQuote;
 
 // ==================== 启动应用 ====================
 async function initApp() {
-    // 只从云端加载数据
     if (typeof supabase !== 'undefined') {
         supabaseClient = supabase;
         try {
-            // 从云端加载产品数据
+            // 1. 加载产品数据
             const { data: products } = await supabaseClient.from('products').select('*');
             const { data: routines } = await supabaseClient.from('routines').select('*');
             const { data: state } = await supabaseClient.from('user_state').select('current_routine_id').maybeSingle();
@@ -3117,10 +3116,21 @@ async function initApp() {
                 currentEveningProducts = savedRoutines[currentRoutineId].evening.map(pid => ({ productId: pid, time: "evening" }));
             }
             
-            // 加载疗程和套餐数据
+            // 2. 加载疗程和套餐数据（关键！）
             await loadServicesFromCloud();
             
+            // 3. 刷新界面
             refreshUI();
+            
+            // 4. 如果当前在 Treatments 页面，额外刷新疗程相关组件
+            if (treatmentsMode && treatmentsMode.style.display !== 'none') {
+                renderServiceLibrary();
+                renderPackageButtons();
+                initUnifiedItems();
+                renderUnifiedQuote();
+                initUnifiedSearch();
+            }
+            
             console.log('✅ 云端数据已加载');
             
         } catch (e) {
