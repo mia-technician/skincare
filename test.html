@@ -619,11 +619,10 @@
 
             <div class="action-buttons-bottom">
                 <div id="authButtons" style="display: none; gap: 1rem; flex-wrap: wrap;">
-                    <button class="action-btn update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
-                    <button class="action-btn delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
-                    <button class="action-btn save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
-                    <button class="action-btn sync-all-btn" id="syncAllBtn">☁️ Force Sync All to Cloud</button>
-                </div>
+    <button class="action-btn update-btn" id="updateCurrentBtn">📝 Update Current Routine</button>
+    <button class="action-btn delete-current-btn" id="deleteCurrentRoutineBtn">🗑️ Delete Current Routine</button>
+    <button class="action-btn save-standard-btn" id="saveStandardBtn">💾 Save Current as New Routine</button>
+</div>
             </div>
         </div>
 
@@ -915,41 +914,6 @@ async function loadFromCloud() {
     }
 }
 
-async function forceSyncAllToCloud() {
-    if (!supabaseClient || !isAuthenticated) {
-        alert("Please verify password first.");
-        return false;
-    }
-    
-    try {
-        const products = JSON.parse(localStorage.getItem('skincare_products') || '[]');
-        const routines = JSON.parse(localStorage.getItem('skincare_routines') || '{}');
-        const currentRoutineId = localStorage.getItem('skincare_current_routine_id');
-        
-        for (const p of products) {
-            await supabaseClient.from('products').upsert({ ...p, user_id: currentUserId });
-        }
-        
-        for (const [id, r] of Object.entries(routines)) {
-            await supabaseClient.from('routines').upsert({ id, name: r.name, morning: r.morning, evening: r.evening, user_id: currentUserId });
-        }
-        
-        if (currentRoutineId) {
-            await supabaseClient.from('user_state').upsert({ current_routine_id: currentRoutineId, user_id: currentUserId });
-        }
-        
-        productsData = products;
-        savedRoutines = routines;
-        
-        alert("✓ All local data synced to cloud!");
-        return true;
-    } catch (e) {
-        console.error('Force sync error:', e);
-        alert("Sync failed: " + e.message);
-        return false;
-    }
-}
-
 async function saveCurrentRoutineToCloud() {
     if (!supabaseClient || !isAuthenticated) {
         alert("Please verify password first.");
@@ -1174,14 +1138,6 @@ function updateUIBasedOnAuth() {
     const isAdmin = window.IS_ADMIN === true || isAuthenticated === true;
     
     // 产品模块 - 只有管理员可编辑
-    const editBtn = document.getElementById('editRoutineBtn');
-    if (editBtn) editBtn.style.display = isAdmin ? 'inline-block' : 'none';
-    
-    const authButtons = document.getElementById('authButtons');
-    if (authButtons) {
-        authButtons.style.display = isAdmin ? 'flex' : 'none';
-    }
-    
     const toggleAddBtn = document.getElementById('toggleAddBtn');
     if (toggleAddBtn) toggleAddBtn.style.display = isAdmin ? 'inline-block' : 'none';
     
@@ -1196,10 +1152,6 @@ function updateUIBasedOnAuth() {
     }
     
     // 疗程模块 - 只有管理员可编辑
-    const editPackageBtn = document.getElementById('editPackageBtn');
-    if (editPackageBtn) editPackageBtn.style.display = isAdmin ? 'inline-block' : 'none';
-    const packageAuthButtons = document.getElementById('packageAuthButtons');
-    if (packageAuthButtons) packageAuthButtons.style.display = isAdmin ? 'flex' : 'none';
     const toggleAddServiceBtn = document.getElementById('toggleAddServiceBtn');
     if (toggleAddServiceBtn) toggleAddServiceBtn.style.display = isAdmin ? 'inline-block' : 'none';
     
@@ -1623,19 +1575,19 @@ function renderRoutines() {
     if (morningContainer) {
         let morningHtml = currentMorningProducts.map((item, idx) => renderCard(item.productId, idx, 'morning')).join('');
         morningContainer.innerHTML = morningHtml;
-        // 添加搜索下拉菜单
+        // 只添加搜索下拉菜单（用于添加产品）
         createSearchableSelect('morning', morningContainer);
     }
     if (eveningContainer) {
         let eveningHtml = currentEveningProducts.map((item, idx) => renderCard(item.productId, idx, 'evening')).join('');
         eveningContainer.innerHTML = eveningHtml;
-        // 添加搜索下拉菜单
         createSearchableSelect('evening', eveningContainer);
     }
     
     document.querySelectorAll('#morningList .product-card').forEach((card, newIdx) => { card.dataset.index = newIdx; });
     document.querySelectorAll('#eveningList .product-card').forEach((card, newIdx) => { card.dataset.index = newIdx; });
     
+    // 保留拖拽排序功能
     attachReorderDrag('morningList', currentMorningProducts, () => {
         updateTotalPrice();
     });
@@ -1643,9 +1595,11 @@ function renderRoutines() {
         updateTotalPrice();
     });
     
-    attachDropEvents('morningList', 'morning');
-    attachDropEvents('eveningList', 'evening');
+    // 保留删除功能
     attachDeleteEvents();
+    
+    // 移除 attachDropEvents（拖拽替换功能）
+    // 移除 attachEmptySlotEvents（空槽位拖拽添加）
 }
 
 function renderCard(pid, idx, time) { 
@@ -1661,50 +1615,6 @@ function renderCard(pid, idx, time) {
             <div class="usage"><i class="icon-hand"></i> ${escapeHtml(p.usage || 'No usage instructions provided')}</div>
         </div>
     </div>`; 
-}
-
-function attachEmptySlotEvents() {
-    document.querySelectorAll('.empty-slot').forEach(slot => {
-        slot.ondragover = (e) => { e.preventDefault(); slot.classList.add('drag-over'); };
-        slot.ondragleave = () => { slot.classList.remove('drag-over'); };
-        slot.ondrop = async (e) => {
-            e.preventDefault();
-            slot.classList.remove('drag-over');
-            const time = slot.dataset.time;
-            const targetIndex = parseInt(slot.dataset.index);
-            let dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
-            if (dragData && dragData.id) {
-                if (time === 'morning') {
-                    currentMorningProducts.splice(targetIndex, 0, { productId: dragData.id, time: 'morning' });
-                } else {
-                    currentEveningProducts.splice(targetIndex, 0, { productId: dragData.id, time: 'evening' });
-                }
-                renderRoutines();
-                updateTotalPrice();
-                saveToLocalStorage();
-            }
-        };
-    });
-}
-
-function attachDropEvents(containerId, time) { 
-    let container = document.getElementById(containerId); 
-    if (!container) return; 
-    container.ondragover = (e) => e.preventDefault(); 
-    container.ondrop = async (e) => { 
-        e.preventDefault(); 
-        let targetCard = e.target.closest('.product-card'); 
-        if (!targetCard) return; 
-        let targetIdx = parseInt(targetCard.dataset.index); 
-        let dragData = JSON.parse(e.dataTransfer.getData('text/plain')); 
-        if (dragData && dragData.id) { 
-            if (time === 'morning' && currentMorningProducts[targetIdx]) currentMorningProducts[targetIdx] = { productId: dragData.id, time: 'morning' }; 
-            if (time === 'evening' && currentEveningProducts[targetIdx]) currentEveningProducts[targetIdx] = { productId: dragData.id, time: 'evening' }; 
-            renderRoutines();
-            updateTotalPrice();
-            saveToLocalStorage();
-        } 
-    }; 
 }
 
 function attachDeleteEvents() { 
@@ -2954,7 +2864,6 @@ document.getElementById('clearPasswordBtn').onclick = clearPassword;
 document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
 document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutine;
 document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
-document.getElementById('syncAllBtn').onclick = forceSyncAllToCloud;
 
 // ==================== Tab 切换逻辑 ====================
 const productsMode = document.getElementById('productsModeContainer');
