@@ -2003,30 +2003,41 @@ function renderTreatments() {
     const container = document.getElementById('treatmentList');
     if (!container) return;
     
-    let html = `<div class="cascade-select" id="treatmentDropdown"></div>`;
-    html += currentTreatments.map((item, idx) => {
+    // 先清空容器
+    container.innerHTML = '';
+    
+    // 创建下拉菜单容器
+    const dropdownContainer = document.createElement('div');
+    dropdownContainer.id = 'treatmentDropdownContainer';
+    dropdownContainer.className = 'cascade-select';
+    dropdownContainer.style.marginBottom = '1rem';
+    container.appendChild(dropdownContainer);
+    
+    // 添加已选疗程列表
+    currentTreatments.forEach((item, idx) => {
         const service = getServiceById(item.serviceId);
-        if (!service) return '';
-        return `
-            <div class="treatment-card" data-idx="${idx}">
-                <button class="delete-btn" data-idx="${idx}" style="position: absolute; top: 6px; right: 6px;">✕</button>
-                <div class="product-info">
-                    <div class="product-name">${escapeHtml(service.name)}</div>
-                    <div class="product-price">$${service.price}</div>
-                    <div class="benefit">${escapeHtml(service.category || '')}</div>
-                </div>
+        if (!service) return;
+        const treatmentCard = document.createElement('div');
+        treatmentCard.className = 'treatment-card';
+        treatmentCard.setAttribute('data-idx', idx);
+        treatmentCard.innerHTML = `
+            <button class="delete-btn" data-idx="${idx}" style="position: absolute; top: 6px; right: 6px;">✕</button>
+            <div class="product-info">
+                <div class="product-name">${escapeHtml(service.name)}</div>
+                <div class="product-price">$${service.price}</div>
+                <div class="benefit">${escapeHtml(service.category || '')}</div>
             </div>
         `;
-    }).join('');
+        container.appendChild(treatmentCard);
+    });
     
-    container.innerHTML = html;
-    
-    // 创建疗程下拉菜单
+    // 创建下拉菜单
     createTreatmentSelect();
     
     // 绑定删除事件
     container.querySelectorAll('.delete-btn').forEach(btn => {
         btn.onclick = (e) => {
+            e.stopPropagation();
             const idx = parseInt(btn.dataset.idx);
             currentTreatments.splice(idx, 1);
             renderTreatments();
@@ -2038,26 +2049,23 @@ function renderTreatments() {
 
 // 创建疗程下拉菜单（按类别分组）
 function createTreatmentSelect() {
-    const container = document.getElementById('treatmentDropdown');
+    const container = document.getElementById('treatmentDropdownContainer');
     if (!container) return;
     
-    const wrapper = document.createElement('div');
-    wrapper.className = 'cascade-select';
-    wrapper.style.marginBottom = '1rem';
+    // 清空容器
+    container.innerHTML = '';
     
     const input = document.createElement('input');
     input.type = 'text';
     input.className = 'main-input';
-    input.placeholder = '🔍 选择疗程...';
+    input.placeholder = '🔍 按类别选择或搜索疗程...';
     input.autocomplete = 'off';
     
     const panel = document.createElement('div');
     panel.className = 'cascade-panel';
     
-    wrapper.appendChild(input);
-    wrapper.appendChild(panel);
-    container.parentNode.insertBefore(wrapper, container);
-    container.previousElementSibling?.remove();
+    container.appendChild(input);
+    container.appendChild(panel);
     
     let searchTimeout = null;
     
@@ -2137,8 +2145,13 @@ function createTreatmentSelect() {
     };
     
     document.addEventListener('click', (e) => {
-        if (!wrapper.contains(e.target)) panel.classList.remove('show');
+        if (!container.contains(e.target)) {
+            panel.classList.remove('show');
+        }
     });
+    
+    // 初始渲染
+    renderCategoryList();
 }
 
 // 更新疗程总价
