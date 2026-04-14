@@ -536,7 +536,7 @@
         <div class="tab-container">
             <button id="tabProductsBtn" class="tab-btn active">📦 产品模式</button>
             <button id="tabTreatmentsBtn" class="tab-btn">💆 疗程模式</button>
-            <button id="tabCombinedBtn" class="tab-btn">💰 合并报价</button>
+            <button id="tabCombinedBtn" class="tab-btn">💰 合并报价</button>  <!-- 确保这个 id 存在 -->
         </div>
 
         <!-- ==================== 产品模式 ==================== -->
@@ -2613,12 +2613,13 @@ document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutin
 document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
 document.getElementById('syncAllBtn').onclick = forceSyncAllToCloud;
 
-    // ==================== Tab 切换逻辑 ====================
+// ==================== Tab 切换逻辑 ====================
 const productsMode = document.getElementById('productsModeContainer');
 const treatmentsMode = document.getElementById('treatmentsModeContainer');
 const tabProducts = document.getElementById('tabProductsBtn');
 const tabTreatments = document.getElementById('tabTreatmentsBtn');
 const tabCombined = document.getElementById('tabCombinedBtn');
+if (!tabCombined) console.error('tabCombinedBtn not found');
 
 function switchToProductsMode() {
     productsMode.style.display = 'block';
