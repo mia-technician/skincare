@@ -637,11 +637,34 @@
                 </div>
             </div>
 
-            <!-- 推荐疗程区（单区） -->
-            <div class="column" style="background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.4rem; border: 1px solid #e7dbd0;">
-                <div class="column-title">📋 SELECTED TREATMENTS</div>
-                <div class="treatment-list" id="treatmentList"></div>
-            </div>
+<!-- 推荐疗程区（统一报价单结构） -->
+<div class="column" style="background: rgba(255, 255, 255, 0.75); border-radius: 24px; padding: 1.4rem; border: 1px solid #e7dbd0;">
+    <div class="column-title">📋 套餐内容（产品 + 疗程）</div>
+    
+    <!-- 统一添加按钮 -->
+    <div class="cascade-select" style="margin-bottom: 1rem;">
+        <input type="text" id="unifiedSearchInput" class="main-input" placeholder="🔍 搜索或选择要添加的产品/疗程...">
+        <div id="unifiedSearchPanel" class="cascade-panel"></div>
+    </div>
+    
+    <!-- 统一报价表格 -->
+    <table class="quote-table" id="unifiedQuoteTable">
+        <thead>
+            <tr><th>类型</th><th>名称</th><th>单价</th><th>数量</th><th>折扣</th><th>折后价</th><th></th></tr>
+        </thead>
+        <tbody id="unifiedQuoteBody"></tbody>
+    </table>
+    
+    <!-- 总计区域 -->
+    <div class="quote-totals" id="unifiedTotals">
+        <div>💰 产品小计: $<span id="unifiedProductSubtotal">0.00</span></div>
+        <div>💆 疗程小计: $<span id="unifiedServiceSubtotal">0.00</span></div>
+        <div>🏷️ 总折扣: -$<span id="unifiedTotalDiscount">0.00</span></div>
+        <div>📋 产品税(12%): $<span id="unifiedProductTax">0.00</span></div>
+        <div>📋 疗程税(5%): $<span id="unifiedServiceTax">0.00</span></div>
+        <div style="border-top:2px solid #e2d4c6; margin-top:0.5rem; padding-top:0.5rem; font-weight:bold;">💵 套餐总计: $<span id="unifiedGrandTotal">0.00</span></div>
+    </div>
+</div>
 
             <!-- 疗程总价和按钮 -->
             <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0 1rem;">
@@ -1846,6 +1869,382 @@ function loadServicesFromLocalStorage() {
     }
 }
 
+// 统一报价项目
+let unifiedItems = [];  // { type, id, name, price, quantity, discountType, discountValue }
+
+// 初始化统一项目（从产品和疗程加载）
+function initUnifiedItems() {
+    unifiedItems = [];
+    
+    // 添加产品（去重后）
+    const allProducts = [...currentMorningProducts, ...currentEveningProducts];
+    const productMap = new Map();
+    for (const item of allProducts) {
+        if (!productMap.has(item.productId)) {
+            const product = getProductById(item.productId);
+            if (product) {
+                productMap.set(item.productId, {
+                    type: 'product',
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    discountType: '%',
+                    discountValue: 0
+                });
+            }
+        }
+    }
+    unifiedItems.push(...Array.from(productMap.values()));
+    
+    // 添加疗程
+    for (const t of currentTreatments) {
+        const service = getServiceById(t.serviceId);
+        if (service) {
+            unifiedItems.push({
+                type: 'service',
+                id: service.id,
+                name: service.name,
+                price: service.price,
+                quantity: 1,
+                discountType: '%',
+                discountValue: 0
+            });
+        }
+    }
+}
+
+// 渲染统一报价表格
+function renderUnifiedQuote() {
+    const tbody = document.getElementById('unifiedQuoteBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = unifiedItems.map((item, idx) => {
+        let discountedPrice = item.price;
+        if (item.discountType === '%') {
+            discountedPrice = item.price * (1 - item.discountValue / 100);
+        } else if (item.discountType === 'fixed') {
+            discountedPrice = Math.max(0, item.price - item.discountValue);
+        }
+        const totalPrice = discountedPrice * item.quantity;
+        const typeLabel = item.type === 'product' ? '📦 产品' : '💆 疗程';
+        
+        return `
+            <tr>
+                <td style="padding: 0.5rem;">${typeLabel}</td>
+                <td style="padding: 0.5rem;">${escapeHtml(item.name)}</td>
+                <td style="padding: 0.5rem;">$${item.price.toFixed(2)}</td>
+                <td style="padding: 0.5rem;"><input type="number" class="unified-qty" data-idx="${idx}" value="${item.quantity}" min="1" step="1" style="width:60px;"></td>
+                <td style="padding: 0.5rem;">
+                    <div style="display: flex; gap: 0.3rem; align-items: center;">
+                        <input type="number" class="unified-percent" data-idx="${idx}" value="${item.discountType === '%' && item.discountValue > 0 ? item.discountValue : ''}" placeholder="%" style="width:55px;">
+                        <span>/</span>
+                        <input type="number" class="unified-fixed" data-idx="${idx}" value="${item.discountType === 'fixed' && item.discountValue > 0 ? item.discountValue : ''}" placeholder="$" style="width:65px;">
+                    </div>
+                </td>
+                <td style="padding: 0.5rem;">$${totalPrice.toFixed(2)}</td>
+                <td style="padding: 0.5rem;"><button class="unified-remove-btn" data-idx="${idx}" style="background:#e9dfd4; border:none; border-radius:50%; width:22px; cursor:pointer;">✕</button></td>
+            </tr>
+        `;
+    }).join('');
+    
+    // 绑定事件
+    document.querySelectorAll('.unified-qty').forEach(input => {
+        input.onchange = (e) => {
+            const idx = parseInt(e.target.dataset.idx);
+            unifiedItems[idx].quantity = parseInt(e.target.value) || 1;
+            renderUnifiedQuote();
+            updateUnifiedTotals();
+            syncToLegacyData();
+        };
+    });
+    
+    document.querySelectorAll('.unified-percent').forEach(input => {
+        input.onchange = (e) => {
+            const idx = parseInt(e.target.dataset.idx);
+            const val = parseFloat(e.target.value) || 0;
+            unifiedItems[idx].discountType = '%';
+            unifiedItems[idx].discountValue = val;
+            const fixedInput = document.querySelector(`.unified-fixed[data-idx="${idx}"]`);
+            if (fixedInput) fixedInput.value = '';
+            renderUnifiedQuote();
+            updateUnifiedTotals();
+            syncToLegacyData();
+        };
+    });
+    
+    document.querySelectorAll('.unified-fixed').forEach(input => {
+        input.onchange = (e) => {
+            const idx = parseInt(e.target.dataset.idx);
+            let val = parseFloat(e.target.value) || 0;
+            if (val > unifiedItems[idx].price) val = unifiedItems[idx].price;
+            unifiedItems[idx].discountType = 'fixed';
+            unifiedItems[idx].discountValue = val;
+            const percentInput = document.querySelector(`.unified-percent[data-idx="${idx}"]`);
+            if (percentInput) percentInput.value = '';
+            renderUnifiedQuote();
+            updateUnifiedTotals();
+            syncToLegacyData();
+        };
+    });
+    
+    document.querySelectorAll('.unified-remove-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            const idx = parseInt(btn.dataset.idx);
+            unifiedItems.splice(idx, 1);
+            renderUnifiedQuote();
+            updateUnifiedTotals();
+            syncToLegacyData();
+        };
+    });
+    
+    updateUnifiedTotals();
+}
+
+// 更新总计
+function updateUnifiedTotals() {
+    let productSubtotal = 0, serviceSubtotal = 0, totalDiscount = 0;
+    
+    for (const item of unifiedItems) {
+        const itemTotal = item.price * item.quantity;
+        let discountedTotal = itemTotal;
+        if (item.discountType === '%') {
+            discountedTotal = itemTotal * (1 - item.discountValue / 100);
+        } else if (item.discountType === 'fixed') {
+            discountedTotal = Math.max(0, itemTotal - item.discountValue * item.quantity);
+        }
+        const discount = itemTotal - discountedTotal;
+        totalDiscount += discount;
+        
+        if (item.type === 'product') {
+            productSubtotal += discountedTotal;
+        } else {
+            serviceSubtotal += discountedTotal;
+        }
+    }
+    
+    const productTax = productSubtotal * 0.12;
+    const serviceTax = serviceSubtotal * 0.05;
+    const grandTotal = productSubtotal + serviceSubtotal + productTax + serviceTax;
+    
+    document.getElementById('unifiedProductSubtotal').innerText = productSubtotal.toFixed(2);
+    document.getElementById('unifiedServiceSubtotal').innerText = serviceSubtotal.toFixed(2);
+    document.getElementById('unifiedTotalDiscount').innerText = totalDiscount.toFixed(2);
+    document.getElementById('unifiedProductTax').innerText = productTax.toFixed(2);
+    document.getElementById('unifiedServiceTax').innerText = serviceTax.toFixed(2);
+    document.getElementById('unifiedGrandTotal').innerText = grandTotal.toFixed(2);
+}
+
+// 同步回传统数据结构
+function syncToLegacyData() {
+    // 同步产品到 currentMorningProducts/currentEveningProducts
+    const products = unifiedItems.filter(item => item.type === 'product');
+    currentMorningProducts = [];
+    currentEveningProducts = [];
+    products.forEach(p => {
+        currentMorningProducts.push({ productId: p.id, time: 'morning' });
+    });
+    
+    // 同步疗程到 currentTreatments
+    currentTreatments = unifiedItems.filter(item => item.type === 'service').map(item => ({ serviceId: item.id }));
+    
+    // 保存到本地存储
+    saveToLocalStorage();
+    saveServicesToLocalStorage();
+}
+
+// 初始化统一搜索下拉菜单
+function initUnifiedSearch() {
+    const input = document.getElementById('unifiedSearchInput');
+    const panel = document.getElementById('unifiedSearchPanel');
+    if (!input || !panel) return;
+    
+    let searchTimeout = null;
+    
+    function renderMainMenu() {
+        let html = `
+            <div class="cascade-level">
+                <div class="cascade-brand-item" data-type="product">
+                    <span>📦 产品</span>
+                    <span class="arrow">▶</span>
+                </div>
+                <div class="cascade-brand-item" data-type="service">
+                    <span>💆 疗程</span>
+                    <span class="arrow">▶</span>
+                </div>
+            </div>
+        `;
+        panel.innerHTML = html;
+        
+        panel.querySelector('.cascade-brand-item[data-type="product"]').onclick = () => showProductBrands();
+        panel.querySelector('.cascade-brand-item[data-type="service"]').onclick = () => showServiceCategories();
+    }
+    
+    function showProductBrands() {
+        const brands = [...new Set(productsData.map(p => p.brand).filter(b => b))].sort();
+        let html = `<div class="cascade-level"><div class="cascade-back-btn">← 返回</div><div style="padding: 0.4rem 1rem; background: #f5efe8;">📁 选择品牌</div>`;
+        for (const brand of brands) {
+            const count = productsData.filter(p => p.brand === brand).length;
+            html += `<div class="cascade-brand-item" data-brand="${escapeHtml(brand)}"><span>📁 ${escapeHtml(brand)}</span><span class="arrow">▶ ${count}</span></div>`;
+        }
+        html += `</div>`;
+        panel.innerHTML = html;
+        
+        panel.querySelector('.cascade-back-btn').onclick = () => renderMainMenu();
+        panel.querySelectorAll('.cascade-brand-item[data-brand]').forEach(item => {
+            item.onclick = () => showProductsByBrand(item.dataset.brand);
+        });
+    }
+    
+    function showProductsByBrand(brand) {
+        const products = productsData.filter(p => p.brand === brand).sort((a, b) => a.name.localeCompare(b.name));
+        let html = `<div class="cascade-level"><div class="cascade-back-btn">← 返回品牌</div><div style="padding: 0.4rem 1rem; background: #f5efe8;">📦 ${escapeHtml(brand)}</div>`;
+        for (const p of products) {
+            html += `<div class="cascade-product-item" data-product-id="${p.id}" data-product-name="${escapeHtml(p.name)}" data-product-price="${p.price}">
+                        <span>${escapeHtml(p.name)}</span>
+                        <span>$${p.price}</span>
+                     </div>`;
+        }
+        html += `</div>`;
+        panel.innerHTML = html;
+        
+        panel.querySelector('.cascade-back-btn').onclick = () => showProductBrands();
+        panel.querySelectorAll('.cascade-product-item').forEach(item => {
+            item.onclick = () => addItem('product', item.dataset.productId);
+        });
+    }
+    
+    function showServiceCategories() {
+        const categories = ['注射', '镭射', '其它'];
+        let html = `<div class="cascade-level"><div class="cascade-back-btn">← 返回</div><div style="padding: 0.4rem 1rem; background: #f5efe8;">📁 选择类别</div>`;
+        for (const cat of categories) {
+            const count = servicesData.filter(s => s.category === cat).length;
+            html += `<div class="cascade-brand-item" data-category="${cat}"><span>📁 ${cat}</span><span class="arrow">▶ ${count}</span></div>`;
+        }
+        html += `</div>`;
+        panel.innerHTML = html;
+        
+        panel.querySelector('.cascade-back-btn').onclick = () => renderMainMenu();
+        panel.querySelectorAll('.cascade-brand-item[data-category]').forEach(item => {
+            item.onclick = () => showServicesByCategory(item.dataset.category);
+        });
+    }
+    
+    function showServicesByCategory(category) {
+        const services = servicesData.filter(s => s.category === category).sort((a, b) => a.name.localeCompare(b.name));
+        let html = `<div class="cascade-level"><div class="cascade-back-btn">← 返回类别</div><div style="padding: 0.4rem 1rem; background: #f5efe8;">💆 ${escapeHtml(category)}</div>`;
+        for (const s of services) {
+            html += `<div class="cascade-product-item" data-service-id="${s.id}" data-service-name="${escapeHtml(s.name)}" data-service-price="${s.price}">
+                        <span>${escapeHtml(s.name)}</span>
+                        <span>$${s.price}</span>
+                     </div>`;
+        }
+        html += `</div>`;
+        panel.innerHTML = html;
+        
+        panel.querySelector('.cascade-back-btn').onclick = () => showServiceCategories();
+        panel.querySelectorAll('.cascade-product-item').forEach(item => {
+            item.onclick = () => addItem('service', item.dataset.serviceId);
+        });
+    }
+    
+    function renderSearchResults(term) {
+        const lowerTerm = term.toLowerCase();
+        const matchedProducts = productsData.filter(p => p.name.toLowerCase().includes(lowerTerm) || (p.brand && p.brand.toLowerCase().includes(lowerTerm)));
+        const matchedServices = servicesData.filter(s => s.name.toLowerCase().includes(lowerTerm) || s.category.toLowerCase().includes(lowerTerm));
+        
+        let html = `<div class="cascade-level"><div class="cascade-back-btn">← 返回</div><div style="padding: 0.4rem 1rem; background: #f5efe8;">🔍 搜索结果</div>`;
+        
+        if (matchedProducts.length > 0) {
+            html += `<div style="padding: 0.3rem 1rem; background: #e9dfd4; font-size: 0.7rem;">📦 产品 (${matchedProducts.length})</div>`;
+            for (const p of matchedProducts) {
+                html += `<div class="cascade-product-item" data-product-id="${p.id}"><span>${escapeHtml(p.name)}</span><span>$${p.price}</span></div>`;
+            }
+        }
+        
+        if (matchedServices.length > 0) {
+            html += `<div style="padding: 0.3rem 1rem; background: #e9dfd4; font-size: 0.7rem;">💆 疗程 (${matchedServices.length})</div>`;
+            for (const s of matchedServices) {
+                html += `<div class="cascade-product-item" data-service-id="${s.id}"><span>${escapeHtml(s.name)}</span><span>$${s.price}</span></div>`;
+            }
+        }
+        
+        if (matchedProducts.length === 0 && matchedServices.length === 0) {
+            html += `<div style="padding: 1rem; text-align: center; color: #b7a99a;">未找到 "${escapeHtml(term)}"</div>`;
+        }
+        
+        html += `</div>`;
+        panel.innerHTML = html;
+        
+        panel.querySelector('.cascade-back-btn').onclick = () => renderMainMenu();
+        panel.querySelectorAll('.cascade-product-item[data-product-id]').forEach(item => {
+            item.onclick = () => addItem('product', item.dataset.productId);
+        });
+        panel.querySelectorAll('.cascade-product-item[data-service-id]').forEach(item => {
+            item.onclick = () => addItem('service', item.dataset.serviceId);
+        });
+    }
+    
+    function addItem(type, id) {
+        let item;
+        if (type === 'product') {
+            const product = getProductById(id);
+            if (product && !unifiedItems.some(i => i.type === 'product' && i.id === id)) {
+                item = {
+                    type: 'product',
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    discountType: '%',
+                    discountValue: 0
+                };
+                unifiedItems.push(item);
+            }
+        } else {
+            const service = getServiceById(id);
+            if (service && !unifiedItems.some(i => i.type === 'service' && i.id === id)) {
+                item = {
+                    type: 'service',
+                    id: service.id,
+                    name: service.name,
+                    price: service.price,
+                    quantity: 1,
+                    discountType: '%',
+                    discountValue: 0
+                };
+                unifiedItems.push(item);
+            }
+        }
+        renderUnifiedQuote();
+        syncToLegacyData();
+        input.value = '';
+        panel.classList.remove('show');
+    }
+    
+    input.oninput = (e) => {
+        if (searchTimeout) clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            const term = e.target.value.trim();
+            if (term) renderSearchResults(term.toLowerCase());
+            else renderMainMenu();
+            panel.classList.add('show');
+        }, 300);
+    };
+    
+    input.onclick = () => {
+        renderMainMenu();
+        panel.classList.add('show');
+    };
+    
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !panel.contains(e.target)) {
+            panel.classList.remove('show');
+        }
+    });
+    
+    renderMainMenu();
+}    
 // 渲染疗程库
 function renderServiceLibrary() {
     const container = document.getElementById('serviceList');
