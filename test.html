@@ -47,9 +47,8 @@
             document.body.innerHTML = '<div style="text-align:center; margin-top:20vh; font-family:sans-serif;"><h2>🔒 Access Denied</h2><p>Incorrect password. Please contact administrator.</p></div>';
             throw new Error('Authentication failed');
         } else {
-            // 用户点击取消
-            document.body.innerHTML = '<div style="text-align:center; margin-top:20vh; font-family:sans-serif;"><h2>🔒 Access Required</h2><p>Password is required to view this page.</p></div>';
-            throw new Error('Authentication cancelled');
+            // 用户点击取消，重新要求密码
+            location.reload();
         }
     }
 })();
@@ -720,7 +719,7 @@
                     <button class="toggle-add-btn" id="toggleAddServiceBtn">+ Add Service</button>
                 </div>
                 <div class="service-list" id="serviceList"></div>
-                <div id="serviceForm" class="product-form" style="display: none;">
+                <div id="serviceForm" class="product-form">
                     <div class="form-row">
                         <div class="form-group"><label>Service Name *</label><input type="text" id="serviceName" placeholder="e.g., Laser Treatment"></div>
                         <div class="form-group"><label>Category</label><select id="serviceCategory"><option>Injection</option><option>Laser</option><option>Others</option></select></div>
