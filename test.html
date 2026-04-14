@@ -489,6 +489,47 @@
 .cascade-back-btn:hover {
     background: #e9dfd4;
 }
+
+/* 强制套餐按钮样式 */
+.package-selector-bar .package-btn {
+    background: #e9dfd4 !important;
+    border: none !important;
+    padding: 0.5rem 1.2rem !important;
+    border-radius: 40px !important;
+    cursor: pointer !important;
+    font-size: 0.8rem !important;
+    transition: all 0.2s !important;
+    color: #5f5347 !important;
+}
+.package-selector-bar .package-btn:hover {
+    background: #d2c0b0 !important;
+}
+.package-selector-bar .package-btn.active {
+    background: #b99f87 !important;
+    color: white !important;
+}
+
+/* 强制疗程库样式 */
+.service-library .service-item {
+    background: #e9dfd4 !important;
+    padding: 0.45rem 0.8rem !important;
+    border-radius: 40px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    font-size: 0.75rem !important;
+    color: #5f5347 !important;
+}
+.service-library .service-item .edit-service-icon,
+.service-library .service-item .delete-service-icon {
+    cursor: pointer !important;
+    font-size: 0.7rem !important;
+    opacity: 0.6 !important;
+}
+.service-library .service-item .edit-service-icon:hover,
+.service-library .service-item .delete-service-icon:hover {
+    opacity: 1 !important;
+}
         
     </style>
 </head>
