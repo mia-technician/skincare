@@ -1840,6 +1840,67 @@ function loadServicesFromLocalStorage() {
     }
 }
 
+    // 从云端加载疗程和套餐数据
+async function loadServicesFromCloud() {
+    if (!supabaseClient) return false;
+    
+    try {
+        // 加载疗程库
+        const { data: services, error: servicesError } = await supabaseClient
+            .from('services')
+            .select('*');
+        
+        if (servicesError) throw servicesError;
+        
+        if (services && services.length > 0) {
+            servicesData = services;
+        } else {
+            servicesData = JSON.parse(JSON.stringify(DEFAULT_SERVICES));
+        }
+        
+        // 加载套餐
+        const { data: packages, error: packagesError } = await supabaseClient
+            .from('packages')
+            .select('*');
+        
+        if (packagesError) throw packagesError;
+        
+        if (packages && packages.length > 0) {
+            savedPackages = {};
+            packages.forEach(p => {
+                savedPackages[p.id] = {
+                    name: p.name,
+                    products: p.products || [],
+                    services: p.services || []
+                };
+            });
+        } else {
+            savedPackages = JSON.parse(JSON.stringify(INITIAL_PACKAGES));
+        }
+        
+        // 加载当前选中的套餐
+        const { data: state, error: stateError } = await supabaseClient
+            .from('user_state')
+            .select('current_package_id, current_treatments')
+            .maybeSingle();
+        
+        if (state && !stateError) {
+            if (state.current_package_id && savedPackages[state.current_package_id]) {
+                currentPackageId = state.current_package_id;
+                currentTreatments = savedPackages[currentPackageId].services.map(sid => ({ serviceId: sid }));
+            } else if (state.current_treatments) {
+                currentTreatments = state.current_treatments.map(sid => ({ serviceId: sid }));
+            }
+        }
+        
+        saveServicesToLocalStorage();
+        return true;
+    } catch (e) {
+        console.error('Cloud load error:', e);
+        return false;
+    }
+}
+
 // 统一报价项目
 let unifiedItems = [];  // { type, id, name, price, quantity, discountType, discountValue }
 
