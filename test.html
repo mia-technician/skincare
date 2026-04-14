@@ -1841,6 +1841,7 @@ function loadServicesFromLocalStorage() {
 }
 
     // 从云端加载疗程和套餐数据
+// 从云端加载疗程和套餐数据
 async function loadServicesFromCloud() {
     if (!supabaseClient) return false;
     
@@ -1894,6 +1895,13 @@ async function loadServicesFromCloud() {
         }
         
         saveServicesToLocalStorage();
+        
+        // 刷新界面
+        renderServiceLibrary();
+        renderPackageButtons();
+        if (typeof initUnifiedItems === 'function') initUnifiedItems();
+        if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
+        
         return true;
     } catch (e) {
         console.error('Cloud load error:', e);
@@ -2433,16 +2441,13 @@ async function verifyPassword() {
     const passwordInput = document.getElementById('cloudPassword');
     const enteredPassword = passwordInput.value;
     
-    // 管理员密码
     const ADMIN_PASSWORD = "laserVersante";
-    // 员工密码
     const STAFF_PASSWORD = "laser2024";
     
     if (enteredPassword === ADMIN_PASSWORD) {
-        // 管理员 - 可读写云端
         isAuthenticated = true;
         currentUserId = SYSTEM_USER_ID;
-        document.getElementById('authStatus').innerHTML = `✅ 管理员模式 · 可读写云端数据`;
+        document.getElementById('authStatus').innerHTML = `✅ Admin Mode - Read/Write Cloud Data`;
         document.getElementById('verifyPasswordBtn').style.display = 'none';
         document.getElementById('clearPasswordBtn').style.display = 'inline-block';
         passwordInput.style.display = 'none';
@@ -2451,16 +2456,20 @@ async function verifyPassword() {
             supabaseClient = supabase;
             await loadFromCloud();
             await loadServicesFromCloud();
+            // 强制刷新所有界面
+            renderServiceLibrary();
+            renderPackageButtons();
+            if (typeof initUnifiedItems === 'function') initUnifiedItems();
+            if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
             refreshUI();
-            alert("管理员模式已激活！可读写云端数据。");
+            alert("Admin mode activated! You can read/write cloud data.");
         } else {
             alert("Supabase not ready. Please refresh the page.");
         }
     } else if (enteredPassword === STAFF_PASSWORD) {
-        // 员工 - 只读云端，可本地编辑
         isAuthenticated = false;
         currentUserId = SYSTEM_USER_ID;
-        document.getElementById('authStatus').innerHTML = `✅ 员工模式 · 只读云端数据`;
+        document.getElementById('authStatus').innerHTML = `✅ Staff Mode - Read Only Cloud Data`;
         document.getElementById('verifyPasswordBtn').style.display = 'none';
         document.getElementById('clearPasswordBtn').style.display = 'inline-block';
         passwordInput.style.display = 'none';
@@ -2469,8 +2478,12 @@ async function verifyPassword() {
             supabaseClient = supabase;
             await loadFromCloud();
             await loadServicesFromCloud();
+            renderServiceLibrary();
+            renderPackageButtons();
+            if (typeof initUnifiedItems === 'function') initUnifiedItems();
+            if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
             refreshUI();
-            alert("员工模式已激活！可查看云端数据，编辑本地内容。需要保存到云端请使用管理员密码。");
+            alert("Staff mode activated! View only. Use admin password to edit cloud data.");
         } else {
             alert("Supabase not ready. Please refresh the page.");
         }
