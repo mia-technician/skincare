@@ -294,9 +294,24 @@
             .panel-body { padding: 1rem; }
         }
     </style>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<div class="container">
+            <!-- 登录区域 -->
+        <div id="authWidget" style="display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap;">
+            <div id="loginPanel" style="display: flex; gap: 8px; align-items: center;">
+                <input type="email" id="loginEmail" placeholder="Email" style="padding: 6px 12px; border-radius: 40px; border: 1px solid #e2cfc2;">
+                <input type="password" id="loginPassword" placeholder="Password" style="padding: 6px 12px; border-radius: 40px; border: 1px solid #e2cfc2;">
+                <button id="loginBtn" style="padding: 6px 16px; border-radius: 40px; background: #b47c56; color: white; border: none;">Login</button>
+                <button id="signupBtn" style="padding: 6px 16px; border-radius: 40px; background: #efe0d7; border: none;">Sign Up</button>
+            </div>
+            <div id="userPanel" style="display: none; align-items: center; gap: 12px;">
+                <span id="userEmailDisplay" style="font-size: 0.8rem;"></span>
+                <button id="logoutBtn" style="padding: 6px 16px; border-radius: 40px; background: #efe0d7; border: none;">Logout</button>
+            </div>
+            
+        </div><div class="container">
     <div class="hero-section">
         <h1><i class="fas fa-spa"></i> Aesthetic Notes · Cloud Workspace</h1>
         <p>Select a treatment from dropdown, edit text / image annotation / video — all notes auto-save to cloud (localStorage).</p>
@@ -327,40 +342,166 @@
     let projectsData = [];
     let nextId = 1;
 
-    // Load initial default data
-    function loadInitialData() {
-        const stored = localStorage.getItem('aesthetic_notes_projects');
-        if (stored) {
-            projectsData = JSON.parse(stored);
-            nextId = projectsData.reduce((max, p) => Math.max(max, p.id), 0) + 1;
-        } else {
-            projectsData = [
-                { id: 0, title: "IPL Photofacial", desc: "Reduces redness, pores, non-invasive", thumb: "https://picsum.photos/id/20/400/300", 
-                  noteText: "<p><strong>IPL Notes</strong>: 30min session, skin brightening after 3 days. Use SPF diligently.</p>",
-                  imageUrl: "https://picsum.photos/id/20/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-                { id: 1, title: "Skin Booster (Mesotherapy)", desc: "Deep hydration, hyaluronic acid", thumb: "https://picsum.photos/id/134/400/300",
-                  noteText: "<p><strong>Mesotherapy experience</strong>: Mild discomfort, glowing skin after 1 week. Combine with medical masks.</p>",
-                  imageUrl: "https://picsum.photos/id/134/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFunflies.mp4" },
-                { id: 2, title: "Thermage", desc: "Radiofrequency tightening, collagen stimulation", thumb: "https://picsum.photos/id/26/400/300",
-                  noteText: "<p><strong>Thermage anti-aging</strong>: Immediate tightening, best results at 3-6 months. Avoid sauna.</p>",
-                  imageUrl: "https://picsum.photos/id/26/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
-                { id: 3, title: "Chemical Peel", desc: "Improves acne, closed comedones", thumb: "https://picsum.photos/id/158/400/300",
-                  noteText: "<p><strong>Peel notes</strong>: Mild peeling normal, strict sun protection.</p>",
-                  imageUrl: "https://picsum.photos/id/158/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4" },
-                { id: 4, title: "Pico Laser", desc: "Freckles, pigmentation removal", thumb: "https://picsum.photos/id/119/400/300",
-                  noteText: "<p><strong>Pico notes</strong>: Great for lentigines, scabs fall off naturally.</p>",
-                  imageUrl: "https://picsum.photos/id/119/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/WhatCar.mp4" },
-                { id: 5, title: "Hyaluronic Acid Filler", desc: "Contour enhancement, lip augmentation", thumb: "https://picsum.photos/id/104/400/300",
-                  noteText: "<p><strong>Filler notes</strong>: Instant volume, lasts 6-12 months.</p>",
-                  imageUrl: "https://picsum.photos/id/104/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" }
-            ];
-            nextId = 6;
-            saveToCloud();
+        // ========== Supabase 初始化 ==========
+    const SUPABASE_URL = 'https://你的项目.supabase.co';  // 替换为你的 URL
+    const SUPABASE_ANON_KEY = '你的匿名密钥';              // 替换为你的 Key
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    let currentUser = null;  // 存储当前登录用户
+    
+    // 登录函数
+    async function signIn(email, password) {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (!error) currentUser = data.user;
+        return { data, error };
+    }
+    
+    // 注册函数
+    async function signUp(email, password) {
+        const { data, error } = await supabaseClient.auth.signUp({ email, password });
+        if (!error) currentUser = data.user;
+        return { data, error };
+    }
+    
+    // 登出函数
+    async function signOut() {
+        const { error } = await supabaseClient.auth.signOut();
+        if (!error) currentUser = null;
+        return { error };
+    }
+    
+    // 从 Supabase 加载笔记列表
+    async function fetchNotesFromSupabase() {
+        if (!currentUser) return [];
+        const { data, error } = await supabaseClient
+            .from('treatment_notes')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .order('created_at', { ascending: false });
+        if (error) {
+            console.error('加载失败:', error);
+            return [];
         }
+        return data;
+    }
+    
+    // 新增笔记到 Supabase
+    async function addNoteToSupabase(note) {
+        if (!currentUser) return null;
+        const { data, error } = await supabaseClient
+            .from('treatment_notes')
+            .insert([{
+                user_id: currentUser.id,
+                title: note.title,
+                description: note.desc,
+                note_text: note.noteText,
+                image_url: note.imageUrl,
+                video_url: note.videoUrl,
+                thumbnail_url: note.thumb
+            }])
+            .select();
+        if (error) {
+            console.error('新增失败:', error);
+            return null;
+        }
+        return data[0];
+    }
+    
+    // 更新笔记到 Supabase
+    async function updateNoteInSupabase(id, updates) {
+        if (!currentUser) return null;
+        const { data, error } = await supabaseClient
+            .from('treatment_notes')
+            .update({
+                title: updates.title,
+                description: updates.desc,
+                note_text: updates.noteText,
+                image_url: updates.imageUrl,
+                video_url: updates.videoUrl,
+                thumbnail_url: updates.thumb,
+                updated_at: new Date()
+            })
+            .eq('id', id)
+            .eq('user_id', currentUser.id)
+            .select();
+        if (error) {
+            console.error('更新失败:', error);
+            return null;
+        }
+        return data[0];
+    }
+    
+    // 删除笔记
+    async function deleteNoteFromSupabase(id) {
+        if (!currentUser) return false;
+        const { error } = await supabaseClient
+            .from('treatment_notes')
+            .delete()
+            .eq('id', id)
+            .eq('user_id', currentUser.id);
+        if (error) {
+            console.error('删除失败:', error);
+            return false;
+        }
+        return true;
     }
 
-    function saveToCloud() {
-        localStorage.setItem('aesthetic_notes_projects', JSON.stringify(projectsData));
+    // Load initial default data
+        async function loadInitialData() {
+        // 不再从 localStorage 加载，改为从 Supabase 加载
+        if (currentUser) {
+            const data = await fetchNotesFromSupabase();
+            if (data.length > 0) {
+                projectsData = data;
+                nextId = Math.max(...data.map(p => p.id), 0) + 1;
+            } else {
+                // 如果没有数据，初始化默认数据并上传
+                projectsData = getDefaultProjects();
+                for (const proj of projectsData) {
+                    const result = await addNoteToSupabase(proj);
+                    if (result) proj.id = result.id;
+                }
+                nextId = projectsData.reduce((max, p) => Math.max(max, p.id), 0) + 1;
+            }
+        } else {
+            projectsData = [];
+        }
+        renderEmptyState();
+    }
+    
+    function getDefaultProjects() {
+        return [
+            { id: null, title: "IPL Photofacial", desc: "Reduces redness, pores", thumb: "https://picsum.photos/id/20/400/300", 
+              noteText: "<p><strong>IPL Notes</strong>: 30min session, skin brightening.</p>",
+              imageUrl: "https://picsum.photos/id/20/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+            // ... 其他默认数据
+        ];
+    }
+
+            async function saveToCloud() {
+        // 不再使用 localStorage，改为 Supabase 同步
+        if (!currentUser) {
+            alert('Please login first');
+            return;
+        }
+        
+        for (const proj of projectsData) {
+            // 检查是新增还是更新
+            const exists = await supabaseClient
+                .from('treatment_notes')
+                .select('id')
+                .eq('id', proj.id)
+                .eq('user_id', currentUser.id)
+                .single();
+            
+            if (exists.data) {
+                await updateNoteInSupabase(proj.id, proj);
+            } else {
+                const newNote = await addNoteToSupabase(proj);
+                if (newNote) proj.id = newNote.id;
+            }
+        }
+        console.log('All notes synced to Supabase');
     }
 
     // Global state
@@ -548,15 +689,34 @@
         }, { crossOrigin: 'anonymous' });
     }
 
-    function saveEditChanges() {
+        async function saveEditChanges() {
         if (!currentProject) return;
+        if (!currentUser) {
+            alert('Please login first');
+            return;
+        }
+        
         if (quillEditor) currentProject.noteText = quillEditor.root.innerHTML;
         if (currentImageBase64 && currentImageBase64.startsWith('data:image')) currentProject.imageUrl = currentImageBase64;
         const newVideo = document.getElementById('editVideoUrl')?.value.trim();
         if (newVideo) currentProject.videoUrl = newVideo;
-        saveToCloud();
-        alert(`✅ "${currentProject.title}" saved to cloud!`);
-        renderViewMode();
+        
+        // 同步到 Supabase
+        const result = await updateNoteInSupabase(currentProject.id, {
+            title: currentProject.title,
+            desc: currentProject.desc,
+            noteText: currentProject.noteText,
+            imageUrl: currentProject.imageUrl,
+            videoUrl: currentProject.videoUrl,
+            thumb: currentProject.thumb
+        });
+        
+        if (result) {
+            alert(`✅ "${currentProject.title}" saved to Supabase!`);
+            renderViewMode();
+        } else {
+            alert('Save failed, please check console');
+        }
     }
 
     // Create mode: add brand new note
@@ -625,11 +785,30 @@
             let finalImage = createImageBase;
             const videoUrl = document.getElementById('createVideoUrl').value.trim();
             const newId = nextId++;
-            const newProj = { id: newId, title, desc, thumb: "https://picsum.photos/id/106/400/300", noteText, imageUrl: finalImage, videoUrl };
-            projectsData.push(newProj);
-            saveToCloud();
-            alert(`✅ "${title}" created and saved to cloud!`);
-            openProject(newId);
+                       if (!currentUser) {
+                alert('Please login first');
+                return;
+            }
+            
+            const newProj = { 
+                id: null,  // 让 Supabase 自动生成
+                title, 
+                desc, 
+                thumb: "https://picsum.photos/id/106/400/300", 
+                noteText, 
+                imageUrl: finalImage, 
+                videoUrl 
+            };
+            
+            const result = await addNoteToSupabase(newProj);
+            if (result) {
+                newProj.id = result.id;
+                projectsData.push(newProj);
+                alert(`✅ "${title}" created and saved to Supabase!`);
+                openProject(newProj.id);
+            } else {
+                alert('Create failed');
+            }
         });
         document.getElementById('cancelCreateBtn')?.addEventListener('click', () => { renderEmptyState(); });
     }
@@ -650,6 +829,40 @@
         if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.remove('show');
     });
 
+    // 登录交互
+    document.getElementById('loginBtn')?.addEventListener('click', async () => {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const { data, error } = await signIn(email, password);
+        if (error) {
+            alert('Login failed: ' + error.message);
+        } else {
+            document.getElementById('loginPanel').style.display = 'none';
+            document.getElementById('userPanel').style.display = 'flex';
+            document.getElementById('userEmailDisplay').innerText = email;
+            await loadInitialData();
+        }
+    });
+    
+    document.getElementById('signupBtn')?.addEventListener('click', async () => {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const { data, error } = await signUp(email, password);
+        if (error) {
+            alert('Sign up failed: ' + error.message);
+        } else {
+            alert('Account created! Please check your email to confirm.');
+        }
+    });
+    
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+        await signOut();
+        document.getElementById('loginPanel').style.display = 'flex';
+        document.getElementById('userPanel').style.display = 'none';
+        projectsData = [];
+        renderEmptyState();
+    });
+    
     loadInitialData();
     renderEmptyState();
 </script>
