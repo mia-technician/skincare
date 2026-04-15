@@ -2873,6 +2873,10 @@ async function login() {
     
     // 更新 UI
     document.getElementById('loginForm').style.display = 'none';
+    // 显示主内容区域
+document.querySelector('.tab-container').style.display = 'flex';
+document.getElementById('productsModeContainer').style.display = 'block';
+document.getElementById('treatmentsModeContainer').style.display = 'none';
     document.getElementById('logoutArea').style.display = 'flex';
     document.getElementById('userInfo').innerHTML = isAdmin ? '👑 Admin (Read/Write)' : '👤 Staff (Read Only)';
     document.getElementById('authStatus').innerHTML = `✅ Logged in as ${email}`;
@@ -2890,6 +2894,11 @@ async function logout() {
     currentUser = null;
     window.IS_ADMIN = false;
     isAuthenticated = false;
+
+        // ✅ 隐藏主内容区域（添加这三行）
+    document.querySelector('.tab-container').style.display = 'none';
+    document.getElementById('productsModeContainer').style.display = 'none';
+    document.getElementById('treatmentsModeContainer').style.display = 'none';
     
     // 清空数据
     productsData = [];
@@ -2919,10 +2928,11 @@ async function checkExistingSession() {
         isAuthenticated = isAdmin;
         currentUser = session.user;
         
-        // 显示主内容
-        document.getElementById('productsModeContainer').style.display = 'block';
-        document.getElementById('treatmentsModeContainer').style.display = 'none';
+        // ✅ 显示主内容区域
         document.querySelector('.tab-container').style.display = 'flex';
+        document.getElementById('productsModeContainer').style.display = 'block';
+        // 默认显示产品模式，疗程模式隐藏
+        document.getElementById('treatmentsModeContainer').style.display = 'none';
         
         document.getElementById('loginForm').style.display = 'none';
         document.getElementById('logoutArea').style.display = 'flex';
@@ -2940,9 +2950,9 @@ async function checkExistingSession() {
         isAuthenticated = false;
         
         // 隐藏主内容区域
+        document.querySelector('.tab-container').style.display = 'none';
         document.getElementById('productsModeContainer').style.display = 'none';
         document.getElementById('treatmentsModeContainer').style.display = 'none';
-        document.querySelector('.tab-container').style.display = 'none';
         
         // 显示登录区域
         document.getElementById('loginForm').style.display = 'flex';
