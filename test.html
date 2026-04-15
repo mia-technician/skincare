@@ -699,25 +699,13 @@
 
         <!-- 密码验证区域 -->
 <div class="password-section">
-    <div class="password-status" id="authStatus">🔒 Enter password to continue</div>
-    
-    <!-- 员工登录区域（默认显示） -->
-    <div id="staffLoginArea" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-        <input type="password" id="staffPassword" placeholder="Enter staff password" style="padding: 0.5rem 1rem; border: 1px solid #e2d4c6; border-radius: 40px;">
-        <button id="staffLoginBtn" class="password-btn">Staff Access</button>
-        <button id="showAdminBtn" class="password-btn password-btn-outline">Admin Login →</button>
+    <div class="password-status" id="authStatus">🔒 Please login</div>
+    <div id="loginForm" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <input type="email" id="loginEmail" placeholder="Email" style="padding: 0.5rem 1rem; border: 1px solid #e2d4c6; border-radius: 40px;">
+        <input type="password" id="loginPassword" placeholder="Password" style="padding: 0.5rem 1rem; border: 1px solid #e2d4c6; border-radius: 40px;">
+        <button id="loginBtn" class="password-btn">Login</button>
     </div>
-    
-    <!-- 管理员登录区域（初始隐藏） -->
-    <div id="adminLoginArea" style="display: none; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-        <input type="email" id="adminEmail" placeholder="Admin Email" style="padding: 0.5rem 1rem; border: 1px solid #e2d4c6; border-radius: 40px;">
-        <input type="password" id="adminPassword" placeholder="Password" style="padding: 0.5rem 1rem; border: 1px solid #e2d4c6; border-radius: 40px;">
-        <button id="adminLoginBtn" class="password-btn">Login as Admin</button>
-        <button id="backToStaffBtn" class="password-btn password-btn-outline">← Back</button>
-    </div>
-    
-    <!-- 登出区域 -->
-    <div id="logoutArea" style="display: none; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+    <div id="logoutArea" style="display: none;">
         <div id="userInfo" style="font-size: 0.8rem; margin-right: 1rem;"></div>
         <button id="logoutBtn" class="password-btn password-btn-outline">Logout</button>
     </div>
@@ -2850,9 +2838,99 @@ async function saveAsNewPackageToCloud() {
     return true;
 }
 
-// ==================== 密码验证函数 ====================
+// ==================== 认证函数 ====================
+// 管理员邮箱列表（在这里添加管理员的邮箱）
+const ADMIN_EMAILS = [
+    '你的管理员邮箱@gmail.com'   // 👈 改成你的管理员邮箱
+];
 
+let currentUser = null;
 
+// 登录
+async function login() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    
+    if (!email || !password) {
+        alert('Please enter email and password');
+        return;
+    }
+    
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+    });
+    
+    if (error) {
+        alert('Login failed: ' + error.message);
+        return;
+    }
+    
+    currentUser = data.user;
+    const isAdmin = ADMIN_EMAILS.includes(email);
+    window.IS_ADMIN = isAdmin;
+    isAuthenticated = isAdmin;
+    
+    // 更新 UI
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('logoutArea').style.display = 'flex';
+    document.getElementById('userInfo').innerHTML = isAdmin ? '👑 Admin (Read/Write)' : '👤 Staff (Read Only)';
+    document.getElementById('authStatus').innerHTML = `✅ Logged in as ${email}`;
+    
+    // 加载数据
+    await loadFromCloud();
+    await loadServicesFromCloud();
+    refreshUI();
+    updateUIBasedOnAuth();
+}
+
+// 登出
+async function logout() {
+    await supabaseClient.auth.signOut();
+    currentUser = null;
+    window.IS_ADMIN = false;
+    isAuthenticated = false;
+    
+    // 清空数据
+    productsData = [];
+    savedRoutines = {};
+    servicesData = [];
+    savedPackages = {};
+    
+    // 重置 UI
+    document.getElementById('loginForm').style.display = 'flex';
+    document.getElementById('logoutArea').style.display = 'none';
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('authStatus').innerHTML = '🔒 Please login';
+    
+    refreshUI();
+    updateUIBasedOnAuth();
+}
+
+// 检查已有会话
+async function checkExistingSession() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    
+    if (session) {
+        const email = session.user.email;
+        const isAdmin = ADMIN_EMAILS.includes(email);
+        window.IS_ADMIN = isAdmin;
+        isAuthenticated = isAdmin;
+        currentUser = session.user;
+        
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('logoutArea').style.display = 'flex';
+        document.getElementById('userInfo').innerHTML = isAdmin ? '👑 Admin (Read/Write)' : '👤 Staff (Read Only)';
+        document.getElementById('authStatus').innerHTML = `✅ Logged in as ${email}`;
+        
+        await loadFromCloud();
+        await loadServicesFromCloud();
+        refreshUI();
+        updateUIBasedOnAuth();
+    }
+}
+    
 function refreshUI() {
     renderBrandTabs();
     renderBrandProducts();
@@ -2882,6 +2960,10 @@ document.getElementById('editRoutineBtn').onclick = () => {
 document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
 document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutine;
 document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
+
+    // 认证按钮绑定
+document.getElementById('loginBtn').onclick = login;
+document.getElementById('logoutBtn').onclick = logout;
 
 // ==================== Tab 切换逻辑 ====================
 const productsMode = document.getElementById('productsModeContainer');
@@ -2973,6 +3055,8 @@ if (emailUnifiedBtn) emailUnifiedBtn.onclick = emailUnifiedQuote;
 async function initApp() {
     if (typeof supabase !== 'undefined') {
         supabaseClient = supabase;
+        
+         await checkExistingSession();
         
         try {
             // 1. 加载产品数据
