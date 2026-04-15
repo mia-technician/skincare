@@ -698,14 +698,30 @@
         </div>
 
         <!-- 密码验证区域 -->
-        <div class="password-section">
-            <div class="password-status" id="authStatus">🔒 Enter password to enable cloud operations</div>
-            <div class="password-input-group">
-                <input type="password" id="cloudPassword" placeholder="Enter password" autocomplete="off">
-                <button id="verifyPasswordBtn" class="password-btn">Verify</button>
-                <button id="clearPasswordBtn" class="password-btn password-btn-outline" style="display:none">Clear</button>
-            </div>
-        </div>
+<div class="password-section">
+    <div class="password-status" id="authStatus">🔒 Enter password to continue</div>
+    
+    <!-- 员工登录区域（默认显示） -->
+    <div id="staffLoginArea" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <input type="password" id="staffPassword" placeholder="Enter staff password" style="padding: 0.5rem 1rem; border: 1px solid #e2d4c6; border-radius: 40px;">
+        <button id="staffLoginBtn" class="password-btn">Staff Access</button>
+        <button id="showAdminBtn" class="password-btn password-btn-outline">Admin Login →</button>
+    </div>
+    
+    <!-- 管理员登录区域（初始隐藏） -->
+    <div id="adminLoginArea" style="display: none; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <input type="email" id="adminEmail" placeholder="Admin Email" style="padding: 0.5rem 1rem; border: 1px solid #e2d4c6; border-radius: 40px;">
+        <input type="password" id="adminPassword" placeholder="Password" style="padding: 0.5rem 1rem; border: 1px solid #e2d4c6; border-radius: 40px;">
+        <button id="adminLoginBtn" class="password-btn">Login as Admin</button>
+        <button id="backToStaffBtn" class="password-btn password-btn-outline">← Back</button>
+    </div>
+    
+    <!-- 登出区域 -->
+    <div id="logoutArea" style="display: none; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+        <div id="userInfo" style="font-size: 0.8rem; margin-right: 1rem;"></div>
+        <button id="logoutBtn" class="password-btn password-btn-outline">Logout</button>
+    </div>
+</div>
 
 <!-- Tab 切换 - Products 默认激活 -->
 <div class="tab-container">
@@ -2835,78 +2851,7 @@ async function saveAsNewPackageToCloud() {
 }
 
 // ==================== 密码验证函数 ====================
-async function verifyPassword() {
-    // 密码已经在页面加载时验证，这里只是重新确认
-    const passwordInput = document.getElementById('cloudPassword');
-    const enteredPassword = passwordInput.value;
-    
-    const ADMIN_PASSWORD = "laserVersante";
-    const STAFF_PASSWORD = "laser2024";
-    
-    if (enteredPassword === ADMIN_PASSWORD) {
-        isAuthenticated = true;
-        window.IS_ADMIN = true;
-        currentUserId = SYSTEM_USER_ID;
-        document.getElementById('authStatus').innerHTML = `✅ Admin Mode - Read/Write Cloud Data`;
-        document.getElementById('verifyPasswordBtn').style.display = 'none';
-        document.getElementById('clearPasswordBtn').style.display = 'inline-block';
-        passwordInput.style.display = 'none';
-        
-        localStorage.setItem('page_auth_type', 'admin');
-        
-        if (typeof supabase !== 'undefined') {
-            supabaseClient = supabase;
-            await loadFromCloud();
-            await loadServicesFromCloud();
-            renderServiceLibrary();
-            renderPackageButtons();
-            if (typeof initUnifiedItems === 'function') initUnifiedItems();
-            if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
-            refreshUI();
-            alert("Admin mode activated! You can read/write cloud data.");
-        }
-    } else if (enteredPassword === STAFF_PASSWORD) {
-        isAuthenticated = false;
-        window.IS_ADMIN = false;
-        currentUserId = SYSTEM_USER_ID;
-        document.getElementById('authStatus').innerHTML = `✅ Staff Mode - Read Only Cloud Data`;
-        document.getElementById('verifyPasswordBtn').style.display = 'none';
-        document.getElementById('clearPasswordBtn').style.display = 'inline-block';
-        passwordInput.style.display = 'none';
-        
-        localStorage.setItem('page_auth_type', 'staff');
-        
-        if (typeof supabase !== 'undefined') {
-            supabaseClient = supabase;
-            await loadFromCloud();
-            await loadServicesFromCloud();
-            refreshUI();
-            
-            // 如果当前在治疗 Tab，额外刷新
-            if (treatmentsMode && treatmentsMode.style.display !== 'none') {
-                renderServiceLibrary();
-                renderPackageButtons();
-                if (typeof initUnifiedItems === 'function') initUnifiedItems();
-                if (typeof renderUnifiedQuote === 'function') renderUnifiedQuote();
-                if (typeof initUnifiedSearch === 'function') initUnifiedSearch();
-            }
-            
-            alert("Staff mode activated! View only.");
-        }
-    } else {
-        alert("Incorrect password!");
-    }
-    updateUIBasedOnAuth();
-}
 
-function clearPassword() {
-    // 清除 localStorage 中的认证信息
-    localStorage.removeItem('page_authenticated');
-    localStorage.removeItem('page_auth_type');
-    localStorage.removeItem('page_auth_time');
-    // 刷新页面重新要求密码
-    location.reload();
-}
 
 function refreshUI() {
     renderBrandTabs();
@@ -2933,8 +2878,7 @@ document.getElementById('editRoutineBtn').onclick = () => {
     let newName = prompt("Edit routine name:", savedRoutines[currentRoutineId]?.name); 
     if(newName) renameCurrentRoutine(newName); 
 };
-document.getElementById('verifyPasswordBtn').onclick = verifyPassword;
-document.getElementById('clearPasswordBtn').onclick = clearPassword;
+
 document.getElementById('updateCurrentBtn').onclick = updateCurrentRoutine;
 document.getElementById('deleteCurrentRoutineBtn').onclick = deleteCurrentRoutine;
 document.getElementById('saveStandardBtn').onclick = saveAsNewRoutine;
