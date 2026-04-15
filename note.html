@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>医美疗程笔记 · 智能云笔记工作台</title>
+    <!-- Google Font & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- 富文本编辑器 Quill -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <!-- Fabric.js 图片标注 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #faf7f4;
+            font-family: 'Inter', sans-serif;
+            color: #2c241f;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 2rem 2rem 3rem;
+        }
+        /* 头部与搜索区 */
+        .hero-section {
+            background: white;
+            border-radius: 32px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+            border: 1px solid #f0e3db;
+        }
+        .hero-section h1 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #b47c56, #8f5e42);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .search-wrapper {
+            position: relative;
+            margin-top: 1rem;
+            width: 100%;
+            max-width: 550px;
+        }
+        .search-wrapper i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #bc8a6b;
+            font-size: 1rem;
+            pointer-events: none;
+        }
+        #projectSearchInput {
+            width: 100%;
+            padding: 0.9rem 1rem 0.9rem 2.8rem;
+            font-size: 1rem;
+            border-radius: 60px;
+            border: 1px solid #e8dbd2;
+            background: #fefcfb;
+            transition: 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        #projectSearchInput:focus {
+            outline: none;
+            border-color: #c99a78;
+            box-shadow: 0 0 0 3px rgba(201,154,120,0.2);
+        }
+        .dropdown-list {
+            position: absolute;
+            top: 110%;
+            left: 0;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.1);
+            z-index: 50;
+            max-height: 320px;
+            overflow-y: auto;
+            border: 1px solid #ede0d7;
+            display: none;
+        }
+        .dropdown-list.show {
+            display: block;
+        }
+        .dropdown-item {
+            padding: 0.8rem 1.2rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f3e8e1;
+            transition: 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .dropdown-item:hover {
+            background: #fdf5f0;
+        }
+        .dropdown-item img {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        .dropdown-item strong {
+            font-weight: 600;
+            color: #5c3f2f;
+        }
+        .add-new-item {
+            background: #faf1ea;
+            color: #b47c56;
+            font-weight: 600;
+            border-top: 1px solid #eddccf;
+            margin-top: 4px;
+        }
+
+        /* 笔记主面板 */
+        .note-main-panel {
+            background: white;
+            border-radius: 32px;
+            border: 1px solid #eedfcb;
+            overflow: hidden;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        .panel-header {
+            background: #fef7f2;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #f0e2d8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .panel-header h2 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: #4f3527;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .edit-mode-btn, .save-note-btn {
+            background: #f7ede7;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 8px 20px;
+            border-radius: 40px;
+            color: #b47c56;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .save-note-btn {
+            background: #b47c56;
+            color: white;
+        }
+        .save-note-btn:hover {
+            background: #9b6748;
+        }
+        .edit-mode-btn.active {
+            background: #e7d5cb;
+            color: #7a513a;
+        }
+        .panel-body {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        /* 富文本区域 */
+        .rich-area, .image-area, .video-area {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid #f0e2d8;
+            overflow: hidden;
+        }
+        .section-label {
+            background: #faf3ef;
+            padding: 0.7rem 1.2rem;
+            font-weight: 600;
+            border-bottom: 1px solid #ecdfd6;
+        }
+        #quill-editor {
+            height: 260px;
+            background: white;
+        }
+        /* 只读预览模式 */
+        .readonly-text {
+            padding: 1.2rem;
+            line-height: 1.6;
+            color: #2f2925;
+            font-size: 0.95rem;
+        }
+        .canvas-toolbar {
+            background: #faf3ef;
+            padding: 0.6rem 1rem;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #ecdfd6;
+        }
+        .canvas-toolbar button {
+            background: white;
+            border: 1px solid #ddd0c4;
+            padding: 0.3rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        .canvas-container {
+            background: #f4ede8;
+            display: flex;
+            justify-content: center;
+            padding: 1rem;
+            min-height: 340px;
+        }
+        canvas {
+            max-width: 100%;
+            border-radius: 16px;
+            background: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .image-placeholder {
+            padding: 2rem;
+            text-align: center;
+            color: #b88b6a;
+        }
+        .video-preview {
+            padding: 1rem;
+            text-align: center;
+        }
+        video {
+            max-width: 100%;
+            border-radius: 20px;
+            max-height: 280px;
+        }
+        .video-actions {
+            padding: 0.8rem 1rem;
+            background: #faf3ef;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .video-actions input {
+            flex: 1;
+            padding: 0.5rem;
+            border-radius: 40px;
+            border: 1px solid #e2cfc2;
+        }
+        .btn-sm {
+            background: #efe0d7;
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            cursor: pointer;
+        }
+        .footer-note {
+            margin-top: 1rem;
+            font-size: 0.7rem;
+            text-align: center;
+            color: #b2947d;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #b38b6e;
+        }
+        @media (max-width: 720px) {
+            .container { padding: 1rem; }
+            .panel-body { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="hero-section">
+        <h1><i class="fas fa-spa"></i> 医美疗程笔记 · 云端工作台</h1>
+        <p style="color:#7e685a;">下拉选择疗程笔记，支持在线编辑文字/图片标记/视频，所有笔记自动保存至云端（本地存储模拟）</p>
+        <div class="search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="projectSearchInput" placeholder="搜索或选择疗程... 也可点击下方「+ 新增笔记」" autocomplete="off">
+            <div id="dropdownMenu" class="dropdown-list"></div>
+        </div>
+    </div>
+
+    <!-- 笔记主面板: 展示选中的疗程笔记 或 新增区域 -->
+    <div id="notePanel" class="note-main-panel">
+        <div class="panel-header">
+            <h2 id="panelTitle"><i class="fas fa-notes-medical"></i> 医美笔记工作台</h2>
+            <div class="header-actions" id="headerActions">
+                <!-- 动态放置编辑/保存按钮 -->
+            </div>
+        </div>
+        <div id="panelBody" class="panel-body">
+            <!-- 动态内容：预览模式 / 编辑模式 / 新增模式 -->
+            <div class="empty-state">
+                <i class="fas fa-folder-open" style="font-size: 3rem; opacity: 0.6;"></i>
+                <p style="margin-top: 1rem;">✨ 从上方下拉菜单选择一个疗程笔记，或点击「+ 新增笔记」创建新记录。<br>笔记支持富文本、图片标记、视频，编辑后保存即可“上传云端”。</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- 疗程数据存储（模拟云端，使用localStorage持久化）----------
+    let projectsData = [];  // 每个项目字段: id, title, desc, thumb, noteText, imageUrl, videoUrl
+    let nextId = 1;
+
+    // 加载初始默认数据
+    function loadInitialData() {
+        const stored = localStorage.getItem('aesthetic_notes_projects');
+        if (stored) {
+            projectsData = JSON.parse(stored);
+            nextId = projectsData.reduce((max, p) => Math.max(max, p.id), 0) + 1;
+        } else {
+            projectsData = [
+                { id: 0, title: "光子嫩肤", desc: "改善泛红、毛孔，非侵入焕亮", thumb: "https://picsum.photos/id/20/400/300", 
+                  noteText: "<p><strong>光子嫩肤笔记</strong>：治疗过程约30分钟，术后皮肤即刻提亮。建议每月一次，连续三次效果更佳。</p><p>⚠️ 注意防晒，使用温和护肤品。</p>",
+                  imageUrl: "https://picsum.photos/id/20/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+                { id: 1, title: "水光针", desc: "深层补水，透明质酸直达真皮", thumb: "https://picsum.photos/id/134/400/300",
+                  noteText: "<p><strong>水光针体验</strong>：微痛感，导入后水润度明显提升。一周内效果最佳，配合医用面膜修复。</p>",
+                  imageUrl: "https://picsum.photos/id/134/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFunflies.mp4" },
+                { id: 2, title: "热玛吉", desc: "射频紧致提升，胶原再生", thumb: "https://picsum.photos/id/26/400/300",
+                  noteText: "<p><strong>热玛吉抗衰记录</strong>：术后即刻有收紧感，3-6个月效果达到高峰。注意多补水，避免高温桑拿。</p>",
+                  imageUrl: "https://picsum.photos/id/26/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+                { id: 3, title: "果酸焕肤", desc: "改善痘痘、闭口，平滑角质", thumb: "https://picsum.photos/id/158/400/300",
+                  noteText: "<p><strong>果酸焕肤心得</strong>：焕肤后轻微脱皮属于正常，做好保湿防晒，肤色透亮。</p>",
+                  imageUrl: "https://picsum.photos/id/158/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4" },
+                { id: 4, title: "皮秒激光", desc: "净澈淡斑，超短脉冲", thumb: "https://picsum.photos/id/119/400/300",
+                  noteText: "<p><strong>皮秒祛斑笔记</strong>：针对雀斑效果显著，术后结痂自然脱落，严格防晒。</p>",
+                  imageUrl: "https://picsum.photos/id/119/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/WhatCar.mp4" },
+                { id: 5, title: "玻尿酸填充", desc: "轮廓精塑，丰盈立体", thumb: "https://picsum.photos/id/104/400/300",
+                  noteText: "<p><strong>玻尿酸填充记录</strong>：注射后即刻饱满，自然柔和，维持时间6-12个月。</p>",
+                  imageUrl: "https://picsum.photos/id/104/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" }
+            ];
+            nextId = 6;
+            saveToCloud();
+        }
+    }
+
+    function saveToCloud() {
+        localStorage.setItem('aesthetic_notes_projects', JSON.stringify(projectsData));
+    }
+
+    // 全局状态
+    let currentMode = 'view';       // 'view', 'edit', 'create'
+    let currentProject = null;      // 正在查看/编辑的项目
+    let quillEditor = null;
+    let fabricCanvas = null;
+    let currentImageBase64 = "";     // 当前图片（URL 或 标注后 base64）
+    let currentVideoUrl = "";
+
+    // DOM 元素
+    const panelBody = document.getElementById('panelBody');
+    const panelTitle = document.getElementById('panelTitle');
+    const headerActions = document.getElementById('headerActions');
+
+    // 渲染下拉菜单
+    function renderDropdown() {
+        const input = document.getElementById('projectSearchInput');
+        const dropdown = document.getElementById('dropdownMenu');
+        const query = input.value.trim().toLowerCase();
+        dropdown.innerHTML = '';
+        let filtered = [];
+        if (query !== "") {
+            filtered = projectsData.filter(p => p.title.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query));
+        }
+        if (query !== "" && filtered.length > 0) {
+            filtered.forEach(proj => {
+                const div = document.createElement('div');
+                div.className = 'dropdown-item';
+                div.setAttribute('data-id', proj.id);
+                div.innerHTML = `<img src="${proj.thumb}"><div><strong>${proj.title}</strong><span style="font-size:0.7rem;"> &nbsp; ${proj.desc.substring(0,40)}</span></div>`;
+                div.addEventListener('click', () => {
+                    input.value = proj.title;
+                    dropdown.classList.remove('show');
+                    openProject(proj.id);
+                });
+                dropdown.appendChild(div);
+            });
+        } else {
+            // 显示所有项目（最多6个）便于快速选择，但仍加新增
+            projectsData.slice(0, 8).forEach(proj => {
+                const div = document.createElement('div');
+                div.className = 'dropdown-item';
+                div.innerHTML = `<img src="${proj.thumb}"><div><strong>${proj.title}</strong><span style="font-size:0.7rem;"> &nbsp; ${proj.desc.substring(0,35)}</span></div>`;
+                div.addEventListener('click', () => {
+                    input.value = proj.title;
+                    dropdown.classList.remove('show');
+                    openProject(proj.id);
+                });
+                dropdown.appendChild(div);
+            });
+        }
+        // 新增笔记选项始终在底部
+        const addDiv = document.createElement('div');
+        addDiv.className = 'dropdown-item add-new-item';
+        addDiv.innerHTML = `<i class="fas fa-plus-circle"></i> <strong>+ 新增笔记</strong> <span style="font-size:0.7rem;">创建全新疗程（文字/图片/视频）</span>`;
+        addDiv.addEventListener('click', () => {
+            dropdown.classList.remove('show');
+            openCreateMode();
+        });
+        dropdown.appendChild(addDiv);
+        dropdown.classList.add('show');
+    }
+
+    // 打开现有项目 (查看模式)
+    function openProject(projectId) {
+        const proj = projectsData.find(p => p.id === projectId);
+        if (!proj) return;
+        currentProject = proj;
+        currentMode = 'view';
+        renderViewMode();
+    }
+
+    // 渲染查看模式 (不可编辑，只展示内容)
+    function renderViewMode() {
+        if (!currentProject) return;
+        panelTitle.innerHTML = `<i class="fas fa-clinic-medical"></i> ${currentProject.title} · 笔记详情`;
+        headerActions.innerHTML = `<button id="enterEditBtn" class="edit-mode-btn"><i class="fas fa-pen"></i> 编辑笔记</button>`;
+        // 清空body并构建只读内容
+        panelBody.innerHTML = '';
+        // 文字区域
+        const textDiv = document.createElement('div');
+        textDiv.className = 'rich-area';
+        textDiv.innerHTML = `<div class="section-label"><i class="fas fa-align-left"></i> 文字笔记</div><div class="readonly-text">${currentProject.noteText || '<em>暂无内容</em>'}</div>`;
+        panelBody.appendChild(textDiv);
+        // 图片区域
+        const imgDiv = document.createElement('div');
+        imgDiv.className = 'image-area';
+        imgDiv.innerHTML = `<div class="section-label"><i class="fas fa-image"></i> 治疗图示 / 标记图</div><div class="canvas-container" id="viewImageContainer"><img src="${currentProject.imageUrl}" style="max-width:100%; border-radius: 20px; max-height: 400px; object-fit: contain;"></div>`;
+        panelBody.appendChild(imgDiv);
+        // 视频区域
+        const videoDiv = document.createElement('div');
+        videoDiv.className = 'video-area';
+        videoDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> 操作视频</div>
+            <div class="video-preview"><video controls src="${currentProject.videoUrl}" style="max-width:100%; max-height:280px;"></video></div>`;
+        panelBody.appendChild(videoDiv);
+        document.getElementById('enterEditBtn')?.addEventListener('click', () => enterEditMode());
+    }
+
+    // 进入编辑模式 (保留原内容)
+    function enterEditMode() {
+        if (!currentProject) return;
+        currentMode = 'edit';
+        // 初始化编辑器
+        panelTitle.innerHTML = `<i class="fas fa-pen-fancy"></i> 编辑笔记 · ${currentProject.title}`;
+        headerActions.innerHTML = `<button id="cancelEditBtn" class="edit-mode-btn"><i class="fas fa-times"></i> 取消</button>
+                                    <button id="saveEditBtn" class="save-note-btn"><i class="fas fa-cloud-upload-alt"></i> 保存到云端</button>`;
+        panelBody.innerHTML = '';
+        // 富文本编辑区
+        const richEditDiv = document.createElement('div');
+        richEditDiv.className = 'rich-area';
+        richEditDiv.innerHTML = `<div class="section-label"><i class="fas fa-edit"></i> 文字笔记 (富文本)</div><div id="editQuillContainer" style="height:260px;"></div>`;
+        panelBody.appendChild(richEditDiv);
+        // 图片编辑区
+        const imgEditDiv = document.createElement('div');
+        imgEditDiv.className = 'image-area';
+        imgEditDiv.innerHTML = `<div class="section-label"><i class="fas fa-paintbrush"></i> 图片标记工具</div>
+            <div class="canvas-toolbar" id="editCanvasToolbar">
+                <button id="drawBtn" class="active"><i class="fas fa-pencil-alt"></i> 画笔</button>
+                <button id="textBtn"><i class="fas fa-font"></i> 添加文字</button>
+                <button id="clearBtn"><i class="fas fa-undo-alt"></i> 清除标注</button>
+                <button id="saveImageMarkBtn"><i class="fas fa-save"></i> 保存图片标记</button>
+            </div>
+            <div class="canvas-container"><canvas id="editCanvas" width="600" height="400"></canvas></div>
+            <div style="padding:0.6rem 1rem; font-size:0.7rem;">✏️ 在图片上绘制或添加文字，保存标记后图片会更新为本笔记图片。</div>`;
+        panelBody.appendChild(imgEditDiv);
+        // 视频编辑区
+        const videoEditDiv = document.createElement('div');
+        videoEditDiv.className = 'video-area';
+        videoEditDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> 视频链接</div>
+            <div class="video-actions"><input type="text" id="editVideoUrl" placeholder="MP4 视频链接" value="${currentProject.videoUrl}">
+            <button id="updateVideoBtn" class="btn-sm">更换预览</button></div>
+            <div class="video-preview"><video id="editVideoPreview" controls src="${currentProject.videoUrl}" style="max-width:100%; max-height:260px;"></video></div>`;
+        panelBody.appendChild(videoEditDiv);
+        // 初始化Quill
+        if (quillEditor) quillEditor = null;
+        quillEditor = new Quill('#editQuillContainer', {
+            theme: 'snow',
+            modules: { toolbar: [[{ 'header': [1,2,3,false] }], ['bold','italic','underline'], [{ 'list':'ordered'},{'list':'bullet'}], ['link','clean']] },
+            placeholder: '编辑疗程记录...'
+        });
+        quillEditor.root.innerHTML = currentProject.noteText || '';
+        // 初始化Fabric画布
+        if (fabricCanvas) fabricCanvas.dispose();
+        fabricCanvas = new fabric.Canvas('editCanvas', { isDrawingMode: true, width: 600, height: 400, backgroundColor: '#ffffff' });
+        fabricCanvas.freeDrawingBrush.color = '#c2815b';
+        fabricCanvas.freeDrawingBrush.width = 4;
+        currentImageBase64 = currentProject.imageUrl;
+        loadImageToCanvas(currentProject.imageUrl);
+        // 工具栏事件
+        document.getElementById('drawBtn')?.addEventListener('click', () => { fabricCanvas.isDrawingMode = true; });
+        document.getElementById('textBtn')?.addEventListener('click', () => {
+            fabricCanvas.isDrawingMode = false;
+            const text = new fabric.IText('双击编辑', { left: 80, top: 80, fontSize: 20, fill: '#b45f3b' });
+            fabricCanvas.add(text);
+            fabricCanvas.renderAll();
+        });
+        document.getElementById('clearBtn')?.addEventListener('click', () => {
+            const objs = fabricCanvas.getObjects().filter(obj => obj !== fabricCanvas.backgroundImage);
+            objs.forEach(obj => fabricCanvas.remove(obj));
+            fabricCanvas.renderAll();
+        });
+        document.getElementById('saveImageMarkBtn')?.addEventListener('click', () => {
+            const dataURL = fabricCanvas.toDataURL({ format: 'png', quality: 1 });
+            currentImageBase64 = dataURL;
+            alert('图片标记已保存至当前编辑会话，点击「保存到云端」后永久生效。');
+        });
+        document.getElementById('updateVideoBtn')?.addEventListener('click', () => {
+            const newUrl = document.getElementById('editVideoUrl').value.trim();
+            if (newUrl) { document.getElementById('editVideoPreview').src = newUrl; currentVideoUrl = newUrl; }
+        });
+        document.getElementById('cancelEditBtn')?.addEventListener('click', () => { renderViewMode(); });
+        document.getElementById('saveEditBtn')?.addEventListener('click', () => saveEditChanges());
+    }
+
+    function loadImageToCanvas(url) {
+        fabricCanvas.clear();
+        fabric.Image.fromURL(url, (img) => {
+            let scale = Math.min(600 / img.width, 400 / img.height);
+            let scaledW = img.width * scale;
+            let scaledH = img.height * scale;
+            fabricCanvas.setWidth(scaledW);
+            fabricCanvas.setHeight(scaledH);
+            img.scale(scale);
+            img.set({ left: 0, top: 0 });
+            fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
+            fabricCanvas.renderAll();
+        }, { crossOrigin: 'anonymous' });
+    }
+
+    function saveEditChanges() {
+        if (!currentProject) return;
+        // 保存文字
+        if (quillEditor) currentProject.noteText = quillEditor.root.innerHTML;
+        // 保存图片 (标记后 base64)
+        if (currentImageBase64 && currentImageBase64.startsWith('data:image')) currentProject.imageUrl = currentImageBase64;
+        // 保存视频
+        const newVideo = document.getElementById('editVideoUrl')?.value.trim();
+        if (newVideo) currentProject.videoUrl = newVideo;
+        saveToCloud();
+        alert(`✅ 笔记已保存至云端！「${currentProject.title}」内容已更新。`);
+        renderViewMode();  // 返回查看模式展示最新内容
+    }
+
+    // 新增模式：全新创建笔记
+    function openCreateMode() {
+        currentMode = 'create';
+        currentProject = null;
+        panelTitle.innerHTML = `<i class="fas fa-plus-circle"></i> 新增疗程笔记`;
+        headerActions.innerHTML = `<button id="cancelCreateBtn" class="edit-mode-btn"><i class="fas fa-times"></i> 取消</button>
+                                    <button id="storeCreateBtn" class="save-note-btn"><i class="fas fa-cloud-upload-alt"></i> 存储到云端</button>`;
+        panelBody.innerHTML = '';
+        // 文字编辑区
+        const richDiv = document.createElement('div');
+        richDiv.className = 'rich-area';
+        richDiv.innerHTML = `<div class="section-label"><i class="fas fa-edit"></i> 文字笔记 (富文本)</div><div id="createQuill" style="height:220px;"></div>`;
+        panelBody.appendChild(richDiv);
+        // 图片编辑区（带新建默认占位）
+        const imgDiv = document.createElement('div');
+        imgDiv.className = 'image-area';
+        imgDiv.innerHTML = `<div class="section-label"><i class="fas fa-image"></i> 图片标注工具</div>
+            <div class="canvas-toolbar" id="createCanvasToolbar">
+                <button id="cDrawBtn">画笔</button><button id="cTextBtn">添加文字</button><button id="cClearBtn">清除标注</button>
+                <button id="cSaveMarkBtn">保存标记</button>
+            </div>
+            <div class="canvas-container"><canvas id="createCanvas" width="600" height="400"></canvas></div>
+            <div style="padding:0.6rem 1rem;"><input type="text" id="createImageUrlInput" placeholder="图片URL (初始)" style="width:100%; padding:0.5rem; border-radius:40px;"></div>`;
+        panelBody.appendChild(imgDiv);
+        // 视频
+        const videoDiv = document.createElement('div');
+        videoDiv.className = 'video-area';
+        videoDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> 视频链接</div>
+            <div class="video-actions"><input type="text" id="createVideoUrl" placeholder="MP4 视频链接" value="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4">
+            <button id="previewCreateVideo" class="btn-sm">预览</button></div>
+            <div class="video-preview"><video id="createVideoPreview" controls style="max-width:100%; max-height:200px;"></video></div>`;
+        panelBody.appendChild(videoDiv);
+        // 基础信息
+        const baseDiv = document.createElement('div');
+        baseDiv.innerHTML = `<div style="background:#fef7f2; padding:1rem; border-radius:24px;"><label>项目名称:</label><input id="newProjTitle" placeholder="例如 超声炮" style="width:100%; margin-top:5px; padding:8px; border-radius:40px; border:1px solid #e2cfc2;"><label style="margin-top:12px; display:block;">简短描述:</label><input id="newProjDesc" placeholder="疗程特点" style="width:100%; margin-top:5px; padding:8px; border-radius:40px;"></div>`;
+        panelBody.appendChild(baseDiv);
+        // 初始化新增富文本
+        const newQuill = new Quill('#createQuill', { theme: 'snow', modules: { toolbar: true }, placeholder: '记录疗程详情...' });
+        newQuill.root.innerHTML = "<p><strong>新疗程笔记</strong>：记录体验、术前术后。</p>";
+        // 初始化 fabric
+        let fabricCreate = new fabric.Canvas('createCanvas', { isDrawingMode: true, width: 600, height: 400, backgroundColor: '#ffffff' });
+        fabricCreate.freeDrawingBrush.color = '#b47c56';
+        let createImageBase = "https://picsum.photos/id/106/800/600";
+        fabric.Image.fromURL(createImageBase, (img) => {
+            let scale = Math.min(600/img.width, 400/img.height);
+            img.scale(scale); fabricCreate.setWidth(img.width*scale); fabricCreate.setHeight(img.height*scale);
+            fabricCreate.setBackgroundImage(img, fabricCreate.renderAll.bind(fabricCreate));
+        }, { crossOrigin: 'anonymous' });
+        document.getElementById('cDrawBtn')?.addEventListener('click', () => { fabricCreate.isDrawingMode = true; });
+        document.getElementById('cTextBtn')?.addEventListener('click', () => { fabricCreate.isDrawingMode = false; fabricCreate.add(new fabric.IText('新文字', { left:50, top:50, fontSize:18 })); fabricCreate.renderAll(); });
+        document.getElementById('cClearBtn')?.addEventListener('click', () => { const objs = fabricCreate.getObjects().filter(o=>o!==fabricCreate.backgroundImage); objs.forEach(o=>fabricCreate.remove(o)); fabricCreate.renderAll(); });
+        document.getElementById('cSaveMarkBtn')?.addEventListener('click', () => { createImageBase = fabricCreate.toDataURL(); alert("图片标记已保存，存储时生效"); });
+        document.getElementById('previewCreateVideo')?.addEventListener('click', () => { const vUrl = document.getElementById('createVideoUrl').value; document.getElementById('createVideoPreview').src = vUrl; document.getElementById('createVideoPreview').load(); });
+        // 存储新增
+        document.getElementById('storeCreateBtn')?.addEventListener('click', () => {
+            const title = document.getElementById('newProjTitle').value.trim();
+            if (!title) { alert("请填写项目名称"); return; }
+            const desc = document.getElementById('newProjDesc').value.trim() || "新疗程";
+            const noteText = newQuill.root.innerHTML;
+            let finalImage = createImageBase;
+            const videoUrl = document.getElementById('createVideoUrl').value.trim();
+            const newId = nextId++;
+            const newProj = { id: newId, title, desc, thumb: "https://picsum.photos/id/106/400/300", noteText, imageUrl: finalImage, videoUrl };
+            projectsData.push(newProj);
+            saveToCloud();
+            alert(`✅ 新笔记“${title}”已上传云端！`);
+            openProject(newId);
+        });
+        document.getElementById('cancelCreateBtn')?.addEventListener('click', () => { renderEmptyState(); });
+    }
+
+    function renderEmptyState() {
+        currentProject = null;
+        currentMode = null;
+        panelTitle.innerHTML = `<i class="fas fa-notes-medical"></i> 医美笔记工作台`;
+        headerActions.innerHTML = '';
+        panelBody.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open" style="font-size: 3rem;"></i><p>✨ 从上方下拉菜单选择一个疗程笔记，或点击「+ 新增笔记」创建新记录。<br>支持富文本、图片标记、视频，编辑后保存即可“上传云端”。</p></div>`;
+    }
+
+    // 监听搜索
+    document.getElementById('projectSearchInput').addEventListener('input', () => renderDropdown());
+    document.addEventListener('click', (e) => {
+        const input = document.getElementById('projectSearchInput');
+        const dropdown = document.getElementById('dropdownMenu');
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.remove('show');
+    });
+
+    loadInitialData();
+    renderEmptyState();
+</script>
+</body>
+</html>
