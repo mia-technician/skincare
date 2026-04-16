@@ -466,7 +466,6 @@
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) {
         currentUser = session.user;
-        // 更新界面显示
         const loginPanel = document.getElementById('loginPanel');
         const userPanel = document.getElementById('userPanel');
         const userEmailDisplay = document.getElementById('userEmailDisplay');
@@ -475,7 +474,7 @@
             userPanel.style.display = 'flex';
             userEmailDisplay.innerText = currentUser.email;
         }
-        await loadDataFromSupabase();
+        await loadDataFromSupabase();  // ← 确保这行存在
         return true;
     }
     return false;
