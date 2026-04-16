@@ -7,11 +7,9 @@
     <!-- Google Font & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Rich Text Editor Quill -->
+    <!-- Rich Text Editor Quill (with color support) -->
     <link href="https://cdn.quilljs.com/2.0.3/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/2.0.3/quill.js"></script>
-    <!-- Fabric.js for image annotation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <script src="https://cdn.quilljs.com/2.0.3/quill.js"></script>
     <!-- Supabase JS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -20,27 +18,31 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            background: #faf7f4;
+            background: #f5f0eb;
             font-family: 'Inter', sans-serif;
-            color: #2c241f;
-            overflow-x: hidden;
-            font-size: 13px;
+            color: #2a241f;
+            font-size: 14px;
+            line-height: 1.5;
         }
+
         .container {
-            max-width: 1300px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 1.5rem 1.8rem 2.5rem;
+            padding: 2rem 1.5rem;
         }
-        /* header & search */
+
+        /* Header & Search */
         .hero-section {
             background: white;
             border-radius: 28px;
-            padding: 1.2rem 1.8rem;
-            margin-bottom: 1.8rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            border: 1px solid #f0e3db;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.03);
+            border: 1px solid #eee5df;
         }
+
         .hero-section h1 {
             font-size: 1.6rem;
             font-weight: 600;
@@ -48,111 +50,43 @@
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.25rem;
         }
+
         .hero-section p {
-            font-size: 0.8rem;
-            color: #7e685a;
-        }
-        .search-wrapper {
-            position: relative;
-            margin-top: 0.9rem;
-            width: 100%;
-            max-width: 500px;
-        }
-        .search-wrapper i {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #bc8a6b;
             font-size: 0.85rem;
-            pointer-events: none;
+            color: #7e6b5c;
         }
-        #projectSearchInput {
-            width: 100%;
-            padding: 0.65rem 1rem 0.65rem 2.4rem;
-            font-size: 0.85rem;
-            border-radius: 60px;
-            border: 1px solid #e8dbd2;
-            background: #fefcfb;
-            transition: 0.2s;
-            font-family: 'Inter', sans-serif;
-        }
-        #projectSearchInput:focus {
-            outline: none;
-            border-color: #c99a78;
-            box-shadow: 0 0 0 3px rgba(201,154,120,0.2);
-        }
-        .dropdown-list {
-            position: absolute;
-            top: 110%;
-            left: 0;
-            width: 100%;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-            z-index: 50;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ede0d7;
-            display: none;
-        }
-        .dropdown-list.show {
-            display: block;
-        }
-        .dropdown-item {
-            padding: 0.6rem 1rem;
-            cursor: pointer;
-            border-bottom: 1px solid #f3e8e1;
-            transition: 0.1s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.8rem;
-        }
-        .dropdown-item:hover {
-            background: #fdf5f0;
-        }
-        .dropdown-item img {
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
-            object-fit: cover;
-        }
-        .dropdown-item strong {
-            font-weight: 600;
-            color: #5c3f2f;
-            font-size: 0.85rem;
-        }
-        .add-new-item {
-            background: #faf1ea;
-            color: #b47c56;
-            font-weight: 600;
-            border-top: 1px solid #eddccf;
-            margin-top: 4px;
-        }
-        /* auth widget */
+
         .auth-container {
             display: flex;
             justify-content: flex-end;
             margin-bottom: 1rem;
         }
+
         .auth-card {
             background: #fefaf7;
             border-radius: 60px;
-            padding: 0.3rem 0.8rem;
+            padding: 0.3rem 0.6rem;
             display: inline-flex;
-            gap: 12px;
+            gap: 8px;
             align-items: center;
+            border: 1px solid #f0e2d8;
         }
+
         .auth-input {
-            padding: 5px 12px;
+            padding: 6px 12px;
             border-radius: 40px;
             border: 1px solid #e2cfc2;
             font-size: 0.75rem;
             background: white;
+            outline: none;
         }
+
+        .auth-input:focus {
+            border-color: #c99a78;
+        }
+
         .auth-btn {
             padding: 5px 14px;
             border-radius: 40px;
@@ -161,28 +95,119 @@
             border: none;
             font-size: 0.75rem;
             cursor: pointer;
+            transition: background 0.2s;
         }
+
         .auth-btn-outline {
             background: #efe0d7;
             color: #7a513a;
         }
-        /* note main panel */
+
+        .search-wrapper {
+            position: relative;
+            margin-top: 1.2rem;
+            max-width: 420px;
+        }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #bc8a6b;
+            font-size: 0.85rem;
+        }
+
+        #projectSearchInput {
+            width: 100%;
+            padding: 0.7rem 1rem 0.7rem 2.5rem;
+            font-size: 0.85rem;
+            border-radius: 60px;
+            border: 1px solid #e8dbd2;
+            background: white;
+            transition: 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        #projectSearchInput:focus {
+            outline: none;
+            border-color: #c99a78;
+            box-shadow: 0 0 0 3px rgba(201, 154, 120, 0.1);
+        }
+
+        /* Dropdown */
+        .dropdown-list {
+            position: absolute;
+            top: 110%;
+            left: 0;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ede0d7;
+            display: none;
+        }
+
+        .dropdown-list.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 0.7rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f3e8e1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.15s;
+        }
+
+        .dropdown-item:hover {
+            background: #fdf5f0;
+        }
+
+        .dropdown-item img {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .dropdown-item strong {
+            font-weight: 600;
+            color: #5c3f2f;
+        }
+
+        .add-new-item {
+            background: #faf1ea;
+            color: #b47c56;
+            font-weight: 600;
+            border-top: 1px solid #eddccf;
+        }
+
+        /* Main Panel */
         .note-main-panel {
             background: white;
             border-radius: 28px;
             border: 1px solid #eedfcb;
             overflow: hidden;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
         }
+
         .panel-header {
             background: #fef7f2;
-            padding: 0.8rem 1.5rem;
+            padding: 1rem 1.8rem;
             border-bottom: 1px solid #f0e2d8;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
+            gap: 1rem;
         }
+
         .panel-header h2 {
             font-size: 1.3rem;
             font-weight: 600;
@@ -191,139 +216,181 @@
             align-items: center;
             gap: 8px;
         }
+
         .header-actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
+
         .edit-mode-btn, .save-note-btn {
             background: #f7ede7;
             border: none;
             font-size: 0.8rem;
             cursor: pointer;
-            padding: 6px 16px;
+            padding: 6px 18px;
             border-radius: 40px;
             color: #b47c56;
             font-weight: 500;
-            transition: 0.2s;
+            transition: all 0.2s;
         }
+
         .save-note-btn {
             background: #b47c56;
             color: white;
         }
+
         .save-note-btn:hover {
             background: #9b6748;
         }
+
         .panel-body {
-            padding: 1.5rem;
+            padding: 1.8rem;
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1.8rem;
         }
+
+        /* Cards */
         .rich-area, .image-area, .video-area {
             background: white;
             border-radius: 20px;
             border: 1px solid #f0e2d8;
             overflow: hidden;
         }
+
         .section-label {
             background: #faf3ef;
-            padding: 0.5rem 1rem;
+            padding: 0.6rem 1.2rem;
             font-weight: 600;
             font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #8f6a52;
             border-bottom: 1px solid #ecdfd6;
         }
-        #quill-editor {
-            height: 200px;
-            background: white;
-        }
+
+        /* Readonly text */
         .readonly-text {
-    padding: 1.2rem 1.5rem;
-    line-height: 1.6;
-    color: #2f2925;
-    font-size: 0.85rem;
-}
-
-        /* 确保查看模式下的文字容器有足够边距 */
-.readonly-text p,
-.readonly-text div,
-.readonly-text ul,
-.readonly-text ol {
-    margin: 0.5rem 0;
-}
-
-/* 列表左边距 */
-.readonly-text ul,
-.readonly-text ol {
-    padding-left: 2rem;
-}
-        .canvas-toolbar {
-            background: #faf3ef;
-            padding: 0.5rem 1rem;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            border-bottom: 1px solid #ecdfd6;
+            padding: 1.2rem 1.5rem;
+            line-height: 1.6;
+            color: #2f2925;
+            font-size: 0.85rem;
         }
-        .canvas-toolbar button {
-            background: white;
-            border: 1px solid #ddd0c4;
-            padding: 0.2rem 0.7rem;
-            border-radius: 40px;
-            font-size: 0.7rem;
-            cursor: pointer;
+
+        .readonly-text ul, .readonly-text ol {
+            padding-left: 2rem;
+            margin: 0.5rem 0;
         }
-        .canvas-container {
-            background: #f4ede8;
+
+        .readonly-text li {
+            margin: 0.25rem 0;
+        }
+
+        /* Media containers */
+        .media-preview {
+            padding: 1.2rem;
             display: flex;
             justify-content: center;
-            padding: 0.8rem;
-            min-height: 280px;
+            background: #fefaf7;
         }
-        canvas {
+
+        .thumbnail-img, .video-thumb-img {
             max-width: 100%;
-            border-radius: 14px;
-            background: white;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-        }
-        .video-preview {
-            padding: 0.8rem;
-            text-align: center;
-        }
-        video {
-            max-width: 100%;
+            max-height: 160px;
+            object-fit: contain;
             border-radius: 16px;
-            max-height: 220px;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
-        .video-actions {
-            padding: 0.6rem 1rem;
-            background: #faf3ef;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+
+        .thumbnail-img:hover, .video-thumb-img:hover {
+            opacity: 0.85;
+            transform: scale(1.01);
         }
-        .video-actions input {
-            flex: 1;
-            padding: 0.4rem 0.7rem;
-            font-size: 0.75rem;
+
+        .video-thumb-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: white;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+        }
+
+        /* Edit mode inputs */
+        .edit-input {
+            width: 100%;
+            padding: 0.7rem 1rem;
             border-radius: 40px;
             border: 1px solid #e2cfc2;
+            font-size: 0.85rem;
+            font-family: 'Inter', sans-serif;
+            background: white;
         }
-        .btn-sm {
+
+        .edit-input:focus {
+            outline: none;
+            border-color: #c99a78;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            justify-content: center;
+        }
+
+        .btn-icon {
             background: #efe0d7;
             border: none;
-            padding: 0.3rem 0.8rem;
+            padding: 8px 18px;
             border-radius: 40px;
+            font-size: 0.75rem;
             cursor: pointer;
-            font-size: 0.7rem;
+            font-weight: 500;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
+
+        .btn-primary {
+            background: #b47c56;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f5e0d8;
+            color: #b45a4a;
+        }
+
+        .btn-icon:hover {
+            filter: brightness(0.96);
+        }
+
+        /* Quill custom */
+        #editQuillContainer {
+            height: 220px;
+            background: white;
+        }
+
         .empty-state {
             text-align: center;
-            padding: 2rem 1.5rem;
+            padding: 3rem 1.5rem;
             color: #b38b6e;
             font-size: 0.85rem;
         }
 
-        /* 弹窗样式 */
+        /* Modal for media */
         .media-modal {
             display: none;
             position: fixed;
@@ -331,58 +398,39 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0, 0, 0, 0.92);
             z-index: 2000;
             justify-content: center;
             align-items: center;
             cursor: pointer;
         }
+
         .media-modal.show {
             display: flex;
         }
+
         .media-modal img, .media-modal video {
             max-width: 90%;
             max-height: 90%;
             object-fit: contain;
-            border-radius: 8px;
+            border-radius: 12px;
         }
+
         .modal-close {
             position: absolute;
-            top: 20px;
-            right: 30px;
+            top: 24px;
+            right: 32px;
             color: white;
             font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 2001;
-        }
-        /* 缩略图样式 */
-        .thumbnail {
+            font-weight: 300;
             cursor: pointer;
             transition: opacity 0.2s;
         }
-        .thumbnail:hover {
-            opacity: 0.8;
-        }
-        .video-thumb {
-            position: relative;
-            display: inline-block;
-            cursor: pointer;
-        }
-        .play-icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 48px;
-            color: white;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
-            pointer-events: none;
-        }
-        
+
         @media (max-width: 720px) {
             .container { padding: 1rem; }
-            .panel-body { padding: 1rem; }
+            .panel-body { padding: 1.2rem; }
+            .panel-header { padding: 1rem; }
         }
     </style>
 </head>
@@ -391,7 +439,7 @@
     <div class="hero-section">
         <div class="auth-container" id="authWidget">
             <div id="loginPanel" class="auth-card">
-                <input type="email" id="loginEmail" class="auth-input" placeholder="Admin Email" value="admin@example.com">
+                <input type="email" id="loginEmail" class="auth-input" placeholder="Email" value="admin@example.com">
                 <input type="password" id="loginPassword" class="auth-input" placeholder="Password" value="admin123">
                 <button id="loginBtn" class="auth-btn">Login</button>
             </div>
@@ -400,16 +448,15 @@
                 <button id="logoutBtn" class="auth-btn auth-btn-outline">Logout</button>
             </div>
         </div>
-        <h1><i class="fas fa-spa"></i> Aesthetic Notes · Admin Workspace</h1>
-        <p>Single admin login | Cloud sync with Supabase | Rich text + Image annotation + Video</p>
+        <h1><i class="fas fa-spa"></i> Aesthetic Notes · Workspace</h1>
+        <p>Secure cloud storage | Rich text with color | Image & video lightbox</p>
         <div class="search-wrapper">
             <i class="fas fa-search"></i>
-            <input type="text" id="projectSearchInput" placeholder="Search or select treatment... also '➕ Add New Note' below" autocomplete="off">
+            <input type="text" id="projectSearchInput" placeholder="Search or select treatment..." autocomplete="off">
             <div id="dropdownMenu" class="dropdown-list"></div>
         </div>
     </div>
 
-    <!-- main note panel -->
     <div id="notePanel" class="note-main-panel">
         <div class="panel-header">
             <h2 id="panelTitle"><i class="fas fa-notes-medical"></i> Aesthetic Workspace</h2>
@@ -418,13 +465,13 @@
         <div id="panelBody" class="panel-body">
             <div class="empty-state">
                 <i class="fas fa-folder-open" style="font-size: 2.2rem; opacity: 0.6;"></i>
-                <p style="margin-top: 0.8rem;">✨ Please login as admin. Then select a treatment from dropdown or click <strong>➕ Add New Note</strong>.<br>All data stored in Supabase cloud.</p>
+                <p style="margin-top: 0.8rem;">✨ Login to access your notes. Select a treatment from the dropdown or create a new one.</p>
             </div>
         </div>
     </div>
 </div>
 
-    <!-- 图片/视频弹窗 -->
+<!-- Lightbox Modal -->
 <div id="mediaModal" class="media-modal">
     <span class="modal-close">&times;</span>
     <img id="modalImage" style="display: none;">
@@ -433,37 +480,25 @@
 
 <script>
     // ==================== SUPABASE CONFIG ====================
-    // ⚠️ REPLACE WITH YOUR OWN SUPABASE CREDENTIALS ⚠️
-    const SUPABASE_URL = 'https://dmrskyskryrdclknezth.supabase.co';      // <-- replace
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8';                    // <-- replace
+    const SUPABASE_URL = 'https://dmrskyskryrdclknezth.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
-    // ==================== SINGLE ADMIN CREDENTIALS ====================
-    const ADMIN_EMAIL = 'admin@example.com';
-    const ADMIN_PASSWORD = 'admin123';
-    
-    let currentUser = null;          // { email, id }
-    let projectsData = [];            // array of treatment notes
-    let nextId = 1;
-    
-    // Editor global variables
-    let currentMode = 'view';         // 'view', 'edit', 'create'
+    let currentUser = null;
+    let projectsData = [];
+    let currentMode = 'view';
     let currentProject = null;
     let quillEditor = null;
-    let fabricCanvas = null;
     let currentImageBase64 = "";
-    
-    // ==================== SUPABASE CRUD (SINGLE ADMIN, NO USER_ID FILTER) ====================
+
+    // ==================== CRUD ====================
     async function fetchAllNotes() {
         if (!currentUser) return [];
         const { data, error } = await supabaseClient
             .from('treatment_notes')
             .select('*')
             .order('created_at', { ascending: false });
-        if (error) {
-            console.error('Fetch error:', error);
-            return [];
-        }
+        if (error) { console.error('Fetch error:', error); return []; }
         return data;
     }
     
@@ -480,10 +515,7 @@
                 thumbnail_url: note.thumb || ''
             }])
             .select();
-        if (error) {
-            console.error('Insert error:', error);
-            return null;
-        }
+        if (error) { console.error('Insert error:', error); return null; }
         return data[0];
     }
     
@@ -502,69 +534,41 @@
             })
             .eq('id', id)
             .select();
-        if (error) {
-            console.error('Update error:', error);
-            return null;
-        }
+        if (error) { console.error('Update error:', error); return null; }
         return data[0];
     }
     
-    async function deleteNoteFromSupabase(id) {
-        if (!currentUser) return false;
-        const { error } = await supabaseClient
-            .from('treatment_notes')
-            .delete()
-            .eq('id', id);
-        if (error) {
-            console.error('Delete error:', error);
-            return false;
-        }
-        return true;
-    }
-    
-    // ==================== ADMIN LOGIN / LOGOUT (no supabase auth) ====================
+    // ==================== AUTH ====================
     async function adminLogin(email, password) {
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password
-    });
-    if (error) {
-        console.error('Login error:', error);
-        return { data: null, error: error };
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) return { data: null, error };
+        currentUser = data.user;
+        return { data, error: null };
     }
-    currentUser = data.user;
-    return { data: data, error: null };
-}
     
     async function adminLogout() {
-    await supabaseClient.auth.signOut();
-    currentUser = null;
-}
-
-    async function checkExistingSession() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session) {
-        currentUser = session.user;
-        const loginPanel = document.getElementById('loginPanel');
-        const userPanel = document.getElementById('userPanel');
-        const userEmailDisplay = document.getElementById('userEmailDisplay');
-        if (loginPanel && userPanel && userEmailDisplay) {
-            loginPanel.style.display = 'none';
-            userPanel.style.display = 'flex';
-            userEmailDisplay.innerText = currentUser.email;
-        }
-        await loadDataFromSupabase();  // ← 确保这行存在
-        return true;
+        await supabaseClient.auth.signOut();
+        currentUser = null;
     }
-    return false;
-}
     
-    // ==================== LOAD DATA FROM SUPABASE ====================
-        async function loadDataFromSupabase() {
+    async function checkExistingSession() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+            currentUser = session.user;
+            document.getElementById('loginPanel').style.display = 'none';
+            document.getElementById('userPanel').style.display = 'flex';
+            document.getElementById('userEmailDisplay').innerText = currentUser.email;
+            await loadDataFromSupabase();
+            return true;
+        }
+        return false;
+    }
+    
+    // ==================== DATA LOAD ====================
+    async function loadDataFromSupabase() {
         if (!currentUser) return;
         const data = await fetchAllNotes();
         if (data.length > 0) {
-            // 处理数据中的空值
             projectsData = data.map(item => ({
                 ...item,
                 title: item.title || 'Untitled',
@@ -572,527 +576,268 @@
                 noteText: item.note_text || '',
                 imageUrl: item.image_url || 'https://placehold.co/600x400/eee/aaa?text=No+Image',
                 videoUrl: item.video_url || '',
-                thumb: item.thumbnail_url || 'https://placehold.co/400x300/eee/aaa?text=No+Image'
+                thumb: item.thumbnail_url || 'https://placehold.co/400x300/eee/aaa?text=Preview'
             }));
-            nextId = Math.max(...projectsData.map(p => p.id || 0), 0) + 1;
         } else {
             projectsData = getDefaultProjects();
             for (const proj of projectsData) {
                 const inserted = await addNoteToSupabase(proj);
                 if (inserted) proj.id = inserted.id;
             }
-            nextId = projectsData.reduce((max, p) => Math.max(max, p.id || 0), 0) + 1;
         }
         renderEmptyState();
     }
     
     function getDefaultProjects() {
         return [
-            { id: null, title: "IPL Photofacial", desc: "Reduces redness, pores, non-invasive", thumb: "https://picsum.photos/id/20/400/300", 
-              noteText: "<p><strong>IPL Notes</strong>: 30min session, skin brightening after 3 days. Use SPF diligently.</p>",
-              imageUrl: "https://picsum.photos/id/20/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-            { id: null, title: "Skin Booster (Mesotherapy)", desc: "Deep hydration, hyaluronic acid", thumb: "https://picsum.photos/id/134/400/300",
-              noteText: "<p><strong>Mesotherapy experience</strong>: Mild discomfort, glowing skin after 1 week. Combine with medical masks.</p>",
-              imageUrl: "https://picsum.photos/id/134/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFunflies.mp4" },
-            { id: null, title: "Thermage", desc: "Radiofrequency tightening, collagen stimulation", thumb: "https://picsum.photos/id/26/400/300",
-              noteText: "<p><strong>Thermage anti-aging</strong>: Immediate tightening, best results at 3-6 months. Avoid sauna.</p>",
-              imageUrl: "https://picsum.photos/id/26/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
-            { id: null, title: "Chemical Peel", desc: "Improves acne, closed comedones", thumb: "https://picsum.photos/id/158/400/300",
-              noteText: "<p><strong>Peel notes</strong>: Mild peeling normal, strict sun protection.</p>",
-              imageUrl: "https://picsum.photos/id/158/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4" },
-            { id: null, title: "Pico Laser", desc: "Freckles, pigmentation removal", thumb: "https://picsum.photos/id/119/400/300",
-              noteText: "<p><strong>Pico notes</strong>: Great for lentigines, scabs fall off naturally.</p>",
-              imageUrl: "https://picsum.photos/id/119/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/WhatCar.mp4" },
-            { id: null, title: "Hyaluronic Acid Filler", desc: "Contour enhancement, lip augmentation", thumb: "https://picsum.photos/id/104/400/300",
-              noteText: "<p><strong>Filler notes</strong>: Instant volume, lasts 6-12 months.</p>",
-              imageUrl: "https://picsum.photos/id/104/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" }
+            { id: null, title: "IPL Photofacial", desc: "Reduces redness, pores", thumb: "https://picsum.photos/id/20/400/300", 
+              noteText: "<p><strong>IPL Notes</strong>: 30min session, brightening.</p>", imageUrl: "https://picsum.photos/id/20/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+            { id: null, title: "Skin Booster", desc: "Deep hydration", thumb: "https://picsum.photos/id/134/400/300",
+              noteText: "<p>Glowing skin after 1 week.</p>", imageUrl: "https://picsum.photos/id/134/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFunflies.mp4" }
         ];
     }
     
     // ==================== RENDER DROPDOWN ====================
-        function renderDropdown() {
+    function renderDropdown() {
         const input = document.getElementById('projectSearchInput');
         const dropdown = document.getElementById('dropdownMenu');
         const query = input.value.trim().toLowerCase();
         dropdown.innerHTML = '';
-        let filtered = [];
-        
-        // 确保 projectsData 存在且是数组
-        if (!projectsData || !Array.isArray(projectsData)) {
-            projectsData = [];
-        }
-        
-        // 过滤时添加空值保护
-        if (query !== "") {
-            filtered = projectsData.filter(p => {
-                const title = p.title || '';
-                const desc = p.desc || '';
-                return title.toLowerCase().includes(query) || desc.toLowerCase().includes(query);
-            });
-            filtered.forEach(proj => {
-                const div = document.createElement('div');
-                div.className = 'dropdown-item';
-                div.setAttribute('data-id', proj.id);
-                const title = proj.title || 'Untitled';
-                const desc = proj.desc || '';
-                const thumb = proj.thumb || 'https://placehold.co/400x300/eee/aaa?text=No+Image';
-                div.innerHTML = `<img src="${thumb}"><div><strong>${title}</strong><span style="font-size:0.7rem;"> &nbsp; ${desc.substring(0,35)}</span></div>`;
-                div.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    input.value = title;
-                    dropdown.classList.remove('show');
-                    openProject(proj.id);
-                });
-                dropdown.appendChild(div);
-            });
-        } else {
-            // 显示前6个项目
-            const itemsToShow = projectsData.slice(0, 6);
-            itemsToShow.forEach(proj => {
-                const div = document.createElement('div');
-                div.className = 'dropdown-item';
-                const title = proj.title || 'Untitled';
-                const desc = proj.desc || '';
-                const thumb = proj.thumb || 'https://placehold.co/400x300/eee/aaa?text=No+Image';
-                div.innerHTML = `<img src="${thumb}"><div><strong>${title}</strong><span style="font-size:0.7rem;"> &nbsp; ${desc.substring(0,30)}</span></div>`;
-                div.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    input.value = title;
-                    dropdown.classList.remove('show');
-                    openProject(proj.id);
-                });
-                dropdown.appendChild(div);
-            });
-        }
-        
-        // 添加新增笔记按钮
+        let filtered = projectsData.filter(p => (p.title || '').toLowerCase().includes(query) || (p.desc || '').toLowerCase().includes(query));
+        if (query === "") filtered = projectsData.slice(0, 6);
+        filtered.forEach(proj => {
+            const div = document.createElement('div');
+            div.className = 'dropdown-item';
+            div.innerHTML = `<img src="${proj.thumb}"><div><strong>${proj.title}</strong><span style="font-size:0.7rem;"> &nbsp; ${(proj.desc || '').substring(0,35)}</span></div>`;
+            div.onclick = () => { input.value = proj.title; dropdown.classList.remove('show'); openProject(proj.id); };
+            dropdown.appendChild(div);
+        });
         const addDiv = document.createElement('div');
         addDiv.className = 'dropdown-item add-new-item';
-        addDiv.innerHTML = `<i class="fas fa-plus-circle"></i> <strong>➕ Add New Note</strong> <span style="font-size:0.7rem;">create treatment + media</span>`;
-        addDiv.addEventListener('click', (e) => {
-            e.stopPropagation();
-            dropdown.classList.remove('show');
-            openCreateMode();
-        });
+        addDiv.innerHTML = `<i class="fas fa-plus-circle"></i> <strong>➕ Add New Note</strong>`;
+        addDiv.onclick = () => { dropdown.classList.remove('show'); openCreateMode(); };
         dropdown.appendChild(addDiv);
         dropdown.classList.add('show');
     }
     
-    // ==================== VIEW / EDIT / CREATE ====================
-    function openProject(projectId) {
-        const proj = projectsData.find(p => p.id == projectId);
+    // ==================== VIEW MODE ====================
+    function openProject(id) {
+        const proj = projectsData.find(p => p.id == id);
         if (!proj) return;
         currentProject = proj;
         currentMode = 'view';
         renderViewMode();
     }
     
-        function renderViewMode() {
+    function renderViewMode() {
         if (!currentProject) return;
-        panelTitle.innerHTML = `<i class="fas fa-clinic-medical"></i> ${currentProject.title} · Notes`;
-        headerActions.innerHTML = `<button id="enterEditBtn" class="edit-mode-btn"><i class="fas fa-pen"></i> Edit Note</button>`;
-        panelBody.innerHTML = '';
+        document.getElementById('panelTitle').innerHTML = `<i class="fas fa-clinic-medical"></i> ${currentProject.title}`;
+        document.getElementById('headerActions').innerHTML = `<button id="enterEditBtn" class="edit-mode-btn"><i class="fas fa-pen"></i> Edit Note</button>`;
+        const body = document.getElementById('panelBody');
+        body.innerHTML = '';
         
-        // 文字区域
+        // Text
         const textDiv = document.createElement('div');
         textDiv.className = 'rich-area';
-        textDiv.innerHTML = `<div class="section-label"><i class="fas fa-align-left"></i> Text Notes</div><div class="readonly-text">${currentProject.noteText || '<em>No content</em>'}</div>`;
-        panelBody.appendChild(textDiv);
+        textDiv.innerHTML = `<div class="section-label">📝 Text Notes</div><div class="readonly-text">${currentProject.noteText || '<em>No content</em>'}</div>`;
+        body.appendChild(textDiv);
         
-        // 图片区域 - 缩略图，点击弹窗
+        // Image thumbnail
         const imgDiv = document.createElement('div');
         imgDiv.className = 'image-area';
-        const imageUrl = currentProject.imageUrl || 'https://placehold.co/600x400/eee/aaa?text=No+Image';
-        imgDiv.innerHTML = `<div class="section-label"><i class="fas fa-image"></i> Treatment Image (click to enlarge)</div>
-            <div class="canvas-container" style="padding: 1rem;">
-                <img src="${imageUrl}" style="max-width:100%; max-height:150px; object-fit: contain; border-radius: 12px; cursor: pointer;" onclick="window.openImageModal('${imageUrl}')" onerror="this.src='https://placehold.co/600x400/eee/aaa?text=Image+Missing'">
-            </div>`;
-        panelBody.appendChild(imgDiv);
+        const imgUrl = currentProject.imageUrl || 'https://placehold.co/600x400/eee/aaa?text=No+Image';
+        imgDiv.innerHTML = `<div class="section-label">🖼️ Treatment Image</div><div class="media-preview"><img src="${imgUrl}" class="thumbnail-img" onclick="openImageModal('${imgUrl}')" onerror="this.src='https://placehold.co/600x400/eee/aaa?text=Missing'"></div>`;
+        body.appendChild(imgDiv);
         
-        // 视频区域 - 封面图，点击弹窗播放
-        const vidDiv = document.createElement('div');
-        vidDiv.className = 'video-area';
-        const videoUrl = currentProject.videoUrl || '';
-        const thumbnailUrl = currentProject.thumb || 'https://placehold.co/600x400/eee/aaa?text=No+Video';
-        vidDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> Procedure Video (click to play)</div>
-            <div class="canvas-container" style="padding: 1rem;">
-                <div style="position: relative; display: inline-block; cursor: pointer;" onclick="window.openVideoModal('${videoUrl}')">
-                    <img src="${thumbnailUrl}" style="max-width:100%; max-height:150px; object-fit: cover; border-radius: 12px;" onerror="this.src='https://placehold.co/600x400/eee/aaa?text=No+Video'">
-                    <i class="fas fa-play-circle" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; color: white; text-shadow: 0 0 10px rgba(0,0,0,0.5); pointer-events: none;"></i>
-                </div>
-            </div>`;
-        panelBody.appendChild(vidDiv);
+        // Video thumbnail
+        const videoDiv = document.createElement('div');
+        videoDiv.className = 'video-area';
+        const vUrl = currentProject.videoUrl || '';
+        const thumbUrl = currentProject.thumb || 'https://placehold.co/600x400/eee/aaa?text=No+Video';
+        videoDiv.innerHTML = `<div class="section-label">🎬 Procedure Video</div><div class="media-preview"><div class="video-thumb-wrapper" onclick="openVideoModal('${vUrl}')"><img src="${thumbUrl}" class="video-thumb-img" onerror="this.src='https://placehold.co/600x400/eee/aaa?text=No+Video'"><i class="fas fa-play-circle play-overlay"></i></div></div>`;
+        body.appendChild(videoDiv);
         
         document.getElementById('enterEditBtn')?.addEventListener('click', () => enterEditMode());
     }
     
-        function enterEditMode() {
+    // ==================== EDIT MODE (No Fabric, simplified) ====================
+    function enterEditMode() {
         if (!currentProject) return;
         currentMode = 'edit';
-        panelTitle.innerHTML = `<i class="fas fa-pen-fancy"></i> Editing · ${currentProject.title}`;
-        headerActions.innerHTML = `<button id="cancelEditBtn" class="edit-mode-btn"><i class="fas fa-times"></i> Cancel</button>
+        document.getElementById('panelTitle').innerHTML = `<i class="fas fa-pen-fancy"></i> Editing · ${currentProject.title}`;
+        document.getElementById('headerActions').innerHTML = `<button id="cancelEditBtn" class="edit-mode-btn"><i class="fas fa-times"></i> Cancel</button>
                                     <button id="saveEditBtn" class="save-note-btn"><i class="fas fa-cloud-upload-alt"></i> Save to Cloud</button>`;
-        panelBody.innerHTML = '';
+        const body = document.getElementById('panelBody');
+        body.innerHTML = '';
         
-        // ========== 标题编辑区域 ==========
-        const titleEditDiv = document.createElement('div');
-        titleEditDiv.className = 'rich-area';
-        titleEditDiv.innerHTML = `
-            <div class="section-label"><i class="fas fa-heading"></i> Treatment Title</div>
-            <div style="padding: 1rem;">
-                <input type="text" id="editTitleInput" value="${currentProject.title || ''}" style="width:100%; padding:0.8rem; border-radius:40px; border:1px solid #e2cfc2; font-size:1rem; font-weight:600;">
-            </div>
-        `;
-        panelBody.appendChild(titleEditDiv);
+        // Title & Description
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'rich-area';
+        titleDiv.innerHTML = `<div class="section-label">✏️ Title</div><div style="padding:1rem"><input id="editTitleInput" class="edit-input" value="${escapeHtml(currentProject.title)}"></div>`;
+        body.appendChild(titleDiv);
         
-        // ========== 描述编辑区域 ==========
-        const descEditDiv = document.createElement('div');
-        descEditDiv.className = 'rich-area';
-        descEditDiv.innerHTML = `
-            <div class="section-label"><i class="fas fa-align-left"></i> Short Description</div>
-            <div style="padding: 1rem;">
-                <input type="text" id="editDescInput" value="${currentProject.desc || ''}" style="width:100%; padding:0.8rem; border-radius:40px; border:1px solid #e2cfc2; font-size:0.9rem;">
-            </div>
-        `;
-        panelBody.appendChild(descEditDiv);
+        const descDiv = document.createElement('div');
+        descDiv.className = 'rich-area';
+        descDiv.innerHTML = `<div class="section-label">📄 Short Description</div><div style="padding:1rem"><input id="editDescInput" class="edit-input" value="${escapeHtml(currentProject.desc)}"></div>`;
+        body.appendChild(descDiv);
         
-        // 富文本编辑器
-        const richEditDiv = document.createElement('div');
-        richEditDiv.className = 'rich-area';
-        richEditDiv.innerHTML = `<div class="section-label"><i class="fas fa-edit"></i> Rich Text Editor</div><div id="editQuillContainer" style="height:200px;"></div>`;
-        panelBody.appendChild(richEditDiv);
+        // Rich Text Editor
+        const richDiv = document.createElement('div');
+        richDiv.className = 'rich-area';
+        richDiv.innerHTML = `<div class="section-label">✍️ Rich Text (color, lists)</div><div id="editQuillContainer" style="height:220px;"></div>`;
+        body.appendChild(richDiv);
         
-        // 图片编辑区（带上传/删除按钮）
+        // Image editing (simple upload/delete)
         const imgEditDiv = document.createElement('div');
         imgEditDiv.className = 'image-area';
-        imgEditDiv.innerHTML = `<div class="section-label"><i class="fas fa-paintbrush"></i> Image Annotation</div>
-            <div class="canvas-toolbar" id="editCanvasToolbar">
-                <button id="drawBtn"><i class="fas fa-pencil-alt"></i> Draw</button>
-                <button id="textBtn"><i class="fas fa-font"></i> Add Text</button>
-                <button id="clearBtn"><i class="fas fa-undo-alt"></i> Clear Marks</button>
-                <button id="uploadImageBtn" style="background:#b47c56; color:white;"><i class="fas fa-upload"></i> Upload New</button>
-                <button id="deleteImageBtn" style="background:#d9534f; color:white;"><i class="fas fa-trash"></i> Delete</button>
-                <button id="saveImageMarkBtn"><i class="fas fa-save"></i> Save Markup</button>
-            </div>
-            <div class="canvas-container"><canvas id="editCanvas" width="600" height="400"></canvas></div>
-            <div style="padding:0.5rem 1rem; font-size:0.7rem;">
-                ✏️ Draw or add text, then "Save Markup". Use "Upload New" to replace image, "Delete" to remove.
-            </div>
-            <input type="file" id="imageUploadInput" accept="image/*" style="display:none;">
-        </div>`;
-        panelBody.appendChild(imgEditDiv);
+        const currentImg = currentProject.imageUrl || 'https://placehold.co/600x400/eee/aaa?text=No+Image';
+        imgEditDiv.innerHTML = `<div class="section-label">🖼️ Image</div>
+            <div style="padding:1rem; text-align:center">
+                <img id="editImagePreview" src="${currentImg}" style="max-height:150px; border-radius:16px; margin-bottom:12px; object-fit:contain;">
+                <div class="button-group">
+                    <button id="uploadImageBtn" class="btn-icon btn-primary"><i class="fas fa-upload"></i> Upload</button>
+                    <button id="deleteImageBtn" class="btn-icon btn-danger"><i class="fas fa-trash"></i> Delete</button>
+                </div>
+                <input type="file" id="imageUploadInput" accept="image/*" style="display:none">
+            </div>`;
+        body.appendChild(imgEditDiv);
         
-        // 视频编辑区
+        // Video editing (URL only)
         const videoEditDiv = document.createElement('div');
         videoEditDiv.className = 'video-area';
-        const safeVideoUrl = currentProject.videoUrl || '';
-        videoEditDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> Video URL</div>
-            <div class="video-actions"><input type="text" id="editVideoUrl" placeholder="MP4 URL" value="${safeVideoUrl}">
-            <button id="updateVideoBtn" class="btn-sm">Preview</button></div>
-            <div class="video-preview"><video id="editVideoPreview" controls src="${safeVideoUrl}" style="max-width:100%; max-height:200px;"></video></div>`;
-        panelBody.appendChild(videoEditDiv);
+        videoEditDiv.innerHTML = `<div class="section-label">🎬 Video URL (MP4)</div>
+            <div style="padding:1rem">
+                <input id="editVideoUrl" class="edit-input" value="${escapeHtml(currentProject.videoUrl || '')}" placeholder="https://...mp4">
+                <div class="button-group" style="margin-top:12px">
+                    <button id="updateVideoBtn" class="btn-icon"><i class="fas fa-eye"></i> Preview</button>
+                </div>
+                <video id="editVideoPreview" controls style="max-width:100%; margin-top:12px; border-radius:16px; display:none"></video>
+            </div>`;
+        body.appendChild(videoEditDiv);
         
-        // 初始化 Quill（带颜色选项）
+        // Init Quill
         if (quillEditor) quillEditor = null;
         quillEditor = new Quill('#editQuillContainer', {
             theme: 'snow',
-            modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['link', 'clean']
-                ]
-            },
-            placeholder: 'Edit your notes...'
+            modules: { toolbar: [
+                [{ 'header': [1,2,3,false]}], ['bold','italic','underline','strike'], [{ 'color': [] }, { 'background': [] }],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link','clean']
+            ] },
+            placeholder: 'Write your clinical notes...'
         });
         quillEditor.setText('');
-quillEditor.clipboard.dangerouslyPasteHTML(currentProject.noteText || '');
+        quillEditor.clipboard.dangerouslyPasteHTML(currentProject.noteText || '');
         
-        // 初始化 Fabric 画布
-        if (fabricCanvas) fabricCanvas.dispose();
-        fabricCanvas = new fabric.Canvas('editCanvas', { isDrawingMode: true, width: 600, height: 400, backgroundColor: '#ffffff' });
-        fabricCanvas.freeDrawingBrush.color = '#c2815b';
-        fabricCanvas.freeDrawingBrush.width = 3;
+        // Image handlers
+        const uploadInput = document.getElementById('imageUploadInput');
+        const uploadBtn = document.getElementById('uploadImageBtn');
+        const deleteBtn = document.getElementById('deleteImageBtn');
+        const imgPreview = document.getElementById('editImagePreview');
         
-        const safeImageUrl = currentProject.imageUrl || 'https://placehold.co/600x400/eee/aaa?text=No+Image';
-        currentImageBase64 = safeImageUrl;
-        fabric.Image.fromURL(safeImageUrl, (img) => {
-            let scale = Math.min(600 / img.width, 400 / img.height);
-            fabricCanvas.setWidth(img.width * scale);
-            fabricCanvas.setHeight(img.height * scale);
-            img.scale(scale);
-            img.set({ left: 0, top: 0 });
-            fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
-            fabricCanvas.renderAll();
-        }, { crossOrigin: 'anonymous' });
-        
-        // 画布工具栏事件
-        document.getElementById('drawBtn')?.addEventListener('click', function() { fabricCanvas.isDrawingMode = true; });
-        document.getElementById('textBtn')?.addEventListener('click', function() {
-            fabricCanvas.isDrawingMode = false;
-            var text = new fabric.IText('Double-click to edit', { left: 80, top: 80, fontSize: 18, fill: '#b45f3b' });
-            fabricCanvas.add(text);
-            fabricCanvas.renderAll();
-        });
-        document.getElementById('clearBtn')?.addEventListener('click', function() {
-            var objs = fabricCanvas.getObjects().filter(function(obj) { return obj !== fabricCanvas.backgroundImage; });
-            objs.forEach(function(obj) { fabricCanvas.remove(obj); });
-            fabricCanvas.renderAll();
-        });
-        document.getElementById('saveImageMarkBtn')?.addEventListener('click', function() {
-            currentImageBase64 = fabricCanvas.toDataURL({ format: 'png', quality: 1 });
-            alert('Image markup saved. Click "Save to Cloud" to persist.');
-        });
-        
-        // 图片上传功能
-        var uploadInput = document.getElementById('imageUploadInput');
-        var uploadBtn = document.getElementById('uploadImageBtn');
-        var deleteImgBtn = document.getElementById('deleteImageBtn');
-        
-        if (uploadBtn) {
-            uploadBtn.addEventListener('click', function() { uploadInput.click(); });
-        }
-        
-        if (uploadInput) {
-            uploadInput.addEventListener('change', function(e) {
-                var file = e.target.files[0];
-                if (file && file.type.startsWith('image/')) {
-                    var reader = new FileReader();
-                    reader.onload = function(event) {
-                        var imgUrl = event.target.result;
-                        currentImageBase64 = imgUrl;
-                        fabricCanvas.clear();
-                        fabric.Image.fromURL(imgUrl, function(img) {
-                            var scale = Math.min(600 / img.width, 400 / img.height);
-                            fabricCanvas.setWidth(img.width * scale);
-                            fabricCanvas.setHeight(img.height * scale);
-                            img.scale(scale);
-                            img.set({ left: 0, top: 0 });
-                            fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
-                            fabricCanvas.renderAll();
-                            alert('Image uploaded! Click "Save to Cloud" to persist.');
-                        });
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
-        
-        if (deleteImgBtn) {
-    deleteImgBtn.addEventListener('click', function() {
-        if (confirm('Delete current image? A placeholder will be used.')) {
-            currentImageBase64 = 'https://placehold.co/600x400/eee/aaa?text=No+Image';
-            currentProject.imageUrl = '';  // ← 加上这一行
-            fabricCanvas.clear();
-            fabric.Image.fromURL(currentImageBase64, function(img) {
-                var scale = Math.min(600 / img.width, 400 / img.height);
-                fabricCanvas.setWidth(img.width * scale);
-                fabricCanvas.setHeight(img.height * scale);
-                img.scale(scale);
-                img.set({ left: 0, top: 0 });
-                fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
-                fabricCanvas.renderAll();
-                alert('Image deleted. Click "Save to Cloud" to persist.');
-            });
-        }
-    });
-}
-        
-        // 视频预览
-        document.getElementById('updateVideoBtn')?.addEventListener('click', function() {
-            var newUrl = document.getElementById('editVideoUrl').value.trim();
-            if (newUrl) { document.getElementById('editVideoPreview').src = newUrl; }
-        });
-        
-        // 取消/保存
-        document.getElementById('cancelEditBtn')?.addEventListener('click', function() { renderViewMode(); });
-                document.getElementById('saveEditBtn')?.addEventListener('click', async function() {
-            // 保存标题和描述
-            const newTitle = document.getElementById('editTitleInput')?.value.trim();
-            if (newTitle && newTitle !== '') {
-                currentProject.title = newTitle;
+        uploadBtn?.addEventListener('click', () => uploadInput.click());
+        uploadInput?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    currentImageBase64 = ev.target.result;
+                    imgPreview.src = currentImageBase64;
+                    alert('Image loaded. Click "Save to Cloud" to store.');
+                };
+                reader.readAsDataURL(file);
             }
+        });
+        deleteBtn?.addEventListener('click', () => {
+            if (confirm('Remove image?')) {
+                currentImageBase64 = 'https://placehold.co/600x400/eee/aaa?text=No+Image';
+                imgPreview.src = currentImageBase64;
+                alert('Image removed. Save to persist.');
+            }
+        });
+        
+        // Video preview
+        document.getElementById('updateVideoBtn')?.addEventListener('click', () => {
+            const v = document.getElementById('editVideoUrl').value.trim();
+            const preview = document.getElementById('editVideoPreview');
+            if (v) { preview.src = v; preview.style.display = 'block'; preview.load(); }
+            else preview.style.display = 'none';
+        });
+        
+        // Cancel & Save
+        document.getElementById('cancelEditBtn')?.addEventListener('click', () => renderViewMode());
+        document.getElementById('saveEditBtn')?.addEventListener('click', async () => {
+            const newTitle = document.getElementById('editTitleInput')?.value.trim() || 'Untitled';
             const newDesc = document.getElementById('editDescInput')?.value.trim() || '';
-            currentProject.desc = newDesc;
+            const newNote = quillEditor.root.innerHTML;
+            let finalImage = currentImageBase64 || currentProject.imageUrl;
+            if (!finalImage || finalImage === '') finalImage = 'https://placehold.co/600x400/eee/aaa?text=No+Image';
+            const newVideo = document.getElementById('editVideoUrl')?.value.trim() || '';
             
-            // 保存文字笔记
-            if (quillEditor) currentProject.noteText = quillEditor.root.innerHTML;
-            
-            // 保存图片
-            if (currentImageBase64 && currentImageBase64.startsWith('data:image')) {
-                currentProject.imageUrl = currentImageBase64;
-            }
-            
-            // 保存视频
-            var newVideo = document.getElementById('editVideoUrl').value.trim();
-            if (newVideo) currentProject.videoUrl = newVideo;
-            
-            // 更新到 Supabase
-            var updated = await updateNoteInSupabase(currentProject.id, {
-                title: currentProject.title, 
-                desc: currentProject.desc, 
-                noteText: currentProject.noteText,
-                imageUrl: currentProject.imageUrl, 
-                videoUrl: currentProject.videoUrl, 
-                thumb: currentProject.thumb
+            const updated = await updateNoteInSupabase(currentProject.id, {
+                title: newTitle, desc: newDesc, noteText: newNote,
+                imageUrl: finalImage, videoUrl: newVideo, thumb: currentProject.thumb
             });
-            
-            if (updated) { 
-                alert('✅ "' + currentProject.title + '" saved to Supabase!'); 
+            if (updated) {
+                alert(`✅ Saved: ${newTitle}`);
                 await loadDataFromSupabase();
-                renderViewMode(); 
-            } else {
-                alert('Save failed. Check console for errors.');
-            }
+                renderViewMode();
+            } else alert('Save failed');
         });
-            }
+    }
     
     function openCreateMode() {
         currentMode = 'create';
-        currentProject = null;
-        panelTitle.innerHTML = `<i class="fas fa-plus-circle"></i> Create New Note`;
-        headerActions.innerHTML = `<button id="cancelCreateBtn" class="edit-mode-btn"><i class="fas fa-times"></i> Cancel</button>
-                                    <button id="storeCreateBtn" class="save-note-btn"><i class="fas fa-cloud-upload-alt"></i> Store to Cloud</button>`;
-        panelBody.innerHTML = '';
-        const richDiv = document.createElement('div');
-        richDiv.className = 'rich-area';
-        richDiv.innerHTML = `<div class="section-label"><i class="fas fa-edit"></i> Rich Text Notes</div><div id="createQuill" style="height:180px;"></div>`;
-        panelBody.appendChild(richDiv);
-        const imgDiv = document.createElement('div');
-        imgDiv.className = 'image-area';
-        imgDiv.innerHTML = `<div class="section-label"><i class="fas fa-image"></i> Image Annotation</div>
-            <div class="canvas-toolbar" id="createCanvasToolbar">
-                <button id="cDrawBtn">Draw</button><button id="cTextBtn">Add Text</button><button id="cClearBtn">Clear</button>
-                <button id="cSaveMarkBtn">Save Markup</button>
-            </div>
-            <div class="canvas-container"><canvas id="createCanvas" width="600" height="400"></canvas></div>
-            <div style="padding:0.5rem 1rem;"><input type="text" id="createImageUrlInput" placeholder="Image URL (initial)" style="width:100%; padding:0.4rem; border-radius:40px; font-size:0.75rem;"></div>`;
-        panelBody.appendChild(imgDiv);
-        const videoDiv = document.createElement('div');
-        videoDiv.className = 'video-area';
-        videoDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> Video URL</div>
-            <div class="video-actions"><input type="text" id="createVideoUrl" placeholder="MP4 URL" value="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4">
-            <button id="previewCreateVideo" class="btn-sm">Preview</button></div>
-            <div class="video-preview"><video id="createVideoPreview" controls style="max-width:100%; max-height:180px;"></video></div>`;
-        panelBody.appendChild(videoDiv);
-        const baseDiv = document.createElement('div');
-        baseDiv.innerHTML = `<div style="background:#fef7f2; padding:0.8rem; border-radius:20px;">
-            <label style="font-size:0.75rem; font-weight:600;">Treatment Name *</label>
-            <input id="newProjTitle" placeholder="e.g., Ultherapy" style="width:100%; margin-top:4px; padding:6px; border-radius:40px; border:1px solid #e2cfc2; font-size:0.8rem;">
-            <label style="margin-top:10px; display:block; font-size:0.75rem;">Short Description</label>
-            <input id="newProjDesc" placeholder="Brief description" style="width:100%; margin-top:4px; padding:6px; border-radius:40px; border:1px solid #e2cfc2; font-size:0.8rem;">
-        </div>`;
-        panelBody.appendChild(baseDiv);
-        const newQuill = new Quill('#createQuill', { theme: 'snow', modules: { toolbar: true }, placeholder: 'Describe the treatment...' });
-        newQuill.root.innerHTML = "<p><strong>New treatment notes</strong> : pre/post care, experience.</p>";
-        let fabricCreate = new fabric.Canvas('createCanvas', { isDrawingMode: true, width: 600, height: 400, backgroundColor: '#ffffff' });
-        fabricCreate.freeDrawingBrush.color = '#b47c56';
-        let createImageBase = "https://picsum.photos/id/106/800/600";
-        fabric.Image.fromURL(createImageBase, (img) => {
-            let scale = Math.min(600/img.width, 400/img.height);
-            img.scale(scale); fabricCreate.setWidth(img.width*scale); fabricCreate.setHeight(img.height*scale);
-            fabricCreate.setBackgroundImage(img, fabricCreate.renderAll.bind(fabricCreate));
-        }, { crossOrigin: 'anonymous' });
-        document.getElementById('cDrawBtn')?.addEventListener('click', () => { fabricCreate.isDrawingMode = true; });
-        document.getElementById('cTextBtn')?.addEventListener('click', () => { fabricCreate.isDrawingMode = false; fabricCreate.add(new fabric.IText('New text', { left:50, top:50, fontSize:16 })); fabricCreate.renderAll(); });
-        document.getElementById('cClearBtn')?.addEventListener('click', () => { const objs = fabricCreate.getObjects().filter(o=>o!==fabricCreate.backgroundImage); objs.forEach(o=>fabricCreate.remove(o)); fabricCreate.renderAll(); });
-        document.getElementById('cSaveMarkBtn')?.addEventListener('click', () => { createImageBase = fabricCreate.toDataURL(); alert("Image markup saved for this new note."); });
-        document.getElementById('previewCreateVideo')?.addEventListener('click', () => { const vUrl = document.getElementById('createVideoUrl').value; document.getElementById('createVideoPreview').src = vUrl; document.getElementById('createVideoPreview').load(); });
-        document.getElementById('storeCreateBtn')?.addEventListener('click', async () => {
-            const title = document.getElementById('newProjTitle').value.trim();
-            if (!title) { alert("Please enter treatment name"); return; }
-            const desc = document.getElementById('newProjDesc').value.trim() || "New treatment";
-            const noteText = newQuill.root.innerHTML;
-            let finalImage = createImageBase;
-            const videoUrl = document.getElementById('createVideoUrl').value.trim();
-            const newProj = { title, desc, thumb: "https://picsum.photos/id/106/400/300", noteText, imageUrl: finalImage, videoUrl };
+        currentProject = { id: null, title: "New Treatment", desc: "", noteText: "", imageUrl: "", videoUrl: "", thumb: "https://placehold.co/400x300/eee/aaa?text=New" };
+        projectsData.unshift(currentProject);
+        enterEditMode(); // reuse edit mode for creation, but we need to handle insert later
+        // Override save for creation
+        const oldSave = document.getElementById('saveEditBtn')?.click;
+        document.getElementById('saveEditBtn')?.addEventListener('click', async () => {
+            const title = document.getElementById('editTitleInput')?.value.trim() || 'New Treatment';
+            const desc = document.getElementById('editDescInput')?.value.trim() || '';
+            const note = quillEditor.root.innerHTML;
+            let img = currentImageBase64 || 'https://placehold.co/600x400/eee/aaa?text=No+Image';
+            const vid = document.getElementById('editVideoUrl')?.value.trim() || '';
+            const newProj = { title, desc, noteText: note, imageUrl: img, videoUrl: vid, thumb: 'https://placehold.co/400x300/eee/aaa?text=Preview' };
             const inserted = await addNoteToSupabase(newProj);
             if (inserted) {
-                projectsData.push(inserted);
-                alert(`✅ "${title}" created and saved to Supabase!`);
-                openProject(inserted.id);
-            } else alert('Create failed');
-        });
-        document.getElementById('cancelCreateBtn')?.addEventListener('click', () => renderEmptyState());
+                alert(`✅ Created: ${title}`);
+                await loadDataFromSupabase();
+                renderEmptyState();
+            } else alert('Creation failed');
+        }, { once: true });
     }
     
     function renderEmptyState() {
         currentProject = null;
-        currentMode = null;
-        panelTitle.innerHTML = `<i class="fas fa-notes-medical"></i> Aesthetic Workspace`;
-        headerActions.innerHTML = '';
-        panelBody.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open" style="font-size: 2rem;"></i><p>✨ Select a treatment from dropdown, or click <strong>➕ Add New Note</strong>.<br>Rich text, image annotation, video — saved to Supabase cloud.</p></div>`;
+        document.getElementById('panelTitle').innerHTML = `<i class="fas fa-notes-medical"></i> Aesthetic Workspace`;
+        document.getElementById('headerActions').innerHTML = '';
+        document.getElementById('panelBody').innerHTML = `<div class="empty-state"><i class="fas fa-folder-open" style="font-size: 2rem;"></i><p>✨ Select a treatment from dropdown, or click <strong>➕ Add New Note</strong>.<br>Rich text, image & video lightbox — cloud synced.</p></div>`;
         renderDropdown();
     }
-
-        // ==================== 弹窗功能 ====================
+    
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+    
+    // ==================== MODAL LIGHTBOX ====================
     const modal = document.getElementById('mediaModal');
     const modalImg = document.getElementById('modalImage');
     const modalVideo = document.getElementById('modalVideo');
-    const modalClose = document.querySelector('.modal-close');
+    window.openImageModal = function(url) { if(!url) return; modalImg.style.display = 'block'; modalVideo.style.display = 'none'; modalImg.src = url; modal.classList.add('show'); };
+    window.openVideoModal = function(url) { if(!url) return; modalImg.style.display = 'none'; modalVideo.style.display = 'block'; modalVideo.src = url; modalVideo.load(); modal.classList.add('show'); };
+    function closeModal() { modal.classList.remove('show'); modalVideo.pause(); }
+    document.querySelector('.modal-close')?.addEventListener('click', closeModal);
+    modal?.addEventListener('click', (e) => { if(e.target === modal) closeModal(); });
     
-    function openImageModal(url) {
-        modalImg.style.display = 'block';
-        modalVideo.style.display = 'none';
-        modalImg.src = url;
-        modal.classList.add('show');
-    }
-    
-    function openVideoModal(url) {
-        modalImg.style.display = 'none';
-        modalVideo.style.display = 'block';
-        modalVideo.src = url;
-        modalVideo.load();
-        modal.classList.add('show');
-    }
-    
-    function closeModal() {
-        modal.classList.remove('show');
-        modalVideo.pause();
-    }
-    
-    modalClose?.addEventListener('click', closeModal);
-    modal?.addEventListener('click', function(e) {
-        if (e.target === modal) closeModal();
-    });
-    
-    // ==================== EVENT LISTENERS & INIT ====================
+    // ==================== INIT ====================
     document.getElementById('loginBtn')?.addEventListener('click', async () => {
-    const email = document.getElementById('loginEmail').value;
-    const pwd = document.getElementById('loginPassword').value;
-    const { error } = await adminLogin(email, pwd);
-    if (error) {
-        alert('Login failed: ' + error.message);
-    } else {
-        document.getElementById('loginPanel').style.display = 'none';
-        document.getElementById('userPanel').style.display = 'flex';
-        document.getElementById('userEmailDisplay').innerText = currentUser.email;
-        await loadDataFromSupabase();
-    }
-});
-    
-    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-    await adminLogout();
-    document.getElementById('loginPanel').style.display = 'flex';
-    document.getElementById('userPanel').style.display = 'none';
-    renderEmptyState();
-});
-    
-    document.getElementById('projectSearchInput').addEventListener('input', () => renderDropdown());
-    document.addEventListener('click', (e) => {
-        const input = document.getElementById('projectSearchInput');
-        const dropdown = document.getElementById('dropdownMenu');
-        if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.remove('show');
+        const { error } = await adminLogin(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
+        if (error) alert('Login failed: ' + error.message);
+        else { document.getElementById('loginPanel').style.display = 'none'; document.getElementById('userPanel').style.display = 'flex'; document.getElementById('userEmailDisplay').innerText = currentUser.email; await loadDataFromSupabase(); }
     });
-    
-    // 先检查是否已有登录会话
-checkExistingSession().then(hasSession => {
-    if (!hasSession) {
-        renderEmptyState();
-    }
-});
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => { await adminLogout(); document.getElementById('loginPanel').style.display = 'flex'; document.getElementById('userPanel').style.display = 'none'; renderEmptyState(); });
+    document.getElementById('projectSearchInput').addEventListener('input', () => renderDropdown());
+    document.addEventListener('click', (e) => { const inp = document.getElementById('projectSearchInput'), dd = document.getElementById('dropdownMenu'); if(!inp?.contains(e.target) && !dd?.contains(e.target)) dd?.classList.remove('show'); });
+    checkExistingSession().then(has => { if(!has) renderEmptyState(); });
 </script>
 </body>
 </html>
