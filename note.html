@@ -355,8 +355,8 @@
 <script>
     // ==================== SUPABASE CONFIG ====================
     // ⚠️ REPLACE WITH YOUR OWN SUPABASE CREDENTIALS ⚠️
-    const SUPABASE_URL = 'https://your-project.supabase.co';      // <-- replace
-    const SUPABASE_ANON_KEY = 'your-anon-key';                    // <-- replace
+    const SUPABASE_URL = 'https://dmrskyskryrdclknezth.supabase.co';      // <-- replace
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8';                    // <-- replace
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
     // ==================== SINGLE ADMIN CREDENTIALS ====================
@@ -444,20 +444,42 @@
     }
     
     // ==================== ADMIN LOGIN / LOGOUT (no supabase auth) ====================
-    function adminLogin(email, password) {
-        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-            currentUser = { email: ADMIN_EMAIL, id: 'admin-001' };
-            return { data: { user: currentUser }, error: null };
-        } else {
-            return { data: null, error: { message: 'Invalid admin credentials' } };
-        }
+    async function adminLogin(email, password) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+    });
+    if (error) {
+        console.error('Login error:', error);
+        return { data: null, error: error };
     }
+    currentUser = data.user;
+    return { data: data, error: null };
+}
     
-    function adminLogout() {
-        currentUser = null;
-        projectsData = [];
-        nextId = 1;
+    async function adminLogout() {
+    await supabase.auth.signOut();
+    currentUser = null;
+}
+
+    async function checkExistingSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        currentUser = session.user;
+        // 更新界面显示
+        const loginPanel = document.getElementById('loginPanel');
+        const userPanel = document.getElementById('userPanel');
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        if (loginPanel && userPanel && userEmailDisplay) {
+            loginPanel.style.display = 'none';
+            userPanel.style.display = 'flex';
+            userEmailDisplay.innerText = currentUser.email;
+        }
+        await loadDataFromSupabase();
+        return true;
     }
+    return false;
+}
     
     // ==================== LOAD DATA FROM SUPABASE ====================
     async function loadDataFromSupabase() {
@@ -725,23 +747,26 @@
     
     // ==================== EVENT LISTENERS & INIT ====================
     document.getElementById('loginBtn')?.addEventListener('click', async () => {
-        const email = document.getElementById('loginEmail').value;
-        const pwd = document.getElementById('loginPassword').value;
-        const { error } = adminLogin(email, pwd);
-        if (error) alert('Login failed: ' + error.message);
-        else {
-            document.getElementById('loginPanel').style.display = 'none';
-            document.getElementById('userPanel').style.display = 'flex';
-            document.getElementById('userEmailDisplay').innerText = currentUser.email;
-            await loadDataFromSupabase();
-        }
-    });
-    document.getElementById('logoutBtn')?.addEventListener('click', () => {
-        adminLogout();
-        document.getElementById('loginPanel').style.display = 'flex';
-        document.getElementById('userPanel').style.display = 'none';
-        renderEmptyState();
-    });
+    const email = document.getElementById('loginEmail').value;
+    const pwd = document.getElementById('loginPassword').value;
+    const { error } = await adminLogin(email, pwd);
+    if (error) {
+        alert('Login failed: ' + error.message);
+    } else {
+        document.getElementById('loginPanel').style.display = 'none';
+        document.getElementById('userPanel').style.display = 'flex';
+        document.getElementById('userEmailDisplay').innerText = currentUser.email;
+        await loadDataFromSupabase();
+    }
+});
+    
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    await adminLogout();
+    document.getElementById('loginPanel').style.display = 'flex';
+    document.getElementById('userPanel').style.display = 'none';
+    renderEmptyState();
+});
+    
     document.getElementById('projectSearchInput').addEventListener('input', () => renderDropdown());
     document.addEventListener('click', (e) => {
         const input = document.getElementById('projectSearchInput');
@@ -749,7 +774,12 @@
         if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.remove('show');
     });
     
-    renderEmptyState();
+    // 先检查是否已有登录会话
+checkExistingSession().then(hasSession => {
+    if (!hasSession) {
+        renderEmptyState();
+    }
+});
 </script>
 </body>
 </html>
