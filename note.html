@@ -322,6 +322,64 @@
             color: #b38b6e;
             font-size: 0.85rem;
         }
+
+        /* 弹窗样式 */
+        .media-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .media-modal.show {
+            display: flex;
+        }
+        .media-modal img, .media-modal video {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 2001;
+        }
+        /* 缩略图样式 */
+        .thumbnail {
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .thumbnail:hover {
+            opacity: 0.8;
+        }
+        .video-thumb {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: white;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+        
         @media (max-width: 720px) {
             .container { padding: 1rem; }
             .panel-body { padding: 1rem; }
@@ -364,6 +422,13 @@
             </div>
         </div>
     </div>
+</div>
+
+    <!-- 图片/视频弹窗 -->
+<div id="mediaModal" class="media-modal">
+    <span class="modal-close">&times;</span>
+    <img id="modalImage" style="display: none;">
+    <video id="modalVideo" controls style="display: none;"></video>
 </div>
 
 <script>
@@ -634,12 +699,29 @@
     textDiv.innerHTML = `<div class="section-label"><i class="fas fa-align-left"></i> Text Notes</div><div class="readonly-text">${currentProject.noteText || '<em>No content</em>'}</div>`;
     panelBody.appendChild(textDiv);
     
-    // 图片区域 - 添加空值处理
+        // 图片区域 - 缩略图，点击弹窗
     const imgDiv = document.createElement('div');
     imgDiv.className = 'image-area';
     const imageUrl = currentProject.imageUrl || 'https://placehold.co/600x400/eee/aaa?text=No+Image';
-    imgDiv.innerHTML = `<div class="section-label"><i class="fas fa-image"></i> Treatment Image</div><div class="canvas-container" id="viewImageContainer"><img src="${imageUrl}" style="max-width:100%; border-radius: 16px; max-height: 320px; object-fit: contain;" onerror="this.src='https://placehold.co/600x400/eee/aaa?text=Image+Missing'"></div>`;
+    imgDiv.innerHTML = `<div class="section-label"><i class="fas fa-image"></i> Treatment Image (click to enlarge)</div>
+        <div class="canvas-container" style="padding: 1rem;">
+            <img src="${imageUrl}" class="thumbnail" style="max-width:100%; max-height:150px; object-fit: contain; border-radius: 12px; cursor: pointer;" onclick="openImageModal('${imageUrl}')" onerror="this.src='https://placehold.co/600x400/eee/aaa?text=Image+Missing'">
+        </div>`;
     panelBody.appendChild(imgDiv);
+    
+    // 视频区域 - 封面图，点击弹窗播放
+    const videoDiv = document.createElement('div');
+    videoDiv.className = 'video-area';
+    const videoUrl = currentProject.videoUrl || '';
+    const thumbnailUrl = currentProject.thumb || 'https://placehold.co/600x400/eee/aaa?text=No+Video';
+    videoDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> Procedure Video (click to play)</div>
+        <div class="canvas-container" style="padding: 1rem;">
+            <div style="position: relative; display: inline-block; cursor: pointer;" onclick="openVideoModal('${videoUrl}')">
+                <img src="${thumbnailUrl}" style="max-width:100%; max-height:150px; object-fit: cover; border-radius: 12px;" onerror="this.src='https://placehold.co/600x400/eee/aaa?text=No+Video'">
+                <i class="fas fa-play-circle" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; color: white; text-shadow: 0 0 10px rgba(0,0,0,0.5); pointer-events: none;"></i>
+            </div>
+        </div>`;
+    panelBody.appendChild(videoDiv);
     
     // 视频区域 - 添加空值处理
     const videoDiv = document.createElement('div');
@@ -951,6 +1033,37 @@ quillEditor.clipboard.dangerouslyPasteHTML(currentProject.noteText || '');
         panelBody.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open" style="font-size: 2rem;"></i><p>✨ Select a treatment from dropdown, or click <strong>➕ Add New Note</strong>.<br>Rich text, image annotation, video — saved to Supabase cloud.</p></div>`;
         renderDropdown();
     }
+
+        // ==================== 弹窗功能 ====================
+    const modal = document.getElementById('mediaModal');
+    const modalImg = document.getElementById('modalImage');
+    const modalVideo = document.getElementById('modalVideo');
+    const modalClose = document.querySelector('.modal-close');
+    
+    function openImageModal(url) {
+        modalImg.style.display = 'block';
+        modalVideo.style.display = 'none';
+        modalImg.src = url;
+        modal.classList.add('show');
+    }
+    
+    function openVideoModal(url) {
+        modalImg.style.display = 'none';
+        modalVideo.style.display = 'block';
+        modalVideo.src = url;
+        modalVideo.load();
+        modal.classList.add('show');
+    }
+    
+    function closeModal() {
+        modal.classList.remove('show');
+        modalVideo.pause();
+    }
+    
+    modalClose?.addEventListener('click', closeModal);
+    modal?.addEventListener('click', function(e) {
+        if (e.target === modal) closeModal();
+    });
     
     // ==================== EVENT LISTENERS & INIT ====================
     document.getElementById('loginBtn')?.addEventListener('click', async () => {
