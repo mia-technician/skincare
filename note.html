@@ -732,7 +732,8 @@
             },
             placeholder: 'Edit your notes...'
         });
-        quillEditor.clipboard.dangerouslyPasteHTML(currentProject.noteText || '');
+        quillEditor.setText('');
+quillEditor.clipboard.dangerouslyPasteHTML(currentProject.noteText || '');
         
         // 初始化 Fabric 画布
         if (fabricCanvas) fabricCanvas.dispose();
@@ -805,23 +806,24 @@
         }
         
         if (deleteImgBtn) {
-            deleteImgBtn.addEventListener('click', function() {
-                if (confirm('Delete current image? A placeholder will be used.')) {
-                    currentImageBase64 = 'https://placehold.co/600x400/eee/aaa?text=No+Image';
-                    fabricCanvas.clear();
-                    fabric.Image.fromURL(currentImageBase64, function(img) {
-                        var scale = Math.min(600 / img.width, 400 / img.height);
-                        fabricCanvas.setWidth(img.width * scale);
-                        fabricCanvas.setHeight(img.height * scale);
-                        img.scale(scale);
-                        img.set({ left: 0, top: 0 });
-                        fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
-                        fabricCanvas.renderAll();
-                        alert('Image deleted. Click "Save to Cloud" to persist.');
-                    });
-                }
+    deleteImgBtn.addEventListener('click', function() {
+        if (confirm('Delete current image? A placeholder will be used.')) {
+            currentImageBase64 = 'https://placehold.co/600x400/eee/aaa?text=No+Image';
+            currentProject.imageUrl = '';  // ← 加上这一行
+            fabricCanvas.clear();
+            fabric.Image.fromURL(currentImageBase64, function(img) {
+                var scale = Math.min(600 / img.width, 400 / img.height);
+                fabricCanvas.setWidth(img.width * scale);
+                fabricCanvas.setHeight(img.height * scale);
+                img.scale(scale);
+                img.set({ left: 0, top: 0 });
+                fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
+                fabricCanvas.renderAll();
+                alert('Image deleted. Click "Save to Cloud" to persist.');
             });
         }
+    });
+}
         
         // 视频预览
         document.getElementById('updateVideoBtn')?.addEventListener('click', function() {
