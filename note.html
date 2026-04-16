@@ -647,7 +647,8 @@
         fabricCanvas.freeDrawingBrush.color = '#c2815b';
         fabricCanvas.freeDrawingBrush.width = 3;
         currentImageBase64 = currentProject.imageUrl || 'https://placehold.co/600x400/eee/aaa?text=No+Image';
-        fabric.Image.fromURL(currentProject.imageUrl, (img) => {
+        const safeImageUrl = currentProject.imageUrl || 'https://placehold.co/600x400/eee/aaa?text=No+Image';
+fabric.Image.fromURL(safeImageUrl, (img) => {
             let scale = Math.min(600 / img.width, 400 / img.height);
             fabricCanvas.setWidth(img.width * scale);
             fabricCanvas.setHeight(img.height * scale);
