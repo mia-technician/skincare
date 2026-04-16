@@ -687,51 +687,44 @@
         renderViewMode();
     }
     
-    function renderViewMode() {
-    if (!currentProject) return;
-    panelTitle.innerHTML = `<i class="fas fa-clinic-medical"></i> ${currentProject.title} · Notes`;
-    headerActions.innerHTML = `<button id="enterEditBtn" class="edit-mode-btn"><i class="fas fa-pen"></i> Edit Note</button>`;
-    panelBody.innerHTML = '';
-    
-    // 文字区域
-    const textDiv = document.createElement('div');
-    textDiv.className = 'rich-area';
-    textDiv.innerHTML = `<div class="section-label"><i class="fas fa-align-left"></i> Text Notes</div><div class="readonly-text">${currentProject.noteText || '<em>No content</em>'}</div>`;
-    panelBody.appendChild(textDiv);
-    
+        function renderViewMode() {
+        if (!currentProject) return;
+        panelTitle.innerHTML = `<i class="fas fa-clinic-medical"></i> ${currentProject.title} · Notes`;
+        headerActions.innerHTML = `<button id="enterEditBtn" class="edit-mode-btn"><i class="fas fa-pen"></i> Edit Note</button>`;
+        panelBody.innerHTML = '';
+        
+        // 文字区域
+        const textDiv = document.createElement('div');
+        textDiv.className = 'rich-area';
+        textDiv.innerHTML = `<div class="section-label"><i class="fas fa-align-left"></i> Text Notes</div><div class="readonly-text">${currentProject.noteText || '<em>No content</em>'}</div>`;
+        panelBody.appendChild(textDiv);
+        
         // 图片区域 - 缩略图，点击弹窗
-    const imgDiv = document.createElement('div');
-    imgDiv.className = 'image-area';
-    const imageUrl = currentProject.imageUrl || 'https://placehold.co/600x400/eee/aaa?text=No+Image';
-    imgDiv.innerHTML = `<div class="section-label"><i class="fas fa-image"></i> Treatment Image (click to enlarge)</div>
-        <div class="canvas-container" style="padding: 1rem;">
-            <img src="${imageUrl}" class="thumbnail" style="max-width:100%; max-height:150px; object-fit: contain; border-radius: 12px; cursor: pointer;" onclick="openImageModal('${imageUrl}')" onerror="this.src='https://placehold.co/600x400/eee/aaa?text=Image+Missing'">
-        </div>`;
-    panelBody.appendChild(imgDiv);
-    
-    // 视频区域 - 封面图，点击弹窗播放
-    const videoDiv = document.createElement('div');
-    videoDiv.className = 'video-area';
-    const videoUrl = currentProject.videoUrl || '';
-    const thumbnailUrl = currentProject.thumb || 'https://placehold.co/600x400/eee/aaa?text=No+Video';
-    videoDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> Procedure Video (click to play)</div>
-        <div class="canvas-container" style="padding: 1rem;">
-            <div style="position: relative; display: inline-block; cursor: pointer;" onclick="openVideoModal('${videoUrl}')">
-                <img src="${thumbnailUrl}" style="max-width:100%; max-height:150px; object-fit: cover; border-radius: 12px;" onerror="this.src='https://placehold.co/600x400/eee/aaa?text=No+Video'">
-                <i class="fas fa-play-circle" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; color: white; text-shadow: 0 0 10px rgba(0,0,0,0.5); pointer-events: none;"></i>
-            </div>
-        </div>`;
-    panelBody.appendChild(videoDiv);
-    
-    // 视频区域 - 添加空值处理
-    const videoDiv = document.createElement('div');
-    videoDiv.className = 'video-area';
-    const videoUrl = currentProject.videoUrl || '';
-    videoDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> Procedure Video</div><div class="video-preview">${videoUrl ? `<video controls src="${videoUrl}" style="max-width:100%; max-height:220px;"></video>` : '<p style="padding:1rem; color:#b38b6e;">No video available</p>'}</div>`;
-    panelBody.appendChild(videoDiv);
-    
-    document.getElementById('enterEditBtn')?.addEventListener('click', () => enterEditMode());
-}
+        const imgDiv = document.createElement('div');
+        imgDiv.className = 'image-area';
+        const imageUrl = currentProject.imageUrl || 'https://placehold.co/600x400/eee/aaa?text=No+Image';
+        imgDiv.innerHTML = `<div class="section-label"><i class="fas fa-image"></i> Treatment Image (click to enlarge)</div>
+            <div class="canvas-container" style="padding: 1rem;">
+                <img src="${imageUrl}" style="max-width:100%; max-height:150px; object-fit: contain; border-radius: 12px; cursor: pointer;" onclick="window.openImageModal('${imageUrl}')" onerror="this.src='https://placehold.co/600x400/eee/aaa?text=Image+Missing'">
+            </div>`;
+        panelBody.appendChild(imgDiv);
+        
+        // 视频区域 - 封面图，点击弹窗播放
+        const vidDiv = document.createElement('div');
+        vidDiv.className = 'video-area';
+        const videoUrl = currentProject.videoUrl || '';
+        const thumbnailUrl = currentProject.thumb || 'https://placehold.co/600x400/eee/aaa?text=No+Video';
+        vidDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> Procedure Video (click to play)</div>
+            <div class="canvas-container" style="padding: 1rem;">
+                <div style="position: relative; display: inline-block; cursor: pointer;" onclick="window.openVideoModal('${videoUrl}')">
+                    <img src="${thumbnailUrl}" style="max-width:100%; max-height:150px; object-fit: cover; border-radius: 12px;" onerror="this.src='https://placehold.co/600x400/eee/aaa?text=No+Video'">
+                    <i class="fas fa-play-circle" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; color: white; text-shadow: 0 0 10px rgba(0,0,0,0.5); pointer-events: none;"></i>
+                </div>
+            </div>`;
+        panelBody.appendChild(vidDiv);
+        
+        document.getElementById('enterEditBtn')?.addEventListener('click', () => enterEditMode());
+    }
     
         function enterEditMode() {
         if (!currentProject) return;
