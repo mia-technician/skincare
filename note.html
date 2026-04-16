@@ -581,24 +581,33 @@
     }
     
     function renderViewMode() {
-        if (!currentProject) return;
-        panelTitle.innerHTML = `<i class="fas fa-clinic-medical"></i> ${currentProject.title} · Notes`;
-        headerActions.innerHTML = `<button id="enterEditBtn" class="edit-mode-btn"><i class="fas fa-pen"></i> Edit Note</button>`;
-        panelBody.innerHTML = '';
-        const textDiv = document.createElement('div');
-        textDiv.className = 'rich-area';
-        textDiv.innerHTML = `<div class="section-label"><i class="fas fa-align-left"></i> Text Notes</div><div class="readonly-text">${currentProject.noteText || '<em>No content</em>'}</div>`;
-        panelBody.appendChild(textDiv);
-        const imgDiv = document.createElement('div');
-        imgDiv.className = 'image-area';
-        imgDiv.innerHTML = `<div class="section-label"><i class="fas fa-image"></i> Treatment Image</div><div class="canvas-container" id="viewImageContainer"><img src="${currentProject.imageUrl}" style="max-width:100%; border-radius: 16px; max-height: 320px; object-fit: contain;"></div>`;
-        panelBody.appendChild(imgDiv);
-        const videoDiv = document.createElement('div');
-        videoDiv.className = 'video-area';
-        videoDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> Procedure Video</div><div class="video-preview"><video controls src="${currentProject.videoUrl}" style="max-width:100%; max-height:220px;"></video></div>`;
-        panelBody.appendChild(videoDiv);
-        document.getElementById('enterEditBtn')?.addEventListener('click', () => enterEditMode());
-    }
+    if (!currentProject) return;
+    panelTitle.innerHTML = `<i class="fas fa-clinic-medical"></i> ${currentProject.title} · Notes`;
+    headerActions.innerHTML = `<button id="enterEditBtn" class="edit-mode-btn"><i class="fas fa-pen"></i> Edit Note</button>`;
+    panelBody.innerHTML = '';
+    
+    // 文字区域
+    const textDiv = document.createElement('div');
+    textDiv.className = 'rich-area';
+    textDiv.innerHTML = `<div class="section-label"><i class="fas fa-align-left"></i> Text Notes</div><div class="readonly-text">${currentProject.noteText || '<em>No content</em>'}</div>`;
+    panelBody.appendChild(textDiv);
+    
+    // 图片区域 - 添加空值处理
+    const imgDiv = document.createElement('div');
+    imgDiv.className = 'image-area';
+    const imageUrl = currentProject.imageUrl || 'https://placehold.co/600x400/eee/aaa?text=No+Image';
+    imgDiv.innerHTML = `<div class="section-label"><i class="fas fa-image"></i> Treatment Image</div><div class="canvas-container" id="viewImageContainer"><img src="${imageUrl}" style="max-width:100%; border-radius: 16px; max-height: 320px; object-fit: contain;" onerror="this.src='https://placehold.co/600x400/eee/aaa?text=Image+Missing'"></div>`;
+    panelBody.appendChild(imgDiv);
+    
+    // 视频区域 - 添加空值处理
+    const videoDiv = document.createElement('div');
+    videoDiv.className = 'video-area';
+    const videoUrl = currentProject.videoUrl || '';
+    videoDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> Procedure Video</div><div class="video-preview">${videoUrl ? `<video controls src="${videoUrl}" style="max-width:100%; max-height:220px;"></video>` : '<p style="padding:1rem; color:#b38b6e;">No video available</p>'}</div>`;
+    panelBody.appendChild(videoDiv);
+    
+    document.getElementById('enterEditBtn')?.addEventListener('click', () => enterEditMode());
+}
     
     function enterEditMode() {
         if (!currentProject) return;
@@ -626,7 +635,7 @@
         const videoEditDiv = document.createElement('div');
         videoEditDiv.className = 'video-area';
         videoEditDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> Video URL</div>
-            <div class="video-actions"><input type="text" id="editVideoUrl" placeholder="MP4 URL" value="${currentProject.videoUrl}">
+            <div class="video-actions"><input type="text" id="editVideoUrl" placeholder="MP4 URL" value="${currentProject.videoUrl || ''}">
             <button id="updateVideoBtn" class="btn-sm">Preview</button></div>
             <div class="video-preview"><video id="editVideoPreview" controls src="${currentProject.videoUrl}" style="max-width:100%; max-height:200px;"></video></div>`;
         panelBody.appendChild(videoEditDiv);
@@ -637,7 +646,7 @@
         fabricCanvas = new fabric.Canvas('editCanvas', { isDrawingMode: true, width: 600, height: 400, backgroundColor: '#ffffff' });
         fabricCanvas.freeDrawingBrush.color = '#c2815b';
         fabricCanvas.freeDrawingBrush.width = 3;
-        currentImageBase64 = currentProject.imageUrl;
+        currentImageBase64 = currentProject.imageUrl || 'https://placehold.co/600x400/eee/aaa?text=No+Image';
         fabric.Image.fromURL(currentProject.imageUrl, (img) => {
             let scale = Math.min(600 / img.width, 400 / img.height);
             fabricCanvas.setWidth(img.width * scale);
