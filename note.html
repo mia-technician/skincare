@@ -481,14 +481,22 @@
 }
     
     // ==================== LOAD DATA FROM SUPABASE ====================
-    async function loadDataFromSupabase() {
+        async function loadDataFromSupabase() {
         if (!currentUser) return;
         const data = await fetchAllNotes();
         if (data.length > 0) {
-            projectsData = data;
-            nextId = Math.max(...data.map(p => p.id || 0), 0) + 1;
+            // 处理数据中的空值
+            projectsData = data.map(item => ({
+                ...item,
+                title: item.title || 'Untitled',
+                desc: item.description || '',
+                noteText: item.note_text || '',
+                imageUrl: item.image_url || 'https://placehold.co/600x400/eee/aaa?text=No+Image',
+                videoUrl: item.video_url || '',
+                thumb: item.thumbnail_url || 'https://placehold.co/400x300/eee/aaa?text=No+Image'
+            }));
+            nextId = Math.max(...projectsData.map(p => p.id || 0), 0) + 1;
         } else {
-            // seed default data if empty
             projectsData = getDefaultProjects();
             for (const proj of projectsData) {
                 const inserted = await addNoteToSupabase(proj);
@@ -496,7 +504,7 @@
             }
             nextId = projectsData.reduce((max, p) => Math.max(max, p.id || 0), 0) + 1;
         }
-        renderEmptyState();  // refresh UI after data load
+        renderEmptyState();
     }
     
     function getDefaultProjects() {
@@ -523,41 +531,62 @@
     }
     
     // ==================== RENDER DROPDOWN ====================
-    function renderDropdown() {
+        function renderDropdown() {
         const input = document.getElementById('projectSearchInput');
         const dropdown = document.getElementById('dropdownMenu');
         const query = input.value.trim().toLowerCase();
         dropdown.innerHTML = '';
         let filtered = [];
+        
+        // 确保 projectsData 存在且是数组
+        if (!projectsData || !Array.isArray(projectsData)) {
+            projectsData = [];
+        }
+        
+        // 过滤时添加空值保护
         if (query !== "") {
-            filtered = projectsData.filter(p => p.title.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query));
+            filtered = projectsData.filter(p => {
+                const title = p.title || '';
+                const desc = p.desc || '';
+                return title.toLowerCase().includes(query) || desc.toLowerCase().includes(query);
+            });
             filtered.forEach(proj => {
                 const div = document.createElement('div');
                 div.className = 'dropdown-item';
                 div.setAttribute('data-id', proj.id);
-                div.innerHTML = `<img src="${proj.thumb}"><div><strong>${proj.title}</strong><span style="font-size:0.7rem;"> &nbsp; ${proj.desc?.substring(0,35)}</span></div>`;
+                const title = proj.title || 'Untitled';
+                const desc = proj.desc || '';
+                const thumb = proj.thumb || 'https://placehold.co/400x300/eee/aaa?text=No+Image';
+                div.innerHTML = `<img src="${thumb}"><div><strong>${title}</strong><span style="font-size:0.7rem;"> &nbsp; ${desc.substring(0,35)}</span></div>`;
                 div.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    input.value = proj.title;
+                    input.value = title;
                     dropdown.classList.remove('show');
                     openProject(proj.id);
                 });
                 dropdown.appendChild(div);
             });
         } else {
-            projectsData.slice(0, 6).forEach(proj => {
+            // 显示前6个项目
+            const itemsToShow = projectsData.slice(0, 6);
+            itemsToShow.forEach(proj => {
                 const div = document.createElement('div');
                 div.className = 'dropdown-item';
-                div.innerHTML = `<img src="${proj.thumb}"><div><strong>${proj.title}</strong><span style="font-size:0.7rem;"> &nbsp; ${proj.desc?.substring(0,30)}</span></div>`;
+                const title = proj.title || 'Untitled';
+                const desc = proj.desc || '';
+                const thumb = proj.thumb || 'https://placehold.co/400x300/eee/aaa?text=No+Image';
+                div.innerHTML = `<img src="${thumb}"><div><strong>${title}</strong><span style="font-size:0.7rem;"> &nbsp; ${desc.substring(0,30)}</span></div>`;
                 div.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    input.value = proj.title;
+                    input.value = title;
                     dropdown.classList.remove('show');
                     openProject(proj.id);
                 });
                 dropdown.appendChild(div);
             });
         }
+        
+        // 添加新增笔记按钮
         const addDiv = document.createElement('div');
         addDiv.className = 'dropdown-item add-new-item';
         addDiv.innerHTML = `<i class="fas fa-plus-circle"></i> <strong>➕ Add New Note</strong> <span style="font-size:0.7rem;">create treatment + media</span>`;
