@@ -718,7 +718,7 @@
             },
             placeholder: 'Edit your notes...'
         });
-        quillEditor.root.innerHTML = currentProject.noteText || '';
+        quillEditor.clipboard.dangerouslyPasteHTML(currentProject.noteText || '');
         
         // 初始化 Fabric 画布
         if (fabricCanvas) fabricCanvas.dispose();
