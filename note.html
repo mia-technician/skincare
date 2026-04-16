@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Aesthetic Notes · Smart Note Workspace</title>
+    <title>Aesthetic Notes · Admin Workspace</title>
     <!-- Google Font & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -12,6 +12,8 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <!-- Fabric.js for image annotation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -23,7 +25,7 @@
             font-family: 'Inter', sans-serif;
             color: #2c241f;
             overflow-x: hidden;
-            font-size: 13px; /* smaller base font */
+            font-size: 13px;
         }
         .container {
             max-width: 1300px;
@@ -130,6 +132,40 @@
             border-top: 1px solid #eddccf;
             margin-top: 4px;
         }
+        /* auth widget */
+        .auth-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+        }
+        .auth-card {
+            background: #fefaf7;
+            border-radius: 60px;
+            padding: 0.3rem 0.8rem;
+            display: inline-flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .auth-input {
+            padding: 5px 12px;
+            border-radius: 40px;
+            border: 1px solid #e2cfc2;
+            font-size: 0.75rem;
+            background: white;
+        }
+        .auth-btn {
+            padding: 5px 14px;
+            border-radius: 40px;
+            background: #b47c56;
+            color: white;
+            border: none;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        .auth-btn-outline {
+            background: #efe0d7;
+            color: #7a513a;
+        }
         /* note main panel */
         .note-main-panel {
             background: white;
@@ -177,17 +213,12 @@
         .save-note-btn:hover {
             background: #9b6748;
         }
-        .edit-mode-btn.active {
-            background: #e7d5cb;
-            color: #7a513a;
-        }
         .panel-body {
             padding: 1.5rem;
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
         }
-        /* sections */
         .rich-area, .image-area, .video-area {
             background: white;
             border-radius: 20px;
@@ -240,12 +271,6 @@
             background: white;
             box-shadow: 0 1px 4px rgba(0,0,0,0.05);
         }
-        .image-placeholder {
-            padding: 1.5rem;
-            text-align: center;
-            color: #b88b6a;
-            font-size: 0.8rem;
-        }
         .video-preview {
             padding: 0.8rem;
             text-align: center;
@@ -277,12 +302,6 @@
             cursor: pointer;
             font-size: 0.7rem;
         }
-        .footer-note {
-            margin-top: 1rem;
-            font-size: 0.65rem;
-            text-align: center;
-            color: #b2947d;
-        }
         .empty-state {
             text-align: center;
             padding: 2rem 1.5rem;
@@ -294,27 +313,23 @@
             .panel-body { padding: 1rem; }
         }
     </style>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-            <!-- 登录区域 -->
-        <div id="authWidget" style="display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap;">
-            <div id="loginPanel" style="display: flex; gap: 8px; align-items: center;">
-                <input type="email" id="loginEmail" placeholder="Email" style="padding: 6px 12px; border-radius: 40px; border: 1px solid #e2cfc2;">
-                <input type="password" id="loginPassword" placeholder="Password" style="padding: 6px 12px; border-radius: 40px; border: 1px solid #e2cfc2;">
-                <button id="loginBtn" style="padding: 6px 16px; border-radius: 40px; background: #b47c56; color: white; border: none;">Login</button>
-                <button id="signupBtn" style="padding: 6px 16px; border-radius: 40px; background: #efe0d7; border: none;">Sign Up</button>
-            </div>
-            <div id="userPanel" style="display: none; align-items: center; gap: 12px;">
-                <span id="userEmailDisplay" style="font-size: 0.8rem;"></span>
-                <button id="logoutBtn" style="padding: 6px 16px; border-radius: 40px; background: #efe0d7; border: none;">Logout</button>
-            </div>
-            
-        </div><div class="container">
+<div class="container">
     <div class="hero-section">
-        <h1><i class="fas fa-spa"></i> Aesthetic Notes · Cloud Workspace</h1>
-        <p>Select a treatment from dropdown, edit text / image annotation / video — all notes auto-save to cloud (localStorage).</p>
+        <div class="auth-container" id="authWidget">
+            <div id="loginPanel" class="auth-card">
+                <input type="email" id="loginEmail" class="auth-input" placeholder="Admin Email" value="admin@example.com">
+                <input type="password" id="loginPassword" class="auth-input" placeholder="Password" value="admin123">
+                <button id="loginBtn" class="auth-btn">Login</button>
+            </div>
+            <div id="userPanel" class="auth-card" style="display: none;">
+                <span id="userEmailDisplay" style="font-size: 0.8rem;"></span>
+                <button id="logoutBtn" class="auth-btn auth-btn-outline">Logout</button>
+            </div>
+        </div>
+        <h1><i class="fas fa-spa"></i> Aesthetic Notes · Admin Workspace</h1>
+        <p>Single admin login | Cloud sync with Supabase | Rich text + Image annotation + Video</p>
         <div class="search-wrapper">
             <i class="fas fa-search"></i>
             <input type="text" id="projectSearchInput" placeholder="Search or select treatment... also '➕ Add New Note' below" autocomplete="off">
@@ -322,7 +337,7 @@
         </div>
     </div>
 
-    <!-- main note panel: shows selected treatment note OR create mode -->
+    <!-- main note panel -->
     <div id="notePanel" class="note-main-panel">
         <div class="panel-header">
             <h2 id="panelTitle"><i class="fas fa-notes-medical"></i> Aesthetic Workspace</h2>
@@ -331,86 +346,71 @@
         <div id="panelBody" class="panel-body">
             <div class="empty-state">
                 <i class="fas fa-folder-open" style="font-size: 2.2rem; opacity: 0.6;"></i>
-                <p style="margin-top: 0.8rem;">✨ Select a treatment from the dropdown, or click <strong>➕ Add New Note</strong> to create.<br>Rich text, image annotation, video — save to cloud.</p>
+                <p style="margin-top: 0.8rem;">✨ Please login as admin. Then select a treatment from dropdown or click <strong>➕ Add New Note</strong>.<br>All data stored in Supabase cloud.</p>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // ---------- Data model (persisted in localStorage) ----------
-    let projectsData = [];
+    // ==================== SUPABASE CONFIG ====================
+    // ⚠️ REPLACE WITH YOUR OWN SUPABASE CREDENTIALS ⚠️
+    const SUPABASE_URL = 'https://your-project.supabase.co';      // <-- replace
+    const SUPABASE_ANON_KEY = 'your-anon-key';                    // <-- replace
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // ==================== SINGLE ADMIN CREDENTIALS ====================
+    const ADMIN_EMAIL = 'admin@example.com';
+    const ADMIN_PASSWORD = 'admin123';
+    
+    let currentUser = null;          // { email, id }
+    let projectsData = [];            // array of treatment notes
     let nextId = 1;
-
-        // ========== Supabase 初始化 ==========
-    const SUPABASE_URL = 'https://dmrskyskryrdclknezth.supabase.co';  // 替换为你的 URL
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8';              // 替换为你的 Key
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
-    let currentUser = null;  // 存储当前登录用户
+    // Editor global variables
+    let currentMode = 'view';         // 'view', 'edit', 'create'
+    let currentProject = null;
+    let quillEditor = null;
+    let fabricCanvas = null;
+    let currentImageBase64 = "";
     
-    // 登录函数
-    async function signIn(email, password) {
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (!error) currentUser = data.user;
-        return { data, error };
-    }
-    
-    // 注册函数
-    async function signUp(email, password) {
-        const { data, error } = await supabaseClient.auth.signUp({ email, password });
-        if (!error) currentUser = data.user;
-        return { data, error };
-    }
-    
-    // 登出函数
-    async function signOut() {
-        const { error } = await supabaseClient.auth.signOut();
-        if (!error) currentUser = null;
-        return { error };
-    }
-    
-    // 从 Supabase 加载笔记列表
-    async function fetchNotesFromSupabase() {
+    // ==================== SUPABASE CRUD (SINGLE ADMIN, NO USER_ID FILTER) ====================
+    async function fetchAllNotes() {
         if (!currentUser) return [];
-        const { data, error } = await supabaseClient
+        const { data, error } = await supabase
             .from('treatment_notes')
             .select('*')
-            .eq('user_id', currentUser.id)
             .order('created_at', { ascending: false });
         if (error) {
-            console.error('加载失败:', error);
+            console.error('Fetch error:', error);
             return [];
         }
         return data;
     }
     
-    // 新增笔记到 Supabase
     async function addNoteToSupabase(note) {
         if (!currentUser) return null;
-        const { data, error } = await supabaseClient
+        const { data, error } = await supabase
             .from('treatment_notes')
             .insert([{
-                user_id: currentUser.id,
                 title: note.title,
-                description: note.desc,
-                note_text: note.noteText,
-                image_url: note.imageUrl,
-                video_url: note.videoUrl,
-                thumbnail_url: note.thumb
+                description: note.desc || '',
+                note_text: note.noteText || '',
+                image_url: note.imageUrl || '',
+                video_url: note.videoUrl || '',
+                thumbnail_url: note.thumb || ''
             }])
             .select();
         if (error) {
-            console.error('新增失败:', error);
+            console.error('Insert error:', error);
             return null;
         }
         return data[0];
     }
     
-    // 更新笔记到 Supabase
     async function updateNoteInSupabase(id, updates) {
         if (!currentUser) return null;
-        const { data, error } = await supabaseClient
+        const { data, error } = await supabase
             .from('treatment_notes')
             .update({
                 title: updates.title,
@@ -422,107 +422,91 @@
                 updated_at: new Date()
             })
             .eq('id', id)
-            .eq('user_id', currentUser.id)
             .select();
         if (error) {
-            console.error('更新失败:', error);
+            console.error('Update error:', error);
             return null;
         }
         return data[0];
     }
     
-    // 删除笔记
     async function deleteNoteFromSupabase(id) {
         if (!currentUser) return false;
-        const { error } = await supabaseClient
+        const { error } = await supabase
             .from('treatment_notes')
             .delete()
-            .eq('id', id)
-            .eq('user_id', currentUser.id);
+            .eq('id', id);
         if (error) {
-            console.error('删除失败:', error);
+            console.error('Delete error:', error);
             return false;
         }
         return true;
     }
-
-    // Load initial default data
-        async function loadInitialData() {
-        // 不再从 localStorage 加载，改为从 Supabase 加载
-        if (currentUser) {
-            const data = await fetchNotesFromSupabase();
-            if (data.length > 0) {
-                projectsData = data;
-                nextId = Math.max(...data.map(p => p.id), 0) + 1;
-            } else {
-                // 如果没有数据，初始化默认数据并上传
-                projectsData = getDefaultProjects();
-                for (const proj of projectsData) {
-                    const result = await addNoteToSupabase(proj);
-                    if (result) proj.id = result.id;
-                }
-                nextId = projectsData.reduce((max, p) => Math.max(max, p.id), 0) + 1;
-            }
+    
+    // ==================== ADMIN LOGIN / LOGOUT (no supabase auth) ====================
+    function adminLogin(email, password) {
+        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+            currentUser = { email: ADMIN_EMAIL, id: 'admin-001' };
+            return { data: { user: currentUser }, error: null };
         } else {
-            projectsData = [];
+            return { data: null, error: { message: 'Invalid admin credentials' } };
         }
-        renderEmptyState();
+    }
+    
+    function adminLogout() {
+        currentUser = null;
+        projectsData = [];
+        nextId = 1;
+    }
+    
+    // ==================== LOAD DATA FROM SUPABASE ====================
+    async function loadDataFromSupabase() {
+        if (!currentUser) return;
+        const data = await fetchAllNotes();
+        if (data.length > 0) {
+            projectsData = data;
+            nextId = Math.max(...data.map(p => p.id || 0), 0) + 1;
+        } else {
+            // seed default data if empty
+            projectsData = getDefaultProjects();
+            for (const proj of projectsData) {
+                const inserted = await addNoteToSupabase(proj);
+                if (inserted) proj.id = inserted.id;
+            }
+            nextId = projectsData.reduce((max, p) => Math.max(max, p.id || 0), 0) + 1;
+        }
+        renderEmptyState();  // refresh UI after data load
     }
     
     function getDefaultProjects() {
         return [
-            { id: null, title: "IPL Photofacial", desc: "Reduces redness, pores", thumb: "https://picsum.photos/id/20/400/300", 
-              noteText: "<p><strong>IPL Notes</strong>: 30min session, skin brightening.</p>",
+            { id: null, title: "IPL Photofacial", desc: "Reduces redness, pores, non-invasive", thumb: "https://picsum.photos/id/20/400/300", 
+              noteText: "<p><strong>IPL Notes</strong>: 30min session, skin brightening after 3 days. Use SPF diligently.</p>",
               imageUrl: "https://picsum.photos/id/20/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
-            // ... 其他默认数据
+            { id: null, title: "Skin Booster (Mesotherapy)", desc: "Deep hydration, hyaluronic acid", thumb: "https://picsum.photos/id/134/400/300",
+              noteText: "<p><strong>Mesotherapy experience</strong>: Mild discomfort, glowing skin after 1 week. Combine with medical masks.</p>",
+              imageUrl: "https://picsum.photos/id/134/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFunflies.mp4" },
+            { id: null, title: "Thermage", desc: "Radiofrequency tightening, collagen stimulation", thumb: "https://picsum.photos/id/26/400/300",
+              noteText: "<p><strong>Thermage anti-aging</strong>: Immediate tightening, best results at 3-6 months. Avoid sauna.</p>",
+              imageUrl: "https://picsum.photos/id/26/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+            { id: null, title: "Chemical Peel", desc: "Improves acne, closed comedones", thumb: "https://picsum.photos/id/158/400/300",
+              noteText: "<p><strong>Peel notes</strong>: Mild peeling normal, strict sun protection.</p>",
+              imageUrl: "https://picsum.photos/id/158/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4" },
+            { id: null, title: "Pico Laser", desc: "Freckles, pigmentation removal", thumb: "https://picsum.photos/id/119/400/300",
+              noteText: "<p><strong>Pico notes</strong>: Great for lentigines, scabs fall off naturally.</p>",
+              imageUrl: "https://picsum.photos/id/119/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/WhatCar.mp4" },
+            { id: null, title: "Hyaluronic Acid Filler", desc: "Contour enhancement, lip augmentation", thumb: "https://picsum.photos/id/104/400/300",
+              noteText: "<p><strong>Filler notes</strong>: Instant volume, lasts 6-12 months.</p>",
+              imageUrl: "https://picsum.photos/id/104/800/600", videoUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" }
         ];
     }
-
-            async function saveToCloud() {
-        // 不再使用 localStorage，改为 Supabase 同步
-        if (!currentUser) {
-            alert('Please login first');
-            return;
-        }
-        
-        for (const proj of projectsData) {
-            // 检查是新增还是更新
-            const exists = await supabaseClient
-                .from('treatment_notes')
-                .select('id')
-                .eq('id', proj.id)
-                .eq('user_id', currentUser.id)
-                .single();
-            
-            if (exists.data) {
-                await updateNoteInSupabase(proj.id, proj);
-            } else {
-                const newNote = await addNoteToSupabase(proj);
-                if (newNote) proj.id = newNote.id;
-            }
-        }
-        console.log('All notes synced to Supabase');
-    }
-
-    // Global state
-    let currentMode = 'view';       // 'view', 'edit', 'create'
-    let currentProject = null;
-    let quillEditor = null;
-    let fabricCanvas = null;
-    let currentImageBase64 = "";
-    let currentVideoUrl = "";
-
-    const panelBody = document.getElementById('panelBody');
-    const panelTitle = document.getElementById('panelTitle');
-    const headerActions = document.getElementById('headerActions');
-
-    // Render dropdown (includes "Add New Note")
+    
+    // ==================== RENDER DROPDOWN ====================
     function renderDropdown() {
         const input = document.getElementById('projectSearchInput');
         const dropdown = document.getElementById('dropdownMenu');
         const query = input.value.trim().toLowerCase();
         dropdown.innerHTML = '';
-        
         let filtered = [];
         if (query !== "") {
             filtered = projectsData.filter(p => p.title.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query));
@@ -530,7 +514,7 @@
                 const div = document.createElement('div');
                 div.className = 'dropdown-item';
                 div.setAttribute('data-id', proj.id);
-                div.innerHTML = `<img src="${proj.thumb}"><div><strong>${proj.title}</strong><span style="font-size:0.7rem;"> &nbsp; ${proj.desc.substring(0,35)}</span></div>`;
+                div.innerHTML = `<img src="${proj.thumb}"><div><strong>${proj.title}</strong><span style="font-size:0.7rem;"> &nbsp; ${proj.desc?.substring(0,35)}</span></div>`;
                 div.addEventListener('click', (e) => {
                     e.stopPropagation();
                     input.value = proj.title;
@@ -540,11 +524,10 @@
                 dropdown.appendChild(div);
             });
         } else {
-            // show recent projects (max 6)
             projectsData.slice(0, 6).forEach(proj => {
                 const div = document.createElement('div');
                 div.className = 'dropdown-item';
-                div.innerHTML = `<img src="${proj.thumb}"><div><strong>${proj.title}</strong><span style="font-size:0.7rem;"> &nbsp; ${proj.desc.substring(0,30)}</span></div>`;
+                div.innerHTML = `<img src="${proj.thumb}"><div><strong>${proj.title}</strong><span style="font-size:0.7rem;"> &nbsp; ${proj.desc?.substring(0,30)}</span></div>`;
                 div.addEventListener('click', (e) => {
                     e.stopPropagation();
                     input.value = proj.title;
@@ -554,7 +537,6 @@
                 dropdown.appendChild(div);
             });
         }
-        // ALWAYS append "Add New Note" option at bottom
         const addDiv = document.createElement('div');
         addDiv.className = 'dropdown-item add-new-item';
         addDiv.innerHTML = `<i class="fas fa-plus-circle"></i> <strong>➕ Add New Note</strong> <span style="font-size:0.7rem;">create treatment + media</span>`;
@@ -566,40 +548,36 @@
         dropdown.appendChild(addDiv);
         dropdown.classList.add('show');
     }
-
-    // Open existing project (view mode)
+    
+    // ==================== VIEW / EDIT / CREATE ====================
     function openProject(projectId) {
-        const proj = projectsData.find(p => p.id === projectId);
+        const proj = projectsData.find(p => p.id == projectId);
         if (!proj) return;
         currentProject = proj;
         currentMode = 'view';
         renderViewMode();
     }
-
+    
     function renderViewMode() {
         if (!currentProject) return;
         panelTitle.innerHTML = `<i class="fas fa-clinic-medical"></i> ${currentProject.title} · Notes`;
         headerActions.innerHTML = `<button id="enterEditBtn" class="edit-mode-btn"><i class="fas fa-pen"></i> Edit Note</button>`;
         panelBody.innerHTML = '';
-        // text area
         const textDiv = document.createElement('div');
         textDiv.className = 'rich-area';
         textDiv.innerHTML = `<div class="section-label"><i class="fas fa-align-left"></i> Text Notes</div><div class="readonly-text">${currentProject.noteText || '<em>No content</em>'}</div>`;
         panelBody.appendChild(textDiv);
-        // image area
         const imgDiv = document.createElement('div');
         imgDiv.className = 'image-area';
-        imgDiv.innerHTML = `<div class="section-label"><i class="fas fa-image"></i> Treatment Image / Annotation</div><div class="canvas-container" id="viewImageContainer"><img src="${currentProject.imageUrl}" style="max-width:100%; border-radius: 16px; max-height: 320px; object-fit: contain;"></div>`;
+        imgDiv.innerHTML = `<div class="section-label"><i class="fas fa-image"></i> Treatment Image</div><div class="canvas-container" id="viewImageContainer"><img src="${currentProject.imageUrl}" style="max-width:100%; border-radius: 16px; max-height: 320px; object-fit: contain;"></div>`;
         panelBody.appendChild(imgDiv);
-        // video area
         const videoDiv = document.createElement('div');
         videoDiv.className = 'video-area';
-        videoDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> Procedure Video</div>
-            <div class="video-preview"><video controls src="${currentProject.videoUrl}" style="max-width:100%; max-height:220px;"></video></div>`;
+        videoDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> Procedure Video</div><div class="video-preview"><video controls src="${currentProject.videoUrl}" style="max-width:100%; max-height:220px;"></video></div>`;
         panelBody.appendChild(videoDiv);
         document.getElementById('enterEditBtn')?.addEventListener('click', () => enterEditMode());
     }
-
+    
     function enterEditMode() {
         if (!currentProject) return;
         currentMode = 'edit';
@@ -607,12 +585,10 @@
         headerActions.innerHTML = `<button id="cancelEditBtn" class="edit-mode-btn"><i class="fas fa-times"></i> Cancel</button>
                                     <button id="saveEditBtn" class="save-note-btn"><i class="fas fa-cloud-upload-alt"></i> Save to Cloud</button>`;
         panelBody.innerHTML = '';
-        // Rich editor
         const richEditDiv = document.createElement('div');
         richEditDiv.className = 'rich-area';
         richEditDiv.innerHTML = `<div class="section-label"><i class="fas fa-edit"></i> Rich Text Editor</div><div id="editQuillContainer" style="height:200px;"></div>`;
         panelBody.appendChild(richEditDiv);
-        // Image annotation
         const imgEditDiv = document.createElement('div');
         imgEditDiv.className = 'image-area';
         imgEditDiv.innerHTML = `<div class="section-label"><i class="fas fa-paintbrush"></i> Image Annotation</div>
@@ -625,7 +601,6 @@
             <div class="canvas-container"><canvas id="editCanvas" width="600" height="400"></canvas></div>
             <div style="padding:0.5rem 1rem; font-size:0.7rem;">✏️ Draw or add text, then "Save Markup" before saving note.</div>`;
         panelBody.appendChild(imgEditDiv);
-        // Video editor
         const videoEditDiv = document.createElement('div');
         videoEditDiv.className = 'video-area';
         videoEditDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> Video URL</div>
@@ -633,93 +608,43 @@
             <button id="updateVideoBtn" class="btn-sm">Preview</button></div>
             <div class="video-preview"><video id="editVideoPreview" controls src="${currentProject.videoUrl}" style="max-width:100%; max-height:200px;"></video></div>`;
         panelBody.appendChild(videoEditDiv);
-        // init Quill
         if (quillEditor) quillEditor = null;
-        quillEditor = new Quill('#editQuillContainer', {
-            theme: 'snow',
-            modules: { toolbar: [[{ 'header': [1,2,3,false] }], ['bold','italic','underline'], [{ 'list':'ordered'},{'list':'bullet'}], ['link','clean']] },
-            placeholder: 'Edit your notes...'
-        });
+        quillEditor = new Quill('#editQuillContainer', { theme: 'snow', modules: { toolbar: true }, placeholder: 'Edit your notes...' });
         quillEditor.root.innerHTML = currentProject.noteText || '';
-        // init Fabric
         if (fabricCanvas) fabricCanvas.dispose();
         fabricCanvas = new fabric.Canvas('editCanvas', { isDrawingMode: true, width: 600, height: 400, backgroundColor: '#ffffff' });
         fabricCanvas.freeDrawingBrush.color = '#c2815b';
         fabricCanvas.freeDrawingBrush.width = 3;
         currentImageBase64 = currentProject.imageUrl;
-        loadImageToCanvas(currentProject.imageUrl);
-        // Toolbar events
-        document.getElementById('drawBtn')?.addEventListener('click', () => { fabricCanvas.isDrawingMode = true; });
-        document.getElementById('textBtn')?.addEventListener('click', () => {
-            fabricCanvas.isDrawingMode = false;
-            const text = new fabric.IText('Double-click to edit', { left: 80, top: 80, fontSize: 18, fill: '#b45f3b' });
-            fabricCanvas.add(text);
-            fabricCanvas.renderAll();
-        });
-        document.getElementById('clearBtn')?.addEventListener('click', () => {
-            const objs = fabricCanvas.getObjects().filter(obj => obj !== fabricCanvas.backgroundImage);
-            objs.forEach(obj => fabricCanvas.remove(obj));
-            fabricCanvas.renderAll();
-        });
-        document.getElementById('saveImageMarkBtn')?.addEventListener('click', () => {
-            const dataURL = fabricCanvas.toDataURL({ format: 'png', quality: 1 });
-            currentImageBase64 = dataURL;
-            alert('Image markup saved to current session. Remember to click "Save to Cloud".');
-        });
-        document.getElementById('updateVideoBtn')?.addEventListener('click', () => {
-            const newUrl = document.getElementById('editVideoUrl').value.trim();
-            if (newUrl) { document.getElementById('editVideoPreview').src = newUrl; currentVideoUrl = newUrl; }
-        });
-        document.getElementById('cancelEditBtn')?.addEventListener('click', () => { renderViewMode(); });
-        document.getElementById('saveEditBtn')?.addEventListener('click', () => saveEditChanges());
-    }
-
-    function loadImageToCanvas(url) {
-        fabricCanvas.clear();
-        fabric.Image.fromURL(url, (img) => {
+        fabric.Image.fromURL(currentProject.imageUrl, (img) => {
             let scale = Math.min(600 / img.width, 400 / img.height);
-            let scaledW = img.width * scale;
-            let scaledH = img.height * scale;
-            fabricCanvas.setWidth(scaledW);
-            fabricCanvas.setHeight(scaledH);
+            fabricCanvas.setWidth(img.width * scale);
+            fabricCanvas.setHeight(img.height * scale);
             img.scale(scale);
             img.set({ left: 0, top: 0 });
             fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
             fabricCanvas.renderAll();
         }, { crossOrigin: 'anonymous' });
-    }
-
-        async function saveEditChanges() {
-        if (!currentProject) return;
-        if (!currentUser) {
-            alert('Please login first');
-            return;
-        }
-        
-        if (quillEditor) currentProject.noteText = quillEditor.root.innerHTML;
-        if (currentImageBase64 && currentImageBase64.startsWith('data:image')) currentProject.imageUrl = currentImageBase64;
-        const newVideo = document.getElementById('editVideoUrl')?.value.trim();
-        if (newVideo) currentProject.videoUrl = newVideo;
-        
-        // 同步到 Supabase
-        const result = await updateNoteInSupabase(currentProject.id, {
-            title: currentProject.title,
-            desc: currentProject.desc,
-            noteText: currentProject.noteText,
-            imageUrl: currentProject.imageUrl,
-            videoUrl: currentProject.videoUrl,
-            thumb: currentProject.thumb
+        document.getElementById('drawBtn')?.addEventListener('click', () => { fabricCanvas.isDrawingMode = true; });
+        document.getElementById('textBtn')?.addEventListener('click', () => { fabricCanvas.isDrawingMode = false; fabricCanvas.add(new fabric.IText('Double-click to edit', { left: 80, top: 80, fontSize: 18, fill: '#b45f3b' })); fabricCanvas.renderAll(); });
+        document.getElementById('clearBtn')?.addEventListener('click', () => { const objs = fabricCanvas.getObjects().filter(obj => obj !== fabricCanvas.backgroundImage); objs.forEach(obj => fabricCanvas.remove(obj)); fabricCanvas.renderAll(); });
+        document.getElementById('saveImageMarkBtn')?.addEventListener('click', () => { currentImageBase64 = fabricCanvas.toDataURL({ format: 'png', quality: 1 }); alert('Image markup saved to session. Click "Save to Cloud".'); });
+        document.getElementById('updateVideoBtn')?.addEventListener('click', () => { const newUrl = document.getElementById('editVideoUrl').value.trim(); if (newUrl) { document.getElementById('editVideoPreview').src = newUrl; } });
+        document.getElementById('cancelEditBtn')?.addEventListener('click', () => renderViewMode());
+        document.getElementById('saveEditBtn')?.addEventListener('click', async () => {
+            if (quillEditor) currentProject.noteText = quillEditor.root.innerHTML;
+            if (currentImageBase64 && currentImageBase64.startsWith('data:image')) currentProject.imageUrl = currentImageBase64;
+            const newVideo = document.getElementById('editVideoUrl')?.value.trim();
+            if (newVideo) currentProject.videoUrl = newVideo;
+            const updated = await updateNoteInSupabase(currentProject.id, {
+                title: currentProject.title, desc: currentProject.desc, noteText: currentProject.noteText,
+                imageUrl: currentProject.imageUrl, videoUrl: currentProject.videoUrl, thumb: currentProject.thumb
+            });
+            if (updated) { alert(`✅ "${currentProject.title}" saved to Supabase!`); renderViewMode(); }
+            else alert('Save failed');
         });
-        
-        if (result) {
-            alert(`✅ "${currentProject.title}" saved to Supabase!`);
-            renderViewMode();
-        } else {
-            alert('Save failed, please check console');
-        }
     }
-
-    // Create mode: add brand new note
+    
     function openCreateMode() {
         currentMode = 'create';
         currentProject = null;
@@ -727,12 +652,10 @@
         headerActions.innerHTML = `<button id="cancelCreateBtn" class="edit-mode-btn"><i class="fas fa-times"></i> Cancel</button>
                                     <button id="storeCreateBtn" class="save-note-btn"><i class="fas fa-cloud-upload-alt"></i> Store to Cloud</button>`;
         panelBody.innerHTML = '';
-        // Rich text
         const richDiv = document.createElement('div');
         richDiv.className = 'rich-area';
         richDiv.innerHTML = `<div class="section-label"><i class="fas fa-edit"></i> Rich Text Notes</div><div id="createQuill" style="height:180px;"></div>`;
         panelBody.appendChild(richDiv);
-        // Image annotation
         const imgDiv = document.createElement('div');
         imgDiv.className = 'image-area';
         imgDiv.innerHTML = `<div class="section-label"><i class="fas fa-image"></i> Image Annotation</div>
@@ -743,7 +666,6 @@
             <div class="canvas-container"><canvas id="createCanvas" width="600" height="400"></canvas></div>
             <div style="padding:0.5rem 1rem;"><input type="text" id="createImageUrlInput" placeholder="Image URL (initial)" style="width:100%; padding:0.4rem; border-radius:40px; font-size:0.75rem;"></div>`;
         panelBody.appendChild(imgDiv);
-        // Video
         const videoDiv = document.createElement('div');
         videoDiv.className = 'video-area';
         videoDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> Video URL</div>
@@ -751,7 +673,6 @@
             <button id="previewCreateVideo" class="btn-sm">Preview</button></div>
             <div class="video-preview"><video id="createVideoPreview" controls style="max-width:100%; max-height:180px;"></video></div>`;
         panelBody.appendChild(videoDiv);
-        // Basic info
         const baseDiv = document.createElement('div');
         baseDiv.innerHTML = `<div style="background:#fef7f2; padding:0.8rem; border-radius:20px;">
             <label style="font-size:0.75rem; font-weight:600;">Treatment Name *</label>
@@ -760,10 +681,8 @@
             <input id="newProjDesc" placeholder="Brief description" style="width:100%; margin-top:4px; padding:6px; border-radius:40px; border:1px solid #e2cfc2; font-size:0.8rem;">
         </div>`;
         panelBody.appendChild(baseDiv);
-        // Initialize quill
         const newQuill = new Quill('#createQuill', { theme: 'snow', modules: { toolbar: true }, placeholder: 'Describe the treatment...' });
         newQuill.root.innerHTML = "<p><strong>New treatment notes</strong> : pre/post care, experience.</p>";
-        // Fabric for creation
         let fabricCreate = new fabric.Canvas('createCanvas', { isDrawingMode: true, width: 600, height: 400, backgroundColor: '#ffffff' });
         fabricCreate.freeDrawingBrush.color = '#b47c56';
         let createImageBase = "https://picsum.photos/id/106/800/600";
@@ -777,93 +696,59 @@
         document.getElementById('cClearBtn')?.addEventListener('click', () => { const objs = fabricCreate.getObjects().filter(o=>o!==fabricCreate.backgroundImage); objs.forEach(o=>fabricCreate.remove(o)); fabricCreate.renderAll(); });
         document.getElementById('cSaveMarkBtn')?.addEventListener('click', () => { createImageBase = fabricCreate.toDataURL(); alert("Image markup saved for this new note."); });
         document.getElementById('previewCreateVideo')?.addEventListener('click', () => { const vUrl = document.getElementById('createVideoUrl').value; document.getElementById('createVideoPreview').src = vUrl; document.getElementById('createVideoPreview').load(); });
-        document.getElementById('storeCreateBtn')?.addEventListener('click', () => {
+        document.getElementById('storeCreateBtn')?.addEventListener('click', async () => {
             const title = document.getElementById('newProjTitle').value.trim();
             if (!title) { alert("Please enter treatment name"); return; }
             const desc = document.getElementById('newProjDesc').value.trim() || "New treatment";
             const noteText = newQuill.root.innerHTML;
             let finalImage = createImageBase;
             const videoUrl = document.getElementById('createVideoUrl').value.trim();
-            const newId = nextId++;
-                       if (!currentUser) {
-                alert('Please login first');
-                return;
-            }
-            
-            const newProj = { 
-                id: null,  // 让 Supabase 自动生成
-                title, 
-                desc, 
-                thumb: "https://picsum.photos/id/106/400/300", 
-                noteText, 
-                imageUrl: finalImage, 
-                videoUrl 
-            };
-            
-            const result = await addNoteToSupabase(newProj);
-            if (result) {
-                newProj.id = result.id;
-                projectsData.push(newProj);
+            const newProj = { title, desc, thumb: "https://picsum.photos/id/106/400/300", noteText, imageUrl: finalImage, videoUrl };
+            const inserted = await addNoteToSupabase(newProj);
+            if (inserted) {
+                projectsData.push(inserted);
                 alert(`✅ "${title}" created and saved to Supabase!`);
-                openProject(newProj.id);
-            } else {
-                alert('Create failed');
-            }
+                openProject(inserted.id);
+            } else alert('Create failed');
         });
-        document.getElementById('cancelCreateBtn')?.addEventListener('click', () => { renderEmptyState(); });
+        document.getElementById('cancelCreateBtn')?.addEventListener('click', () => renderEmptyState());
     }
-
+    
     function renderEmptyState() {
         currentProject = null;
         currentMode = null;
         panelTitle.innerHTML = `<i class="fas fa-notes-medical"></i> Aesthetic Workspace`;
         headerActions.innerHTML = '';
-        panelBody.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open" style="font-size: 2rem;"></i><p>✨ Select a treatment from dropdown, or click <strong>➕ Add New Note</strong>.<br>Rich text, image annotation, video — save to cloud.</p></div>`;
+        panelBody.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open" style="font-size: 2rem;"></i><p>✨ Select a treatment from dropdown, or click <strong>➕ Add New Note</strong>.<br>Rich text, image annotation, video — saved to Supabase cloud.</p></div>`;
+        renderDropdown();
     }
-
-    // Event listeners for dropdown
+    
+    // ==================== EVENT LISTENERS & INIT ====================
+    document.getElementById('loginBtn')?.addEventListener('click', async () => {
+        const email = document.getElementById('loginEmail').value;
+        const pwd = document.getElementById('loginPassword').value;
+        const { error } = adminLogin(email, pwd);
+        if (error) alert('Login failed: ' + error.message);
+        else {
+            document.getElementById('loginPanel').style.display = 'none';
+            document.getElementById('userPanel').style.display = 'flex';
+            document.getElementById('userEmailDisplay').innerText = currentUser.email;
+            await loadDataFromSupabase();
+        }
+    });
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        adminLogout();
+        document.getElementById('loginPanel').style.display = 'flex';
+        document.getElementById('userPanel').style.display = 'none';
+        renderEmptyState();
+    });
     document.getElementById('projectSearchInput').addEventListener('input', () => renderDropdown());
     document.addEventListener('click', (e) => {
         const input = document.getElementById('projectSearchInput');
         const dropdown = document.getElementById('dropdownMenu');
         if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.remove('show');
     });
-
-    // 登录交互
-    document.getElementById('loginBtn')?.addEventListener('click', async () => {
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        const { data, error } = await signIn(email, password);
-        if (error) {
-            alert('Login failed: ' + error.message);
-        } else {
-            document.getElementById('loginPanel').style.display = 'none';
-            document.getElementById('userPanel').style.display = 'flex';
-            document.getElementById('userEmailDisplay').innerText = email;
-            await loadInitialData();
-        }
-    });
     
-    document.getElementById('signupBtn')?.addEventListener('click', async () => {
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        const { data, error } = await signUp(email, password);
-        if (error) {
-            alert('Sign up failed: ' + error.message);
-        } else {
-            alert('Account created! Please check your email to confirm.');
-        }
-    });
-    
-    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-        await signOut();
-        document.getElementById('loginPanel').style.display = 'flex';
-        document.getElementById('userPanel').style.display = 'none';
-        projectsData = [];
-        renderEmptyState();
-    });
-    
-    loadInitialData();
     renderEmptyState();
 </script>
 </body>
