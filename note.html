@@ -645,6 +645,28 @@
                                     <button id="saveEditBtn" class="save-note-btn"><i class="fas fa-cloud-upload-alt"></i> Save to Cloud</button>`;
         panelBody.innerHTML = '';
         
+        // ========== 标题编辑区域 ==========
+        const titleEditDiv = document.createElement('div');
+        titleEditDiv.className = 'rich-area';
+        titleEditDiv.innerHTML = `
+            <div class="section-label"><i class="fas fa-heading"></i> Treatment Title</div>
+            <div style="padding: 1rem;">
+                <input type="text" id="editTitleInput" value="${currentProject.title || ''}" style="width:100%; padding:0.8rem; border-radius:40px; border:1px solid #e2cfc2; font-size:1rem; font-weight:600;">
+            </div>
+        `;
+        panelBody.appendChild(titleEditDiv);
+        
+        // ========== 描述编辑区域 ==========
+        const descEditDiv = document.createElement('div');
+        descEditDiv.className = 'rich-area';
+        descEditDiv.innerHTML = `
+            <div class="section-label"><i class="fas fa-align-left"></i> Short Description</div>
+            <div style="padding: 1rem;">
+                <input type="text" id="editDescInput" value="${currentProject.desc || ''}" style="width:100%; padding:0.8rem; border-radius:40px; border:1px solid #e2cfc2; font-size:0.9rem;">
+            </div>
+        `;
+        panelBody.appendChild(descEditDiv);
+        
         // 富文本编辑器
         const richEditDiv = document.createElement('div');
         richEditDiv.className = 'rich-area';
@@ -795,19 +817,45 @@
         
         // 取消/保存
         document.getElementById('cancelEditBtn')?.addEventListener('click', function() { renderViewMode(); });
-        document.getElementById('saveEditBtn')?.addEventListener('click', async function() {
+                document.getElementById('saveEditBtn')?.addEventListener('click', async function() {
+            // 保存标题和描述
+            const newTitle = document.getElementById('editTitleInput')?.value.trim();
+            if (newTitle && newTitle !== '') {
+                currentProject.title = newTitle;
+            }
+            const newDesc = document.getElementById('editDescInput')?.value.trim() || '';
+            currentProject.desc = newDesc;
+            
+            // 保存文字笔记
             if (quillEditor) currentProject.noteText = quillEditor.root.innerHTML;
-            if (currentImageBase64 && currentImageBase64.startsWith('data:image')) currentProject.imageUrl = currentImageBase64;
+            
+            // 保存图片
+            if (currentImageBase64 && currentImageBase64.startsWith('data:image')) {
+                currentProject.imageUrl = currentImageBase64;
+            }
+            
+            // 保存视频
             var newVideo = document.getElementById('editVideoUrl').value.trim();
             if (newVideo) currentProject.videoUrl = newVideo;
+            
+            // 更新到 Supabase
             var updated = await updateNoteInSupabase(currentProject.id, {
-                title: currentProject.title, desc: currentProject.desc, noteText: currentProject.noteText,
-                imageUrl: currentProject.imageUrl, videoUrl: currentProject.videoUrl, thumb: currentProject.thumb
+                title: currentProject.title, 
+                desc: currentProject.desc, 
+                noteText: currentProject.noteText,
+                imageUrl: currentProject.imageUrl, 
+                videoUrl: currentProject.videoUrl, 
+                thumb: currentProject.thumb
             });
-            if (updated) { alert('✅ "' + currentProject.title + '" saved to Supabase!'); renderViewMode(); }
-            else alert('Save failed');
+            
+            if (updated) { 
+                alert('✅ "' + currentProject.title + '" saved to Supabase!'); 
+                await loadDataFromSupabase();
+                renderViewMode(); 
+            } else {
+                alert('Save failed. Check console for errors.');
+            }
         });
-    }
     
     function openCreateMode() {
         currentMode = 'create';
