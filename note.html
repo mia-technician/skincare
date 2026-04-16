@@ -620,17 +620,23 @@
         richEditDiv.className = 'rich-area';
         richEditDiv.innerHTML = `<div class="section-label"><i class="fas fa-edit"></i> Rich Text Editor</div><div id="editQuillContainer" style="height:200px;"></div>`;
         panelBody.appendChild(richEditDiv);
-        const imgEditDiv = document.createElement('div');
+                const imgEditDiv = document.createElement('div');
         imgEditDiv.className = 'image-area';
         imgEditDiv.innerHTML = `<div class="section-label"><i class="fas fa-paintbrush"></i> Image Annotation</div>
             <div class="canvas-toolbar" id="editCanvasToolbar">
                 <button id="drawBtn"><i class="fas fa-pencil-alt"></i> Draw</button>
                 <button id="textBtn"><i class="fas fa-font"></i> Add Text</button>
                 <button id="clearBtn"><i class="fas fa-undo-alt"></i> Clear Marks</button>
+                <button id="uploadImageBtn" style="background:#b47c56; color:white;"><i class="fas fa-upload"></i> Upload New Image</button>
+                <button id="deleteImageBtn" style="background:#d9534f; color:white;"><i class="fas fa-trash"></i> Delete Image</button>
                 <button id="saveImageMarkBtn"><i class="fas fa-save"></i> Save Markup</button>
             </div>
             <div class="canvas-container"><canvas id="editCanvas" width="600" height="400"></canvas></div>
-            <div style="padding:0.5rem 1rem; font-size:0.7rem;">✏️ Draw or add text, then "Save Markup" before saving note.</div>`;
+            <div style="padding:0.5rem 1rem; font-size:0.7rem;">
+                ✏️ Draw or add text, then "Save Markup". Click "Upload New Image" to replace current picture.
+            </div>
+            <input type="file" id="imageUploadInput" accept="image/*" style="display:none;">
+        </div>`;
         panelBody.appendChild(imgEditDiv);
         const videoEditDiv = document.createElement('div');
         videoEditDiv.className = 'video-area';
@@ -640,7 +646,19 @@
             <div class="video-preview"><video id="editVideoPreview" controls src="${currentProject.videoUrl}" style="max-width:100%; max-height:200px;"></video></div>`;
         panelBody.appendChild(videoEditDiv);
         if (quillEditor) quillEditor = null;
-        quillEditor = new Quill('#editQuillContainer', { theme: 'snow', modules: { toolbar: true }, placeholder: 'Edit your notes...' });
+        quillEditor = new Quill('#editQuillContainer', { theme: 'snow', modules: {         quillEditor = new Quill('#editQuillContainer', { 
+            theme: 'snow', 
+            modules: { 
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link', 'clean']
+                ] 
+            }, 
+            placeholder: 'Edit your notes...' 
+        });: true }, placeholder: 'Edit your notes...' });
         quillEditor.root.innerHTML = currentProject.noteText || '';
         if (fabricCanvas) fabricCanvas.dispose();
         fabricCanvas = new fabric.Canvas('editCanvas', { isDrawingMode: true, width: 600, height: 400, backgroundColor: '#ffffff' });
@@ -662,6 +680,60 @@ fabric.Image.fromURL(safeImageUrl, (img) => {
         document.getElementById('clearBtn')?.addEventListener('click', () => { const objs = fabricCanvas.getObjects().filter(obj => obj !== fabricCanvas.backgroundImage); objs.forEach(obj => fabricCanvas.remove(obj)); fabricCanvas.renderAll(); });
         document.getElementById('saveImageMarkBtn')?.addEventListener('click', () => { currentImageBase64 = fabricCanvas.toDataURL({ format: 'png', quality: 1 }); alert('Image markup saved to session. Click "Save to Cloud".'); });
         document.getElementById('updateVideoBtn')?.addEventListener('click', () => { const newUrl = document.getElementById('editVideoUrl').value.trim(); if (newUrl) { document.getElementById('editVideoPreview').src = newUrl; } });
+        
+                // ========== 图片上传/删除功能 ==========
+        const uploadInput = document.getElementById('imageUploadInput');
+        const uploadBtn = document.getElementById('uploadImageBtn');
+        const deleteImgBtn = document.getElementById('deleteImageBtn');
+        
+        if (uploadBtn) {
+            uploadBtn.addEventListener('click', () => { uploadInput.click(); });
+        }
+        
+        if (uploadInput) {
+            uploadInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const imgUrl = event.target.result;
+                        currentImageBase64 = imgUrl;
+                        fabricCanvas.clear();
+                        fabric.Image.fromURL(imgUrl, (img) => {
+                            let scale = Math.min(600 / img.width, 400 / img.height);
+                            fabricCanvas.setWidth(img.width * scale);
+                            fabricCanvas.setHeight(img.height * scale);
+                            img.scale(scale);
+                            img.set({ left: 0, top: 0 });
+                            fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
+                            fabricCanvas.renderAll();
+                            alert('Image uploaded! Click "Save to Cloud" to persist.');
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        if (deleteImgBtn) {
+            deleteImgBtn.addEventListener('click', () => {
+                if (confirm('Delete current image? A placeholder will be used.')) {
+                    currentImageBase64 = 'https://placehold.co/600x400/eee/aaa?text=No+Image';
+                    fabricCanvas.clear();
+                    fabric.Image.fromURL(currentImageBase64, (img) => {
+                        let scale = Math.min(600 / img.width, 400 / img.height);
+                        fabricCanvas.setWidth(img.width * scale);
+                        fabricCanvas.setHeight(img.height * scale);
+                        img.scale(scale);
+                        img.set({ left: 0, top: 0 });
+                        fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
+                        fabricCanvas.renderAll();
+                        alert('Image deleted. Click "Save to Cloud" to persist.');
+                    });
+                }
+            });
+        }
+        // ========== 图片上传/删除功能结束 ==========        
         document.getElementById('cancelEditBtn')?.addEventListener('click', () => renderViewMode());
         document.getElementById('saveEditBtn')?.addEventListener('click', async () => {
             if (quillEditor) currentProject.noteText = quillEditor.root.innerHTML;
