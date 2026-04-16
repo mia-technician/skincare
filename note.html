@@ -609,64 +609,76 @@
     document.getElementById('enterEditBtn')?.addEventListener('click', () => enterEditMode());
 }
     
-    function enterEditMode() {
+        function enterEditMode() {
         if (!currentProject) return;
         currentMode = 'edit';
         panelTitle.innerHTML = `<i class="fas fa-pen-fancy"></i> Editing · ${currentProject.title}`;
         headerActions.innerHTML = `<button id="cancelEditBtn" class="edit-mode-btn"><i class="fas fa-times"></i> Cancel</button>
                                     <button id="saveEditBtn" class="save-note-btn"><i class="fas fa-cloud-upload-alt"></i> Save to Cloud</button>`;
         panelBody.innerHTML = '';
+        
+        // 富文本编辑器
         const richEditDiv = document.createElement('div');
         richEditDiv.className = 'rich-area';
         richEditDiv.innerHTML = `<div class="section-label"><i class="fas fa-edit"></i> Rich Text Editor</div><div id="editQuillContainer" style="height:200px;"></div>`;
         panelBody.appendChild(richEditDiv);
-                const imgEditDiv = document.createElement('div');
+        
+        // 图片编辑区（带上传/删除按钮）
+        const imgEditDiv = document.createElement('div');
         imgEditDiv.className = 'image-area';
         imgEditDiv.innerHTML = `<div class="section-label"><i class="fas fa-paintbrush"></i> Image Annotation</div>
             <div class="canvas-toolbar" id="editCanvasToolbar">
                 <button id="drawBtn"><i class="fas fa-pencil-alt"></i> Draw</button>
                 <button id="textBtn"><i class="fas fa-font"></i> Add Text</button>
                 <button id="clearBtn"><i class="fas fa-undo-alt"></i> Clear Marks</button>
-                <button id="uploadImageBtn" style="background:#b47c56; color:white;"><i class="fas fa-upload"></i> Upload New Image</button>
-                <button id="deleteImageBtn" style="background:#d9534f; color:white;"><i class="fas fa-trash"></i> Delete Image</button>
+                <button id="uploadImageBtn" style="background:#b47c56; color:white;"><i class="fas fa-upload"></i> Upload New</button>
+                <button id="deleteImageBtn" style="background:#d9534f; color:white;"><i class="fas fa-trash"></i> Delete</button>
                 <button id="saveImageMarkBtn"><i class="fas fa-save"></i> Save Markup</button>
             </div>
             <div class="canvas-container"><canvas id="editCanvas" width="600" height="400"></canvas></div>
             <div style="padding:0.5rem 1rem; font-size:0.7rem;">
-                ✏️ Draw or add text, then "Save Markup". Click "Upload New Image" to replace current picture.
+                ✏️ Draw or add text, then "Save Markup". Use "Upload New" to replace image, "Delete" to remove.
             </div>
             <input type="file" id="imageUploadInput" accept="image/*" style="display:none;">
         </div>`;
         panelBody.appendChild(imgEditDiv);
+        
+        // 视频编辑区
         const videoEditDiv = document.createElement('div');
         videoEditDiv.className = 'video-area';
+        const safeVideoUrl = currentProject.videoUrl || '';
         videoEditDiv.innerHTML = `<div class="section-label"><i class="fas fa-video"></i> Video URL</div>
-            <div class="video-actions"><input type="text" id="editVideoUrl" placeholder="MP4 URL" value="${currentProject.videoUrl || ''}">
+            <div class="video-actions"><input type="text" id="editVideoUrl" placeholder="MP4 URL" value="${safeVideoUrl}">
             <button id="updateVideoBtn" class="btn-sm">Preview</button></div>
-            <div class="video-preview"><video id="editVideoPreview" controls src="${currentProject.videoUrl}" style="max-width:100%; max-height:200px;"></video></div>`;
+            <div class="video-preview"><video id="editVideoPreview" controls src="${safeVideoUrl}" style="max-width:100%; max-height:200px;"></video></div>`;
         panelBody.appendChild(videoEditDiv);
+        
+        // 初始化 Quill（带颜色选项）
         if (quillEditor) quillEditor = null;
-        quillEditor = new Quill('#editQuillContainer', { theme: 'snow', modules: {         quillEditor = new Quill('#editQuillContainer', { 
-            theme: 'snow', 
-            modules: { 
+        quillEditor = new Quill('#editQuillContainer', {
+            theme: 'snow',
+            modules: {
                 toolbar: [
                     [{ 'header': [1, 2, 3, false] }],
                     ['bold', 'italic', 'underline', 'strike'],
                     [{ 'color': [] }, { 'background': [] }],
                     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                     ['link', 'clean']
-                ] 
-            }, 
-            placeholder: 'Edit your notes...' 
-        });: true }, placeholder: 'Edit your notes...' });
+                ]
+            },
+            placeholder: 'Edit your notes...'
+        });
         quillEditor.root.innerHTML = currentProject.noteText || '';
+        
+        // 初始化 Fabric 画布
         if (fabricCanvas) fabricCanvas.dispose();
         fabricCanvas = new fabric.Canvas('editCanvas', { isDrawingMode: true, width: 600, height: 400, backgroundColor: '#ffffff' });
         fabricCanvas.freeDrawingBrush.color = '#c2815b';
         fabricCanvas.freeDrawingBrush.width = 3;
-        currentImageBase64 = currentProject.imageUrl || 'https://placehold.co/600x400/eee/aaa?text=No+Image';
+        
         const safeImageUrl = currentProject.imageUrl || 'https://placehold.co/600x400/eee/aaa?text=No+Image';
-fabric.Image.fromURL(safeImageUrl, (img) => {
+        currentImageBase64 = safeImageUrl;
+        fabric.Image.fromURL(safeImageUrl, (img) => {
             let scale = Math.min(600 / img.width, 400 / img.height);
             fabricCanvas.setWidth(img.width * scale);
             fabricCanvas.setHeight(img.height * scale);
@@ -675,32 +687,45 @@ fabric.Image.fromURL(safeImageUrl, (img) => {
             fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
             fabricCanvas.renderAll();
         }, { crossOrigin: 'anonymous' });
-        document.getElementById('drawBtn')?.addEventListener('click', () => { fabricCanvas.isDrawingMode = true; });
-        document.getElementById('textBtn')?.addEventListener('click', () => { fabricCanvas.isDrawingMode = false; fabricCanvas.add(new fabric.IText('Double-click to edit', { left: 80, top: 80, fontSize: 18, fill: '#b45f3b' })); fabricCanvas.renderAll(); });
-        document.getElementById('clearBtn')?.addEventListener('click', () => { const objs = fabricCanvas.getObjects().filter(obj => obj !== fabricCanvas.backgroundImage); objs.forEach(obj => fabricCanvas.remove(obj)); fabricCanvas.renderAll(); });
-        document.getElementById('saveImageMarkBtn')?.addEventListener('click', () => { currentImageBase64 = fabricCanvas.toDataURL({ format: 'png', quality: 1 }); alert('Image markup saved to session. Click "Save to Cloud".'); });
-        document.getElementById('updateVideoBtn')?.addEventListener('click', () => { const newUrl = document.getElementById('editVideoUrl').value.trim(); if (newUrl) { document.getElementById('editVideoPreview').src = newUrl; } });
         
-                // ========== 图片上传/删除功能 ==========
-        const uploadInput = document.getElementById('imageUploadInput');
-        const uploadBtn = document.getElementById('uploadImageBtn');
-        const deleteImgBtn = document.getElementById('deleteImageBtn');
+        // 画布工具栏事件
+        document.getElementById('drawBtn')?.addEventListener('click', function() { fabricCanvas.isDrawingMode = true; });
+        document.getElementById('textBtn')?.addEventListener('click', function() {
+            fabricCanvas.isDrawingMode = false;
+            var text = new fabric.IText('Double-click to edit', { left: 80, top: 80, fontSize: 18, fill: '#b45f3b' });
+            fabricCanvas.add(text);
+            fabricCanvas.renderAll();
+        });
+        document.getElementById('clearBtn')?.addEventListener('click', function() {
+            var objs = fabricCanvas.getObjects().filter(function(obj) { return obj !== fabricCanvas.backgroundImage; });
+            objs.forEach(function(obj) { fabricCanvas.remove(obj); });
+            fabricCanvas.renderAll();
+        });
+        document.getElementById('saveImageMarkBtn')?.addEventListener('click', function() {
+            currentImageBase64 = fabricCanvas.toDataURL({ format: 'png', quality: 1 });
+            alert('Image markup saved. Click "Save to Cloud" to persist.');
+        });
+        
+        // 图片上传功能
+        var uploadInput = document.getElementById('imageUploadInput');
+        var uploadBtn = document.getElementById('uploadImageBtn');
+        var deleteImgBtn = document.getElementById('deleteImageBtn');
         
         if (uploadBtn) {
-            uploadBtn.addEventListener('click', () => { uploadInput.click(); });
+            uploadBtn.addEventListener('click', function() { uploadInput.click(); });
         }
         
         if (uploadInput) {
-            uploadInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
+            uploadInput.addEventListener('change', function(e) {
+                var file = e.target.files[0];
                 if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
+                    var reader = new FileReader();
                     reader.onload = function(event) {
-                        const imgUrl = event.target.result;
+                        var imgUrl = event.target.result;
                         currentImageBase64 = imgUrl;
                         fabricCanvas.clear();
-                        fabric.Image.fromURL(imgUrl, (img) => {
-                            let scale = Math.min(600 / img.width, 400 / img.height);
+                        fabric.Image.fromURL(imgUrl, function(img) {
+                            var scale = Math.min(600 / img.width, 400 / img.height);
                             fabricCanvas.setWidth(img.width * scale);
                             fabricCanvas.setHeight(img.height * scale);
                             img.scale(scale);
@@ -716,12 +741,12 @@ fabric.Image.fromURL(safeImageUrl, (img) => {
         }
         
         if (deleteImgBtn) {
-            deleteImgBtn.addEventListener('click', () => {
+            deleteImgBtn.addEventListener('click', function() {
                 if (confirm('Delete current image? A placeholder will be used.')) {
                     currentImageBase64 = 'https://placehold.co/600x400/eee/aaa?text=No+Image';
                     fabricCanvas.clear();
-                    fabric.Image.fromURL(currentImageBase64, (img) => {
-                        let scale = Math.min(600 / img.width, 400 / img.height);
+                    fabric.Image.fromURL(currentImageBase64, function(img) {
+                        var scale = Math.min(600 / img.width, 400 / img.height);
                         fabricCanvas.setWidth(img.width * scale);
                         fabricCanvas.setHeight(img.height * scale);
                         img.scale(scale);
@@ -733,18 +758,25 @@ fabric.Image.fromURL(safeImageUrl, (img) => {
                 }
             });
         }
-        // ========== 图片上传/删除功能结束 ==========        
-        document.getElementById('cancelEditBtn')?.addEventListener('click', () => renderViewMode());
-        document.getElementById('saveEditBtn')?.addEventListener('click', async () => {
+        
+        // 视频预览
+        document.getElementById('updateVideoBtn')?.addEventListener('click', function() {
+            var newUrl = document.getElementById('editVideoUrl').value.trim();
+            if (newUrl) { document.getElementById('editVideoPreview').src = newUrl; }
+        });
+        
+        // 取消/保存
+        document.getElementById('cancelEditBtn')?.addEventListener('click', function() { renderViewMode(); });
+        document.getElementById('saveEditBtn')?.addEventListener('click', async function() {
             if (quillEditor) currentProject.noteText = quillEditor.root.innerHTML;
             if (currentImageBase64 && currentImageBase64.startsWith('data:image')) currentProject.imageUrl = currentImageBase64;
-            const newVideo = document.getElementById('editVideoUrl')?.value.trim();
+            var newVideo = document.getElementById('editVideoUrl').value.trim();
             if (newVideo) currentProject.videoUrl = newVideo;
-            const updated = await updateNoteInSupabase(currentProject.id, {
+            var updated = await updateNoteInSupabase(currentProject.id, {
                 title: currentProject.title, desc: currentProject.desc, noteText: currentProject.noteText,
                 imageUrl: currentProject.imageUrl, videoUrl: currentProject.videoUrl, thumb: currentProject.thumb
             });
-            if (updated) { alert(`✅ "${currentProject.title}" saved to Supabase!`); renderViewMode(); }
+            if (updated) { alert('✅ "' + currentProject.title + '" saved to Supabase!'); renderViewMode(); }
             else alert('Save failed');
         });
     }
