@@ -357,7 +357,7 @@
     // ⚠️ REPLACE WITH YOUR OWN SUPABASE CREDENTIALS ⚠️
     const SUPABASE_URL = 'https://dmrskyskryrdclknezth.supabase.co';      // <-- replace
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8';                    // <-- replace
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
     // ==================== SINGLE ADMIN CREDENTIALS ====================
     const ADMIN_EMAIL = 'admin@example.com';
@@ -377,7 +377,7 @@
     // ==================== SUPABASE CRUD (SINGLE ADMIN, NO USER_ID FILTER) ====================
     async function fetchAllNotes() {
         if (!currentUser) return [];
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('treatment_notes')
             .select('*')
             .order('created_at', { ascending: false });
@@ -390,7 +390,7 @@
     
     async function addNoteToSupabase(note) {
         if (!currentUser) return null;
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('treatment_notes')
             .insert([{
                 title: note.title,
@@ -410,7 +410,7 @@
     
     async function updateNoteInSupabase(id, updates) {
         if (!currentUser) return null;
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('treatment_notes')
             .update({
                 title: updates.title,
@@ -432,7 +432,7 @@
     
     async function deleteNoteFromSupabase(id) {
         if (!currentUser) return false;
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('treatment_notes')
             .delete()
             .eq('id', id);
@@ -445,7 +445,7 @@
     
     // ==================== ADMIN LOGIN / LOGOUT (no supabase auth) ====================
     async function adminLogin(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
         email: email,
         password: password
     });
@@ -458,12 +458,12 @@
 }
     
     async function adminLogout() {
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     currentUser = null;
 }
 
     async function checkExistingSession() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) {
         currentUser = session.user;
         // 更新界面显示
