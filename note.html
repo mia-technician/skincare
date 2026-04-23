@@ -519,24 +519,18 @@
         return data[0];
     }
     
-    async function updateNoteInSupabase(id, updates) {
-        if (!currentUser) return null;
-        const { data, error } = await supabaseClient
-            .from('treatment_notes')
-            .update({
-                title: updates.title,
-                description: updates.desc,
-                note_text: updates.noteText,
-                image_url: updates.imageUrl,
-                video_url: updates.videoUrl,
-                thumbnail_url: updates.thumb,
-                updated_at: new Date()
-            })
-            .eq('id', id)
-            .select();
-        if (error) { console.error('Update error:', error); return null; }
-        return data[0];
+async function updateNoteInSupabase(id, updates) {
+    if (!id || id === 'null' || id === null) {
+        console.error('Invalid id for update');
+        return null;
     }
+    const { data, error } = await supabase.from('treatment_notes').update({
+        title: updates.title, description: updates.desc, note_text: updates.noteText,
+        images: updates.images, videos: updates.videos, updated_at: new Date()
+    }).eq('id', id).select();
+    if (error) { console.error('Update error:', error); return null; }
+    return data[0];
+}
     
     // ==================== AUTH ====================
     async function adminLogin(email, password) {
@@ -765,48 +759,55 @@
         
         // Cancel & Save
         document.getElementById('cancelEditBtn')?.addEventListener('click', () => renderViewMode());
-        document.getElementById('saveEditBtn')?.addEventListener('click', async () => {
-            const newTitle = document.getElementById('editTitleInput')?.value.trim() || 'Untitled';
-            const newDesc = document.getElementById('editDescInput')?.value.trim() || '';
-            const newNote = quillEditor.root.innerHTML;
-            let finalImage = currentImageBase64 || currentProject.imageUrl;
-            if (!finalImage || finalImage === '') finalImage = 'https://placehold.co/600x400/eee/aaa?text=No+Image';
-            const newVideo = document.getElementById('editVideoUrl')?.value.trim() || '';
-            
-            const updated = await updateNoteInSupabase(currentProject.id, {
-                title: newTitle, desc: newDesc, noteText: newNote,
-                imageUrl: finalImage, videoUrl: newVideo, thumb: currentProject.thumb
-            });
-            if (updated) {
-                alert(`✅ Saved: ${newTitle}`);
-                await loadDataFromSupabase();
-                renderViewMode();
-            } else alert('Save failed');
-        });
-    }
+document.getElementById('saveEditBtn').onclick = async () => {
+    const newTitle = document.getElementById('editTitleInput').value.trim() || 'Untitled';
+    const newDesc = document.getElementById('editDescInput').value.trim() || '';
+    const newNote = quillEditor.root.innerHTML;
     
-    function openCreateMode() {
-        currentMode = 'create';
-        currentProject = { id: null, title: "New Treatment", desc: "", noteText: "", imageUrl: "", videoUrl: "", thumb: "https://placehold.co/400x300/eee/aaa?text=New" };
-        projectsData.unshift(currentProject);
-        enterEditMode(); // reuse edit mode for creation, but we need to handle insert later
-        // Override save for creation
-        const oldSave = document.getElementById('saveEditBtn')?.click;
-        document.getElementById('saveEditBtn')?.addEventListener('click', async () => {
-            const title = document.getElementById('editTitleInput')?.value.trim() || 'New Treatment';
-            const desc = document.getElementById('editDescInput')?.value.trim() || '';
-            const note = quillEditor.root.innerHTML;
-            let img = currentImageBase64 || 'https://placehold.co/600x400/eee/aaa?text=No+Image';
-            const vid = document.getElementById('editVideoUrl')?.value.trim() || '';
-            const newProj = { title, desc, noteText: note, imageUrl: img, videoUrl: vid, thumb: 'https://placehold.co/400x300/eee/aaa?text=Preview' };
-            const inserted = await addNoteToSupabase(newProj);
-            if (inserted) {
-                alert(`✅ Created: ${title}`);
-                await loadDataFromSupabase();
-                renderEmptyState();
-            } else alert('Creation failed');
-        }, { once: true });
+    // 判断是更新还是新建
+    if (currentProject.id && currentProject.id !== 'null') {
+        // 更新现有笔记
+        const updated = await updateNoteInSupabase(currentProject.id, {
+            title: newTitle, desc: newDesc, noteText: newNote,
+            images: currentImages, videos: currentVideos
+        });
+        if (updated) { alert('✅ Saved'); await loadDataFromSupabase(); renderViewMode(); }
+        else alert('Save failed');
+    } else {
+        // 新建笔记（之前没有保存过的）
+        const inserted = await addNoteToSupabase({
+            title: newTitle, desc: newDesc, noteText: newNote,
+            images: currentImages, videos: currentVideos
+        });
+        if (inserted) {
+            alert('✅ Created');
+            currentProject.id = inserted.id;  // 更新本地 ID
+            await loadDataFromSupabase();
+            renderViewMode();
+        } else alert('Creation failed');
     }
+};
+    
+function openCreateMode() {
+    currentProject = { id: null, title: 'New Treatment', desc: '', noteText: '', images: [], videos: [] };
+    enterEditMode();
+    // 覆盖保存按钮的行为
+    document.getElementById('saveEditBtn').onclick = async () => {
+        const title = document.getElementById('editTitleInput').value.trim() || 'New Treatment';
+        const desc = document.getElementById('editDescInput').value.trim() || '';
+        const note = quillEditor.root.innerHTML;
+        const inserted = await addNoteToSupabase({ 
+            title, desc, noteText: note, 
+            images: currentImages || [], 
+            videos: currentVideos || [] 
+        });
+        if (inserted) { 
+            alert('✅ Created'); 
+            await loadDataFromSupabase(); 
+            renderEmptyState(); 
+        } else alert('Creation failed');
+    };
+}
     
     function renderEmptyState() {
         currentProject = null;
