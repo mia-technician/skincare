@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Laser Tattoo Removal | Clinical Intake & Note Generator</title>
+    <title>Laser Tattoo Removal | Compact Intake & Note</title>
     <style>
         * {
             margin: 0;
@@ -14,153 +14,130 @@
         body {
             background: #eef2f5;
             font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            padding: 40px 20px;
+            padding: 24px 16px;
             color: #1e2f3a;
         }
 
+        /* more compact container */
         .container {
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
             background: white;
-            border-radius: 36px;
-            box-shadow: 0 25px 40px -14px rgba(0, 0, 0, 0.2);
+            border-radius: 28px;
+            box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.12);
             overflow: hidden;
         }
 
-        /* Header */
         .header {
             background: linear-gradient(105deg, #1a3f4f 0%, #1f5a6b 100%);
-            padding: 28px 36px;
+            padding: 18px 28px;
             color: white;
         }
 
         .header h1 {
-            font-size: 1.9rem;
+            font-size: 1.5rem;
             font-weight: 600;
-            letter-spacing: -0.3px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
         }
 
         .header h1::before {
             content: "⚡";
-            font-size: 2rem;
+            font-size: 1.7rem;
         }
 
         .header p {
-            margin-top: 10px;
-            opacity: 0.9;
-            font-size: 0.95rem;
+            margin-top: 6px;
+            opacity: 0.85;
+            font-size: 0.8rem;
         }
 
-        /* Questions Area */
         .questions-area {
-            padding: 30px 36px 20px 36px;
+            padding: 20px 24px 16px 24px;
             background: #ffffff;
         }
 
+        /* compact sections */
         .section-title {
-            font-size: 1.5rem;
-            font-weight: 600;
+            font-size: 1.2rem;
+            font-weight: 700;
             color: #1c5a6e;
-            margin: 1.2rem 0 1rem 0;
-            padding-bottom: 6px;
-            border-bottom: 3px solid #cbe4ed;
+            margin: 0.8rem 0 0.5rem 0;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #cbe4ed;
             display: inline-block;
         }
 
         .subsection-title {
-            font-size: 1.25rem;
+            font-size: 1rem;
             font-weight: 600;
             color: #2b6c7e;
-            margin: 1.2rem 0 0.75rem 0;
+            margin: 0.8rem 0 0.4rem 0;
             background: #eef6f9;
-            padding: 6px 14px;
-            border-radius: 60px;
+            padding: 4px 12px;
+            border-radius: 40px;
             display: inline-block;
         }
 
         .question-card {
             background: #ffffff;
-            border-radius: 24px;
-            margin-bottom: 24px;
-            padding: 18px 24px;
+            border-radius: 18px;
+            margin-bottom: 14px;
+            padding: 12px 18px;
             border: 1px solid #e2ecf0;
-            transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-        }
-
-        .question-card:hover {
-            border-color: #c0d9e6;
-            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.03);
+            transition: 0.1s;
         }
 
         .question-text {
-            font-size: 1.08rem;
+            font-size: 0.9rem;
             font-weight: 600;
             color: #164454;
-            margin-bottom: 14px;
-            line-height: 1.45;
+            margin-bottom: 8px;
+            line-height: 1.35;
             display: flex;
             align-items: baseline;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
         }
 
         .q-num {
             background: #e2f0f5;
             color: #1c6d82;
-            border-radius: 40px;
-            padding: 2px 12px;
-            font-size: 0.75rem;
+            border-radius: 30px;
+            padding: 0px 10px;
+            font-size: 0.7rem;
             font-weight: 600;
         }
 
-        .answer-wrapper {
-            margin-top: 8px;
-        }
-
-        textarea, input:not([type="checkbox"]), .styled-input {
+        textarea {
             width: 100%;
-            border-radius: 20px;
-            border: 1.5px solid #d5e3ea;
-            padding: 12px 18px;
-            font-size: 0.95rem;
+            border-radius: 16px;
+            border: 1px solid #d0dfe6;
+            padding: 8px 14px;
+            font-size: 0.85rem;
             font-family: inherit;
             background: #fefefe;
             resize: vertical;
-            transition: 0.2s;
+            transition: 0.15s;
             color: #1f3e4c;
         }
 
-        textarea:focus, input:focus {
+        textarea:focus {
             outline: none;
             border-color: #2f8b9e;
-            box-shadow: 0 0 0 3px rgba(47, 139, 158, 0.15);
-            background: white;
+            box-shadow: 0 0 0 2px rgba(47, 139, 158, 0.1);
         }
 
         .helper-note {
-            margin-top: 8px;
-            font-size: 0.7rem;
+            margin-top: 4px;
+            font-size: 0.65rem;
             color: #7c9aa8;
-            display: flex;
-            justify-content: flex-end;
+            text-align: right;
         }
 
-        .inline-list {
-            background: #fafefc;
-            padding: 10px 16px;
-            border-radius: 18px;
-            font-size: 0.85rem;
-            color: #2b6a6a;
-            border-left: 4px solid #4faece;
-        }
-
-        /* Action button */
         .action-bar {
-            padding: 16px 36px 40px 36px;
+            padding: 12px 24px 28px 24px;
             background: #ffffff;
             border-top: 1px solid #e2ecf0;
             display: flex;
@@ -170,30 +147,29 @@
         .print-btn {
             background: #1c6d5e;
             border: none;
-            padding: 14px 44px;
-            border-radius: 60px;
-            font-size: 1.05rem;
+            padding: 10px 32px;
+            border-radius: 50px;
+            font-size: 0.9rem;
             font-weight: 700;
             color: white;
             display: inline-flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 5px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.05);
         }
 
         .print-btn:hover {
             background: #0f5548;
-            transform: translateY(-2px);
-            box-shadow: 0 14px 22px -10px rgba(28, 109, 94, 0.4);
+            transform: translateY(-1px);
         }
 
         footer {
             background: #f6fafc;
-            padding: 14px 36px;
+            padding: 10px 24px;
             text-align: center;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: #6e8b9b;
             border-top: 1px solid #e0ecf2;
         }
@@ -204,18 +180,21 @@
             top: -9999px;
             width: 900px;
             background: white;
-            padding: 40px;
+            padding: 30px;
             font-family: 'Courier New', monospace;
             white-space: pre-wrap;
             z-index: -1;
         }
 
-        @media (max-width: 760px) {
+        @media (max-width: 650px) {
             .questions-area {
-                padding: 20px;
+                padding: 16px;
             }
             .question-card {
-                padding: 16px;
+                padding: 10px 14px;
+            }
+            .header {
+                padding: 14px 20px;
             }
         }
     </style>
@@ -223,61 +202,56 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>Laser Tattoo Removal · Clinical Record</h1>
-        <p>Structured consultation & treatment planning | Comprehensive clinic note generator</p>
+        <h1>Laser Tattoo Removal · Clinical Intake</h1>
+        <p>Structured consultation | Compact form | Pre-filled examples for quick edit</p>
     </div>
 
     <div class="questions-area" id="questionsArea">
-        <!-- Dynamic content will be injected based on full clinical protocol -->
+        <!-- dynamic fields with pre-filled placeholder content (simple text) -->
     </div>
 
     <div class="action-bar">
-        <button class="print-btn" id="exportNoteBtn">📋 Generate Professional Clinic Note (copy/export)</button>
+        <button class="print-btn" id="exportNoteBtn">📋 Generate Clinic Note (Copy/Export)</button>
     </div>
-    <footer>Complete all fields → click to generate full SOAP-style note with all answers → copy & paste into your EMR.</footer>
+    <footer>Pre-filled demo data — edit as needed → click to generate professional note → copy/paste into EMR.</footer>
 </div>
 <div id="exportTextContainer" class="hidden-export"></div>
 
 <script>
     // --------------------------------------------------------------
-    // FULL CLINICAL QUESTIONNAIRE (based on provided protocol)
-    // Each question includes a textarea/input for user to answer
+    // COMPACT CLINICAL QUESTIONNAIRE with PRE-FILLED (simple placeholder content)
+    // Each answer area will be preloaded with concise demo text to save time.
     // --------------------------------------------------------------
     const QUESTIONS = [
-        // ----- INFORMATION GATHERING: Unwanted Tattoos & Location -----
-        { id: "tattoo_location", text: "Unwanted Tattoos & Location: Describe all tattoos (Tattoo A, Tattoo B...) and exact locations (e.g., L-forearm, etc.)", placeholder: "e.g., Tattoo A: Canada flag on left forearm; Tattoo B: micro-bladed brow, etc." },
-        { id: "tattooA_desc", text: "Tattoo A details: Colour (red/black etc.), professional/amateur ink? Is it circumferential? (If circumferential → cannot treat as whole in 1 TX, may affect blood circulation)", placeholder: "Specify: red/black, amateur/professional, not circumferential / or circumf..." },
-        { id: "brows_desc", text: "Brows: black colour with micro-bladed cosmetic ink? Confirm details", placeholder: "Micro-bladed cosmetic ink, black colour. Confirm presence." },
-        { id: "age_tattoo", text: "Tattoo age (over 3 months old?)", placeholder: "e.g., Done in 2020, >3 months old: Yes" },
-        { id: "prior_tx", text: "Prior laser sessions:e.g.,PT had 3 pico-sure TX x3. Last TX was 3 years ago, faded a bit. Provide details.", placeholder: "3 pico-sure treatments, last TX 3 years ago, residual fading." },
-        { id: "patient_goal", text: "Patient's goal: Fully/Partly remove/Fade, tattoo/Micro-bladed brow ink, so they can apply a cover up?", placeholder: "e.g., Fade to allow cover-up tattoo" },
-        { id: "medications", text: "PT is Not taking Photosensitizing medications (e.g., antibiotic, steriod?) Confirm.", placeholder: "No light-sensitive meds (confirmed)." },
-        
-        // ----- PHYSICAL CHECK -----
-        { id: "rough_texture", text: "Physical Check: There is some rough texture in the ink. Microneedling might be needed in future.", placeholder: "Describe texture and microneedling indication" },
-        { id: "raised_ink", text: "Ink feels raised. Advised PT that laser won't make it flat. Confirm explanation given.", placeholder: "Raised ink, explained laser won't flatten." },
-        { id: "no_tan", text: "No tanning in the past 4 weeks. Confirm.", placeholder: "No UV exposure/tanning for 4 weeks." },
-        { id: "moles_eczema", text: "Moles, eczema, herpes (require medication) in the area? Area will be avoided. Any findings?", placeholder: "e.g., No active lesions, moles noted but area avoided." },
-        
-        // ----- SHOWED PHOTOS & EXPLANATIONS -----
-        { id: "tx_number", text: "# of treatments: Explained that we cannot predict number of TXs. 8-12 weeks between TXs, or as instructed.", placeholder: "Patient informed about unpredictability and intervals." },
-        { id: "artist_followup", text: "Artist follow-up: PT will need to follow-up with their Artist to determine if the area is ready.", placeholder: "Advice given to consult artist for cover-up readiness." },
-        { id: "clean_edge", text: "Cannot guarantee clean edge – explained.", placeholder: "Patient acknowledges no guarantee of clean edge." },
-        { id: "blisters", text: "Possibility of blisters – must not pop! If needed, book to have drained. Explained?", placeholder: "Education provided: no popping, seek drainage if large." },
-        { id: "ink_oxidizing", text: "Possibility of ink oxidizing – explained what to expect and how it appears.", placeholder: "Oxidation risk explained, including color changes." },
-        { id: "pre_post_care", text: "Pre and Post Care explained and given. Rec TNS Recovery to speed healing & help prevent scarring (recommended 7-10 days post TX, once PT done with Polysporin).", placeholder: "Aftercare instructions + TNS recommendation documented." },
-        { id: "tx_procedure", text: "Explained TX procedure: Pre-ice, cold air, Vibrating Device, Topical Numbing & Hand Held Nitrous Gas (with extra charge).", placeholder: "Procedure steps acknowledged." },
-        
-        // ----- SETTINGS & DR. SHAH APPROVAL (structured) -----
-        { id: "settings_microblade", text: "Settings for Micro-blade brow ink (first TX): Enlighten 1064, 8mm, 0.5j-1j, ps, 1-3hz. Note: 1.1j needs approval.", placeholder: "Brow ink settings / approval status" },
-        { id: "settings_black", text: "Black/Grey/Dark Blue ink: Enlighten 1064, 8mm, 1-1.1j, ps, 5-10hz OR Pico 755, 6-5mm. Specify chosen.", placeholder: "e.g., Enlighten 1064, 1j, 6hz" },
-        { id: "settings_green", text: "Green/Light Blue ink: Pico 755, 6-5mm. Confirm settings.", placeholder: "Pico 755, 6mm" },
-        { id: "dr_shah_red", text: "Need Dr. Shah's approval for: Red/Pink/Orange → Enlighten 532, 8mm, <0.5j, ps, 1-3hz (max 5hz). Approval status?", placeholder: "Awaiting Dr. Shah approval / approved" },
-        { id: "other_colors", text: "Other ink colours (requires Dr. Shah's approval). Specify colour and plan.", placeholder: "Any unusual colours documented." },
-        { id: "skin_type", text: "Skin Type 5 & 6 (requires Dr. Shah's approval). Note Fitzpatrick type.", placeholder: "e.g., Skin type V, awaiting approval." }
+        { id: "tattoo_location", text: "Unwanted Tattoos & Location", placeholder: "e.g., Tattoo A: Canada flag L-forearm; Tattoo B: micro-bladed brows", prefill: "Tattoo A on L-forearm (Canada flag), Tattoo B: micro-bladed brows" },
+        { id: "tattooA_desc", text: "Tattoo A details: colour, professional/amateur? circumferential?", placeholder: "red/black, amateur, not circumferential", prefill: "Red & black, amateur ink, not circumferential" },
+        { id: "brows_desc", text: "Brows: black micro-bladed cosmetic ink?", placeholder: "Confirm micro-bladed brows", prefill: "Yes, black micro-bladed cosmetic ink" },
+        { id: "age_tattoo", text: "Tattoo age (>3 months old?)", placeholder: "e.g., done in 2020", prefill: "Done in 2020, >3 months old" },
+        { id: "prior_tx", text: "Prior laser sessions (3 pico-sure, last 3y ago, faded)", placeholder: "3 sessions, last 3y ago, residual fading", prefill: "3 pico-sure TX, last TX 3 years ago, faded a bit" },
+        { id: "patient_goal", text: "Patient's goal (full/partial removal/fade for cover-up?)", placeholder: "Fade for cover-up", prefill: "Fade tattoo & brows for cover-up" },
+        { id: "medications", text: "Photosensitizing medications? (none confirmed)", placeholder: "No light-sensitive meds", prefill: "No light-sensitive medications" },
+        // PHYSICAL
+        { id: "rough_texture", text: "Physical: rough texture / microneedling?", placeholder: "some roughness noted", prefill: "Rough texture in ink, possible microneedling future" },
+        { id: "raised_ink", text: "Ink raised (laser won't flatten) – explained", placeholder: "raised, advised", prefill: "Ink raised, patient informed laser won't flatten" },
+        { id: "no_tan", text: "No tanning last 4 weeks?", placeholder: "confirm no UV", prefill: "No tanning for 4 weeks" },
+        { id: "moles_eczema", text: "Moles/eczema/herpes in area? (area avoided)", placeholder: "none / moles noted but avoided", prefill: "No active lesions, area clear" },
+        // EXPLANATIONS
+        { id: "tx_number", text: "# treatments: unpredictable, 8-12w intervals", placeholder: "explained intervals", prefill: "Cannot predict #TX, 8-12 weeks between sessions" },
+        { id: "artist_followup", text: "Artist follow-up needed (to assess readiness)", placeholder: "patient aware", prefill: "Will follow up with tattoo artist" },
+        { id: "clean_edge", text: "Cannot guarantee clean edge – explained", placeholder: "acknowledged", prefill: "Patient understands no guarantee of clean edge" },
+        { id: "blisters", text: "Blisters: do NOT pop; drain if needed", placeholder: "education given", prefill: "Instructed not to pop blisters; clinic can drain if large" },
+        { id: "ink_oxidizing", text: "Ink oxidizing possibility explained", placeholder: "explained color changes", prefill: "Oxidation risk explained" },
+        { id: "pre_post_care", text: "Pre/post care + TNS Recovery (post-polysporin)", placeholder: "aftercare + TNS", prefill: "Aftercare given, TNS Recovery recommended 7-10d post TX" },
+        { id: "tx_procedure", text: "Procedure: ice, cold air, numbing, nitrous (extra charge)", placeholder: "steps explained", prefill: "Pre-ice, cold air, vibrating device, topical numbing, nitrous available" },
+        // SETTINGS & APPROVALS
+        { id: "settings_microblade", text: "Micro-blade brow: Enlighten 1064, 8mm, 0.5-1j, ps, 1-3hz (1.1j need approval)", placeholder: "brow settings", prefill: "Enlighten 1064, 8mm, 0.8j, ps, 2hz (1.1j if needed → approval)" },
+        { id: "settings_black", text: "Black/Grey/Dark Blue: Enlighten 1064 1-1.1j OR Pico 755", placeholder: "e.g., Enlighten 1j, 6hz", prefill: "Enlighten 1064, 1j, 8mm, ps, 6hz" },
+        { id: "settings_green", text: "Green/Light Blue: Pico 755, 6-5mm", placeholder: "Pico 755 settings", prefill: "Pico 755, 6mm" },
+        { id: "dr_shah_red", text: "Red/Pink/Orange requires Dr.Shah approval (Enlighten 532 <0.5j)", placeholder: "pending/approved", prefill: "Awaiting Dr. Shah approval" },
+        { id: "other_colors", text: "Other ink colours (Dr.Shah approval)", placeholder: "specify colours", prefill: "No unusual colours" },
+        { id: "skin_type", text: "Skin Type 5 & 6 (Dr.Shah approval required)", placeholder: "Fitzpatrick type", prefill: "Skin Type III, no approval needed" }
     ];
-    
-    // Helper: escapeHtml
+
     function escapeHtml(str) {
         if (!str) return '';
         return str.replace(/[&<>]/g, function(m) {
@@ -288,56 +262,57 @@
         });
     }
 
-    function renderQuestions() {
+    // Render all questions with pre-filled values (simple default content)
+    function renderQuestionsWithPrefill() {
         const container = document.getElementById('questionsArea');
         if (!container) return;
-        let html = `
-            <div class="section-title">📋 INFORMATION GATHERING</div>
-        `;
-        // First 7 questions belong to info gathering + unwanted tattoos block
+
+        // define groups using IDs
         const infoIds = ["tattoo_location", "tattooA_desc", "brows_desc", "age_tattoo", "prior_tx", "patient_goal", "medications"];
         const physicalIds = ["rough_texture", "raised_ink", "no_tan", "moles_eczema"];
         const explainedIds = ["tx_number", "artist_followup", "clean_edge", "blisters", "ink_oxidizing", "pre_post_care", "tx_procedure"];
         const settingsIds = ["settings_microblade", "settings_black", "settings_green", "dr_shah_red", "other_colors", "skin_type"];
-        
-        // Helper to render array of question ids
-        function renderQuestionGroup(ids, groupTitle = null) {
-            let groupHtml = '';
-            if (groupTitle) {
-                groupHtml += `<div class="subsection-title">${groupTitle}</div>`;
+
+        function buildGroup(ids, groupLabel = null) {
+            let html = '';
+            if (groupLabel) {
+                html += `<div class="subsection-title">${escapeHtml(groupLabel)}</div>`;
             }
             ids.forEach(id => {
                 const q = QUESTIONS.find(qq => qq.id === id);
                 if (q) {
-                    groupHtml += `
-                        <div class="question-card" data-qid="${q.id}">
+                    // Prefill value: simple text ready to be edited
+                    const prefillValue = q.prefill || '';
+                    html += `
+                        <div class="question-card">
                             <div class="question-text">
                                 <span class="q-num">⦿</span>
                                 <span>${escapeHtml(q.text)}</span>
                             </div>
                             <div class="answer-wrapper">
-                                <textarea id="${q.id}" rows="2" placeholder="${escapeHtml(q.placeholder)}"></textarea>
-                                <div class="helper-note">✍️ enter relevant clinical detail</div>
+                                <textarea id="${q.id}" rows="2" placeholder="${escapeHtml(q.placeholder)}">${escapeHtml(prefillValue)}</textarea>
+                                <div class="helper-note">✏️ edit as needed</div>
                             </div>
                         </div>
                     `;
                 }
             });
-            return groupHtml;
+            return html;
         }
-        
-        let fullHtml = renderQuestionGroup(infoIds, "Tattoo & Patient Background");
+
+        let fullHtml = `<div class="section-title">📋 INFORMATION GATHERING</div>`;
+        fullHtml += buildGroup(infoIds, "Tattoo & Patient Background");
         fullHtml += `<div class="section-title">🩺 PHYSICAL CHECK</div>`;
-        fullHtml += renderQuestionGroup(physicalIds, "Examination Findings");
+        fullHtml += buildGroup(physicalIds, "Examination Findings");
         fullHtml += `<div class="section-title">📸 CONSENT & EXPLANATIONS</div>`;
-        fullHtml += renderQuestionGroup(explainedIds, "Informed discussion (before/after photos, risks)");
+        fullHtml += buildGroup(explainedIds, "Informed discussion");
         fullHtml += `<div class="section-title">⚙️ LASER SETTINGS & APPROVALS</div>`;
-        fullHtml += renderQuestionGroup(settingsIds, "First TX parameters / Dr.Shah required approvals");
-        
+        fullHtml += buildGroup(settingsIds, "First TX parameters / Dr.Shah approvals");
+
         container.innerHTML = fullHtml;
     }
-    
-    // Get all answers as array
+
+    // Collect all answers as array
     function getAllAnswers() {
         const results = [];
         for (let q of QUESTIONS) {
@@ -352,20 +327,18 @@
         }
         return results;
     }
-    
-    // Generate final professional clinic note (full SOAP / structured laser record)
+
+    // Generate the final Clinical Note (professional & includes all Q&A)
     function generateClinicNote() {
         const answers = getAllAnswers();
         const now = new Date();
         const dateTime = `${now.toLocaleDateString('en-US')} ${now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'})}`;
         
-        // helper to get single answer by id
         const getAns = (id) => {
             const found = answers.find(a => a.id === id);
             return found ? found.answer : '[N/A]';
         };
-        
-        // Extract critical info for summary
+
         const tattooLoc = getAns("tattoo_location");
         const goal = getAns("patient_goal");
         const priorTx = getAns("prior_tx");
@@ -377,7 +350,14 @@
         const skinType = getAns("skin_type");
         const txProcedure = getAns("tx_procedure");
         const aftercare = getAns("pre_post_care");
-        
+        const roughTex = getAns("rough_texture");
+        const molesEczema = getAns("moles_eczema");
+        const blistersExpl = getAns("blisters");
+        const oxidizing = getAns("ink_oxidizing");
+        const cleanEdge = getAns("clean_edge");
+        const artistFollow = getAns("artist_followup");
+        const txNumExplain = getAns("tx_number");
+
         let note = `==================================================\n`;
         note += `        LASER TATTOO REMOVAL CLINICAL NOTE\n`;
         note += `==================================================\n`;
@@ -385,60 +365,58 @@
         note += `Provider: Laser Clinic / Medical Record\n`;
         note += `--------------------------------------------------\n\n`;
         
-        note += `🔹 SUBJECTIVE & HISTORY (Information Gathering)\n`;
+        note += `🔹 SUBJECTIVE & HISTORY\n`;
         note += `• Unwanted tattoos & location: ${tattooLoc}\n`;
         note += `• Tattoo A specifics: ${getAns("tattooA_desc")}\n`;
         note += `• Brows (micro-bladed): ${getAns("brows_desc")}\n`;
         note += `• Tattoo age: ${getAns("age_tattoo")}\n`;
         note += `• Prior laser sessions: ${priorTx}\n`;
         note += `• Patient goal: ${goal}\n`;
-        note += `• Photosensitizing medications: ${getAns("medications")}\n\n`;
+        note += `• Photosensitizing meds: ${getAns("medications")}\n\n`;
         
         note += `🔹 PHYSICAL EXAMINATION\n`;
-        note += `• Ink texture: ${getAns("rough_texture")}\n`;
+        note += `• Ink texture / microneedling: ${roughTex}\n`;
         note += `• Raised ink (laser won't flatten): ${raisedInfo}\n`;
         note += `• No tanning (4 weeks): ${getAns("no_tan")}\n`;
-        note += `• Moles / eczema / herpes in area: ${getAns("moles_eczema")}\n\n`;
+        note += `• Moles/eczema/herpes: ${molesEczema}\n\n`;
         
-        note += `🔹 INFORMED CONSENT & EXPLANATIONS PROVIDED\n`;
-        note += `• Number of treatments unpredictable, 8-12w intervals: ${getAns("tx_number")}\n`;
-        note += `• Artist follow-up required: ${getAns("artist_followup")}\n`;
-        note += `• Cannot guarantee clean edge: ${getAns("clean_edge")}\n`;
-        note += `• Blister management: ${getAns("blisters")}\n`;
-        note += `• Ink oxidation possibility: ${getAns("ink_oxidizing")}\n`;
-        note += `• Pre/post care + TNS Recovery advice: ${aftercare}\n`;
-        note += `• Treatment procedure (ice, cold air, numbing, nitrous): ${txProcedure}\n\n`;
+        note += `🔹 INFORMED CONSENT & EXPLANATIONS\n`;
+        note += `• # treatments unpredictable (8-12w): ${txNumExplain}\n`;
+        note += `• Artist follow-up: ${artistFollow}\n`;
+        note += `• Clean edge not guaranteed: ${cleanEdge}\n`;
+        note += `• Blister management: ${blistersExpl}\n`;
+        note += `• Ink oxidation risk: ${oxidizing}\n`;
+        note += `• Pre/post care + TNS Recovery: ${aftercare}\n`;
+        note += `• Procedure (ice, numbing, nitrous): ${txProcedure}\n\n`;
         
         note += `🔹 LASER SETTINGS & DR. SHAH APPROVAL STATUS\n`;
-        note += `• Micro-blade brow ink (Enlighten 1064, 8mm, 0.5-1j, ps, 1-3hz / 1.1j need appr): ${settingsBrow}\n`;
+        note += `• Micro-blade brow: ${settingsBrow}\n`;
         note += `• Black/Grey/Dark Blue: ${settingsBlack}\n`;
-        note += `• Green/Light Blue (Pico 755, 6-5mm): ${greenSet}\n`;
-        note += `• Red/Pink/Orange (Dr.Shah approval required) → Enlighten 532 <0.5j: ${drShahRed}\n`;
-        note += `• Other ink colours approval: ${getAns("other_colors")}\n`;
-        note += `• Skin Type 5 & 6 (Dr.Shah approval): ${skinType}\n\n`;
+        note += `• Green/Light Blue: ${greenSet}\n`;
+        note += `• Red/Pink/Orange (Dr.Shah req): ${drShahRed}\n`;
+        note += `• Other colours approval: ${getAns("other_colors")}\n`;
+        note += `• Skin Type 5&6 approval: ${skinType}\n\n`;
         
         note += `🔹 PLAN / RECOMMENDATIONS\n`;
-        note += `- First treatment as per settings above pending any required approvals.\n`;
-        note += `- Follow up in 8-12 weeks; avoid sun exposure; use TNS Recovery as instructed.\n`;
-        note += `- Patient advised to coordinate with cover-up artist.\n`;
-        note += `- In case of oxidation or blistering: clinic follow-up arranged.\n`;
-        note += `- Signed consent and photo documentation on file.\n`;
+        note += `- First treatment per settings (pending approvals if applicable).\n`;
+        note += `- Follow-up 8-12 weeks; strict sun protection; TNS Recovery as per protocol.\n`;
+        note += `- Coordinate with cover-up artist for readiness.\n`;
+        note += `- If blistering/oxidation → clinic follow-up arranged.\n`;
+        note += `- Signed consent & photography on file.\n`;
         note += `--------------------------------------------------\n`;
-        note += `Note generated from clinical intake form | All relevant answers included.\n`;
-        note += `==================================================\n`;
+        note += `Note generated from intake form | all answers included below.\n`;
+        note += `==================================================\n\n`;
         
-        // Append all Q&A details in structured format for complete transparency
-        note += `\n\n[ COMPLETE CLINICAL Q&A TRANSCRIPT ]\n`;
+        note += `[ COMPLETE CLINICAL Q&A TRANSCRIPT ]\n`;
         note += `--------------------------------------------------\n`;
         answers.forEach((item, idx) => {
             note += `${idx+1}. ${item.question}\n   → ${item.answer}\n\n`;
         });
         note += `End of record — for professional use only.`;
-        
         return note;
     }
-    
-    // Modal for export/copy
+
+    // Modal for displaying & copying note
     function showExportModal(noteText) {
         const modalDiv = document.createElement('div');
         modalDiv.style.position = 'fixed';
@@ -446,59 +424,59 @@
         modalDiv.style.left = '0';
         modalDiv.style.width = '100%';
         modalDiv.style.height = '100%';
-        modalDiv.style.backgroundColor = 'rgba(0,0,0,0.65)';
+        modalDiv.style.backgroundColor = 'rgba(0,0,0,0.6)';
         modalDiv.style.display = 'flex';
         modalDiv.style.alignItems = 'center';
         modalDiv.style.justifyContent = 'center';
         modalDiv.style.zIndex = '10000';
-        modalDiv.style.backdropFilter = 'blur(3px)';
+        modalDiv.style.backdropFilter = 'blur(2px)';
         
         const modalInner = document.createElement('div');
         modalInner.style.background = '#fff';
-        modalInner.style.borderRadius = '32px';
-        modalInner.style.width = '90%';
-        modalInner.style.maxWidth = '950px';
+        modalInner.style.borderRadius = '28px';
+        modalInner.style.width = '92%';
+        modalInner.style.maxWidth = '900px';
         modalInner.style.maxHeight = '85%';
         modalInner.style.display = 'flex';
         modalInner.style.flexDirection = 'column';
-        modalInner.style.boxShadow = '0 30px 45px rgba(0,0,0,0.3)';
+        modalInner.style.boxShadow = '0 20px 35px rgba(0,0,0,0.25)';
         modalInner.style.overflow = 'hidden';
         
         const modalHeader = document.createElement('div');
-        modalHeader.style.padding = '20px 28px 12px';
-        modalHeader.style.borderBottom = '1px solid #e0edf2';
+        modalHeader.style.padding = '14px 24px 10px';
+        modalHeader.style.borderBottom = '1px solid #e2edf2';
         modalHeader.style.display = 'flex';
         modalHeader.style.justifyContent = 'space-between';
         modalHeader.style.alignItems = 'center';
         modalHeader.style.background = '#fafeff';
-        modalHeader.innerHTML = `<h3 style="margin:0; font-weight:700; color:#1d6f6a;">📄 Clinical Note ready - Copy to clipboard</h3>
-                                  <button id="closeModalBtn" style="background:none; border:none; font-size:28px; cursor:pointer;">&times;</button>`;
+        modalHeader.innerHTML = `<h3 style="margin:0; font-weight:700; font-size:1.2rem; color:#1d6f6a;">📄 Clinical Note ready to copy</h3>
+                                  <button id="closeModalBtn" style="background:none; border:none; font-size:26px; cursor:pointer; line-height:1;">&times;</button>`;
         
         const textContainer = document.createElement('div');
         textContainer.style.flex = '1';
         textContainer.style.overflow = 'auto';
-        textContainer.style.padding = '20px 28px';
+        textContainer.style.padding = '16px 24px';
         textContainer.style.backgroundColor = '#fefcf5';
         
         const preElem = document.createElement('pre');
         preElem.style.whiteSpace = 'pre-wrap';
         preElem.style.wordBreak = 'break-word';
         preElem.style.fontFamily = 'Consolas, "Courier New", monospace';
-        preElem.style.fontSize = '13px';
-        preElem.style.lineHeight = '1.5';
+        preElem.style.fontSize = '12.5px';
+        preElem.style.lineHeight = '1.45';
         preElem.style.margin = '0';
         preElem.style.background = '#faf7ed';
-        preElem.style.padding = '18px';
-        preElem.style.borderRadius = '24px';
+        preElem.style.padding = '14px';
+        preElem.style.borderRadius = '20px';
         preElem.style.border = '1px solid #e5dec8';
         preElem.textContent = noteText;
         textContainer.appendChild(preElem);
         
         const modalFooter = document.createElement('div');
-        modalFooter.style.padding = '16px 28px 24px';
+        modalFooter.style.padding = '12px 24px 20px';
         modalFooter.style.borderTop = '1px solid #e2ecf0';
         modalFooter.style.display = 'flex';
-        modalFooter.style.gap = '14px';
+        modalFooter.style.gap = '12px';
         modalFooter.style.justifyContent = 'flex-end';
         
         const copyBtn = document.createElement('button');
@@ -506,18 +484,20 @@
         copyBtn.style.background = '#1c6d5e';
         copyBtn.style.color = 'white';
         copyBtn.style.border = 'none';
-        copyBtn.style.padding = '10px 28px';
+        copyBtn.style.padding = '8px 24px';
         copyBtn.style.borderRadius = '40px';
         copyBtn.style.fontWeight = 'bold';
         copyBtn.style.cursor = 'pointer';
+        copyBtn.style.fontSize = '0.85rem';
         
         const closeBtn = document.createElement('button');
         closeBtn.innerText = 'Close';
         closeBtn.style.background = '#e2e8f0';
         closeBtn.style.border = 'none';
-        closeBtn.style.padding = '10px 26px';
+        closeBtn.style.padding = '8px 22px';
         closeBtn.style.borderRadius = '40px';
         closeBtn.style.cursor = 'pointer';
+        closeBtn.style.fontSize = '0.85rem';
         
         modalFooter.appendChild(copyBtn);
         modalFooter.appendChild(closeBtn);
@@ -536,7 +516,7 @@
             try {
                 await navigator.clipboard.writeText(noteText);
                 copyBtn.innerText = '✅ Copied!';
-                setTimeout(() => { copyBtn.innerText = '📋 Copy Full Note'; }, 1800);
+                setTimeout(() => { copyBtn.innerText = '📋 Copy Full Note'; }, 1700);
             } catch (err) {
                 const temp = document.createElement('textarea');
                 temp.value = noteText;
@@ -558,7 +538,7 @@
     }
     
     function init() {
-        renderQuestions();
+        renderQuestionsWithPrefill();   // pre-filled compact version
         const exportBtn = document.getElementById('exportNoteBtn');
         if (exportBtn) exportBtn.addEventListener('click', handleExport);
     }
