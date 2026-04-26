@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Laser Tattoo Removal | Smart Intake & Note</title>
+    <title>Laser Tattoo Removal | Final Clinical Intake</title>
     <style>
         * {
             margin: 0;
@@ -159,6 +159,13 @@
             margin-top: 4px;
         }
 
+        .circumferential-note {
+            font-size: 0.7rem;
+            color: #7c9aa8;
+            margin-top: 4px;
+            margin-left: 0;
+        }
+
         .helper-note {
             margin-top: 4px;
             font-size: 0.65rem;
@@ -231,17 +238,26 @@
             display: none;
         }
 
-        .url-input {
+        .skin-avoid-note {
+            font-size: 0.7rem;
+            color: #7c9aa8;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .texture-warning-note {
+            font-size: 0.7rem;
+            color: #7c9aa8;
             margin-top: 8px;
-            width: 100%;
+            display: none;
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>Laser Tattoo Removal · Smart Clinical Intake</h1>
-        <p>Prior session details appear only when needed | Red/Orange/Other laser option with custom parameters</p>
+        <h1>Laser Tattoo Removal · Complete Intake</h1>
+        <p>All fields are captured in the clinical note | Red/Orange/Other laser shows custom parameters</p>
     </div>
 
     <div class="questions-area" id="questionsArea">
@@ -265,9 +281,7 @@
                 </ul>
                 <p><strong>4.</strong> If blistering occurs, do not pop; in-clinic drainage will be arranged if necessary</p>
                 <div class="question-field" style="margin-top:12px;">
-                    <label>5. Pre- and post-care instructions URL:</label>
-                    <input type="text" id="care_url" class="url-input" placeholder="https://..." value="">
-                    <div class="inline-note">Paste or type the URL for care instructions (will appear as clickable link in note)</div>
+                    <label>5. <a href="https://mia-technician.github.io/skincare/prepost.html" target="_blank" style="color:#1c6d5e; text-decoration:underline;">Pre- and post-care instructions</a> (clickable link)</label>
                 </div>
             </div>
             <div class="question-field" style="margin-top:16px;">
@@ -284,11 +298,19 @@
             <div class="question-field">
                 <label>7. Quote provided:</label>
                 <div class="checkbox-group" id="quote_group">
-                    <label><input type="checkbox" value="$375+tax/TX microblading eyebrows" checked> $375+tax/TX microblading eyebrows</label>
+                    <label><input type="checkbox" value="$375+tax/TX microblading eyebrows"> $375+tax/TX microblading eyebrows</label>
                     <label><input type="checkbox" value="$250 tattoo removal minimum charge"> $250 tattoo removal minimum charge</label>
                     <label><input type="checkbox" value="Other" class="quote-other-checkbox"> Other</label>
                 </div>
                 <input type="text" id="quote_other_text" placeholder="Please specify other quote" style="margin-top:8px; width:100%; display:none;">
+            </div>
+            <div class="question-field" style="margin-top:16px;">
+                <label>8. PT confirmation:</label>
+                <div class="radio-group" id="pt_confirmation_group">
+                    <label><input type="radio" name="pt_confirmation" value="no_questions" checked> PT got no further questions.</label>
+                    <label><input type="radio" name="pt_confirmation" value="has_question"> PT's question:</label>
+                </div>
+                <textarea id="pt_question_text" rows="3" placeholder="Please type the patient's question here..." style="margin-top:8px; width:100%; display:none;"></textarea>
             </div>
         </div>
     </div>
@@ -296,7 +318,7 @@
     <div class="action-bar">
         <button class="print-btn" id="exportNoteBtn">📋 Generate Clinic Note (Copy/Export)</button>
     </div>
-    <footer>Prior sessions appear only when a non-None type is selected. Red/Orange/Other laser shows custom parameter box.</footer>
+    <footer>All selections appear in the final clinical note. Prior sessions show type + details.</footer>
 </div>
 <div id="exportTextContainer" class="hidden-export"></div>
 
@@ -315,17 +337,6 @@
             if (m === '>') return '&gt;';
             return m;
         });
-    }
-
-    // Determine standard laser setting based on colours
-    function getLaserFromColours(colours) {
-        if (!colours || colours.length === 0) return 'Micro-blade brow: Enlighten 1064, 8mm, 0.5-1j, ps, 1-3hz';
-        const colourLower = colours.map(c => c.toLowerCase());
-        if (colourLower.some(c => c === 'green' || c === 'light blue'))
-            return 'Green/Light Blue: Pico 755, 6-5mm';
-        if (colourLower.some(c => c === 'black' || c === 'grey' || c === 'dark blue'))
-            return 'Black/Grey/Dark Blue: Enlighten 1064, 8mm, 1-1.1j, ps, 5-10hz OR Pico 755, 6-5mm';
-        return 'Micro-blade brow: Enlighten 1064, 8mm, 0.5-1j, ps, 1-3hz';
     }
 
     function getCheckboxValues(containerId, otherTextId) {
@@ -350,7 +361,7 @@
         tattoos.forEach((tattoo) => {
             const letter = getTattooLetter(tattoo.index);
 
-            // ---- Colour options (Black pre-selected) ----
+            // Colour options
             const colourOptions = ['Black', 'Grey', 'Dark Blue', 'Green', 'Light Blue', 'Red', 'Pink', 'Orange'];
             let colourHtml = '';
             colourOptions.forEach(col => {
@@ -360,7 +371,7 @@
             colourHtml += `<label><input type="checkbox" class="tattoo-colour" data-id="${tattoo.id}" value="Other" ${tattoo.colours.includes('Other') ? 'checked' : ''}> Other</label>`;
             colourHtml += `<input type="text" class="colour-other-text other-text-input" data-id="${tattoo.id}" placeholder="Other colour" value="${escapeHtml(tattoo.colourOtherText || '')}" style="${tattoo.colours.includes('Other') ? 'display:block' : 'display:none'}">`;
 
-            // ---- Ink type - Professional ink pre-selected ----
+            // Ink type
             const inkTypeOptions = ['Professional ink', 'Amateur ink', 'Microblading ink'];
             let inkTypeHtml = '';
             inkTypeOptions.forEach(type => {
@@ -370,8 +381,8 @@
             inkTypeHtml += `<label><input type="checkbox" class="tattoo-inktype-other" data-id="${tattoo.id}" value="Other" ${tattoo.inkTypes.includes('Other') ? 'checked' : ''}> Other</label>`;
             inkTypeHtml += `<input type="text" class="inktype-other-text other-text-input" data-id="${tattoo.id}" placeholder="Specify ink type" value="${escapeHtml(tattoo.inkTypeOtherText || '')}" style="${tattoo.inkTypes.includes('Other') ? 'display:block' : 'display:none'}">`;
 
-            // ---- Physical findings - None pre-selected ----
-            const physicalOptions = ['None', 'Rough texture', 'Raised ink'];
+            // Physical findings
+            const physicalOptions = ['Smooth texture, ink is not raised', 'Rough texture', 'Raised ink'];
             let physicalHtml = '';
             physicalOptions.forEach(opt => {
                 const checked = tattoo.physicalFindings.includes(opt) ? 'checked' : '';
@@ -379,10 +390,12 @@
             });
             physicalHtml += `<label><input type="checkbox" class="tattoo-physical-other" data-id="${tattoo.id}" value="Other" ${tattoo.physicalFindings.includes('Other') ? 'checked' : ''}> Other</label>`;
             physicalHtml += `<input type="text" class="physical-other-text other-text-input" data-id="${tattoo.id}" placeholder="Other finding" value="${escapeHtml(tattoo.physicalOtherText || '')}" style="${tattoo.physicalFindings.includes('Other') ? 'display:block' : 'display:none'}">`;
-            physicalHtml += `<div class="inline-note">Laser treatment will not treat these conditions and may worsen them. Microneedling, Fraxel, CO2 maybe recommended if needed.</div>`;
+            
+            const showTextureWarning = tattoo.physicalFindings.includes('Rough texture') || tattoo.physicalFindings.includes('Raised ink') || tattoo.physicalFindings.includes('Other');
+            physicalHtml += `<div class="texture-warning-note" id="texture-warning-${tattoo.id}" style="display: ${showTextureWarning ? 'block' : 'none'};">Tattoo removal treatments do not address skin texture concerns and may create or worsen them. Additional treatments such as microneedling, Fraxel, or CO₂ laser may be recommended if needed.</div>`;
 
-            // ---- Skin findings - None pre-selected ----
-            const skinIssues = ['None', 'Moles', 'Eczema', 'Herpes'];
+            // Skin findings
+            const skinIssues = ['Skin appears normal with no lesions or abnormalities', 'Moles', 'Eczema', 'Herpes'];
             let skinIssuesHtml = '';
             skinIssues.forEach(issue => {
                 const checked = tattoo.skinIssues.includes(issue) ? 'checked' : '';
@@ -390,9 +403,10 @@
             });
             skinIssuesHtml += `<label><input type="checkbox" class="tattoo-skin-other" data-id="${tattoo.id}" value="Other" ${tattoo.skinIssues.includes('Other') ? 'checked' : ''}> Other</label>`;
             skinIssuesHtml += `<input type="text" class="skin-other-text other-text-input" data-id="${tattoo.id}" placeholder="Other skin finding" value="${escapeHtml(tattoo.skinOtherText || '')}" style="${tattoo.skinIssues.includes('Other') ? 'display:block' : 'display:none'}">`;
-            skinIssuesHtml += `<div class="inline-note">These areas will be avoided.</div>`;
+            const showAvoidNote = tattoo.skinIssues.some(s => s !== 'Skin appears normal with no lesions or abnormalities');
+            skinIssuesHtml += `<div class="skin-avoid-note" id="avoid-note-${tattoo.id}" style="display: ${showAvoidNote ? 'block' : 'none'};">Areas with skin lesions or abnormalities will be avoided.</div>`;
 
-            // ---- Prior type checkboxes with None ----
+            // Prior type
             const priorTypesList = ['Laser', 'Saline', 'Others'];
             let priorTypeHtml = '';
             priorTypesList.forEach(type => {
@@ -401,10 +415,18 @@
             });
             priorTypeHtml += `<label><input type="checkbox" class="tattoo-prior-type" data-id="${tattoo.id}" value="None" ${tattoo.priorTypes.includes('None') ? 'checked' : ''}> None</label>`;
 
-            // ---- Goal radio (Totally Remove pre-selected) ----
-            const goalChecked = (val) => tattoo.goal === val ? 'checked' : '';
+            // Patient Goal - multi-select
+            const goalOptions = ['Totally Remove', 'Partly remove', 'Fade for cover-up'];
+            let goalHtml = '';
+            goalOptions.forEach(opt => {
+                const checked = tattoo.goals.includes(opt) ? 'checked' : '';
+                let extraHtml = '';
+                if (opt === 'Partly remove') extraHtml = ' <span style="font-size:0.7rem; color:#7c9aa8;">(A completely clean edge cannot be guaranteed)</span>';
+                if (opt === 'Fade for cover-up') extraHtml = ' (Artist follow-up required)';
+                goalHtml += `<label><input type="checkbox" class="tattoo-goal" data-id="${tattoo.id}" value="${opt}" ${checked}> ${opt}${extraHtml}</label>`;
+            });
 
-            // ---- Standard laser settings ----
+            // Laser settings
             const standardLasers = [
                 { value: 'Micro-blade brow: Enlighten 1064, 8mm, 0.5-1j, ps, 1-3hz', label: 'Micro-blade brow: Enlighten 1064, 8mm, 0.5-1j, ps, 1-3hz' },
                 { value: 'Black/Grey/Dark Blue: Enlighten 1064, 8mm, 1-1.1j, ps, 5-10hz OR Pico 755, 6-5mm', label: 'Black/Grey/Dark Blue: Enlighten 1064, 8mm, 1-1.1j, ps, 5-10hz OR Pico 755, 6-5mm' },
@@ -415,11 +437,9 @@
                 const checked = tattoo.laserSetting === opt.value ? 'checked' : '';
                 laserHtml += `<label><input type="radio" class="tattoo-laser-setting" data-id="${tattoo.id}" name="laser_${tattoo.id}" value="${opt.value}" ${checked}> ${opt.label}</label>`;
             });
-            // Extra "Red/Orange/Other" radio
             const redChecked = tattoo.laserSetting === 'Red/Pink/Orange/Other (Dr. Shah approval)' ? 'checked' : '';
             laserHtml += `<label><input type="radio" class="tattoo-laser-setting-red" data-id="${tattoo.id}" name="laser_${tattoo.id}" value="Red/Pink/Orange/Other (Dr. Shah approval)" ${redChecked}> Red/Pink/Orange/Other colours (Dr. Shah approval)</label>`;
 
-            // ---- Conditional prior details field ----
             const showPriorDetails = !tattoo.priorTypes.includes('None') && tattoo.priorTypes.length > 0;
 
             const card = document.createElement('div');
@@ -450,13 +470,13 @@
                         <label><input type="radio" class="tattoo-circum" data-id="${tattoo.id}" name="circum_${tattoo.id}" value="Not circumferential" ${tattoo.circumferential === 'Not circumferential' ? 'checked' : ''}> Not circumferential</label>
                         <label><input type="radio" class="tattoo-circum" data-id="${tattoo.id}" name="circum_${tattoo.id}" value="Circumferential" ${tattoo.circumferential === 'Circumferential' ? 'checked' : ''}> Circumferential</label>
                     </div>
-                    <div class="inline-note">The area may need to be treated in stages, as treating it all at once could affect blood circulation.</div>
+                    <div class="circumferential-note">The area may need to be treated in stages, as treating it all at once could affect blood circulation.</div>
                 </div>
                 <div class="question-field">
-                    <label>Tanning in last 4 weeks?</label>
+                    <label>Active tanning?</label>
                     <div class="radio-group">
-                        <label><input type="radio" class="tattoo-tanning" data-id="${tattoo.id}" name="tanning_${tattoo.id}" value="No" ${tattoo.tanningLast4weeks === 'No' ? 'checked' : ''}> No</label>
-                        <label><input type="radio" class="tattoo-tanning" data-id="${tattoo.id}" name="tanning_${tattoo.id}" value="Yes" ${tattoo.tanningLast4weeks === 'Yes' ? 'checked' : ''}> Yes <span style="font-size:0.7rem; color:#d9534f;">(Treatment needs to be postponed to avoid potential skin damage.)</span></label>
+                        <label><input type="radio" class="tattoo-tanning" data-id="${tattoo.id}" name="tanning_${tattoo.id}" value="No active tanning" ${tattoo.tanningStatus === 'No active tanning' ? 'checked' : ''}> No active tanning</label>
+                        <label><input type="radio" class="tattoo-tanning" data-id="${tattoo.id}" name="tanning_${tattoo.id}" value="Active tanning" ${tattoo.tanningStatus === 'Active tanning' ? 'checked' : ''}> Active tanning <span style="font-size:0.7rem; color:#d9534f;">(Treatment needs to be postponed to avoid potential skin damage.)</span></label>
                     </div>
                 </div>
 
@@ -472,11 +492,8 @@
 
                 <div class="subgroup-title">🎯 Patient Goal</div>
                 <div class="question-field">
-                    <div class="radio-group">
-                        <label><input type="radio" class="tattoo-goal" data-id="${tattoo.id}" name="goal_${tattoo.id}" value="Totally Remove" ${goalChecked('Totally Remove')}> Totally Remove</label>
-                        <label><input type="radio" class="tattoo-goal" data-id="${tattoo.id}" name="goal_${tattoo.id}" value="Partly remove" ${goalChecked('Partly remove')}> Partly remove <span style="font-size:0.7rem; color:#7c9aa8;">(A completely clean edge cannot be guaranteed)</span></label>
-                        <label><input type="radio" class="tattoo-goal" data-id="${tattoo.id}" name="goal_${tattoo.id}" value="Fade for cover-up" ${goalChecked('Fade for cover-up')}> Fade for cover-up (Artist follow-up required)</label>
-                    </div>
+                    <label>Select all that apply</label>
+                    <div class="checkbox-group">${goalHtml}</div>
                 </div>
 
                 <div class="subgroup-title">🩺 Physical Check (for this tattoo)</div>
@@ -498,7 +515,7 @@
                     <label>Red/Pink/Orange/Other colours - special parameters (Dr. Shah approval required):</label>
                     <textarea class="tattoo-red-custom" data-id="${tattoo.id}" rows="2">${escapeHtml(tattoo.redCustom)}</textarea>
                 </div>
-                <div class="helper-note">✏️ Standard protocol auto-updates with colour selection. Custom Red/Orange/Other parameter box appears when selected.</div>
+                <div class="helper-note">✏️ Select a protocol above. The red/orange/other option shows a custom parameter box.</div>
             `;
             container.appendChild(card);
         });
@@ -516,29 +533,25 @@
         const container = document.getElementById('tattoosContainer');
         if (!container) return;
 
-        function toggleOtherText(target, otherInputClass) {
-            const card = target.closest('.tattoo-card');
-            if (!card) return;
+        function toggleOtherText(card, isChecked, otherInputClass) {
             const otherInput = card.querySelector(`.${otherInputClass}`);
-            if (otherInput) otherInput.style.display = target.checked && target.value === 'Other' ? 'block' : 'none';
+            if (otherInput) otherInput.style.display = isChecked ? 'block' : 'none';
         }
 
-        function updateLaserSetting(tattooId) {
+        function updateTextureWarning(tattooId) {
             const tattoo = tattoos.find(t => t.id === tattooId);
             if (!tattoo) return;
-            if (!tattoo.laserSetting || tattoo.laserSetting === 'Red/Pink/Orange/Other (Dr. Shah approval)') return;
-            const newSetting = getLaserFromColours(tattoo.colours);
-            tattoo.laserSetting = newSetting;
-            const card = document.querySelector(`.tattoo-card[data-id="${tattooId}"]`);
-            if (card) {
-                const radioGroup = card.querySelector(`.radio-group[id^="laser-group"]`);
-                if (radioGroup) {
-                    const radios = radioGroup.querySelectorAll('input[type="radio"]');
-                    radios.forEach(radio => {
-                        if (radio.value === newSetting) radio.checked = true;
-                    });
-                }
-            }
+            const showWarning = tattoo.physicalFindings.includes('Rough texture') || tattoo.physicalFindings.includes('Raised ink') || tattoo.physicalFindings.includes('Other');
+            const warningDiv = document.getElementById(`texture-warning-${tattooId}`);
+            if (warningDiv) warningDiv.style.display = showWarning ? 'block' : 'none';
+        }
+
+        function updateAvoidNote(tattooId) {
+            const tattoo = tattoos.find(t => t.id === tattooId);
+            if (!tattoo) return;
+            const hasNonNormal = tattoo.skinIssues.some(s => s !== 'Skin appears normal with no lesions or abnormalities');
+            const avoidNote = document.getElementById(`avoid-note-${tattooId}`);
+            if (avoidNote) avoidNote.style.display = hasNonNormal ? 'block' : 'none';
         }
 
         function handlePriorTypeChange(tattooId) {
@@ -554,76 +567,60 @@
             const tattooId = parseInt(target.dataset.id);
             const tattoo = tattoos.find(t => t.id === tattooId);
             if (!tattoo) return;
+            const card = target.closest('.tattoo-card');
 
             if (target.classList.contains('tattoo-colour')) {
                 const val = target.value;
                 if (target.checked) { if (!tattoo.colours.includes(val)) tattoo.colours.push(val); }
                 else { tattoo.colours = tattoo.colours.filter(c => c !== val); }
-                toggleOtherText(target, 'colour-other-text');
-                updateLaserSetting(tattooId);
+                if (val === 'Other') toggleOtherText(card, target.checked, 'colour-other-text');
             }
             else if (target.classList.contains('tattoo-physical-findings')) {
                 const val = target.value;
-                if (val === 'None' && target.checked) {
-                    tattoo.physicalFindings = ['None'];
-                    const card = target.closest('.tattoo-card');
-                    if (card) {
-                        card.querySelectorAll('.tattoo-physical-findings').forEach(cb => {
-                            if (cb.value !== 'None') cb.checked = false;
-                        });
-                    }
-                } else if (val !== 'None' && target.checked) {
-                    if (tattoo.physicalFindings.includes('None')) {
-                        tattoo.physicalFindings = tattoo.physicalFindings.filter(f => f !== 'None');
-                        const card = target.closest('.tattoo-card');
-                        if (card) {
-                            const noneCb = card.querySelector('.tattoo-physical-findings[value="None"]');
-                            if (noneCb) noneCb.checked = false;
-                        }
-                    }
-                    if (!tattoo.physicalFindings.includes(val)) tattoo.physicalFindings.push(val);
-                } else if (!target.checked) {
-                    tattoo.physicalFindings = tattoo.physicalFindings.filter(f => f !== val);
-                }
+                if (target.checked) { if (!tattoo.physicalFindings.includes(val)) tattoo.physicalFindings.push(val); }
+                else { tattoo.physicalFindings = tattoo.physicalFindings.filter(f => f !== val); }
+                if (val === 'Other') toggleOtherText(card, target.checked, 'physical-other-text');
+                updateTextureWarning(tattooId);
+            }
+            else if (target.classList.contains('tattoo-physical-other')) {
+                const val = 'Other';
+                if (target.checked) { if (!tattoo.physicalFindings.includes(val)) tattoo.physicalFindings.push(val); }
+                else { tattoo.physicalFindings = tattoo.physicalFindings.filter(f => f !== val); }
+                toggleOtherText(card, target.checked, 'physical-other-text');
+                updateTextureWarning(tattooId);
             }
             else if (target.classList.contains('tattoo-skin-issues')) {
                 const val = target.value;
-                if (val === 'None' && target.checked) {
-                    tattoo.skinIssues = ['None'];
-                    const card = target.closest('.tattoo-card');
-                    if (card) {
-                        card.querySelectorAll('.tattoo-skin-issues').forEach(cb => {
-                            if (cb.value !== 'None') cb.checked = false;
-                        });
-                    }
-                } else if (val !== 'None' && target.checked) {
-                    if (tattoo.skinIssues.includes('None')) {
-                        tattoo.skinIssues = tattoo.skinIssues.filter(i => i !== 'None');
-                        const card = target.closest('.tattoo-card');
-                        if (card) {
-                            const noneCb = card.querySelector('.tattoo-skin-issues[value="None"]');
-                            if (noneCb) noneCb.checked = false;
-                        }
-                    }
-                    if (!tattoo.skinIssues.includes(val)) tattoo.skinIssues.push(val);
-                } else if (!target.checked) {
-                    tattoo.skinIssues = tattoo.skinIssues.filter(i => i !== val);
-                }
+                if (target.checked) { if (!tattoo.skinIssues.includes(val)) tattoo.skinIssues.push(val); }
+                else { tattoo.skinIssues = tattoo.skinIssues.filter(i => i !== val); }
+                updateAvoidNote(tattooId);
+            }
+            else if (target.classList.contains('tattoo-skin-other')) {
+                const val = 'Other';
+                if (target.checked) { if (!tattoo.skinIssues.includes(val)) tattoo.skinIssues.push(val); }
+                else { tattoo.skinIssues = tattoo.skinIssues.filter(i => i !== val); }
+                toggleOtherText(card, target.checked, 'skin-other-text');
+                updateAvoidNote(tattooId);
+            }
+            else if (target.classList.contains('tattoo-goal')) {
+                const val = target.value;
+                if (target.checked) { if (!tattoo.goals.includes(val)) tattoo.goals.push(val); }
+                else { tattoo.goals = tattoo.goals.filter(g => g !== val); }
             }
             else if (target.classList.contains('tattoo-inktype') || target.classList.contains('tattoo-inktype-other')) {
                 const val = target.value;
                 if (target.checked) { if (!tattoo.inkTypes.includes(val)) tattoo.inkTypes.push(val); }
                 else { tattoo.inkTypes = tattoo.inkTypes.filter(t => t !== val); }
-                if (target.classList.contains('tattoo-inktype-other')) toggleOtherText(target, 'inktype-other-text');
+                if (target.classList.contains('tattoo-inktype-other')) toggleOtherText(card, target.checked, 'inktype-other-text');
             }
             else if (target.classList.contains('tattoo-prior-type')) {
                 const val = target.value;
                 if (val === 'None') {
                     if (target.checked) {
                         tattoo.priorTypes = ['None'];
-                        const card = target.closest('.tattoo-card');
-                        if (card) {
-                            card.querySelectorAll('.tattoo-prior-type').forEach(cb => {
+                        const cardEl = target.closest('.tattoo-card');
+                        if (cardEl) {
+                            cardEl.querySelectorAll('.tattoo-prior-type').forEach(cb => {
                                 if (cb.value !== 'None') cb.checked = false;
                             });
                         }
@@ -634,9 +631,9 @@
                     if (target.checked) {
                         if (tattoo.priorTypes.includes('None')) {
                             tattoo.priorTypes = tattoo.priorTypes.filter(t => t !== 'None');
-                            const card = target.closest('.tattoo-card');
-                            if (card) {
-                                const noneCb = card.querySelector('.tattoo-prior-type[value="None"]');
+                            const cardEl = target.closest('.tattoo-card');
+                            if (cardEl) {
+                                const noneCb = cardEl.querySelector('.tattoo-prior-type[value="None"]');
                                 if (noneCb) noneCb.checked = false;
                             }
                         }
@@ -648,12 +645,11 @@
                 handlePriorTypeChange(tattooId);
             }
             else if (target.classList.contains('tattoo-circum')) tattoo.circumferential = target.value;
-            else if (target.classList.contains('tattoo-tanning')) tattoo.tanningLast4weeks = target.value;
-            else if (target.classList.contains('tattoo-goal')) tattoo.goal = target.value;
+            else if (target.classList.contains('tattoo-tanning')) tattoo.tanningStatus = target.value;
             else if (target.classList.contains('tattoo-laser-setting')) {
                 tattoo.laserSetting = target.value;
                 const redCustomField = document.getElementById(`red-laser-custom-${tattooId}`);
-                if (redCustomField) redCustomField.style.display = target.value === 'Red/Pink/Orange/Other (Dr. Shah approval)' ? 'block' : 'none';
+                if (redCustomField) redCustomField.style.display = 'none';
             }
             else if (target.classList.contains('tattoo-laser-setting-red')) {
                 tattoo.laserSetting = target.value;
@@ -695,15 +691,15 @@
             inkTypes: ['Professional ink'],
             inkTypeOtherText: '',
             circumferential: 'Not circumferential',
-            tanningLast4weeks: 'No',
+            tanningStatus: 'No active tanning',
             priorTypes: ['None'],
             priorDetail: 'Pico in other clinic, 3 sessions, last TX 3 years ago, Faded',
-            goal: 'Totally Remove',
-            physicalFindings: ['None'],
+            goals: ['Totally Remove'],
+            physicalFindings: ['Smooth texture, ink is not raised'],
             physicalOtherText: '',
-            skinIssues: ['None'],
+            skinIssues: ['Skin appears normal with no lesions or abnormalities'],
             skinOtherText: '',
-            laserSetting: 'Micro-blade brow: Enlighten 1064, 8mm, 0.5-1j, ps, 1-3hz',
+            laserSetting: '',
             redCustom: 'Enlighten 532, 8mm, <0.5j, ps, max 5hz'
         });
         renderTattoos();
@@ -712,82 +708,116 @@
     function getSharedData() {
         const skinType = document.querySelector('input[name="global_skin_type"]:checked')?.value || 'Type VI (requires Dr. Shah approval)';
         const quoteValues = getCheckboxValues('quote_group', 'quote_other_text');
-        const careUrl = document.getElementById('care_url')?.value.trim() || '';
-        return { skinType, quotes: quoteValues.join(', '), careUrl };
+        // Get PT confirmation
+        const ptConfirmation = document.querySelector('input[name="pt_confirmation"]:checked')?.value;
+        let ptQuestionText = '';
+        if (ptConfirmation === 'has_question') {
+            ptQuestionText = document.getElementById('pt_question_text')?.value.trim() || '';
+        }
+        return { skinType, quotes: quoteValues.join(', '), ptConfirmation, ptQuestionText };
     }
 
     function generateClinicNote() {
         const shared = getSharedData();
         const now = new Date();
         const dateTime = `${now.toLocaleDateString('en-US')} ${now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'})}`;
-        let note = `================================================================================\n`;
+        let note = `\n`;
         note += `LASER TATTOO REMOVAL – CLINICAL NOTE\n`;
-        note += `================================================================================\n`;
+        note += `\n`;
         note += `Date: ${dateTime}\n`;
         note += `Provider: Laser Clinic\n\n`;
 
         for (let t of tattoos) {
             const letter = getTattooLetter(t.index);
-            note += `-------------------------------------------------------------------------------\n`;
+            note += `\n`;
             note += `TATTOO ${letter}\n`;
-            note += `-------------------------------------------------------------------------------\n`;
-            let infoLine = `${t.location || '?'}`;
-            if (t.colours.length && !(t.colours.length === 1 && t.colours[0] === 'Black')) infoLine += `, colours: ${t.colours.join('/')}`;
-            if (t.inkTypes.length && !(t.inkTypes.length === 1 && t.inkTypes[0] === 'Professional ink')) infoLine += `, ink: ${t.inkTypes.join('/')}`;
-            if (t.circumferential) infoLine += `, ${t.circumferential}`;
-            if (t.circumferential === 'Circumferential') infoLine += ` (may need staged treatment)`;
-            infoLine += `, tanning last 4 weeks: ${t.tanningLast4weeks || '?'}`;
-            if (t.tanningLast4weeks === 'Yes') infoLine += ` → POSTPONE TREATMENT`;
-            note += `- Tattoo info: ${infoLine}\n`;
-
+            note += `\n`;
+            
+            // Location
+            let infoLine = `${t.location || 'Not specified'}`;
+            note += `- Location & Pattern: ${infoLine}\n`;
+            
+            // Colours - always show
+            let coloursText = t.colours.length ? t.colours.join(', ') : 'None';
+            note += `- Colours: ${coloursText}\n`;
+            
+            // Ink type - always show
+            let inkText = t.inkTypes.length ? t.inkTypes.join(', ') : 'None';
+            note += `- Ink type: ${inkText}\n`;
+            
+            // Circumferential
+            note += `- Circumferential: ${t.circumferential || 'Not specified'}\n`;
+            
+            // Tanning
+            note += `- Active tanning: ${t.tanningStatus === 'Active tanning' ? 'Yes (Treatment needs to be postponed)' : 'No'}\n`;
+            
+            // Prior Sessions
             const hasPrior = !t.priorTypes.includes('None') && t.priorTypes.length > 0;
-            if (hasPrior && t.priorDetail) {
-                note += `- Prior sessions: ${t.priorTypes.join('/')} (${t.priorDetail})\n`;
-            } else if (hasPrior) {
-                note += `- Prior sessions: ${t.priorTypes.join('/')}\n`;
+            if (hasPrior) {
+                note += `- Prior session type: ${t.priorTypes.join(', ')}\n`;
+                if (t.priorDetail && t.priorDetail.trim() !== '') {
+                    note += `- Prior session details: ${t.priorDetail}\n`;
+                }
+            } else {
+                note += `- Prior sessions: None\n`;
             }
-
-            let goalText = t.goal || '[not specified]';
-            if (t.goal === 'Partly remove') goalText += ' (A completely clean edge cannot be guaranteed)';
-            note += `- Patient goal: ${goalText}\n`;
-
-            let physLine = t.physicalFindings.length ? t.physicalFindings.filter(f => f !== 'None').join(', ') : '';
-            if (t.physicalOtherText) physLine += (physLine ? ', ' : '') + t.physicalOtherText;
-            let skinLine = t.skinIssues.length ? t.skinIssues.filter(s => s !== 'None').join(', ') : '';
-            if (t.skinOtherText) skinLine += (skinLine ? ', ' : '') + t.skinOtherText;
-            if (skinLine) physLine += (physLine ? '; ' : '') + skinLine + ' (these areas will be avoided)';
-            note += `- Physical check: ${physLine || 'No significant findings'}\n`;
-
+            
+            // Patient Goals
+            let goalsText = t.goals.length ? t.goals.join(', ') : 'Not specified';
+            if (t.goals.includes('Partly remove')) goalsText = goalsText.replace('Partly remove', 'Partly remove (A completely clean edge cannot be guaranteed)');
+            if (t.goals.includes('Fade for cover-up')) goalsText = goalsText.replace('Fade for cover-up', 'Fade for cover-up (Artist follow-up required)');
+            note += `- Patient goal: ${goalsText}\n`;
+            
+            // Physical Findings
+            let findingsText = t.physicalFindings.length ? t.physicalFindings.join(', ') : 'None';
+            if (t.physicalOtherText) findingsText += (findingsText !== 'None' ? ', ' : '') + t.physicalOtherText;
+            note += `- Findings: ${findingsText}\n`;
+            
+            // Skin findings
+            let skinFindingsText = t.skinIssues.length ? t.skinIssues.join(', ') : 'None';
+            if (t.skinOtherText) skinFindingsText += (skinFindingsText !== 'None' ? ', ' : '') + t.skinOtherText;
+            let avoidNote = '';
+            const hasAbnormal = t.skinIssues.some(s => s !== 'Skin appears normal with no lesions or abnormalities');
+            if (hasAbnormal && skinFindingsText !== 'Skin appears normal with no lesions or abnormalities') {
+                avoidNote = ' (Areas with skin lesions or abnormalities will be avoided)';
+            }
+            note += `- Skin findings in area: ${skinFindingsText}${avoidNote}\n`;
+            
+            // Laser settings
             if (t.laserSetting === 'Red/Pink/Orange/Other (Dr. Shah approval)') {
                 const customParam = t.redCustom && t.redCustom.trim() ? t.redCustom : 'Enlighten 532, 8mm, <0.5j, ps, max 5hz';
                 note += `- Laser settings & approvals: Red/Pink/Orange/Other colours — ${customParam} (Dr. Shah approval required)\n`;
+            } else if (t.laserSetting) {
+                note += `- Laser settings & approvals: ${t.laserSetting}\n`;
             } else {
-                note += `- Laser settings & approvals: ${t.laserSetting || '[N/A]'}\n`;
+                note += `- Laser settings & approvals: Not selected\n`;
             }
             note += `\n`;
         }
 
-        note += `-------------------------------------------------------------------------------\n`;
+        note += `\n`;
         note += `SHARED INFORMATION (applies to all tattoos)\n`;
-        note += `-------------------------------------------------------------------------------\n`;
+        note += `\n`;
         note += `1. Multiple treatments required, typically every 8–12 weeks (number cannot be predicted)\n`;
         note += `2. Tattoo pigment may change in color and gradually fade over time until fully removed\n`;
         note += `3. Procedure: Pre-ice 10min, optional numbing (extra charge), cold air, post-ice 10min, Polysporin, avoid sun\n`;
         note += `4. Blister management: do not pop, in-clinic drainage available\n`;
-        if (shared.careUrl) note += `5. Pre- and post-care instructions: ${shared.careUrl}\n`;
-        else note += `5. Pre- and post-care instructions reviewed\n`;
+        note += `5. Pre- and post-care instructions reviewed and given.\n`;
         note += `- Skin type: ${shared.skinType}\n`;
-        note += `- Quote provided: ${shared.quotes || 'None specified'}\n\n`;
-
-        note += `-------------------------------------------------------------------------------\n`;
-        note += `PLAN\n`;
-        note += `-------------------------------------------------------------------------------\n`;
-        note += `- Treat per tattoo settings; obtain Dr. Shah approval where required (red/orange/other colours, skin type V/VI).\n`;
-        note += `- Treat every 8–12 weeks.\n`;
-        note += `- Polysporin + Sun protection.\n`;
-        note += `- Coordinate with cover-up artist if applicable.\n`;
-        note += `- Signed consent + photos on file.\n`;
-        note += `================================================================================\n`;
+        note += `- Quote provided: ${shared.quotes || 'None specified'}\n`;
+        note += `\n`;
+        
+        // Add patient questions section
+        note += `PATIENT QUESTIONS & CONFIRMATION\n`;
+        note += `\n`;
+        if (shared.ptConfirmation === 'has_question') {
+            const questionText = shared.ptQuestionText || '[No question entered]';
+            note += `- PT's question: ${questionText}\n`;
+        } else {
+            note += `- PT got no further questions.\n`;
+        }
+        note += `\n`;
+        
         return note;
     }
 
@@ -841,6 +871,7 @@
     }
 
     function init() {
+        // Quote other checkbox
         const quoteOtherCheckbox = document.querySelector('.quote-other-checkbox');
         const quoteOtherText = document.getElementById('quote_other_text');
         if (quoteOtherCheckbox && quoteOtherText) {
@@ -848,6 +879,23 @@
                 quoteOtherText.style.display = e.target.checked ? 'block' : 'none';
             });
         }
+        
+        // PT confirmation radio and textarea
+        const radioNoQuestion = document.querySelector('input[name="pt_confirmation"][value="no_questions"]');
+        const radioHasQuestion = document.querySelector('input[name="pt_confirmation"][value="has_question"]');
+        const ptQuestionTextarea = document.getElementById('pt_question_text');
+        
+        if (radioNoQuestion && radioHasQuestion && ptQuestionTextarea) {
+            radioNoQuestion.addEventListener('change', () => {
+                ptQuestionTextarea.style.display = 'none';
+            });
+            radioHasQuestion.addEventListener('change', () => {
+                ptQuestionTextarea.style.display = 'block';
+            });
+            // Initial state
+            ptQuestionTextarea.style.display = radioHasQuestion.checked ? 'block' : 'none';
+        }
+        
         tattoos = [{
             id: Date.now() + 1,
             index: 1,
@@ -858,15 +906,15 @@
             inkTypes: ['Professional ink'],
             inkTypeOtherText: '',
             circumferential: 'Not circumferential',
-            tanningLast4weeks: 'No',
+            tanningStatus: 'No active tanning',
             priorTypes: ['None'],
             priorDetail: 'Pico in other clinic, 3 sessions, last TX 3 years ago, Faded',
-            goal: 'Totally Remove',
-            physicalFindings: ['None'],
+            goals: ['Totally Remove'],
+            physicalFindings: ['Smooth texture, ink is not raised'],
             physicalOtherText: '',
-            skinIssues: ['None'],
+            skinIssues: ['Skin appears normal with no lesions or abnormalities'],
             skinOtherText: '',
-            laserSetting: 'Micro-blade brow: Enlighten 1064, 8mm, 0.5-1j, ps, 1-3hz',
+            laserSetting: '',
             redCustom: 'Enlighten 532, 8mm, <0.5j, ps, max 5hz'
         }];
         renderTattoos();
