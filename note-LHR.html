@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Laser Hair Removal | Clinical Intake & Note</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #eef2f5;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 24px 16px;
+            color: #1e2f3a;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(105deg, #1a3f4f 0%, #1f5a6b 100%);
+            padding: 18px 28px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header h1::before {
+            content: "⚡";
+            font-size: 1.7rem;
+        }
+
+        .header p {
+            margin-top: 6px;
+            opacity: 0.85;
+            font-size: 0.8rem;
+        }
+
+        .questions-area {
+            padding: 20px 24px 16px 24px;
+            background: #ffffff;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1c5a6e;
+            margin: 0.8rem 0 0.5rem 0;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #cbe4ed;
+            display: inline-block;
+        }
+
+        .area-card {
+            background: #fefefe;
+            border-radius: 24px;
+            margin-bottom: 32px;
+            padding: 18px 22px;
+            border: 1px solid #dce9ef;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .area-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #cbe0e8;
+        }
+
+        .area-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1f6d6a;
+            background: #e3f3f0;
+            padding: 4px 18px;
+            border-radius: 40px;
+        }
+
+        .remove-area-btn {
+            background: #ffe3e0;
+            border: none;
+            color: #bc5a4c;
+            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 6px 14px;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+
+        .subgroup-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #2b6c7e;
+            margin: 14px 0 8px 0;
+            background: #eef6f9;
+            padding: 3px 14px;
+            border-radius: 40px;
+            display: inline-block;
+        }
+
+        .question-field {
+            margin-bottom: 14px;
+        }
+
+        .question-field label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1f5567;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid #cfdfe7;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            background: #fff;
+            resize: vertical;
+        }
+
+        .checkbox-group, .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .checkbox-group label, .radio-group label {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: normal;
+            font-size: 0.8rem;
+            color: #2c5a6e;
+            cursor: pointer;
+        }
+
+        .inline-note, .hormonal-warning {
+            font-size: 0.7rem;
+            color: #7c9aa8;
+            margin-top: 4px;
+        }
+
+        .hormonal-warning {
+            color: #d9534f;
+            display: none;
+        }
+
+        .helper-note {
+            margin-top: 4px;
+            font-size: 0.65rem;
+            color: #7c9aa8;
+            text-align: right;
+        }
+
+        .add-area-btn {
+            background: #eef2f5;
+            border: 2px dashed #659eb0;
+            padding: 12px 20px;
+            border-radius: 60px;
+            width: 100%;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #226e7a;
+            cursor: pointer;
+            margin: 12px 0 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .action-bar {
+            padding: 12px 24px 28px 24px;
+            background: #ffffff;
+            border-top: 1px solid #e2ecf0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .print-btn {
+            background: #1c6d5e;
+            border: none;
+            padding: 10px 32px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        footer {
+            background: #f6fafc;
+            padding: 10px 24px;
+            text-align: center;
+            font-size: 0.65rem;
+            color: #6e8b9b;
+            border-top: 1px solid #e0ecf2;
+        }
+
+        .hidden-export {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            width: 900px;
+            background: white;
+            padding: 30px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            z-index: -1;
+        }
+
+        .conditional-field {
+            margin-top: 8px;
+            display: none;
+        }
+
+        .skin-avoid-note {
+            font-size: 0.7rem;
+            color: #7c9aa8;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .quote-preview {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .quote-thumb {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid #cfdfe7;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .quote-thumb:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .quote-link {
+            font-size: 0.8rem;
+            color: #1c6d5e;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Laser Hair Removal · Clinical Intake</h1>
+        <p>Multiple areas | Full patient history | Reference pricing image</p>
+    </div>
+
+    <div class="questions-area" id="questionsArea">
+        <div id="areasContainer"></div>
+        <button id="addAreaBtn" class="add-area-btn">➕ Add a new area</button>
+
+        <!-- SHARED INFORMATION - 序号已改为连续的 1-13 -->
+        <div class="section-title">📋 SHARED INFORMATION (applies to all areas)</div>
+        <div class="question-card" style="border:1px solid #e2ecf0; border-radius:20px; padding:16px; margin-top:12px; background:#fafefc;">
+
+            <!-- 1. Ethnic Background -->
+            <div class="question-field">
+                <label>1. Ethnic Background:</label>
+                <div class="radio-group" id="ethnic_group">
+                    <label><input type="radio" name="ethnic" value="Caucasian (Fitzpatrick I-III)" checked> Caucasian (Fitzpatrick I-III)</label>
+                    <label><input type="radio" name="ethnic" value="African (Fitzpatrick V-VI)"> African (Fitzpatrick V-VI)</label>
+                    <label><input type="radio" name="ethnic" value="Asian (Fitzpatrick IV-V)"> Asian (Fitzpatrick IV-V)</label>
+                    <label><input type="radio" name="ethnic" value="Hispanic/Latino Skin (Fitzpatrick III-V)"> Hispanic/Latino Skin (Fitzpatrick III-V)</label>
+                    <label><input type="radio" name="ethnic" value="Middle Eastern/Mediterranean Skin (Fitzpatrick III-IV)"> Middle Eastern/Mediterranean Skin (Fitzpatrick III-IV)</label>
+                </div>
+            </div>
+
+            <!-- 2. Skin Type -->
+            <div class="question-field">
+                <label>2. Skin type (Fitzpatrick) - from VI to I</label>
+                <div class="radio-group" id="global_skin_type_group">
+                    <label><input type="radio" name="global_skin_type" value="Type VI" checked> Type VI</label>
+                    <label><input type="radio" name="global_skin_type" value="Type V"> Type V</label>
+                    <label><input type="radio" name="global_skin_type" value="Type IV"> Type IV</label>
+                    <label><input type="radio" name="global_skin_type" value="Type III"> Type III</label>
+                    <label><input type="radio" name="global_skin_type" value="Type II"> Type II</label>
+                    <label><input type="radio" name="global_skin_type" value="Type I"> Type I</label>
+                </div>
+            </div>
+
+            <!-- 3. Medical Conditions -->
+            <div class="question-field">
+                <label>3. Medical Conditions:</label>
+                <div class="radio-group" id="medical_group">
+                    <label><input type="radio" name="medical_condition" value="No Medical Conditions" checked> No Medical Conditions</label>
+                    <label><input type="radio" name="medical_condition" value="Medical Condition"> Medical Condition:</label>
+                </div>
+                <textarea id="medical_condition_text" rows="2" placeholder="Please specify medical condition(s)" style="margin-top:8px; width:100%; display:none;"></textarea>
+            </div>
+
+            <!-- 4. Medications -->
+            <div class="question-field">
+                <label>4. Medications:</label>
+                <div class="radio-group" id="medication_group">
+                    <label><input type="radio" name="medication" value="No Medication" checked> No Medication</label>
+                    <label><input type="radio" name="medication" value="Light sensitive medications"> Light sensitive medications:</label>
+                </div>
+                <textarea id="medication_text" rows="2" placeholder="Oral Steroid, Antibiotic" style="margin-top:8px; width:100%; display:none;">Oral Steroid, Antibiotic</textarea>
+            </div>
+
+            <!-- 5. Allergies -->
+            <div class="question-field">
+                <label>5. Allergies:</label>
+                <div class="radio-group" id="allergy_group">
+                    <label><input type="radio" name="allergy" value="NKDA" checked> NKDA</label>
+                    <label><input type="radio" name="allergy" value="Allergic to"> Allergic to:</label>
+                </div>
+                <textarea id="allergy_text" rows="2" placeholder="Please specify allergies" style="margin-top:8px; width:100%; display:none;"></textarea>
+            </div>
+
+            <!-- 6. Hormonal Imbalance -->
+            <div class="question-field">
+                <label>6. Hormonal Imbalance:</label>
+                <div class="radio-group" id="hormonal_group">
+                    <label><input type="radio" name="hormonal" value="No PCOS or other Hormonal Imbalance" checked> No PCOS or other Hormonal Imbalance</label>
+                    <label><input type="radio" name="hormonal" value="PCOS"> PCOS</label>
+                    <label><input type="radio" name="hormonal" value="undergoing Hormonal Changes"> undergoing Hormonal Changes</label>
+                    <label><input type="radio" name="hormonal" value="Other"> Other</label>
+                </div>
+                <textarea id="hormonal_other_text" rows="2" placeholder="Please specify hormonal condition" style="margin-top:8px; width:100%; display:none;"></textarea>
+                <div class="hormonal-warning" id="hormonal-warning">⚠️ Hormonal imbalances may affect results; improvement may be slower and additional treatments may be required.</div>
+            </div>
+
+            <!-- 7. Ideal goal informed -->
+            <div style="font-size:0.85rem; line-height:1.5; color:#1f5567;">
+                <p><strong>7.</strong> Ideal goal informed: 8-10 TX with 70–80% hair reduction.</p>
+            </div>
+
+            <!-- 8. Risk of Paradoxical Hair Growth -->
+            <div style="font-size:0.85rem; line-height:1.5; color:#1f5567;">
+                <p><strong>8.</strong> Risk of Paradoxical Hair Growth (Rare) informed.</p>
+            </div>
+
+            <!-- 9. Treatment instructions -->
+            <div style="font-size:0.85rem; line-height:1.5; color:#1f5567;">
+                <p><strong>9.</strong> Treatment instructions:</p>
+                <ul style="margin-left:24px; margin-top:4px; margin-bottom:8px;">
+                    <li>Do not apply creams or lotions on the treatment day (SPF on the face is allowed)</li>
+                    <li>Treatment area will be marked and photos taken for documentation</li>
+                    <li>Laser treatment performed with cooling system</li>
+                    <li>Post-treatment icing: 10 minutes</li>
+                    <li>Apply sunscreen or cover the area with clothing</li>
+                    <li>Avoid sun exposure</li>
+                </ul>
+            </div>
+
+            <!-- 10. Blister management -->
+            <div style="font-size:0.85rem; line-height:1.5; color:#1f5567;">
+                <p><strong>10.</strong> If blistering occurs, do not pop, apply polysporin. Take photo and text to clinic, in-clinic drainage will be arranged if necessary.</p>
+            </div>
+
+            <!-- 11. Pre- and post-care instructions (超链接) -->
+            <div style="font-size:0.85rem; line-height:1.5; color:#1f5567; margin-bottom: 12px;">
+                <strong>11.</strong> <a href="https://mia-technician.github.io/skincare/prepost.html" target="_blank" style="color:#1c6d5e; text-decoration:underline;">Pre- and post-care instructions reviewed and given</a>
+            </div>
+
+            <!-- 12. Quote provided + clickable thumbnail -->
+            <div class="question-field">
+                <label>12. Quote provided:</label>
+                <textarea id="quote_text" rows="2" style="width:100%; margin-bottom:8px;">Under arms: $95+tax/session</textarea>
+                <div class="quote-preview">
+                    <img id="quoteThumbnail" class="quote-thumb" 
+                         src="https://dmrskyskryrdclknezth.supabase.co/storage/v1/object/sign/note/LHR.jpeg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80Y2U0N2M0OS1lMTY2LTQ4ZjctOGVjZi1mZTcxN2ZkYzM1NmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJub3RlL0xIUi5qcGVnIiwiaWF0IjoxNzc3MTgzOTAxLCJleHAiOjMzNTM5ODM5MDF9.HVEts3gK8eI2SekxVRr2DVSSTicl5kk-Wmsg9ClIiJY"
+                         alt="Pricing reference" 
+                         onerror="this.style.display='none'">
+                    <span class="quote-link" style="cursor:pointer; color:#1c6d5e; text-decoration:underline;">Click image to open full pricing reference</span>
+                </div>
+            </div>
+
+            <!-- 13. PT Confirmation -->
+            <div class="question-field" style="margin-top:16px;">
+                <label>13. PT confirmation:</label>
+                <div class="radio-group" id="pt_confirmation_group">
+                    <label><input type="radio" name="pt_confirmation" value="no_questions" checked> PT got no further questions.</label>
+                    <label><input type="radio" name="pt_confirmation" value="has_question"> PT's question:</label>
+                </div>
+                <textarea id="pt_question_text" rows="3" placeholder="Please type the patient's question here..." style="margin-top:8px; width:100%; display:none;"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button class="print-btn" id="exportNoteBtn">📋 Generate Clinic Note (Copy/Export)</button>
+    </div>
+    <footer>Add multiple areas | Click the pricing image to enlarge reference.</footer>
+</div>
+<div id="exportTextContainer" class="hidden-export"></div>
+
+<script>
+    // --- Multi-area management ---
+    let areas = [];
+
+    function getAreaLetter(index) {
+        return String.fromCharCode(64 + index);
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function renderAreas() {
+        const container = document.getElementById('areasContainer');
+        if (!container) return;
+        container.innerHTML = '';
+        areas.forEach((area) => {
+            const letter = getAreaLetter(area.index);
+            // Skin findings checkboxes
+            const skinIssues = ['Skin appears normal with no lesions or abnormalities', 'Moles', 'Eczema', 'Herpes'];
+            let skinIssuesHtml = '';
+            skinIssues.forEach(issue => {
+                const checked = area.skinIssues.includes(issue) ? 'checked' : '';
+                skinIssuesHtml += `<label><input type="checkbox" class="area-skin-issues" data-id="${area.id}" value="${issue}" ${checked}> ${issue}</label>`;
+            });
+            skinIssuesHtml += `<label><input type="checkbox" class="area-skin-other" data-id="${area.id}" value="Other" ${area.skinIssues.includes('Other') ? 'checked' : ''}> Other</label>`;
+            skinIssuesHtml += `<input type="text" class="skin-other-text conditional-field" data-id="${area.id}" placeholder="Other skin finding" value="${escapeHtml(area.skinOtherText || '')}" style="${area.skinIssues.includes('Other') ? 'display:block' : 'display:none'}">`;
+            const showAvoidNote = area.skinIssues.some(s => s !== 'Skin appears normal with no lesions or abnormalities');
+            skinIssuesHtml += `<div class="skin-avoid-note" id="avoid-note-${area.id}" style="display: ${showAvoidNote ? 'block' : 'none'};">Areas with skin lesions or abnormalities will be avoided.</div>`;
+
+            // Prior type checkboxes
+            const priorTypesList = ['Laser', 'Waxing/Threading', 'Shaving', 'Others'];
+            let priorTypeHtml = '';
+            priorTypesList.forEach(type => {
+                const checked = area.priorTypes.includes(type) ? 'checked' : '';
+                priorTypeHtml += `<label><input type="checkbox" class="area-prior-type" data-id="${area.id}" value="${type}" ${checked}> ${type}</label>`;
+            });
+            priorTypeHtml += `<label><input type="checkbox" class="area-prior-type" data-id="${area.id}" value="None" ${area.priorTypes.includes('None') ? 'checked' : ''}> None</label>`;
+
+            const showPriorDetails = !area.priorTypes.includes('None') && area.priorTypes.length > 0;
+            const tanningChecked = (val) => area.tanningStatus === val ? 'checked' : '';
+
+            const card = document.createElement('div');
+            card.className = 'area-card';
+            card.dataset.id = area.id;
+            card.innerHTML = `
+                <div class="area-header">
+                    <span class="area-title">${letter} · ${area.name}</span>
+                    <button class="remove-area-btn" data-id="${area.id}">✖ Remove</button>
+                </div>
+                <div class="subgroup-title">📍 Area Information</div>
+                <div class="question-field">
+                    <label>Locations</label>
+                    <textarea class="area-location" data-id="${area.id}" rows="2">${escapeHtml(area.location)}</textarea>
+                </div>
+                <div class="question-field">
+                    <label>Active tanning?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" class="area-tanning" data-id="${area.id}" name="tanning_${area.id}" value="No active tanning" ${tanningChecked('No active tanning')}> No active tanning</label>
+                        <label><input type="radio" class="area-tanning" data-id="${area.id}" name="tanning_${area.id}" value="Active tanning" ${tanningChecked('Active tanning')}> Active tanning <span style="font-size:0.7rem; color:#d9534f;">(Treatment needs to be postponed to avoid potential skin damage.)</span></label>
+                    </div>
+                </div>
+                <div class="subgroup-title">🔹 Prior Hair Removal Sessions</div>
+                <div class="question-field">
+                    <label>Type of prior session (select all that apply)</label>
+                    <div class="checkbox-group" id="prior-group-${area.id}">${priorTypeHtml}</div>
+                </div>
+                <div class="question-field conditional-field" id="prior-detail-field-${area.id}" style="display: ${showPriorDetails ? 'block' : 'none'};">
+                    <label>Prior session details (type, number of sessions, last session time, effect)</label>
+                    <input type="text" class="area-prior-detail" data-id="${area.id}" value="${escapeHtml(area.priorDetail)}" placeholder="e.g., Laser, 6 sessions, last 2 months ago, good reduction">
+                </div>
+                <div class="subgroup-title">🩺 Skin Assessment</div>
+                <div class="question-field">
+                    <label>Skin findings in area</label>
+                    <div class="checkbox-group">${skinIssuesHtml}</div>
+                </div>
+                <div class="helper-note">✏️ Note any moles, eczema, herpes, or other findings.</div>
+            `;
+            container.appendChild(card);
+        });
+
+        attachAreaDelegation();
+        attachRemoveButtons();
+    }
+
+    function attachRemoveButtons() {
+        document.querySelectorAll('.remove-area-btn').forEach(btn => {
+            btn.removeEventListener('click', handleRemoveClick);
+            btn.addEventListener('click', handleRemoveClick);
+        });
+    }
+    function handleRemoveClick(e) {
+        const id = parseInt(e.currentTarget.dataset.id);
+        removeAreaById(id);
+    }
+    function removeAreaById(id) {
+        areas = areas.filter(a => a.id !== id);
+        areas.forEach((a, idx) => { a.index = idx + 1; });
+        renderAreas();
+    }
+
+    function attachAreaDelegation() {
+        const container = document.getElementById('areasContainer');
+        if (!container) return;
+
+        function toggleOtherText(card, isChecked, otherInputClass) {
+            const otherInput = card.querySelector(`.${otherInputClass}`);
+            if (otherInput) otherInput.style.display = isChecked ? 'block' : 'none';
+        }
+        function updateAvoidNote(areaId) {
+            const area = areas.find(a => a.id === areaId);
+            if (!area) return;
+            const hasNonNormal = area.skinIssues.some(s => s !== 'Skin appears normal with no lesions or abnormalities');
+            const avoidNote = document.getElementById(`avoid-note-${areaId}`);
+            if (avoidNote) avoidNote.style.display = hasNonNormal ? 'block' : 'none';
+        }
+        function handlePriorTypeChange(areaId) {
+            const area = areas.find(a => a.id === areaId);
+            if (!area) return;
+            const hasNonNone = !area.priorTypes.includes('None') && area.priorTypes.length > 0;
+            const detailField = document.getElementById(`prior-detail-field-${areaId}`);
+            if (detailField) detailField.style.display = hasNonNone ? 'block' : 'none';
+        }
+
+        container.addEventListener('change', (e) => {
+            const target = e.target;
+            const areaId = parseInt(target.dataset.id);
+            const area = areas.find(a => a.id === areaId);
+            if (!area) return;
+            const card = target.closest('.area-card');
+
+            if (target.classList.contains('area-skin-issues')) {
+                const val = target.value;
+                if (target.checked) { if (!area.skinIssues.includes(val)) area.skinIssues.push(val); }
+                else { area.skinIssues = area.skinIssues.filter(i => i !== val); }
+                updateAvoidNote(areaId);
+            }
+            else if (target.classList.contains('area-skin-other')) {
+                const val = 'Other';
+                if (target.checked) { if (!area.skinIssues.includes(val)) area.skinIssues.push(val); }
+                else { area.skinIssues = area.skinIssues.filter(i => i !== val); }
+                toggleOtherText(card, target.checked, 'skin-other-text');
+                updateAvoidNote(areaId);
+            }
+            else if (target.classList.contains('area-prior-type')) {
+                const val = target.value;
+                if (val === 'None') {
+                    if (target.checked) {
+                        area.priorTypes = ['None'];
+                        card.querySelectorAll('.area-prior-type').forEach(cb => {
+                            if (cb.value !== 'None') cb.checked = false;
+                        });
+                    } else {
+                        area.priorTypes = area.priorTypes.filter(t => t !== 'None');
+                    }
+                } else {
+                    if (target.checked) {
+                        if (area.priorTypes.includes('None')) {
+                            area.priorTypes = area.priorTypes.filter(t => t !== 'None');
+                            const noneCb = card.querySelector('.area-prior-type[value="None"]');
+                            if (noneCb) noneCb.checked = false;
+                        }
+                        if (!area.priorTypes.includes(val)) area.priorTypes.push(val);
+                    } else {
+                        area.priorTypes = area.priorTypes.filter(t => t !== val);
+                    }
+                }
+                handlePriorTypeChange(areaId);
+            }
+            else if (target.classList.contains('area-tanning')) area.tanningStatus = target.value;
+        });
+
+        container.addEventListener('input', (e) => {
+            const target = e.target;
+            const areaId = parseInt(target.dataset.id);
+            const area = areas.find(a => a.id === areaId);
+            if (!area) return;
+            if (target.classList.contains('area-location')) area.location = target.value;
+            else if (target.classList.contains('area-prior-detail')) area.priorDetail = target.value;
+            else if (target.classList.contains('skin-other-text')) area.skinOtherText = target.value;
+        });
+    }
+
+    function addNewArea() {
+        const newIndex = areas.length + 1;
+        areas.push({
+            id: Date.now() + Math.random(),
+            index: newIndex,
+            name: `Area ${getAreaLetter(newIndex)}`,
+            location: '',
+            tanningStatus: 'No active tanning',
+            priorTypes: ['None'],
+            priorDetail: '',
+            skinIssues: ['Skin appears normal with no lesions or abnormalities'],
+            skinOtherText: ''
+        });
+        renderAreas();
+    }
+
+    // --- Shared Data & Note Generation ---
+    function getSharedData() {
+        const skinType = document.querySelector('input[name="global_skin_type"]:checked')?.value || 'Type VI';
+        const quote = document.getElementById('quote_text')?.value.trim() || 'Under arms: $95+tax/session';
+        const medicalRadio = document.querySelector('input[name="medical_condition"]:checked')?.value;
+        let medicalText = '';
+        if (medicalRadio === 'Medical Condition') medicalText = document.getElementById('medical_condition_text')?.value.trim() || '';
+        const medicationRadio = document.querySelector('input[name="medication"]:checked')?.value;
+        let medicationText = '';
+        if (medicationRadio === 'Light sensitive medications') medicationText = document.getElementById('medication_text')?.value.trim() || 'Oral Steroid, Antibiotic';
+        const hormonalValue = (() => {
+            const selected = document.querySelector('input[name="hormonal"]:checked')?.value;
+            if (selected === 'Other') {
+                const otherText = document.getElementById('hormonal_other_text')?.value.trim();
+                return otherText ? `Other: ${otherText}` : 'Other';
+            }
+            return selected || 'No PCOS or other Hormonal Imbalance';
+        })();
+        const allergyRadio = document.querySelector('input[name="allergy"]:checked')?.value;
+        let allergyText = '';
+        if (allergyRadio === 'Allergic to') allergyText = document.getElementById('allergy_text')?.value.trim() || '';
+        const ethnic = document.querySelector('input[name="ethnic"]:checked')?.value || 'Caucasian (Fitzpatrick I-III)';
+        const ptConfirmation = document.querySelector('input[name="pt_confirmation"]:checked')?.value;
+        let ptQuestionText = '';
+        if (ptConfirmation === 'has_question') ptQuestionText = document.getElementById('pt_question_text')?.value.trim() || '';
+        return { skinType, quote, medicalRadio, medicalText, medicationRadio, medicationText, hormonal: hormonalValue, allergyRadio, allergyText, ethnic, ptConfirmation, ptQuestionText };
+    }
+
+    function generateClinicNote() {
+        const shared = getSharedData();
+        const now = new Date();
+        const dateTime = `${now.toLocaleDateString('en-US')} ${now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'})}`;
+        let note = `\nLASER HAIR REMOVAL – CLINICAL NOTE\n\nDate: ${dateTime}\nProvider: Laser Clinic\n\n`;
+
+        for (let a of areas) {
+            const letter = getAreaLetter(a.index);
+            note += `AREA ${letter}\n`;
+            note += `- Locations: ${a.location || 'Not specified'}\n`;
+            note += `- Active tanning: ${a.tanningStatus === 'Active tanning' ? 'Yes (Treatment needs to be postponed)' : 'No'}\n`;
+            const hasPrior = !a.priorTypes.includes('None') && a.priorTypes.length > 0;
+            if (hasPrior) {
+                note += `- Prior hair removal type: ${a.priorTypes.join(', ')}\n`;
+                if (a.priorDetail) note += `- Prior session details: ${a.priorDetail}\n`;
+            } else note += `- Prior hair removal: None\n`;
+            let skinFindingsText = a.skinIssues.length ? a.skinIssues.join(', ') : 'None';
+            if (a.skinOtherText) skinFindingsText += (skinFindingsText !== 'None' ? ', ' : '') + a.skinOtherText;
+            const hasAbnormal = a.skinIssues.some(s => s !== 'Skin appears normal with no lesions or abnormalities');
+            if (hasAbnormal && skinFindingsText !== 'Skin appears normal with no lesions or abnormalities')
+                skinFindingsText += ' (Areas with skin lesions or abnormalities will be avoided)';
+            note += `- Skin findings: ${skinFindingsText}\n\n`;
+        }
+
+        note += `SHARED INFORMATION\n`;
+        note += `1. Ethnic Background: ${shared.ethnic}\n`;
+        note += `2. Skin Type (Fitzpatrick): ${shared.skinType}\n`;
+        note += `3. Medical Conditions: ${shared.medicalRadio === 'Medical Condition' ? shared.medicalText || '[Not specified]' : 'No Medical Conditions'}\n`;
+        note += `4. Medications: ${shared.medicationRadio === 'Light sensitive medications' ? `Light sensitive medications - ${shared.medicationText}` : 'No Medication'}\n`;
+        note += `5. Allergies: ${shared.allergyRadio === 'Allergic to' ? shared.allergyText || '[Not specified]' : 'NKDA'}\n`;
+        note += `6. Hormonal Status: ${shared.hormonal}\n`;
+        if (shared.hormonal !== 'No PCOS or other Hormonal Imbalance') note += `   * Hormonal imbalances may affect results; improvement may be slower and additional treatments may be required.\n`;
+        note += `7. Ideal goal informed: 8-10 TX with 70–80% hair reduction.\n`;
+        note += `8. Risk of Paradoxical Hair Growth (Rare) informed.\n`;
+        note += `9. Treatment instructions: No creams/lotions on treatment day (SPF on face allowed), area marked & photos taken, laser with cooling system, post-ice 10min, sunscreen or cover area, avoid sun.\n`;
+        note += `10. Blister management: do not pop, apply polysporin, take photo & text clinic, in-clinic drainage if needed.\n`;
+        note += `11. Pre- and post-care instructions reviewed and given: https://mia-technician.github.io/skincare/prepost.html\n`;
+        note += `12. Quote provided: ${shared.quote}\n`;
+        note += `13. PT confirmation: ${shared.ptConfirmation === 'has_question' ? `PT's question: ${shared.ptQuestionText || '[No question entered]'}` : 'PT got no further questions.'}\n\n`;
+        return note;
+    }
+
+    function showExportModal(noteText) {
+        const modalDiv = document.createElement('div');
+        modalDiv.style.position = 'fixed';
+        modalDiv.style.top = '0';
+        modalDiv.style.left = '0';
+        modalDiv.style.width = '100%';
+        modalDiv.style.height = '100%';
+        modalDiv.style.backgroundColor = 'rgba(0,0,0,0.6)';
+        modalDiv.style.display = 'flex';
+        modalDiv.style.alignItems = 'center';
+        modalDiv.style.justifyContent = 'center';
+        modalDiv.style.zIndex = '10000';
+        const modalInner = document.createElement('div');
+        modalInner.style.background = '#fff';
+        modalInner.style.borderRadius = '28px';
+        modalInner.style.width = '92%';
+        modalInner.style.maxWidth = '950px';
+        modalInner.style.maxHeight = '85%';
+        modalInner.style.display = 'flex';
+        modalInner.style.flexDirection = 'column';
+        modalInner.style.overflow = 'hidden';
+        modalInner.innerHTML = `
+            <div style="padding:14px 24px; border-bottom:1px solid #e2edf2; display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0; font-weight:700; color:#1d6f6a;">📄 Clinical Note</h3>
+                <button id="closeModalBtn" style="background:none; border:none; font-size:26px; cursor:pointer;">&times;</button>
+            </div>
+            <div style="flex:1; overflow:auto; padding:16px 24px; background:#fefcf5;">
+                <pre style="white-space:pre-wrap; font-family:Consolas, monospace; font-size:12px; background:#faf7ed; padding:14px; border-radius:20px;">${escapeHtml(noteText)}</pre>
+            </div>
+            <div style="padding:12px 24px 20px; border-top:1px solid #e2ecf0; display:flex; gap:12px; justify-content:flex-end;">
+                <button id="copyNoteBtn" style="background:#1c6d5e; color:white; border:none; padding:8px 24px; border-radius:40px; font-weight:bold; cursor:pointer;">📋 Copy Full Note</button>
+                <button id="closeModalFooterBtn" style="background:#e2e8f0; border:none; padding:8px 22px; border-radius:40px; cursor:pointer;">Close</button>
+            </div>
+        `;
+        document.body.appendChild(modalInner);
+        const closeModal = () => modalInner.remove();
+        modalInner.querySelector('#closeModalBtn')?.addEventListener('click', closeModal);
+        modalInner.querySelector('#closeModalFooterBtn')?.addEventListener('click', closeModal);
+        modalInner.querySelector('#copyNoteBtn')?.addEventListener('click', async () => {
+            await navigator.clipboard.writeText(noteText);
+            alert('✅ Copied to clipboard');
+        });
+    }
+
+    function handleExport() { showExportModal(generateClinicNote()); }
+
+    function init() {
+        // Quote image: open in new tab on click
+        const thumb = document.getElementById('quoteThumbnail');
+        const linkSpan = document.querySelector('.quote-link');
+        const imageUrl = "https://dmrskyskryrdclknezth.supabase.co/storage/v1/object/sign/note/LHR.jpeg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV80Y2U0N2M0OS1lMTY2LTQ4ZjctOGVjZi1mZTcxN2ZkYzM1NmQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJub3RlL0xIUi5qcGVnIiwiaWF0IjoxNzc3MTgzOTAxLCJleHAiOjMzNTM5ODM5MDF9.HVEts3gK8eI2SekxVRr2DVSSTicl5kk-Wmsg9ClIiJY";
+        const openImage = () => window.open(imageUrl, '_blank');
+        if (thumb) thumb.addEventListener('click', openImage);
+        if (linkSpan) linkSpan.addEventListener('click', openImage);
+
+        // Bind conditional fields for shared section
+        const medicalYes = document.querySelector('input[name="medical_condition"][value="Medical Condition"]');
+        const medicalTextarea = document.getElementById('medical_condition_text');
+        if (medicalYes && medicalTextarea) medicalYes.addEventListener('change', () => medicalTextarea.style.display = 'block');
+        document.querySelector('input[name="medical_condition"][value="No Medical Conditions"]')?.addEventListener('change', () => medicalTextarea.style.display = 'none');
+
+        const medYes = document.querySelector('input[name="medication"][value="Light sensitive medications"]');
+        const medTextarea = document.getElementById('medication_text');
+        if (medYes && medTextarea) medYes.addEventListener('change', () => medTextarea.style.display = 'block');
+        document.querySelector('input[name="medication"][value="No Medication"]')?.addEventListener('change', () => medTextarea.style.display = 'none');
+
+        const allergyYes = document.querySelector('input[name="allergy"][value="Allergic to"]');
+        const allergyTextarea = document.getElementById('allergy_text');
+        if (allergyYes && allergyTextarea) allergyYes.addEventListener('change', () => allergyTextarea.style.display = 'block');
+        document.querySelector('input[name="allergy"][value="NKDA"]')?.addEventListener('change', () => allergyTextarea.style.display = 'none');
+
+        const hormonalRadios = document.querySelectorAll('input[name="hormonal"]');
+        const hormonalWarning = document.getElementById('hormonal-warning');
+        const hormonalOtherText = document.getElementById('hormonal_other_text');
+        function updateHormonal() {
+            const selected = document.querySelector('input[name="hormonal"]:checked')?.value;
+            hormonalWarning.style.display = (selected && selected !== 'No PCOS or other Hormonal Imbalance') ? 'block' : 'none';
+            hormonalOtherText.style.display = selected === 'Other' ? 'block' : 'none';
+        }
+        hormonalRadios.forEach(r => r.addEventListener('change', updateHormonal));
+        updateHormonal();
+
+        const ptYes = document.querySelector('input[name="pt_confirmation"][value="has_question"]');
+        const ptTextarea = document.getElementById('pt_question_text');
+        if (ptYes && ptTextarea) ptYes.addEventListener('change', () => ptTextarea.style.display = 'block');
+        document.querySelector('input[name="pt_confirmation"][value="no_questions"]')?.addEventListener('change', () => ptTextarea.style.display = 'none');
+
+        // Initialize one default area
+        areas = [{
+            id: Date.now() + 1,
+            index: 1,
+            name: 'Area A',
+            location: 'Underarms, Full legs',
+            tanningStatus: 'No active tanning',
+            priorTypes: ['None'],
+            priorDetail: '',
+            skinIssues: ['Skin appears normal with no lesions or abnormalities'],
+            skinOtherText: ''
+        }];
+        renderAreas();
+        document.getElementById('addAreaBtn')?.addEventListener('click', addNewArea);
+        document.getElementById('exportNoteBtn')?.addEventListener('click', handleExport);
+    }
+    init();
+</script>
+</body>
+</html>
