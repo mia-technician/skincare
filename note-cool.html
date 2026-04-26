@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>CoolSculpting | Clinical Consultation & Note</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #eef2f5;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 24px 16px;
+            color: #1e2f3a;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(105deg, #1a3f4f 0%, #1f5a6b 100%);
+            padding: 18px 28px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header h1::before {
+            content: "❄️";
+            font-size: 1.7rem;
+        }
+
+        .header p {
+            margin-top: 6px;
+            opacity: 0.85;
+            font-size: 0.8rem;
+        }
+
+        .questions-area {
+            padding: 20px 24px 16px 24px;
+            background: #ffffff;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1c5a6e;
+            margin: 0.8rem 0 0.5rem 0;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #cbe4ed;
+            display: inline-block;
+        }
+
+        .area-card {
+            background: #fefefe;
+            border-radius: 24px;
+            margin-bottom: 32px;
+            padding: 18px 22px;
+            border: 1px solid #dce9ef;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .area-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #cbe0e8;
+        }
+
+        .area-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1f6d6a;
+            background: #e3f3f0;
+            padding: 4px 18px;
+            border-radius: 40px;
+        }
+
+        .remove-area-btn {
+            background: #ffe3e0;
+            border: none;
+            color: #bc5a4c;
+            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 6px 14px;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+
+        .subgroup-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #2b6c7e;
+            margin: 14px 0 8px 0;
+            background: #eef6f9;
+            padding: 3px 14px;
+            border-radius: 40px;
+            display: inline-block;
+        }
+
+        .question-field {
+            margin-bottom: 14px;
+        }
+
+        .question-field label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1f5567;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        textarea, input[type="text"], input[type="number"] {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid #cfdfe7;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            background: #fff;
+            resize: vertical;
+        }
+
+        input[type="number"] {
+            width: auto;
+            min-width: 70px;
+        }
+
+        .checkbox-group, .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .checkbox-group label, .radio-group label {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: normal;
+            font-size: 0.8rem;
+            color: #2c5a6e;
+            cursor: pointer;
+        }
+
+        .inline-note {
+            font-size: 0.7rem;
+            color: #7c9aa8;
+            margin-top: 4px;
+        }
+
+        .helper-note {
+            margin-top: 4px;
+            font-size: 0.65rem;
+            color: #7c9aa8;
+            text-align: right;
+        }
+
+        .add-area-btn {
+            background: #eef2f5;
+            border: 2px dashed #659eb0;
+            padding: 12px 20px;
+            border-radius: 60px;
+            width: 100%;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #226e7a;
+            cursor: pointer;
+            margin: 12px 0 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .action-bar {
+            padding: 12px 24px 28px 24px;
+            background: #ffffff;
+            border-top: 1px solid #e2ecf0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .print-btn {
+            background: #1c6d5e;
+            border: none;
+            padding: 10px 32px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        footer {
+            background: #f6fafc;
+            padding: 10px 24px;
+            text-align: center;
+            font-size: 0.65rem;
+            color: #6e8b9b;
+            border-top: 1px solid #e0ecf2;
+        }
+
+        .hidden-export {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            width: 900px;
+            background: white;
+            padding: 30px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            z-index: -1;
+        }
+
+        .conditional-field {
+            margin-top: 8px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>CoolSculpting · Clinical Consultation</h1>
+        <p>Multiple areas | Full patient history | Treatment planning</p>
+    </div>
+
+    <div class="questions-area" id="questionsArea">
+        <div id="areasContainer"></div>
+        <button id="addAreaBtn" class="add-area-btn">❄️ Add a new area</button>
+
+        <!-- 共享信息部分 -->
+        <div class="section-title">📋 SHARED INFORMATION</div>
+        <div class="question-card" style="border:1px solid #e2ecf0; border-radius:20px; padding:16px; margin-top:12px; background:#fafefc;">
+            
+            <div class="question-field">
+                <label>✅ Intake form reviewed</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="intake_reviewed" value="Yes" checked> Yes</label>
+                    <label><input type="radio" name="intake_reviewed" value="No"> No</label>
+                </div>
+            </div>
+
+            <div class="question-field">
+                <label>📊 Current weight (kg/lbs) & Ideal weight</label>
+                <input type="text" id="weight_info" placeholder="e.g., Current: 75kg, Ideal: 65kg">
+            </div>
+            <div class="question-field">
+                <label>🥗 Diet & exercise plan</label>
+                <div class="checkbox-group" id="diet_exercise_group">
+                    <label><input type="checkbox" value="None"> None</label>
+                    <label><input type="checkbox" value="On Diet Plan"> On Diet Plan</label>
+                    <label><input type="checkbox" value="On Exercise Plan"> On Exercise Plan</label>
+                </div>
+            </div>
+            <div class="question-field">
+                <label>👶 Family planning</label>
+                <div class="radio-group" id="family_planning_group">
+                    <label><input type="radio" name="family_planning" value="Done with children plan" checked> Done with children plan</label>
+                    <label><input type="radio" name="family_planning" value="Planning more children in the future"> Planning more children in the future</label>
+                </div>
+            </div>
+            <div class="question-field">
+                <label>📅 Surgery in TX areas and Surgery Time</label>
+                <input type="text" id="surgery_history" placeholder="e.g., Abdominoplasty, Jan 2000">
+            </div>
+            <div class="question-field">
+                <label>💊 Medications & Allergies</label>
+                <input type="text" id="med_allergy" value="no medication, NKDA">
+            </div>
+
+            <!-- Contraindications（None 逻辑） -->
+            <div class="question-field">
+                <label>⚠️ Contraindications:</label>
+                <div class="checkbox-group" id="contraindications_group">
+                    <label><input type="checkbox" class="contra-none" value="None" checked> None</label>
+                    <label><input type="checkbox" class="contra-item" value="Cryoglobulinemia"> Cryoglobulinemia</label>
+                    <label><input type="checkbox" class="contra-item" value="Paroxysmal cold hemoglobinuria"> Paroxysmal cold hemoglobinuria</label>
+                    <label><input type="checkbox" class="contra-item" value="Cold urticaria/Raynaud's"> Cold urticaria / Raynaud's</label>
+                    <label><input type="checkbox" class="contra-item" value="Neuropathic disorders"> Neuropathic disorders</label>
+                    <label><input type="checkbox" class="contra-item" value="Pregnancy/lactation"> Pregnancy / lactation</label>
+                    <label><input type="checkbox" class="contra-item" value="Bleeding disorders/blood thinners"> Bleeding disorders / blood thinners</label>
+                    <label><input type="checkbox" class="contra-item" value="Impaired circulation/sensation"> Impaired peripheral circulation / sensation</label>
+                    <label><input type="checkbox" class="contra-item" value="Recent surgery/hernia"> Recent surgery / hernia</label>
+                    <label><input type="checkbox" class="contra-item" value="Skin conditions (eczema/dermatitis/rash)"> Skin conditions (eczema/dermatitis/rash)</label>
+                    <label><input type="checkbox" class="contra-item" value="Open wounds/infection/scar"> Open wounds / infection / scar tissues</label>
+                    <label><input type="checkbox" class="contra-item" value="Implanted devices (pacemaker/defibrillator)"> Implanted devices (pacemaker/defibrillator)</label>
+                </div>
+                <div class="inline-note">Confirm with doctor if patient has any of these.</div>
+            </div>
+
+            <!-- 罕见副作用纯文本 -->
+            <div class="question-field">
+                <label>⚠️ Rare side effects informed:</label>
+                <div class="inline-note" style="margin-top:4px; background:#f9f2e0; padding:8px; border-radius:12px;">
+                    • Darker skin colour (can occur on darker skin type, resolves on its own, or can be accelerated with Lytera)<br>
+                    • Hardness or discrete nodules (massage could help)<br>
+                    • Paradoxical Adipose Hyperplasia (PAH) – enlargement of the treated area, extremely rare (0.2%), requires surgical intervention<br>
+                    • Hernia – requires surgical intervention
+                </div>
+            </div>
+
+            <div class="question-field">
+                <label>📌 Sequence start with which area?</label>
+                <input type="text" id="sequence_start" value="Area A" placeholder="e.g., Area A">
+            </div>
+
+            <div class="question-field">
+                <label>📋 Pre & Post care reviewed and given:</label>
+                <div><a href="https://mia-technician.github.io/skincare/prepost.html" target="_blank" style="color:#1c6d5e; text-decoration:underline;">Click here for Pre & Post care instructions</a></div>
+                <div class="inline-note">Patient has been provided with the above link and instructions reviewed.</div>
+            </div>
+
+            <div class="question-field">
+                <label>💰 Quote:</label>
+                <textarea id="quote_info" rows="2" placeholder="Paste or type quote details here..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button class="print-btn" id="exportNoteBtn">📋 Generate Clinic Note (Copy/Export)</button>
+    </div>
+    <footer>Each area has its own consultation details | Click + to add multiple areas.</footer>
+</div>
+<div id="exportTextContainer" class="hidden-export"></div>
+
+<script>
+    let areas = [];
+
+    function getAreaLetter(index) {
+        return String.fromCharCode(64 + index);
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function getFatTypeHtml(area) {
+        const fatTypes = ['Subcutaneous fat', 'Fibrous fat', 'Visceral fat'];
+        let html = '';
+        fatTypes.forEach(type => {
+            const checked = area.fatTypes.includes(type) ? 'checked' : '';
+            html += `<label><input type="checkbox" class="fat-type" data-id="${area.id}" value="${type}" ${checked}> ${type}</label>`;
+        });
+        html += `<label><input type="checkbox" class="fat-type-other" data-id="${area.id}" value="Other" ${area.fatTypes.includes('Other') ? 'checked' : ''}> Other</label>`;
+        html += `<input type="text" class="fat-other-text conditional-field" data-id="${area.id}" placeholder="Other fat type" value="${escapeHtml(area.fatOtherText || '')}" style="${area.fatTypes.includes('Other') ? 'display:block' : 'display:none'}">`;
+        return html;
+    }
+
+    function renderAreas() {
+        const container = document.getElementById('areasContainer');
+        if (!container) return;
+        container.innerHTML = '';
+        areas.forEach((area) => {
+            const letter = getAreaLetter(area.index);
+            const card = document.createElement('div');
+            card.className = 'area-card';
+            card.dataset.id = area.id;
+            card.innerHTML = `
+                <div class="area-header">
+                    <span class="area-title">${letter} · ${area.name}</span>
+                    <button class="remove-area-btn" data-id="${area.id}">✖ Remove</button>
+                </div>
+
+                <div class="subgroup-title">📍 Main Concern (Area ${letter})</div>
+                <div class="question-field">
+                    <label>Main concern area & details</label>
+                    <textarea class="main-concern" data-id="${area.id}" rows="2" placeholder="e.g., Abdomen, flanks, inner thighs...">${escapeHtml(area.mainConcern)}</textarea>
+                </div>
+                <div class="question-field">
+                    <label>Started since? Possible reason?</label>
+                    <input type="text" class="start-reason" data-id="${area.id}" value="${escapeHtml(area.startReason)}" placeholder="e.g., Started 2 years ago, weight gain after pregnancy">
+                </div>
+                <div class="question-field">
+                    <label>Previous treatment & result</label>
+                    <input type="text" class="prev-treatment" data-id="${area.id}" value="${escapeHtml(area.prevTreatment)}" placeholder="e.g., Had liposuction, worked partially">
+                </div>
+                <div class="question-field">
+                    <label>🎯 PT's goal for this area</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" class="goal-reduce" data-id="${area.id}" value="Reduce Volume" ${area.goals.includes('Reduce Volume') ? 'checked' : ''}> Reduce Volume</label>
+                        <label><input type="checkbox" class="goal-tighten" data-id="${area.id}" value="Tightening Skin" ${area.goals.includes('Tightening Skin') ? 'checked' : ''}> Tightening Skin</label>
+                    </div>
+                </div>
+
+                <div class="subgroup-title">🩺 Tissue Examination (Area ${letter})</div>
+                <div class="question-field">
+                    <label>Fat type (select all that apply)</label>
+                    <div class="checkbox-group">${getFatTypeHtml(area)}</div>
+                </div>
+                <div class="question-field">
+                    <label>Laxity & Asymmetry</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" class="laxity-check" data-id="${area.id}" value="Laxity" ${area.laxityAsymmetry.includes('Laxity') ? 'checked' : ''}> Laxity</label>
+                        <label><input type="checkbox" class="asymmetry-check" data-id="${area.id}" value="Asymmetry" ${area.laxityAsymmetry.includes('Asymmetry') ? 'checked' : ''}> Asymmetry</label>
+                    </div>
+                    <div class="inline-note">Patient informed: cannot make the areas symmetrical.</div>
+                </div>
+
+                <div class="subgroup-title">🔹 Recommended Treatment Plan for this area</div>
+                <div class="question-field">
+                    <label>CoolMini x <input type="number" class="plan-coolmini" data-id="${area.id}" min="0" step="1" value="${area.planCoolMini}" style="width:70px; margin-left:6px;"></label>
+                </div>
+                <div class="question-field">
+                    <label>CoolPetite x <input type="number" class="plan-coolpetite" data-id="${area.id}" min="0" step="1" value="${area.planCoolPetite}" style="width:70px; margin-left:6px;"></label>
+                </div>
+                <div class="question-field">
+                    <label>CoolAdvantage x <input type="number" class="plan-cooladvantage" data-id="${area.id}" min="0" step="1" value="${area.planCoolAdvantage}" style="width:70px; margin-left:6px;"></label>
+                </div>
+                <div class="question-field">
+                    <label>CoolSmooth x <input type="number" class="plan-coolsmooth" data-id="${area.id}" min="0" step="1" value="${area.planCoolSmooth}" style="width:70px; margin-left:6px;"></label>
+                </div>
+                <div class="question-field">
+                    <label>CoolPlus x <input type="number" class="plan-coolplus" data-id="${area.id}" min="0" step="1" value="${area.planCoolPlus}" style="width:70px; margin-left:6px;"></label>
+                </div>
+                <div class="question-field">
+                    <label>TruSculpt x <input type="number" class="plan-trusculpt" data-id="${area.id}" min="0" step="1" value="${area.planTruSculpt}" style="width:70px; margin-left:6px;"></label>
+                </div>
+                <div class="question-field">
+                    <label>Series of treatments required x <input type="number" class="plan-series" data-id="${area.id}" min="0" step="1" value="${area.planSeries}" style="width:70px; margin-left:6px;"></label>
+                </div>
+
+                <div class="helper-note">❄️ CoolSculpting: non-surgical localized fat reduction, FDA & Health Canada approved. 20% fat cell reduction per TX, results seen from 3 weeks, final at 6 months. Fat cells gone permanently but remaining can enlarge with weight gain.</div>
+            `;
+            container.appendChild(card);
+        });
+        attachAreaDelegation();
+        attachRemoveButtons();
+    }
+
+    function attachRemoveButtons() {
+        document.querySelectorAll('.remove-area-btn').forEach(btn => {
+            btn.removeEventListener('click', handleRemoveClick);
+            btn.addEventListener('click', handleRemoveClick);
+        });
+    }
+    function handleRemoveClick(e) {
+        const id = parseInt(e.currentTarget.dataset.id);
+        removeAreaById(id);
+    }
+    function removeAreaById(id) {
+        areas = areas.filter(a => a.id !== id);
+        areas.forEach((a, idx) => { a.index = idx + 1; });
+        renderAreas();
+    }
+
+    function attachAreaDelegation() {
+        const container = document.getElementById('areasContainer');
+        if (!container) return;
+
+        function toggleOtherText(card, isChecked, otherInputClass) {
+            const otherInput = card.querySelector(`.${otherInputClass}`);
+            if (otherInput) otherInput.style.display = isChecked ? 'block' : 'none';
+        }
+
+        container.addEventListener('change', (e) => {
+            const target = e.target;
+            const areaId = parseInt(target.dataset.id);
+            const area = areas.find(a => a.id === areaId);
+            if (!area) return;
+            const card = target.closest('.area-card');
+
+            if (target.classList.contains('fat-type')) {
+                const val = target.value;
+                if (target.checked) { if (!area.fatTypes.includes(val)) area.fatTypes.push(val); }
+                else { area.fatTypes = area.fatTypes.filter(f => f !== val); }
+            }
+            else if (target.classList.contains('fat-type-other')) {
+                const val = 'Other';
+                if (target.checked) { if (!area.fatTypes.includes(val)) area.fatTypes.push(val); }
+                else { area.fatTypes = area.fatTypes.filter(f => f !== val); }
+                toggleOtherText(card, target.checked, 'fat-other-text');
+            }
+            else if (target.classList.contains('goal-reduce')) {
+                const val = 'Reduce Volume';
+                if (target.checked) { if (!area.goals.includes(val)) area.goals.push(val); }
+                else { area.goals = area.goals.filter(g => g !== val); }
+            }
+            else if (target.classList.contains('goal-tighten')) {
+                const val = 'Tightening Skin';
+                if (target.checked) { if (!area.goals.includes(val)) area.goals.push(val); }
+                else { area.goals = area.goals.filter(g => g !== val); }
+            }
+            else if (target.classList.contains('laxity-check')) {
+                const val = 'Laxity';
+                if (target.checked) { if (!area.laxityAsymmetry.includes(val)) area.laxityAsymmetry.push(val); }
+                else { area.laxityAsymmetry = area.laxityAsymmetry.filter(l => l !== val); }
+            }
+            else if (target.classList.contains('asymmetry-check')) {
+                const val = 'Asymmetry';
+                if (target.checked) { if (!area.laxityAsymmetry.includes(val)) area.laxityAsymmetry.push(val); }
+                else { area.laxityAsymmetry = area.laxityAsymmetry.filter(l => l !== val); }
+            }
+        });
+
+        container.addEventListener('input', (e) => {
+            const target = e.target;
+            const areaId = parseInt(target.dataset.id);
+            const area = areas.find(a => a.id === areaId);
+            if (!area) return;
+            if (target.classList.contains('main-concern')) area.mainConcern = target.value;
+            else if (target.classList.contains('start-reason')) area.startReason = target.value;
+            else if (target.classList.contains('prev-treatment')) area.prevTreatment = target.value;
+            else if (target.classList.contains('fat-other-text')) area.fatOtherText = target.value;
+            else if (target.classList.contains('plan-coolmini')) area.planCoolMini = target.value;
+            else if (target.classList.contains('plan-coolpetite')) area.planCoolPetite = target.value;
+            else if (target.classList.contains('plan-cooladvantage')) area.planCoolAdvantage = target.value;
+            else if (target.classList.contains('plan-coolsmooth')) area.planCoolSmooth = target.value;
+            else if (target.classList.contains('plan-coolplus')) area.planCoolPlus = target.value;
+            else if (target.classList.contains('plan-trusculpt')) area.planTruSculpt = target.value;
+            else if (target.classList.contains('plan-series')) area.planSeries = target.value;
+        });
+    }
+
+    function addNewArea() {
+        const newIndex = areas.length + 1;
+        areas.push({
+            id: Date.now() + Math.random(),
+            index: newIndex,
+            name: `Area ${getAreaLetter(newIndex)}`,
+            mainConcern: '',
+            startReason: '',
+            prevTreatment: '',
+            goals: [],
+            fatTypes: [],
+            fatOtherText: '',
+            laxityAsymmetry: [],
+            planCoolMini: 0,
+            planCoolPetite: 0,
+            planCoolAdvantage: 0,
+            planCoolSmooth: 0,
+            planCoolPlus: 0,
+            planTruSculpt: 0,
+            planSeries: 0
+        });
+        renderAreas();
+    }
+
+    function getSharedData() {
+        const noneChecked = document.querySelector('.contra-none')?.checked;
+        let contraindications = [];
+        if (!noneChecked) {
+            contraindications = Array.from(document.querySelectorAll('.contra-item:checked')).map(cb => cb.value);
+        }
+        return {
+            intakeReviewed: document.querySelector('input[name="intake_reviewed"]:checked')?.value,
+            weightInfo: document.getElementById('weight_info')?.value.trim() || '',
+            dietExercise: Array.from(document.querySelectorAll('#diet_exercise_group input:checked')).map(cb => cb.value),
+            familyPlanning: document.querySelector('input[name="family_planning"]:checked')?.value || '',
+            surgeryHistory: document.getElementById('surgery_history')?.value.trim() || '',
+            medAllergy: document.getElementById('med_allergy')?.value.trim() || 'no medication, NKDA',
+            contraindications: contraindications,
+            sequenceStart: document.getElementById('sequence_start')?.value.trim() || 'Area A',
+            quoteInfo: document.getElementById('quote_info')?.value.trim() || ''
+        };
+    }
+
+    function generateClinicNote() {
+        const shared = getSharedData();
+        const now = new Date();
+        const dateTime = `${now.toLocaleDateString('en-US')} ${now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'})}`;
+        let note = `\n`;
+        note += `COOLSCULPTING – CLINICAL CONSULTATION NOTE\n`;
+        note += `\n`;
+        note += `Date: ${dateTime}\n`;
+        note += `Provider: CoolSculpting Clinic\n\n`;
+
+        note += `INFORMATION GATHERING\n`;
+        note += `- Intake form reviewed: ${shared.intakeReviewed}\n`;
+        note += `- Current weight / ideal weight: ${shared.weightInfo || 'Not specified'}\n`;
+        note += `- Diet & exercise plan: ${shared.dietExercise.length ? shared.dietExercise.join(', ') : 'None'}\n`;
+        note += `- Family planning: ${shared.familyPlanning || 'Not specified'}\n`;
+        note += `- Surgery history: ${shared.surgeryHistory || 'Not specified'}\n`;
+        note += `- Medications / allergies: ${shared.medAllergy}\n`;
+        note += `- Contraindications: ${shared.contraindications.length ? shared.contraindications.join(', ') : 'None'}\n\n`;
+
+        for (let a of areas) {
+            const letter = getAreaLetter(a.index);
+            note += `🔹 AREA ${letter} 🔹\n`;
+            note += `- Main concern: ${a.mainConcern || 'Not specified'}\n`;
+            note += `- Started since / possible reason: ${a.startReason || 'Not specified'}\n`;
+            note += `- Previous treatment & result: ${a.prevTreatment || 'Not specified'}\n`;
+            note += `- PT's goal: ${a.goals.length ? a.goals.join(', ') : 'Not specified'}\n`;
+            let fatText = a.fatTypes.length ? a.fatTypes.join(', ') : 'Not specified';
+            if (a.fatOtherText) fatText += (fatText !== 'Not specified' ? ', ' : '') + a.fatOtherText;
+            note += `- Tissue exam (fat type): ${fatText}\n`;
+            note += `- Laxity / Asymmetry: ${a.laxityAsymmetry.length ? a.laxityAsymmetry.join(', ') : 'None'}\n`;
+            note += `- Treatment Plan for area:\n`;
+            if (a.planCoolMini > 0) note += `  • CoolMini x${a.planCoolMini}\n`;
+            if (a.planCoolPetite > 0) note += `  • CoolPetite x${a.planCoolPetite}\n`;
+            if (a.planCoolAdvantage > 0) note += `  • CoolAdvantage x${a.planCoolAdvantage}\n`;
+            if (a.planCoolSmooth > 0) note += `  • CoolSmooth x${a.planCoolSmooth}\n`;
+            if (a.planCoolPlus > 0) note += `  • CoolPlus x${a.planCoolPlus}\n`;
+            if (a.planTruSculpt > 0) note += `  • TruSculpt x${a.planTruSculpt}\n`;
+            if (a.planSeries > 0) note += `  • Series of treatments required x${a.planSeries}\n`;
+            if (a.planCoolMini === 0 && a.planCoolPetite === 0 && a.planCoolAdvantage === 0 && a.planCoolSmooth === 0 && a.planCoolPlus === 0 && a.planTruSculpt === 0 && a.planSeries === 0) {
+                note += `  • No specific plan recorded\n`;
+            }
+            note += `\n`;
+        }
+
+        note += `TREATMENT OVERVIEW & PLAN\n`;
+        note += `- Sequence start with: ${shared.sequenceStart}\n`;
+        note += `- Pre & Post care reviewed and given: https://mia-technician.github.io/skincare/prepost.html\n`;
+        note += `- Quote: ${shared.quoteInfo || 'Not provided'}\n\n`;
+
+        note += `COOLSCULPTING EDUCATION PROVIDED\n`;
+        note += `- CoolSculpting is non-surgical localized fat reduction, FDA & Health Canada approved.\n`;
+        note += `- 8 million TX worldwide, reduces 20% fat cells in 1 TX, most reach goal in 3 TX.\n`;
+        note += `- Fat cells are crystallized → die → eliminated by lymphatic system within 6 months.\n`;
+        note += `- Results seen from 3 weeks, reassess at 3 months.\n`;
+        note += `- Fat cells gone permanently, but remaining cells can enlarge with weight gain.\n`;
+        note += `- Side effects (redness, bruising, itching, tingling, numbness, cramping, etc.) may last days to weeks. Numbness up to 2 months.\n`;
+        note += `- Rare side effects have been informed as listed in the consultation form.\n\n`;
+
+        note += `TREATMENT PROCESS EXPLAINED\n`;
+        note += `- Eat a meal before treatment\n`;
+        note += `- Wear loose, comfortable clothing and bring slippers\n`;
+        note += `- Clinical photos will be taken\n`;
+        note += `- Treatment area will be marked (marks will fade over the next few days)\n`;
+        note += `- Weight will be recorded\n`;
+        note += `- Skin will be cleansed with an anti-freeze wipe\n`;
+        note += `- A gel pad will be applied\n`;
+        note += `- The applicator will be placed on the treatment area\n`;
+        note += `- You may feel intense cold for the first 3–5 minutes, followed by numbness\n`;
+        note += `- During treatment, you may relax, read, or use your phone/computer\n`;
+        note += `- You will be provided with an emergency button—press it to alert staff if needed\n`;
+        note += `- Treatment time is approximately 35–45 minutes, depending on the applicator used\n`;
+        note += `- After treatment, the applicator will be removed\n`;
+        note += `- A 2-minute massage will be performed (may feel uncomfortable but is tolerable)\n`;
+        note += `- The area will be cleaned, and additional applicators may be applied if needed\n`;
+        note += `- Once complete, you may resume normal daily activities\n`;
+        note += `- Next treatment is typically scheduled in 1–3 months, if required\n\n`;
+
+        note += `PLAN\n`;
+        note += `- A series of treatments required for best results.\n`;
+        note += `- Sequence plan as documented per area.\n`;
+        note += `- Follow up at 3 months for reassessment.\n`;
+        note += `- Patient advised to maintain stable weight to preserve results.\n`;
+        note += `- Signed consent & photos on file.\n`;
+        return note;
+    }
+
+    function showExportModal(noteText) {
+        const modalDiv = document.createElement('div');
+        modalDiv.style.position = 'fixed';
+        modalDiv.style.top = '0';
+        modalDiv.style.left = '0';
+        modalDiv.style.width = '100%';
+        modalDiv.style.height = '100%';
+        modalDiv.style.backgroundColor = 'rgba(0,0,0,0.6)';
+        modalDiv.style.display = 'flex';
+        modalDiv.style.alignItems = 'center';
+        modalDiv.style.justifyContent = 'center';
+        modalDiv.style.zIndex = '10000';
+        const modalInner = document.createElement('div');
+        modalInner.style.background = '#fff';
+        modalInner.style.borderRadius = '28px';
+        modalInner.style.width = '92%';
+        modalInner.style.maxWidth = '950px';
+        modalInner.style.maxHeight = '85%';
+        modalInner.style.display = 'flex';
+        modalInner.style.flexDirection = 'column';
+        modalInner.style.overflow = 'hidden';
+        modalInner.innerHTML = `
+            <div style="padding:14px 24px; border-bottom:1px solid #e2edf2; display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0; font-weight:700; color:#1d6f6a;">📄 Clinical Note</h3>
+                <button id="closeModalBtn" style="background:none; border:none; font-size:26px; cursor:pointer;">&times;</button>
+            </div>
+            <div style="flex:1; overflow:auto; padding:16px 24px; background:#fefcf5;">
+                <pre style="white-space:pre-wrap; font-family:Consolas, monospace; font-size:12px; background:#faf7ed; padding:14px; border-radius:20px;">${escapeHtml(noteText)}</pre>
+            </div>
+            <div style="padding:12px 24px 20px; border-top:1px solid #e2ecf0; display:flex; gap:12px; justify-content:flex-end;">
+                <button id="copyNoteBtn" style="background:#1c6d5e; color:white; border:none; padding:8px 24px; border-radius:40px; font-weight:bold; cursor:pointer;">📋 Copy Full Note</button>
+                <button id="closeModalFooterBtn" style="background:#e2e8f0; border:none; padding:8px 22px; border-radius:40px; cursor:pointer;">Close</button>
+            </div>
+        `;
+        document.body.appendChild(modalInner);
+        const closeModal = () => modalInner.remove();
+        modalInner.querySelector('#closeModalBtn')?.addEventListener('click', closeModal);
+        modalInner.querySelector('#closeModalFooterBtn')?.addEventListener('click', closeModal);
+        modalInner.querySelector('#copyNoteBtn')?.addEventListener('click', async () => {
+            await navigator.clipboard.writeText(noteText);
+            alert('✅ Copied to clipboard');
+        });
+    }
+
+    function handleExport() {
+        const note = generateClinicNote();
+        showExportModal(note);
+    }
+
+    function initContraindications() {
+        const noneCheckbox = document.querySelector('.contra-none');
+        const otherCheckboxes = document.querySelectorAll('.contra-item');
+        if (noneCheckbox) {
+            noneCheckbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    otherCheckboxes.forEach(cb => { cb.checked = false; cb.disabled = true; });
+                } else {
+                    otherCheckboxes.forEach(cb => { cb.disabled = false; });
+                }
+            });
+            if (noneCheckbox.checked) {
+                otherCheckboxes.forEach(cb => { cb.disabled = true; });
+            } else {
+                otherCheckboxes.forEach(cb => { cb.disabled = false; });
+            }
+            otherCheckboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    if (cb.checked && noneCheckbox.checked) {
+                        noneCheckbox.checked = false;
+                        otherCheckboxes.forEach(c => { c.disabled = false; });
+                    }
+                });
+            });
+        }
+    }
+
+    function init() {
+        areas = [{
+            id: Date.now() + 1,
+            index: 1,
+            name: 'Area A',
+            mainConcern: 'Abdomen',
+            startReason: 'Weight gain after pregnancy, 2 years',
+            prevTreatment: 'None',
+            goals: ['Reduce Volume'],
+            fatTypes: ['Subcutaneous fat'],
+            fatOtherText: '',
+            laxityAsymmetry: ['Laxity'],
+            planCoolMini: 0,
+            planCoolPetite: 0,
+            planCoolAdvantage: 4,
+            planCoolSmooth: 0,
+            planCoolPlus: 0,
+            planTruSculpt: 0,
+            planSeries: 0
+        }];
+        renderAreas();
+        initContraindications();
+        document.getElementById('addAreaBtn')?.addEventListener('click', addNewArea);
+        document.getElementById('exportNoteBtn')?.addEventListener('click', handleExport);
+    }
+    init();
+</script>
+</body>
+</html>
