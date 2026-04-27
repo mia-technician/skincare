@@ -173,103 +173,120 @@
         document.getElementById('enterEditBtn')?.addEventListener('click', () => enterEditMode());
     }
     function enterEditMode() {
-        document.getElementById('panelTitle').innerHTML = `<i class="fas fa-pen-fancy"></i> Editing · ${escapeHtml(currentProject.title)}`;
-        document.getElementById('headerActions').innerHTML = `<button id="cancelEditBtn" class="edit-mode-btn">Cancel</button><button id="saveEditBtn" class="save-note-btn">Save to Cloud</button>`;
-        const body = document.getElementById('panelBody');
-        body.innerHTML = '';
-        body.innerHTML += `<div class="card-section"><div class="section-label">✏️ Title</div><div style="padding:1rem"><input id="editTitleInput" class="edit-input" value="${escapeHtml(currentProject.title)}"></div></div>`;
-        body.innerHTML += `<div class="card-section"><div class="section-label">📄 Description</div><div style="padding:1rem"><input id="editDescInput" class="edit-input" value="${escapeHtml(currentProject.desc)}"></div></div>`;
-        const richDiv = document.createElement('div'); richDiv.className = 'card-section';
-        richDiv.innerHTML = `<div class="section-label">✍️ Rich Text Editor</div><div id="editQuillContainer"></div>`;
-        body.appendChild(richDiv);
-        if (quillEditor) quillEditor = null;
-        quillEditor = new Quill('#editQuillContainer', {
-            theme: 'snow',
-            modules: { toolbar: [[{ 'header': [1,2,3,4,5,6,false]}],['bold','italic','underline','strike'],[{ 'color': [] },{ 'background': [] }],[{ 'align': [] }],[{ 'list':'ordered'},{ 'list':'bullet'},{ 'list':'check'}],[{ 'indent': '-1'},{ 'indent': '+1'}],[{ 'script':'sub'},{ 'script':'super'}],['blockquote','code-block'],['link','image','video','clean']] }
-        });
-        quillEditor.setText('');
-        quillEditor.clipboard.dangerouslyPasteHTML(currentProject.noteText || '');
-        // 在 quillEditor.clipboard.dangerouslyPasteHTML(...) 之后添加
+    document.getElementById('panelTitle').innerHTML = `<i class="fas fa-pen-fancy"></i> Editing · ${escapeHtml(currentProject.title)}`;
+    document.getElementById('headerActions').innerHTML = `<button id="cancelEditBtn" class="edit-mode-btn">Cancel</button><button id="saveEditBtn" class="save-note-btn">Save to Cloud</button>`;
+    const body = document.getElementById('panelBody');
+    body.innerHTML = '';
+    body.innerHTML += `<div class="card-section"><div class="section-label">✏️ Title</div><div style="padding:1rem"><input id="editTitleInput" class="edit-input" value="${escapeHtml(currentProject.title)}"></div></div>`;
+    body.innerHTML += `<div class="card-section"><div class="section-label">📄 Description</div><div style="padding:1rem"><input id="editDescInput" class="edit-input" value="${escapeHtml(currentProject.desc)}"></div></div>`;
+    const richDiv = document.createElement('div');
+    richDiv.className = 'card-section';
+    richDiv.innerHTML = `<div class="section-label">✍️ Rich Text Editor</div><div id="editQuillContainer"></div>`;
+    body.appendChild(richDiv);
 
-// 创建图片尺寸调整面板
-const sizePanel = document.createElement('div');
-sizePanel.style.cssText = 'margin: 0.5rem 1rem; padding: 0.5rem; background: #f5efe9; border-radius: 12px; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;';
-sizePanel.innerHTML = `
-    <span style="font-size: 0.75rem; color: #8f7e6b;">📐 Image Size:</span>
-    <input type="number" id="imgWidth" placeholder="Width (px)" style="width: 100px; padding: 0.3rem; border-radius: 20px; border: 1px solid #e2cfc2;">
-    <span style="font-size: 0.75rem;">x</span>
-    <input type="number" id="imgHeight" placeholder="Height (px)" style="width: 100px; padding: 0.3rem; border-radius: 20px; border: 1px solid #e2cfc2;">
-    <button id="applyImgSize" style="background: #b47c56; color: white; border: none; padding: 0.3rem 1rem; border-radius: 20px; cursor: pointer;">Apply</button>
-    <span style="font-size: 0.7rem; color: #b38b6e;">(Select an image first)</span>
-`;
-richDiv.appendChild(sizePanel);
+    if (quillEditor) quillEditor = null;
 
-// 图片尺寸调整逻辑
-let currentSelectedImg = null;
-
-// 监听图片点击
-quillEditor.root.addEventListener('click', (e) => {
-    if (e.target.tagName === 'IMG') {
-        currentSelectedImg = e.target;
-        document.getElementById('imgWidth').value = currentSelectedImg.width;
-        document.getElementById('imgHeight').value = currentSelectedImg.height;
-    }
-});
-
-// 应用尺寸
-document.getElementById('applyImgSize')?.addEventListener('click', () => {
-    if (currentSelectedImg) {
-        const w = parseInt(document.getElementById('imgWidth').value);
-        const h = parseInt(document.getElementById('imgHeight').value);
-        if (!isNaN(w) && w > 0) currentSelectedImg.style.width = w + 'px';
-        if (!isNaN(h) && h > 0) currentSelectedImg.style.height = h + 'px';
-        alert('Image size updated');
-    } else {
-        alert('Please click on an image first to select it');
-    }
-});
-        document.getElementById('cancelEditBtn').onclick = () => renderViewMode();
-        document.getElementById('saveEditBtn').onclick = async () => {
-    const newTitle = document.getElementById('editTitleInput').value.trim() || 'Untitled';
-    const newDesc = document.getElementById('editDescInput').value.trim() || '';
-    
-    // 获取编辑器内容
-    let content = quillEditor.root.innerHTML;
-    
-    // 将所有有序列表 <ol> 转换为无序列表 <ul>（解决圆点变数字问题）
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = content;
-    tempDiv.querySelectorAll('ol').forEach(ol => {
-        const ul = document.createElement('ul');
-        ul.innerHTML = ol.innerHTML;
-        ol.parentNode.replaceChild(ul, ol);
+    quillEditor = new Quill('#editQuillContainer', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'align': [] }],
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
+                [{ 'indent': '-1' }, { 'indent': '+1' }],
+                [{ 'script': 'sub' }, { 'script': 'super' }],
+                ['blockquote', 'code-block'],
+                ['link', 'image', 'video', 'clean']
+            ]
+        }
     });
-    // 同时处理可能带 data-list 属性的 li
-    tempDiv.querySelectorAll('li[data-list="bullet"]').forEach(li => {
-        li.removeAttribute('data-list');
+    quillEditor.setText('');
+    quillEditor.clipboard.dangerouslyPasteHTML(currentProject.noteText || '');
+
+    // 创建图片尺寸调整面板
+    const sizePanel = document.createElement('div');
+    sizePanel.style.cssText = 'margin: 0.5rem 1rem; padding: 0.5rem; background: #f5efe9; border-radius: 12px; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;';
+    sizePanel.innerHTML = `
+        <span style="font-size: 0.75rem; color: #8f7e6b;">📐 Image Size:</span>
+        <input type="number" id="imgWidth" placeholder="Width (px)" style="width: 100px; padding: 0.3rem; border-radius: 20px; border: 1px solid #e2cfc2;">
+        <span style="font-size: 0.75rem;">x</span>
+        <input type="number" id="imgHeight" placeholder="Height (px)" style="width: 100px; padding: 0.3rem; border-radius: 20px; border: 1px solid #e2cfc2;">
+        <button id="applyImgSize" style="background: #b47c56; color: white; border: none; padding: 0.3rem 1rem; border-radius: 20px; cursor: pointer;">Apply</button>
+        <span style="font-size: 0.7rem; color: #b38b6e;">(Select an image first)</span>
+    `;
+    richDiv.appendChild(sizePanel);
+
+    let currentSelectedImg = null;
+
+    quillEditor.root.addEventListener('click', (e) => {
+        if (e.target.tagName === 'IMG') {
+            currentSelectedImg = e.target;
+            const wInput = document.getElementById('imgWidth');
+            const hInput = document.getElementById('imgHeight');
+            if (wInput) wInput.value = currentSelectedImg.width;
+            if (hInput) hInput.value = currentSelectedImg.height;
+        }
     });
-    content = tempDiv.innerHTML;
-    
-    if (currentProject.id && currentProject.id !== 'null') {
-        const updated = await updateNoteInSupabase(currentProject.id, {
-            title: newTitle, desc: newDesc, noteText: content
+
+    const applyBtn = document.getElementById('applyImgSize');
+    if (applyBtn) {
+        applyBtn.addEventListener('click', () => {
+            if (currentSelectedImg) {
+                const w = parseInt(document.getElementById('imgWidth').value);
+                const h = parseInt(document.getElementById('imgHeight').value);
+                if (!isNaN(w) && w > 0) currentSelectedImg.style.width = w + 'px';
+                if (!isNaN(h) && h > 0) currentSelectedImg.style.height = h + 'px';
+                alert('Image size updated');
+            } else {
+                alert('Please click on an image first to select it');
+            }
         });
-        if (updated) { 
-            alert('✓ Saved successfully');
-            await loadDataFromSupabase();
-            openProject(currentProject.id);
-        } else alert('Save failed');
-    } else {
-        const inserted = await addNoteToSupabase({
-            title: newTitle, desc: newDesc, noteText: content
-        });
-        if (inserted) { 
-            alert('✓ Created successfully');
-            await loadDataFromSupabase();
-            openProject(inserted.id);
-        } else alert('Creation failed');
     }
-};
+
+    document.getElementById('cancelEditBtn').onclick = () => renderViewMode();
+
+    document.getElementById('saveEditBtn').onclick = async () => {
+        const newTitle = document.getElementById('editTitleInput').value.trim() || 'Untitled';
+        const newDesc = document.getElementById('editDescInput').value.trim() || '';
+        let content = quillEditor.root.innerHTML;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        tempDiv.querySelectorAll('ol').forEach(ol => {
+            const ul = document.createElement('ul');
+            ul.innerHTML = ol.innerHTML;
+            ol.parentNode.replaceChild(ul, ol);
+        });
+        tempDiv.querySelectorAll('li[data-list="bullet"]').forEach(li => {
+            li.removeAttribute('data-list');
+        });
+        content = tempDiv.innerHTML;
+        if (currentProject.id && currentProject.id !== 'null') {
+            const updated = await updateNoteInSupabase(currentProject.id, {
+                title: newTitle, desc: newDesc, noteText: content
+            });
+            if (updated) {
+                alert('✓ Saved successfully');
+                await loadDataFromSupabase();
+                openProject(currentProject.id);
+            } else {
+                alert('Save failed');
+            }
+        } else {
+            const inserted = await addNoteToSupabase({
+                title: newTitle, desc: newDesc, noteText: content
+            });
+            if (inserted) {
+                alert('✓ Created successfully');
+                await loadDataFromSupabase();
+                openProject(inserted.id);
+            } else {
+                alert('Creation failed');
+            }
+        }
+    };
+}
     function openCreateMode() { currentProject = { id: null, title: 'New Note', desc: '', noteText: '' }; enterEditMode(); }
     function escapeHtml(str) { return str?.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}) || ''; }
     document.getElementById('loginBtn').onclick = async () => {
