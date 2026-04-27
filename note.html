@@ -53,12 +53,30 @@
         .readonly-text ul { list-style-type: disc !important; }
         .readonly-text ol { list-style-type: decimal !important; }
         /* 富文本编辑器内的图片自适应 */
-#editQuillContainer img,
-.readonly-text img {
+/* 图片可调整大小 - 原生CSS方案 */
+#editQuillContainer img {
     max-width: 100%;
     height: auto;
     display: block;
     margin: 0.5rem 0;
+    border-radius: 8px;
+    resize: both;
+    overflow: auto;
+    min-width: 50px;
+    min-height: 50px;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+}
+
+#editQuillContainer img:hover {
+    border-color: #b47c56;
+    cursor: nw-resize;
+}
+
+/* 预览区域图片 */
+.readonly-text img {
+    max-width: 100%;
+    height: auto;
     border-radius: 8px;
 }
 
