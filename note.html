@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://cdn.quilljs.com/2.0.3/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/2.0.3/quill.js"></script>
-    <script src="https://unpkg.com/quill-image-resize-module-vue@1.0.1/dist/quill-image-resize-module-vue.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -49,55 +48,92 @@
         .card-section { background: white; border-radius: 20px; border: 1px solid #f0e2d8; overflow: hidden; margin-bottom: 1.5rem; }
         .section-label { background: #faf3ef; padding: 0.6rem 1.2rem; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid #ecdfd6; }
         .readonly-text { padding: 1.2rem 1.5rem; line-height: 1.6; font-size: 0.85rem; }
-        .readonly-text ul, .readonly-text ol { padding-left: 1.8rem; margin: 0.5rem 0; }
-        .readonly-text ul { list-style-type: disc !important; }
-        .readonly-text ol { list-style-type: decimal !important; }
-        /* 富文本编辑器内的图片自适应 */
-/* 图片可调整大小 - 原生CSS方案 */
-#editQuillContainer img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 0.5rem 0;
-    border-radius: 8px;
-    resize: both;
-    overflow: auto;
-    min-width: 50px;
-    min-height: 50px;
-    border: 2px solid transparent;
-    transition: border-color 0.2s;
-}
-
-#editQuillContainer img:hover {
-    border-color: #b47c56;
-    cursor: nw-resize;
-}
-
-/* 预览区域图片 */
-.readonly-text img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 8px;
-}
-
-/* 编辑器容器滚动条（避免图片撑破） */
-#editQuillContainer {
-    overflow-x: auto;
-}
-
-/* 预览区域图片 */
-.readonly-text {
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-}
-
-.readonly-text img {
-    max-width: 100%;
-    height: auto;
-}
         .edit-input { width: 100%; padding: 0.7rem 1rem; border-radius: 40px; border: 1px solid #e2cfc2; font-size: 0.85rem; }
         .empty-state { text-align: center; padding: 3rem 1.5rem; color: #b38b6e; }
         #editQuillContainer { height: 300px; margin: 1rem; }
+        
+        /* ========== 修复1：列表符号显示 ========== */
+        .readonly-text ul,
+        .readonly-text ol,
+        .ql-editor ul,
+        .ql-editor ol {
+            padding-left: 2rem !important;
+            margin: 0.5rem 0 !important;
+        }
+        
+        .readonly-text ul,
+        .ql-editor ul {
+            list-style-type: disc !important;
+        }
+        
+        .readonly-text ul ul,
+        .ql-editor ul ul {
+            list-style-type: circle !important;
+        }
+        
+        .readonly-text ol,
+        .ql-editor ol {
+            list-style-type: decimal !important;
+        }
+        
+        .readonly-text li,
+        .ql-editor li {
+            display: list-item !important;
+        }
+        
+        /* ========== 修复2：图片大小调整（纯CSS拖拽） ========== */
+        #editQuillContainer img {
+            max-width: 100%;
+            height: auto;
+            display: inline-block;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+        
+        #editQuillContainer img:hover {
+            border-color: #b47c56;
+            cursor: pointer;
+        }
+        
+        /* 图片调整手柄容器 */
+        .img-resize-container {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+        }
+        
+        .img-resize-container img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            margin: 0;
+        }
+        
+        .img-resize-handle {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 16px;
+            height: 16px;
+            background-color: #b47c56;
+            border-radius: 2px;
+            cursor: nw-resize;
+            z-index: 10;
+        }
+        
+        .img-resize-handle:hover {
+            background-color: #8f5e42;
+            transform: scale(1.1);
+        }
+        
+        .readonly-text img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        
         @media (max-width: 900px) { .workspace-layout { flex-direction: column; } .sidebar { width: 100%; } }
     </style>
 </head>
@@ -290,6 +326,54 @@
         document.getElementById('enterEditBtn')?.addEventListener('click', () => enterEditMode());
     }
 
+    // 图片拖拽调整大小的辅助函数
+    function makeImageResizable(imgElement) {
+        if (imgElement.parentElement.classList.contains('img-resize-container')) return;
+        
+        const container = document.createElement('div');
+        container.className = 'img-resize-container';
+        container.style.position = 'relative';
+        container.style.display = 'inline-block';
+        
+        const handle = document.createElement('div');
+        handle.className = 'img-resize-handle';
+        
+        let isResizing = false;
+        let startX, startY, startWidth, startHeight;
+        
+        handle.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+            isResizing = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startWidth = imgElement.offsetWidth;
+            startHeight = imgElement.offsetHeight;
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+        
+        function onMouseMove(e) {
+            if (!isResizing) return;
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            const newWidth = Math.max(50, startWidth + deltaX);
+            const newHeight = Math.max(50, startHeight + deltaY);
+            imgElement.style.width = newWidth + 'px';
+            imgElement.style.height = newHeight + 'px';
+        }
+        
+        function onMouseUp() {
+            isResizing = false;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+        
+        imgElement.parentNode.insertBefore(container, imgElement);
+        container.appendChild(imgElement);
+        container.appendChild(handle);
+    }
+
     function enterEditMode() {
         document.getElementById('panelTitle').innerHTML = `<i class="fas fa-pen-fancy"></i> Editing · ${escapeHtml(currentProject.title)}`;
         document.getElementById('headerActions').innerHTML = `<button id="cancelEditBtn" class="edit-mode-btn">Cancel</button><button id="saveEditBtn" class="save-note-btn">Save to Cloud</button>`;
@@ -305,56 +389,50 @@
 
         if (quillEditor) quillEditor = null;
 
-// 检查两个可能的模块名称
-const ImageResizeModule = window.QuillImageResizeModule || window.ImageResize;
-
-// 注册模块
-if (ImageResizeModule) {
-    Quill.register('modules/imageResize', ImageResizeModule);
-}
-
-quillEditor = new Quill('#editQuillContainer', {
-    theme: 'snow',
-    modules: {
-        toolbar: [
-            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ 'color': [] }, { 'background': [] }],
-            [{ 'align': [] }],
-            [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
-            [{ 'indent': '-1'}, { 'indent': '+1' }],
-            [{ 'script': 'sub'}, { 'script': 'super' }],
-            ['blockquote', 'code-block'],
-            ['link', 'image', 'video', 'clean']
-        ],
-        imageResize: {
-            displaySize: true,
-            modules: ['Resize', 'DisplaySize', 'Toolbar']
-        }
-    }
-});
+        quillEditor = new Quill('#editQuillContainer', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'align': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+                    [{ 'indent': '-1'}, { 'indent': '+1' }],
+                    [{ 'script': 'sub'}, { 'script': 'super' }],
+                    ['blockquote', 'code-block'],
+                    ['link', 'image', 'video', 'clean']
+                ]
+            }
+        });
         quillEditor.setText('');
         quillEditor.clipboard.dangerouslyPasteHTML(currentProject.noteText || '');
 
+        // 为已存在的图片添加调整大小功能，并监听新图片插入
+        const addResizeToImages = () => {
+            const editor = document.querySelector('#editQuillContainer');
+            if (editor) {
+                editor.querySelectorAll('img').forEach(img => {
+                    if (!img.closest('.img-resize-container')) {
+                        makeImageResizable(img);
+                    }
+                });
+            }
+        };
+        
+        // 初始添加
+        setTimeout(addResizeToImages, 100);
+        
+        // 监听图片插入
+        quillEditor.on('text-change', () => {
+            setTimeout(addResizeToImages, 50);
+        });
+
         document.getElementById('cancelEditBtn').onclick = () => renderViewMode();
         document.getElementById('saveEditBtn').onclick = async () => {
-    const newTitle = document.getElementById('editTitleInput').value.trim() || 'Untitled';
-    const newDesc = document.getElementById('editDescInput').value.trim() || '';
-    
-    // 修复列表类型：确保所有有序列表都正确标记
-    const editorContent = quillEditor.root;
-    editorContent.querySelectorAll('ol').forEach(ol => {
-        // 如果是有序列表但样式看起来像无序，可以保留；不需要额外处理
-        console.log('Found ordered list:', ol);
-    });
-    // 确保无序列表使用 ul 标签
-    editorContent.querySelectorAll('[data-list="bullet"]').forEach(el => {
-        const ul = document.createElement('ul');
-        ul.innerHTML = el.innerHTML;
-        el.parentNode.replaceChild(ul, el);
-    });
-    
-    const newNote = quillEditor.root.innerHTML;
+            const newTitle = document.getElementById('editTitleInput').value.trim() || 'Untitled';
+            const newDesc = document.getElementById('editDescInput').value.trim() || '';
+            const newNote = quillEditor.root.innerHTML;
             
             if (currentProject.id && currentProject.id !== 'null') {
                 const updated = await updateNoteInSupabase(currentProject.id, {
