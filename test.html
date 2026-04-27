@@ -6,7 +6,7 @@
     <script src="supabase.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SkinForge</title>
+    <title>Skin Care</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="sheet">
 
@@ -331,6 +331,11 @@
     color: white;
 }
 @media print { .quote-modal { position: static; display: block !important; background: white; } .quote-content { padding: 0; max-height: none; overflow: visible; } }
+.copy-quote-btn {
+    background: #d2c0b0;
+    color: #5f5347;
+}
+        
 
 /* 多层级下拉菜单样式 */
 .cascade-select {
@@ -693,8 +698,8 @@
 <div class="skincare-app">
     <div class="app-container">
         <div class="ritual-header">
-            <h1>Skincare Routine Builder</h1>
-            <p>Build A Skin Care Routine · Generate A Quote</p>
+            <h1>Skin Care</h1>
+            <p>Build A SkinCare Routine · Generate A Quote</p>
         </div>
 
         <!-- 密码验证区域 -->
@@ -841,6 +846,7 @@
                 <!-- 添加打印按钮 -->
                 <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem;">
                     <button class="print-quote-btn" id="printUnifiedQuoteBtn">🖨️ Print Quote</button>
+                    <button class="copy-quote-btn" id="copyUnifiedQuoteBtn">📋 Copy Quote</button>
                     <button class="email-quote-btn" id="emailUnifiedQuoteBtn">📧 Email Quote</button>
                 </div>
             </div>
@@ -2344,6 +2350,52 @@ ${items.map(item => {
     win.print();
 }
 
+    // 复制统一报价到剪贴板
+function copyUnifiedQuote() {
+    const productSubtotal = parseFloat(document.getElementById('unifiedProductSubtotal')?.innerText || 0);
+    const serviceSubtotal = parseFloat(document.getElementById('unifiedServiceSubtotal')?.innerText || 0);
+    const totalDiscount = parseFloat(document.getElementById('unifiedTotalDiscount')?.innerText || 0);
+    const productTax = parseFloat(document.getElementById('unifiedProductTax')?.innerText || 0);
+    const serviceTax = parseFloat(document.getElementById('unifiedServiceTax')?.innerText || 0);
+    const grandTotal = parseFloat(document.getElementById('unifiedGrandTotal')?.innerText || 0);
+    
+    let copyText = `Package Quote\n`;
+    copyText += `Date: ${new Date().toLocaleDateString()}\n`;
+    copyText += `Package: ${savedPackages[currentPackageId]?.name || 'Current Package'}\n\n`;
+    copyText += `Items:\n`;
+    copyText += `--------------------------------------------------\n`;
+    
+    for (const item of unifiedItems) {
+        let discountedPrice = item.price;
+        let discountText = '';
+        if (item.discountType === '%' && item.discountValue > 0) {
+            discountedPrice = item.price * (1 - item.discountValue / 100);
+            discountText = ` (${item.discountValue}% off)`;
+        } else if (item.discountType === 'fixed' && item.discountValue > 0) {
+            discountedPrice = Math.max(0, item.price - item.discountValue);
+            discountText = ` (-$${item.discountValue})`;
+        }
+        copyText += `${item.name} (${item.type === 'product' ? 'Product' : 'Treatment'}): $${item.price} x ${item.quantity}${discountText} = $${(discountedPrice * item.quantity).toFixed(2)}\n`;
+    }
+    
+    copyText += `\n--------------------------------------------------\n`;
+    copyText += `💰 Products Subtotal: $${productSubtotal.toFixed(2)}\n`;
+    copyText += `💆 Treatments Subtotal: $${serviceSubtotal.toFixed(2)}\n`;
+    if (totalDiscount > 0) {
+        copyText += `🏷️ Total Discount: -$${totalDiscount.toFixed(2)}\n`;
+    }
+    copyText += `📋 Product Tax (12%): $${productTax.toFixed(2)}\n`;
+    copyText += `📋 Treatment Tax (5%): $${serviceTax.toFixed(2)}\n`;
+    copyText += `💵 Grand Total: $${grandTotal.toFixed(2)}\n`;
+    
+    // 复制到剪贴板
+    navigator.clipboard.writeText(copyText).then(() => {
+        alert('✓ Quote copied to clipboard!');
+    }).catch(() => {
+        alert('Failed to copy. You can manually select and copy the text.');
+    });
+}
+
 // 邮件发送统一报价
 function emailUnifiedQuote() {
     const productSubtotal = parseFloat(document.getElementById('unifiedProductSubtotal')?.innerText || 0);
@@ -3086,8 +3138,10 @@ document.getElementById('saveAsNewPackageBtn').onclick = saveAsNewPackageToCloud
 // 打印和邮件按钮绑定
 const printUnifiedBtn = document.getElementById('printUnifiedQuoteBtn');
 const emailUnifiedBtn = document.getElementById('emailUnifiedQuoteBtn');
+    const copyUnifiedBtn = document.getElementById('copyUnifiedQuoteBtn');  // 新增
 if (printUnifiedBtn) printUnifiedBtn.onclick = printUnifiedQuote;
 if (emailUnifiedBtn) emailUnifiedBtn.onclick = emailUnifiedQuote;
+    if (copyUnifiedBtn) copyUnifiedBtn.onclick = copyUnifiedQuote;  // 新增
 
 // ==================== 启动应用 ====================
 async function initApp() {
