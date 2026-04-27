@@ -13,16 +13,12 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f5f0eb; font-family: 'Inter', sans-serif; color: #2a241f; font-size: 14px; }
         .container { max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem; }
-        
-        /* Hero Section */
         .hero-section { background: white; border-radius: 28px; padding: 1.5rem 2rem; margin-bottom: 2rem; border: 1px solid #eee5df; }
         .hero-section h1 { font-size: 1.6rem; font-weight: 600; background: linear-gradient(135deg, #b47c56, #8f5e42); background-clip: text; -webkit-background-clip: text; color: transparent; }
         .auth-container { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
         .auth-card { background: #fefaf7; border-radius: 60px; padding: 0.3rem 0.6rem; display: inline-flex; gap: 8px; align-items: center; border: 1px solid #f0e2d8; }
         .auth-input { padding: 6px 12px; border-radius: 40px; border: 1px solid #e2cfc2; font-size: 0.75rem; background: white; }
         .auth-btn { padding: 5px 14px; border-radius: 40px; background: #b47c56; color: white; border: none; cursor: pointer; }
-        
-        /* Two-column layout */
         .workspace-layout { display: flex; gap: 1.8rem; min-height: 600px; }
         .sidebar { width: 320px; flex-shrink: 0; background: white; border-radius: 28px; border: 1px solid #eedfcb; overflow: hidden; display: flex; flex-direction: column; }
         .sidebar-header { padding: 1.2rem; border-bottom: 1px solid #f0e2d8; background: #fef7f2; }
@@ -38,7 +34,6 @@
         .note-item-desc { font-size: 0.7rem; color: #b38b6e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .add-note-btn { margin: 1rem; background: #f7ede7; border: 1px dashed #c99a78; border-radius: 40px; padding: 0.7rem; text-align: center; cursor: pointer; color: #b47c56; font-weight: 500; transition: all 0.2s; }
         .add-note-btn:hover { background: #efe0d6; }
-        
         .main-panel { flex: 1; background: white; border-radius: 28px; border: 1px solid #eedfcb; overflow: hidden; display: flex; flex-direction: column; }
         .panel-header { background: #fef7f2; padding: 1rem 1.8rem; border-bottom: 1px solid #f0e2d8; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         .panel-header h2 { font-size: 1.2rem; font-weight: 600; color: #4f3527; }
@@ -48,92 +43,12 @@
         .card-section { background: white; border-radius: 20px; border: 1px solid #f0e2d8; overflow: hidden; margin-bottom: 1.5rem; }
         .section-label { background: #faf3ef; padding: 0.6rem 1.2rem; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid #ecdfd6; }
         .readonly-text { padding: 1.2rem 1.5rem; line-height: 1.6; font-size: 0.85rem; }
+        .readonly-text ul { list-style-type: disc !important; padding-left: 1.8rem !important; }
+        .readonly-text ol { list-style-type: decimal !important; padding-left: 1.8rem !important; }
         .edit-input { width: 100%; padding: 0.7rem 1rem; border-radius: 40px; border: 1px solid #e2cfc2; font-size: 0.85rem; }
         .empty-state { text-align: center; padding: 3rem 1.5rem; color: #b38b6e; }
         #editQuillContainer { height: 300px; margin: 1rem; }
-        
-        /* ========== 修复1：列表符号显示 ========== */
-        .readonly-text ul,
-        .readonly-text ol,
-        .ql-editor ul,
-        .ql-editor ol {
-            padding-left: 2rem !important;
-            margin: 0.5rem 0 !important;
-        }
-        
-        .readonly-text ul,
-        .ql-editor ul {
-            list-style-type: disc !important;
-        }
-        
-        .readonly-text ul ul,
-        .ql-editor ul ul {
-            list-style-type: circle !important;
-        }
-        
-        .readonly-text ol,
-        .ql-editor ol {
-            list-style-type: decimal !important;
-        }
-        
-        .readonly-text li,
-        .ql-editor li {
-            display: list-item !important;
-        }
-        
-        /* ========== 修复2：图片大小调整（纯CSS拖拽） ========== */
-        #editQuillContainer img {
-            max-width: 100%;
-            height: auto;
-            display: inline-block;
-            margin: 0.5rem 0;
-            border-radius: 8px;
-            border: 2px solid transparent;
-            transition: border-color 0.2s;
-        }
-        
-        #editQuillContainer img:hover {
-            border-color: #b47c56;
-            cursor: pointer;
-        }
-        
-        /* 图片调整手柄容器 */
-        .img-resize-container {
-            position: relative;
-            display: inline-block;
-            max-width: 100%;
-        }
-        
-        .img-resize-container img {
-            display: block;
-            max-width: 100%;
-            height: auto;
-            margin: 0;
-        }
-        
-        .img-resize-handle {
-            position: absolute;
-            bottom: 4px;
-            right: 4px;
-            width: 16px;
-            height: 16px;
-            background-color: #b47c56;
-            border-radius: 2px;
-            cursor: nw-resize;
-            z-index: 10;
-        }
-        
-        .img-resize-handle:hover {
-            background-color: #8f5e42;
-            transform: scale(1.1);
-        }
-        
-        .readonly-text img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-        }
-        
+        #editQuillContainer img { max-width: 100%; height: auto; cursor: pointer; }
         @media (max-width: 900px) { .workspace-layout { flex-direction: column; } .sidebar { width: 100%; } }
     </style>
 </head>
@@ -154,7 +69,6 @@
         <h1><i class="fas fa-spa"></i> Aesthetic Notes · Admin Workspace</h1>
         <p>Rich text editor with full formatting support | Cloud sync</p>
     </div>
-    
     <div class="workspace-layout" id="workspaceLayout" style="display: none;">
         <div class="sidebar">
             <div class="sidebar-header">
@@ -165,11 +79,8 @@
                 </div>
             </div>
             <div id="notesListContainer" class="notes-list"></div>
-            <div id="addNewNoteBtn" class="add-note-btn">
-                <i class="fas fa-plus-circle"></i> Add New Note
-            </div>
+            <div id="addNewNoteBtn" class="add-note-btn"><i class="fas fa-plus-circle"></i> Add New Note</div>
         </div>
-        
         <div id="mainPanel" class="main-panel">
             <div class="panel-header">
                 <h2 id="panelTitle">Aesthetic Workspace</h2>
@@ -181,67 +92,36 @@
         </div>
     </div>
 </div>
-
 <script>
-    // ==================== CONFIG ====================
     const SUPABASE_URL = 'https://dmrskyskryrdclknezth.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    let currentUser = null;
-    let projectsData = [];
-    let currentProject = null;
-    let quillEditor = null;
-    let currentFilter = '';
-
-    // ==================== CRUD ====================
+    let currentUser = null, projectsData = [], currentProject = null, quillEditor = null, currentFilter = '';
     async function fetchAllNotes() {
         if (!currentUser) return [];
-        const { data, error } = await supabaseClient
-            .from('treatment_notes')
-            .select('*')
-            .order('title', { ascending: true });
+        const { data, error } = await supabaseClient.from('treatment_notes').select('*').order('title', { ascending: true });
         if (error) { console.error(error); return []; }
         return data || [];
     }
-
     async function addNoteToSupabase(note) {
-        const { data, error } = await supabaseClient.from('treatment_notes').insert([{
-            title: note.title,
-            description: note.desc || '',
-            note_text: note.noteText || ''
-        }]).select();
+        const { data, error } = await supabaseClient.from('treatment_notes').insert([{ title: note.title, description: note.desc || '', note_text: note.noteText || '' }]).select();
         if (error) { console.error(error); return null; }
         return data?.[0] || null;
     }
-
     async function updateNoteInSupabase(id, updates) {
-        if (!id || id === 'null') {
-            console.error('Invalid id for update:', id);
-            return null;
-        }
+        if (!id || id === 'null') { console.error('Invalid id'); return null; }
         try {
-            const { data, error } = await supabaseClient.from('treatment_notes').update({
-                title: updates.title,
-                description: updates.desc,
-                note_text: updates.noteText
-            }).eq('id', id).select();
+            const { data, error } = await supabaseClient.from('treatment_notes').update({ title: updates.title, description: updates.desc, note_text: updates.noteText }).eq('id', id).select();
             if (error) { console.error('Update error:', error); return null; }
             return data?.[0] || null;
-        } catch (err) {
-            console.error('Update exception:', err);
-            return null;
-        }
+        } catch (err) { console.error(err); return null; }
     }
-
-    // ==================== AUTH ====================
     async function adminLogin(email, password) {
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (!error) currentUser = data.user;
         return { data, error };
     }
     async function adminLogout() { await supabaseClient.auth.signOut(); currentUser = null; }
-    
     async function checkExistingSession() {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
@@ -255,251 +135,85 @@
         }
         return false;
     }
-
     async function loadDataFromSupabase() {
         if (!currentUser) return;
         let data = await fetchAllNotes();
         if (data.length === 0) {
-            const defaultNote = {
-                title: "Welcome Note",
-                desc: "Getting started with Aesthetic Notes",
-                noteText: "<h2>Welcome to your Notes Workspace!</h2><p>This is a rich text editor. You can:</p><ul><li>Write formatted text</li><li>Add images and videos</li><li>Create lists and tables</li><li>And much more!</li></ul>"
-            };
+            const defaultNote = { title: "Welcome Note", desc: "Getting started", noteText: "<h2>Welcome!</h2><ul><li>Write formatted text</li><li>Add images</li></ul>" };
             const inserted = await addNoteToSupabase(defaultNote);
             if (inserted) data = [inserted];
         }
-        projectsData = data.map(item => ({
-            id: item.id,
-            title: item.title || 'Untitled',
-            desc: item.description || '',
-            noteText: item.note_text || ''
-        }));
+        projectsData = data.map(item => ({ id: item.id, title: item.title || 'Untitled', desc: item.description || '', noteText: item.note_text || '' }));
         renderNotesList();
         if (projectsData.length > 0 && !currentProject) openProject(projectsData[0].id);
     }
-
-    // ==================== UI RENDERING ====================
     function renderNotesList() {
         const container = document.getElementById('notesListContainer');
         if (!container) return;
-        
         let filtered = [...projectsData];
-        if (currentFilter.trim()) {
-            const query = currentFilter.toLowerCase();
-            filtered = filtered.filter(p => p.title.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query));
-        }
+        if (currentFilter.trim()) { const q = currentFilter.toLowerCase(); filtered = filtered.filter(p => p.title.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)); }
         filtered.sort((a, b) => a.title.localeCompare(b.title));
-        
-        if (filtered.length === 0) {
-            container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #b38b6e;">No notes found.</div>';
-            return;
-        }
-        
-        container.innerHTML = filtered.map(note => `
-            <div class="note-item ${currentProject?.id === note.id ? 'active' : ''}" data-id="${note.id}">
-                <div class="note-item-title">${escapeHtml(note.title)}</div>
-                <div class="note-item-desc">${escapeHtml(note.desc?.substring(0, 60) || '')}</div>
-            </div>
-        `).join('');
-        
-        document.querySelectorAll('.note-item').forEach(el => {
-            el.addEventListener('click', () => openProject(el.dataset.id));
-        });
+        if (filtered.length === 0) { container.innerHTML = '<div style="padding:2rem;text-align:center;color:#b38b6e;">No notes found.</div>'; return; }
+        container.innerHTML = filtered.map(note => `<div class="note-item ${currentProject?.id === note.id ? 'active' : ''}" data-id="${note.id}"><div class="note-item-title">${escapeHtml(note.title)}</div><div class="note-item-desc">${escapeHtml(note.desc?.substring(0,60)||'')}</div></div>`).join('');
+        document.querySelectorAll('.note-item').forEach(el => { el.addEventListener('click', () => openProject(el.dataset.id)); });
     }
-
     function openProject(id) {
         currentProject = projectsData.find(p => p.id == id);
         if (currentProject) renderViewMode();
         renderNotesList();
     }
-
     function renderViewMode() {
         document.getElementById('panelTitle').innerHTML = `<i class="fas fa-clinic-medical"></i> ${escapeHtml(currentProject.title)}`;
         document.getElementById('headerActions').innerHTML = `<button id="enterEditBtn" class="edit-mode-btn"><i class="fas fa-pen"></i> Edit Note</button>`;
         const body = document.getElementById('panelBody');
         body.innerHTML = '';
-        
         const textDiv = document.createElement('div'); textDiv.className = 'card-section';
         textDiv.innerHTML = `<div class="section-label">📝 Content</div><div class="readonly-text">${currentProject.noteText || '<em>No content</em>'}</div>`;
         body.appendChild(textDiv);
-        
         document.getElementById('enterEditBtn')?.addEventListener('click', () => enterEditMode());
     }
-
-    // 图片拖拽调整大小的辅助函数
-    function makeImageResizable(imgElement) {
-        if (imgElement.parentElement.classList.contains('img-resize-container')) return;
-        
-        const container = document.createElement('div');
-        container.className = 'img-resize-container';
-        container.style.position = 'relative';
-        container.style.display = 'inline-block';
-        
-        const handle = document.createElement('div');
-        handle.className = 'img-resize-handle';
-        
-        let isResizing = false;
-        let startX, startY, startWidth, startHeight;
-        
-        handle.addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-            isResizing = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            startWidth = imgElement.offsetWidth;
-            startHeight = imgElement.offsetHeight;
-            
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-        });
-        
-        function onMouseMove(e) {
-            if (!isResizing) return;
-            const deltaX = e.clientX - startX;
-            const deltaY = e.clientY - startY;
-            const newWidth = Math.max(50, startWidth + deltaX);
-            const newHeight = Math.max(50, startHeight + deltaY);
-            imgElement.style.width = newWidth + 'px';
-            imgElement.style.height = newHeight + 'px';
-        }
-        
-        function onMouseUp() {
-            isResizing = false;
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        }
-        
-        imgElement.parentNode.insertBefore(container, imgElement);
-        container.appendChild(imgElement);
-        container.appendChild(handle);
-    }
-
     function enterEditMode() {
         document.getElementById('panelTitle').innerHTML = `<i class="fas fa-pen-fancy"></i> Editing · ${escapeHtml(currentProject.title)}`;
         document.getElementById('headerActions').innerHTML = `<button id="cancelEditBtn" class="edit-mode-btn">Cancel</button><button id="saveEditBtn" class="save-note-btn">Save to Cloud</button>`;
         const body = document.getElementById('panelBody');
         body.innerHTML = '';
-        
         body.innerHTML += `<div class="card-section"><div class="section-label">✏️ Title</div><div style="padding:1rem"><input id="editTitleInput" class="edit-input" value="${escapeHtml(currentProject.title)}"></div></div>`;
         body.innerHTML += `<div class="card-section"><div class="section-label">📄 Description</div><div style="padding:1rem"><input id="editDescInput" class="edit-input" value="${escapeHtml(currentProject.desc)}"></div></div>`;
-        
         const richDiv = document.createElement('div'); richDiv.className = 'card-section';
         richDiv.innerHTML = `<div class="section-label">✍️ Rich Text Editor</div><div id="editQuillContainer"></div>`;
         body.appendChild(richDiv);
-
         if (quillEditor) quillEditor = null;
-
         quillEditor = new Quill('#editQuillContainer', {
             theme: 'snow',
-            modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'align': [] }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
-                    [{ 'indent': '-1'}, { 'indent': '+1' }],
-                    [{ 'script': 'sub'}, { 'script': 'super' }],
-                    ['blockquote', 'code-block'],
-                    ['link', 'image', 'video', 'clean']
-                ]
-            }
+            modules: { toolbar: [[{ 'header': [1,2,3,4,5,6,false]}],['bold','italic','underline','strike'],[{ 'color': [] },{ 'background': [] }],[{ 'align': [] }],[{ 'list':'ordered'},{ 'list':'bullet'},{ 'list':'check'}],[{ 'indent': '-1'},{ 'indent': '+1'}],[{ 'script':'sub'},{ 'script':'super'}],['blockquote','code-block'],['link','image','video','clean']] }
         });
         quillEditor.setText('');
         quillEditor.clipboard.dangerouslyPasteHTML(currentProject.noteText || '');
-
-        // 为已存在的图片添加调整大小功能，并监听新图片插入
-        const addResizeToImages = () => {
-            const editor = document.querySelector('#editQuillContainer');
-            if (editor) {
-                editor.querySelectorAll('img').forEach(img => {
-                    if (!img.closest('.img-resize-container')) {
-                        makeImageResizable(img);
-                    }
-                });
-            }
-        };
-        
-        // 初始添加
-        setTimeout(addResizeToImages, 100);
-        
-        // 监听图片插入
-        quillEditor.on('text-change', () => {
-            setTimeout(addResizeToImages, 50);
-        });
-
         document.getElementById('cancelEditBtn').onclick = () => renderViewMode();
         document.getElementById('saveEditBtn').onclick = async () => {
-    const newTitle = document.getElementById('editTitleInput').value.trim() || 'Untitled';
-    const newDesc = document.getElementById('editDescInput').value.trim() || '';
-    
-    // ❌ 删除这段错误的代码
-    // editorContent.querySelectorAll('[data-list="bullet"]').forEach(el => { ... });
-    
-    // ✅ 直接保存，不做任何转换
-    const newNote = quillEditor.root.innerHTML;
-    
-    if (currentProject.id && currentProject.id !== 'null') {
-        const updated = await updateNoteInSupabase(currentProject.id, {
-            title: newTitle, desc: newDesc, noteText: newNote
-        });
-        if (updated) { 
-            alert('✓ Saved successfully');
-            await loadDataFromSupabase();
-            openProject(currentProject.id);
-        } else alert('Save failed');
-    } else {
-        const inserted = await addNoteToSupabase({
-            title: newTitle, desc: newDesc, noteText: newNote
-        });
-        if (inserted) { 
-            alert('✓ Created successfully');
-            await loadDataFromSupabase();
-            openProject(inserted.id);
-        } else alert('Creation failed');
+            const newTitle = document.getElementById('editTitleInput').value.trim() || 'Untitled';
+            const newDesc = document.getElementById('editDescInput').value.trim() || '';
+            const newNote = quillEditor.root.innerHTML;
+            if (currentProject.id && currentProject.id !== 'null') {
+                const updated = await updateNoteInSupabase(currentProject.id, { title: newTitle, desc: newDesc, noteText: newNote });
+                if (updated) { alert('✓ Saved successfully'); await loadDataFromSupabase(); openProject(currentProject.id); } else alert('Save failed');
+            } else {
+                const inserted = await addNoteToSupabase({ title: newTitle, desc: newDesc, noteText: newNote });
+                if (inserted) { alert('✓ Created successfully'); await loadDataFromSupabase(); openProject(inserted.id); } else alert('Creation failed');
+            }
+        };
     }
-};
-
-    function openCreateMode() {
-        currentProject = { id: null, title: 'New Note', desc: '', noteText: '' };
-        enterEditMode();
-    }
-
-    function escapeHtml(str) { return str?.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}) || ''; }
-
-    // ==================== EVENT LISTENERS ====================
+    function openCreateMode() { currentProject = { id: null, title: 'New Note', desc: '', noteText: '' }; enterEditMode(); }
+    function escapeHtml(str) { return str?.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}) || ''; }
     document.getElementById('loginBtn').onclick = async () => {
         const { error } = await adminLogin(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
         if (error) alert('Login failed: ' + error.message);
-        else { 
-            document.getElementById('loginPanel').style.display = 'none'; 
-            document.getElementById('userPanel').style.display = 'flex'; 
-            document.getElementById('userEmailDisplay').innerText = currentUser.email;
-            document.getElementById('workspaceLayout').style.display = 'flex';
-            await loadDataFromSupabase(); 
-        }
+        else { document.getElementById('loginPanel').style.display = 'none'; document.getElementById('userPanel').style.display = 'flex'; document.getElementById('userEmailDisplay').innerText = currentUser.email; document.getElementById('workspaceLayout').style.display = 'flex'; await loadDataFromSupabase(); }
     };
-    
-    document.getElementById('logoutBtn').onclick = async () => { 
-        await adminLogout(); 
-        document.getElementById('loginPanel').style.display = 'flex'; 
-        document.getElementById('userPanel').style.display = 'none'; 
-        document.getElementById('workspaceLayout').style.display = 'none';
-        document.getElementById('panelBody').innerHTML = '<div class="empty-state">✨ Please login to access your notes.</div>';
-    };
-    
-    document.getElementById('noteSearchInput')?.addEventListener('input', (e) => {
-        currentFilter = e.target.value;
-        renderNotesList();
-    });
+    document.getElementById('logoutBtn').onclick = async () => { await adminLogout(); document.getElementById('loginPanel').style.display = 'flex'; document.getElementById('userPanel').style.display = 'none'; document.getElementById('workspaceLayout').style.display = 'none'; document.getElementById('panelBody').innerHTML = '<div class="empty-state">✨ Please login to access your notes.</div>'; };
+    document.getElementById('noteSearchInput')?.addEventListener('input', (e) => { currentFilter = e.target.value; renderNotesList(); });
     document.getElementById('addNewNoteBtn')?.addEventListener('click', openCreateMode);
-    
-    checkExistingSession().then(has => { 
-        if(!has) {
-            document.getElementById('workspaceLayout').style.display = 'none';
-            document.getElementById('panelBody').innerHTML = '<div class="empty-state">✨ Please login to access your notes.</div>';
-        }
-    });
+    checkExistingSession().then(has => { if(!has) { document.getElementById('workspaceLayout').style.display = 'none'; document.getElementById('panelBody').innerHTML = '<div class="empty-state">✨ Please login to access your notes.</div>'; } });
 </script>
 </body>
 </html>
