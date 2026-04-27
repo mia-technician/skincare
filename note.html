@@ -49,6 +49,44 @@
         .section-label { background: #faf3ef; padding: 0.6rem 1.2rem; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid #ecdfd6; }
         .readonly-text { padding: 1.2rem 1.5rem; line-height: 1.6; font-size: 0.85rem; }
         .readonly-text ul, .readonly-text ol { padding-left: 2rem; margin: 0.5rem 0; }
+        /* 确保所有列表样式正确显示 */
+.readonly-text ul,
+.readonly-text ol {
+    padding-left: 1.8rem;
+    margin: 0.5rem 0;
+}
+
+.readonly-text ul {
+    list-style-type: disc !important;
+}
+
+.readonly-text ul ul {
+    list-style-type: circle !important;
+}
+
+.readonly-text ul ul ul {
+    list-style-type: square !important;
+}
+
+.readonly-text ol {
+    list-style-type: decimal !important;
+}
+
+.readonly-text ol ol {
+    list-style-type: lower-alpha !important;
+}
+
+.readonly-text li {
+    margin-bottom: 0.25rem;
+    display: list-item;
+}
+
+/* 修复 Quill 可能产生的特殊列表 */
+.readonly-text li[data-list="bullet"],
+.readonly-text li[data-list="checked"],
+.readonly-text li[data-list="unchecked"] {
+    list-style-type: disc !important;
+}
         .media-grid { display: flex; flex-wrap: wrap; gap: 1rem; padding: 1.2rem; }
         .media-item { position: relative; width: 120px; cursor: pointer; }
         .media-item img, .media-item .video-thumb { width: 120px; height: 120px; object-fit: cover; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
@@ -151,15 +189,23 @@
 
     // CRUD
     async function fetchAllNotes() {
-        if (!currentUser) return [];
-        const { data, error } = await supabaseClient.from('treatment_notes').select('*').order('title', { ascending: true });
-        if (error) { console.error(error); return []; }
-        for (let item of data) {
-            if (!item.images) item.images = [];
-            if (!item.videos) item.videos = [];
-        }
-        return data;
+    if (!currentUser) return [];
+    const { data, error } = await supabaseClient
+        .from('treatment_notes')
+        .select('*')
+        .order('created_at', { ascending: false });  // 改用 created_at 排序
+    if (error) { 
+        console.error('Fetch error:', error); 
+        return []; 
     }
+    for (let item of data) {
+        if (!item.images) item.images = [];
+        if (!item.videos) item.videos = [];
+        // 确保 note_text 不为空
+        if (!item.note_text) item.note_text = '';
+    }
+    return data;
+}
 
     async function addNoteToSupabase(note) {
         const { data, error } = await supabaseClient.from('treatment_notes').insert([{
@@ -171,14 +217,39 @@
     }
 
     async function updateNoteInSupabase(id, updates) {
-        if (!id || id === 'null') return null;
-        const { data, error } = await supabaseClient.from('treatment_notes').update({
-            title: updates.title, description: updates.desc, note_text: updates.noteText,
-            images: updates.images, videos: updates.videos, updated_at: new Date()
-        }).eq('id', id).select();
-        if (error) { console.error('Update error:', error); return null; }
-        return data[0];
+    // 更严格的 ID 验证
+    if (!id || id === 'null' || id === 'undefined' || typeof id !== 'string') {
+        console.error('Invalid id for update:', id);
+        return null;
     }
+    
+    // 验证 UUID 格式（8-4-4-4-12）
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+        console.error('Invalid UUID format:', id);
+        return null;
+    }
+    
+    try {
+        const { data, error } = await supabaseClient.from('treatment_notes').update({
+    title: updates.title, 
+    description: updates.desc, 
+    note_text: updates.noteText,
+    images: updates.images, 
+    videos: updates.videos
+    // 删除 updated_at: new Date()
+}).eq('id', id).select();
+        
+        if (error) {
+            console.error('Update error:', error);
+            return null;
+        }
+        return data?.[0] || null;
+    } catch (err) {
+        console.error('Update exception:', err);
+        return null;
+    }
+}
 
     // Auth
     async function adminLogin(email, password) {
