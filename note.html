@@ -217,28 +217,22 @@
     }
 
     async function updateNoteInSupabase(id, updates) {
-    // 更严格的 ID 验证
-    if (!id || id === 'null' || id === 'undefined' || typeof id !== 'string') {
+    // 验证 ID
+    if (!id || id === 'null' || id === 'undefined') {
         console.error('Invalid id for update:', id);
         return null;
     }
     
-    // 验证 UUID 格式（8-4-4-4-12）
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(id)) {
-        console.error('Invalid UUID format:', id);
-        return null;
-    }
-    
     try {
+        // 只更新数据库表中实际存在的字段（移除 updated_at）
         const { data, error } = await supabaseClient.from('treatment_notes').update({
-    title: updates.title, 
-    description: updates.desc, 
-    note_text: updates.noteText,
-    images: updates.images, 
-    videos: updates.videos
-    // 删除 updated_at: new Date()
-}).eq('id', id).select();
+            title: updates.title,
+            description: updates.desc,
+            note_text: updates.noteText,
+            images: updates.images,
+            videos: updates.videos
+            // ❌ 删除 updated_at: new Date() - 数据库没有这个列
+        }).eq('id', id).select();
         
         if (error) {
             console.error('Update error:', error);
