@@ -219,31 +219,75 @@
     richDiv.appendChild(sizePanel);
 
     let currentSelectedImg = null;
+let isUpdating = false; // 防止循环触发
 
-    quillEditor.root.addEventListener('click', (e) => {
-        if (e.target.tagName === 'IMG') {
-            currentSelectedImg = e.target;
-            const wInput = document.getElementById('imgWidth');
-            const hInput = document.getElementById('imgHeight');
-            if (wInput) wInput.value = currentSelectedImg.width;
-            if (hInput) hInput.value = currentSelectedImg.height;
+quillEditor.root.addEventListener('click', (e) => {
+    if (e.target.tagName === 'IMG') {
+        currentSelectedImg = e.target;
+        isUpdating = true;
+        const wInput = document.getElementById('imgWidth');
+        const hInput = document.getElementById('imgHeight');
+        if (wInput) wInput.value = currentSelectedImg.width;
+        if (hInput) hInput.value = currentSelectedImg.height;
+        isUpdating = false;
+    }
+});
+
+// 宽度变化时，自动按比例计算高度
+const wInput = document.getElementById('imgWidth');
+const hInput = document.getElementById('imgHeight');
+
+if (wInput) {
+    wInput.addEventListener('input', () => {
+        if (isUpdating) return;
+        if (currentSelectedImg && wInput.value) {
+            const originalWidth = currentSelectedImg.naturalWidth;
+            const originalHeight = currentSelectedImg.naturalHeight;
+            const newWidth = parseInt(wInput.value);
+            if (!isNaN(newWidth) && newWidth > 0 && originalWidth > 0) {
+                const ratio = originalHeight / originalWidth;
+                const newHeight = Math.round(newWidth * ratio);
+                isUpdating = true;
+                hInput.value = newHeight;
+                isUpdating = false;
+            }
         }
     });
+}
 
-    const applyBtn = document.getElementById('applyImgSize');
-    if (applyBtn) {
-        applyBtn.addEventListener('click', () => {
-            if (currentSelectedImg) {
-                const w = parseInt(document.getElementById('imgWidth').value);
-                const h = parseInt(document.getElementById('imgHeight').value);
-                if (!isNaN(w) && w > 0) currentSelectedImg.style.width = w + 'px';
-                if (!isNaN(h) && h > 0) currentSelectedImg.style.height = h + 'px';
-                alert('Image size updated');
-            } else {
-                alert('Please click on an image first to select it');
+// 高度变化时，自动按比例计算宽度
+if (hInput) {
+    hInput.addEventListener('input', () => {
+        if (isUpdating) return;
+        if (currentSelectedImg && hInput.value) {
+            const originalWidth = currentSelectedImg.naturalWidth;
+            const originalHeight = currentSelectedImg.naturalHeight;
+            const newHeight = parseInt(hInput.value);
+            if (!isNaN(newHeight) && newHeight > 0 && originalHeight > 0) {
+                const ratio = originalWidth / originalHeight;
+                const newWidth = Math.round(newHeight * ratio);
+                isUpdating = true;
+                wInput.value = newWidth;
+                isUpdating = false;
             }
-        });
-    }
+        }
+    });
+}
+
+const applyBtn = document.getElementById('applyImgSize');
+if (applyBtn) {
+    applyBtn.addEventListener('click', () => {
+        if (currentSelectedImg) {
+            const w = parseInt(wInput.value);
+            const h = parseInt(hInput.value);
+            if (!isNaN(w) && w > 0) currentSelectedImg.style.width = w + 'px';
+            if (!isNaN(h) && h > 0) currentSelectedImg.style.height = h + 'px';
+            alert('✓ Image size updated');
+        } else {
+            alert('Please click on an image first to select it');
+        }
+    });
+}
 
     document.getElementById('cancelEditBtn').onclick = () => renderViewMode();
 
