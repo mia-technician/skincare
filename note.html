@@ -286,30 +286,53 @@
         body.appendChild(richDiv);
 
         if (quillEditor) quillEditor = null;
-        quillEditor = new Quill('#editQuillContainer', {
-            theme: 'snow',
-            modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'align': [] }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
-                    [{ 'indent': '-1'}, { 'indent': '+1' }],
-                    [{ 'script': 'sub'}, { 'script': 'super' }],
-                    ['blockquote', 'code-block'],
-                    ['link', 'image', 'video', 'clean']
-                ]
-            }
-        });
+        // 注册图片缩放模块
+if (typeof ImageResize !== 'undefined') {
+    Quill.register('modules/imageResize', ImageResize);
+}
+
+quillEditor = new Quill('#editQuillContainer', {
+    theme: 'snow',
+    modules: {
+        toolbar: [
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'align': [] }],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+            [{ 'script': 'sub'}, { 'script': 'super' }],
+            ['blockquote', 'code-block'],
+            ['link', 'image', 'video', 'clean']
+        ],
+        imageResize: {
+            displaySize: true,
+            modules: ['Resize', 'DisplaySize', 'Toolbar']
+        }
+    }
+});
         quillEditor.setText('');
         quillEditor.clipboard.dangerouslyPasteHTML(currentProject.noteText || '');
 
         document.getElementById('cancelEditBtn').onclick = () => renderViewMode();
         document.getElementById('saveEditBtn').onclick = async () => {
-            const newTitle = document.getElementById('editTitleInput').value.trim() || 'Untitled';
-            const newDesc = document.getElementById('editDescInput').value.trim() || '';
-            const newNote = quillEditor.root.innerHTML;
+    const newTitle = document.getElementById('editTitleInput').value.trim() || 'Untitled';
+    const newDesc = document.getElementById('editDescInput').value.trim() || '';
+    
+    // 修复列表类型：确保所有有序列表都正确标记
+    const editorContent = quillEditor.root;
+    editorContent.querySelectorAll('ol').forEach(ol => {
+        // 如果是有序列表但样式看起来像无序，可以保留；不需要额外处理
+        console.log('Found ordered list:', ol);
+    });
+    // 确保无序列表使用 ul 标签
+    editorContent.querySelectorAll('[data-list="bullet"]').forEach(el => {
+        const ul = document.createElement('ul');
+        ul.innerHTML = el.innerHTML;
+        el.parentNode.replaceChild(ul, el);
+    });
+    
+    const newNote = quillEditor.root.innerHTML;
             
             if (currentProject.id && currentProject.id !== 'null') {
                 const updated = await updateNoteInSupabase(currentProject.id, {
