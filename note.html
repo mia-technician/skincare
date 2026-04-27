@@ -12,29 +12,40 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f5f0eb; font-family: 'Inter', sans-serif; color: #2a241f; font-size: 14px; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem; }
+        
+        /* Hero Section */
         .hero-section { background: white; border-radius: 28px; padding: 1.5rem 2rem; margin-bottom: 2rem; border: 1px solid #eee5df; }
         .hero-section h1 { font-size: 1.6rem; font-weight: 600; background: linear-gradient(135deg, #b47c56, #8f5e42); background-clip: text; -webkit-background-clip: text; color: transparent; }
         .auth-container { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
         .auth-card { background: #fefaf7; border-radius: 60px; padding: 0.3rem 0.6rem; display: inline-flex; gap: 8px; align-items: center; border: 1px solid #f0e2d8; }
         .auth-input { padding: 6px 12px; border-radius: 40px; border: 1px solid #e2cfc2; font-size: 0.75rem; background: white; }
         .auth-btn { padding: 5px 14px; border-radius: 40px; background: #b47c56; color: white; border: none; cursor: pointer; }
-        .search-wrapper { position: relative; margin-top: 1.2rem; max-width: 420px; }
-        .search-wrapper i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #bc8a6b; }
-        #projectSearchInput { width: 100%; padding: 0.7rem 1rem 0.7rem 2.5rem; border-radius: 60px; border: 1px solid #e8dbd2; background: white; font-family: 'Inter', sans-serif; }
-        .dropdown-list { position: absolute; top: 110%; left: 0; width: 100%; background: white; border-radius: 20px; box-shadow: 0 15px 30px rgba(0,0,0,0.1); z-index: 50; max-height: 300px; overflow-y: auto; border: 1px solid #ede0d7; display: none; }
-        .dropdown-list.show { display: block; }
-        .dropdown-item { padding: 0.7rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f3e8e1; }
-        .dropdown-item:hover { background: #fdf5f0; }
-        .dropdown-item img { width: 36px; height: 36px; border-radius: 12px; object-fit: cover; }
-        .add-new-item { background: #faf1ea; color: #b47c56; font-weight: 600; }
-        .note-main-panel { background: white; border-radius: 28px; border: 1px solid #eedfcb; overflow: hidden; }
+        
+        /* Two-column layout */
+        .workspace-layout { display: flex; gap: 1.8rem; min-height: 600px; }
+        .sidebar { width: 320px; flex-shrink: 0; background: white; border-radius: 28px; border: 1px solid #eedfcb; overflow: hidden; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 1.2rem; border-bottom: 1px solid #f0e2d8; background: #fef7f2; }
+        .sidebar-header h3 { font-size: 1rem; font-weight: 600; color: #4f3527; margin-bottom: 0.8rem; }
+        .sidebar-search { width: 100%; padding: 0.6rem 1rem 0.6rem 2.3rem; border-radius: 40px; border: 1px solid #e2cfc2; font-size: 0.8rem; background: white; }
+        .search-wrapper { position: relative; }
+        .search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #bc8a6b; font-size: 12px; }
+        .notes-list { flex: 1; overflow-y: auto; padding: 0.5rem 0; }
+        .note-item { padding: 1rem 1.2rem; cursor: pointer; border-bottom: 1px solid #f3e8e1; transition: all 0.2s; }
+        .note-item:hover { background: #fdf5f0; }
+        .note-item.active { background: #f5e8e0; border-left: 3px solid #b47c56; }
+        .note-item-title { font-weight: 600; color: #3d2a1f; margin-bottom: 0.25rem; font-size: 0.85rem; }
+        .note-item-desc { font-size: 0.7rem; color: #b38b6e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .add-note-btn { margin: 1rem; background: #f7ede7; border: 1px dashed #c99a78; border-radius: 40px; padding: 0.7rem; text-align: center; cursor: pointer; color: #b47c56; font-weight: 500; transition: all 0.2s; }
+        .add-note-btn:hover { background: #efe0d6; }
+        
+        .main-panel { flex: 1; background: white; border-radius: 28px; border: 1px solid #eedfcb; overflow: hidden; display: flex; flex-direction: column; }
         .panel-header { background: #fef7f2; padding: 1rem 1.8rem; border-bottom: 1px solid #f0e2d8; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .panel-header h2 { font-size: 1.3rem; font-weight: 600; color: #4f3527; }
+        .panel-header h2 { font-size: 1.2rem; font-weight: 600; color: #4f3527; }
         .edit-mode-btn, .save-note-btn { background: #f7ede7; border: none; font-size: 0.8rem; cursor: pointer; padding: 6px 18px; border-radius: 40px; color: #b47c56; font-weight: 500; }
         .save-note-btn { background: #b47c56; color: white; }
-        .panel-body { padding: 1.8rem; display: flex; flex-direction: column; gap: 1.8rem; }
-        .card-section { background: white; border-radius: 20px; border: 1px solid #f0e2d8; overflow: hidden; }
+        .panel-body { flex: 1; padding: 1.8rem; overflow-y: auto; }
+        .card-section { background: white; border-radius: 20px; border: 1px solid #f0e2d8; overflow: hidden; margin-bottom: 1.5rem; }
         .section-label { background: #faf3ef; padding: 0.6rem 1.2rem; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid #ecdfd6; }
         .readonly-text { padding: 1.2rem 1.5rem; line-height: 1.6; font-size: 0.85rem; }
         .readonly-text ul, .readonly-text ol { padding-left: 2rem; margin: 0.5rem 0; }
@@ -47,9 +58,11 @@
         .empty-state { text-align: center; padding: 3rem 1.5rem; color: #b38b6e; }
         .media-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 2000; justify-content: center; align-items: center; cursor: pointer; }
         .media-modal.show { display: flex; }
-        .media-modal img, .media-modal video { max-width: 90%; max-height: 90%; border-radius: 12px; }
+        .media-modal img, .media-modal iframe { max-width: 90%; max-height: 90%; border-radius: 12px; background: black; }
         .modal-close { position: absolute; top: 24px; right: 32px; color: white; font-size: 40px; cursor: pointer; }
-        @media (max-width: 720px) { .container { padding: 1rem; } .panel-body { padding: 1.2rem; } }
+        .youtube-container { position: relative; width: 100%; max-width: 800px; }
+        .youtube-container iframe { width: 100%; height: 450px; border-radius: 12px; }
+        @media (max-width: 900px) { .workspace-layout { flex-direction: column; } .sidebar { width: 100%; } }
     </style>
 </head>
 <body>
@@ -67,20 +80,36 @@
             </div>
         </div>
         <h1><i class="fas fa-spa"></i> Aesthetic Notes · Admin Workspace</h1>
-        <p>Multi‑image & video gallery | Cloud sync</p>
-        <div class="search-wrapper">
-            <i class="fas fa-search"></i>
-            <input type="text" id="projectSearchInput" placeholder="Search or select treatment..." autocomplete="off">
-            <div id="dropdownMenu" class="dropdown-list"></div>
-        </div>
+        <p>Multi‑image & video gallery | Cloud sync | YouTube support only</p>
     </div>
-    <div id="notePanel" class="note-main-panel">
-        <div class="panel-header">
-            <h2 id="panelTitle">Aesthetic Workspace</h2>
-            <div class="header-actions" id="headerActions"></div>
+    
+    <div class="workspace-layout" id="workspaceLayout" style="display: none;">
+        <!-- Left Sidebar: Notes List -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-sticky-note"></i> All Notes</h3>
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="noteSearchInput" class="sidebar-search" placeholder="Search by title or description...">
+                </div>
+            </div>
+            <div id="notesListContainer" class="notes-list">
+                <!-- Dynamic note list will appear here -->
+            </div>
+            <div id="addNewNoteBtn" class="add-note-btn">
+                <i class="fas fa-plus-circle"></i> Add New Note
+            </div>
         </div>
-        <div id="panelBody" class="panel-body">
-            <div class="empty-state">✨ Login to access your notes.</div>
+        
+        <!-- Right Main Panel -->
+        <div id="mainPanel" class="main-panel">
+            <div class="panel-header">
+                <h2 id="panelTitle">Aesthetic Workspace</h2>
+                <div id="headerActions"></div>
+            </div>
+            <div id="panelBody" class="panel-body">
+                <div class="empty-state">✨ Select a note from the left or create a new one.</div>
+            </div>
         </div>
     </div>
 </div>
@@ -88,7 +117,7 @@
 <div id="mediaModal" class="media-modal">
     <span class="modal-close">&times;</span>
     <img id="modalImage" style="display: none;">
-    <video id="modalVideo" controls style="display: none;"></video>
+    <div id="modalYoutube" class="youtube-container" style="display: none;"></div>
 </div>
 
 <script>
@@ -102,8 +131,17 @@
     let projectsData = [];
     let currentProject = null;
     let quillEditor = null;
+    let currentFilter = '';
 
-    // Helper: Upload file to Supabase Storage
+    // Helper: Extract YouTube ID
+    function getYouTubeId(url) {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    // Upload image to Supabase Storage
     async function uploadImageToBucket(file, fileName) {
         const { data, error } = await supabaseClient.storage.from(STORAGE_BUCKET).upload(`public/${fileName}`, file);
         if (error) throw error;
@@ -114,17 +152,11 @@
     // CRUD
     async function fetchAllNotes() {
         if (!currentUser) return [];
-        const { data, error } = await supabaseClient.from('treatment_notes').select('*').order('created_at', { ascending: false });
+        const { data, error } = await supabaseClient.from('treatment_notes').select('*').order('title', { ascending: true });
         if (error) { console.error(error); return []; }
         for (let item of data) {
-            let needsUpdate = false;
-            if (item.image_url && !item.images) { item.images = [{ url: item.image_url, thumb: item.image_url }]; needsUpdate = true; }
-            if (item.video_url && !item.videos) { item.videos = [{ url: item.video_url, thumb: item.thumbnail_url || 'https://placehold.co/400x300/eee/aaa?text=Video' }]; needsUpdate = true; }
             if (!item.images) item.images = [];
             if (!item.videos) item.videos = [];
-            if (needsUpdate) {
-                await supabaseClient.from('treatment_notes').update({ images: item.images, videos: item.videos }).eq('id', item.id);
-            }
         }
         return data;
     }
@@ -139,10 +171,7 @@
     }
 
     async function updateNoteInSupabase(id, updates) {
-        if (!id || id === 'null') {
-            console.error('Invalid id for update');
-            return null;
-        }
+        if (!id || id === 'null') return null;
         const { data, error } = await supabaseClient.from('treatment_notes').update({
             title: updates.title, description: updates.desc, note_text: updates.noteText,
             images: updates.images, videos: updates.videos, updated_at: new Date()
@@ -165,6 +194,7 @@
             document.getElementById('loginPanel').style.display = 'none';
             document.getElementById('userPanel').style.display = 'flex';
             document.getElementById('userEmailDisplay').innerText = currentUser.email;
+            document.getElementById('workspaceLayout').style.display = 'flex';
             await loadDataFromSupabase();
             return true;
         }
@@ -173,57 +203,73 @@
 
     async function loadDataFromSupabase() {
         if (!currentUser) return;
-        const data = await fetchAllNotes();
-        if (data.length) {
-            projectsData = data.map(item => ({
-                ...item, title: item.title || 'Untitled', desc: item.description || '',
-                noteText: item.note_text || '', images: item.images || [], videos: item.videos || []
-            }));
-        } else {
-            projectsData = [{
+        let data = await fetchAllNotes();
+        if (data.length === 0) {
+            const defaultNote = {
                 title: "IPL Photofacial", desc: "Reduces redness, pores", noteText: "<p><strong>IPL Notes</strong>: 30min session.</p>",
                 images: [{ url: "https://picsum.photos/id/20/800/600", thumb: "https://picsum.photos/id/20/400/300" }],
-                videos: [{ url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", thumb: "https://picsum.photos/id/20/400/300" }]
-            }];
-            for (const proj of projectsData) await addNoteToSupabase(proj);
+                videos: []
+            };
+            const inserted = await addNoteToSupabase(defaultNote);
+            if (inserted) data = [inserted];
         }
-        renderEmptyState();
+        projectsData = data.map(item => ({
+            id: item.id, title: item.title || 'Untitled', desc: item.description || '',
+            noteText: item.note_text || '', images: item.images || [], videos: item.videos || []
+        }));
+        renderNotesList();
+        if (projectsData.length > 0 && !currentProject) openProject(projectsData[0].id);
     }
 
-    function renderDropdown() {
-        const input = document.getElementById('projectSearchInput'), dropdown = document.getElementById('dropdownMenu');
-        const query = input.value.trim().toLowerCase();
-        dropdown.innerHTML = '';
-        let filtered = projectsData.filter(p => p.title.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query));
-        if (!query) filtered = projectsData.slice(0, 6);
-        filtered.forEach(proj => {
-            const div = document.createElement('div'); div.className = 'dropdown-item';
-            div.innerHTML = `<img src="${proj.images[0]?.thumb || 'https://placehold.co/400x300'}"><div><strong>${proj.title}</strong><span style="font-size:0.7rem;"> ${proj.desc?.substring(0,30)}</span></div>`;
-            div.onclick = () => { input.value = proj.title; dropdown.classList.remove('show'); openProject(proj.id); };
-            dropdown.appendChild(div);
+    // Render sidebar list with sorting and filtering
+    function renderNotesList() {
+        const container = document.getElementById('notesListContainer');
+        if (!container) return;
+        
+        let filtered = [...projectsData];
+        if (currentFilter.trim()) {
+            const query = currentFilter.toLowerCase();
+            filtered = filtered.filter(p => p.title.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query));
+        }
+        
+        // Sort by title A-Z (alphabetical)
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+        
+        if (filtered.length === 0) {
+            container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #b38b6e;">No notes found.</div>';
+            return;
+        }
+        
+        container.innerHTML = filtered.map(note => `
+            <div class="note-item ${currentProject?.id === note.id ? 'active' : ''}" data-id="${note.id}">
+                <div class="note-item-title">${escapeHtml(note.title)}</div>
+                <div class="note-item-desc">${escapeHtml(note.desc?.substring(0, 60) || '')}</div>
+            </div>
+        `).join('');
+        
+        document.querySelectorAll('.note-item').forEach(el => {
+            el.addEventListener('click', () => openProject(el.dataset.id));
         });
-        const addDiv = document.createElement('div'); addDiv.className = 'dropdown-item add-new-item';
-        addDiv.innerHTML = '<i class="fas fa-plus-circle"></i> <strong>➕ Add New Note</strong>';
-        addDiv.onclick = () => { dropdown.classList.remove('show'); openCreateMode(); };
-        dropdown.appendChild(addDiv);
-        dropdown.classList.add('show');
     }
 
     function openProject(id) {
         currentProject = projectsData.find(p => p.id == id);
         if (currentProject) renderViewMode();
+        renderNotesList(); // refresh active highlight
     }
 
     function renderViewMode() {
-        document.getElementById('panelTitle').innerHTML = `<i class="fas fa-clinic-medical"></i> ${currentProject.title}`;
+        document.getElementById('panelTitle').innerHTML = `<i class="fas fa-clinic-medical"></i> ${escapeHtml(currentProject.title)}`;
         document.getElementById('headerActions').innerHTML = `<button id="enterEditBtn" class="edit-mode-btn"><i class="fas fa-pen"></i> Edit Note</button>`;
         const body = document.getElementById('panelBody');
         body.innerHTML = '';
         
+        // Rich text content
         const textDiv = document.createElement('div'); textDiv.className = 'card-section';
         textDiv.innerHTML = `<div class="section-label">📝 Text Notes</div><div class="readonly-text">${currentProject.noteText || '<em>No content</em>'}</div>`;
         body.appendChild(textDiv);
         
+        // Images
         if (currentProject.images && currentProject.images.length) {
             const imgDiv = document.createElement('div'); imgDiv.className = 'card-section';
             imgDiv.innerHTML = `<div class="section-label">🖼️ Images (${currentProject.images.length})</div><div class="media-grid" id="viewImagesGrid"></div>`;
@@ -236,15 +282,19 @@
             });
         }
         
+        // YouTube Videos
         if (currentProject.videos && currentProject.videos.length) {
             const vidDiv = document.createElement('div'); vidDiv.className = 'card-section';
-            vidDiv.innerHTML = `<div class="section-label">🎬 Videos (${currentProject.videos.length})</div><div class="media-grid" id="viewVideosGrid"></div>`;
+            vidDiv.innerHTML = `<div class="section-label">🎬 YouTube Videos (${currentProject.videos.length})</div><div class="media-grid" id="viewVideosGrid"></div>`;
             body.appendChild(vidDiv);
             const grid = vidDiv.querySelector('#viewVideosGrid');
             currentProject.videos.forEach(vid => {
-                const item = document.createElement('div'); item.className = 'media-item';
-                item.innerHTML = `<div onclick="openVideoModal('${vid.url}')"><img src="${vid.thumb || 'https://placehold.co/400x300/eee/aaa?text=Video'}" style="width:120px;height:120px;object-fit:cover;border-radius:16px;"><i class="fas fa-play-circle" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;color:white;"></i></div>`;
-                grid.appendChild(item);
+                const youtubeId = getYouTubeId(vid.url);
+                if (youtubeId) {
+                    const item = document.createElement('div'); item.className = 'media-item';
+                    item.innerHTML = `<div><img src="https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg" style="width:120px;height:120px;object-fit:cover;border-radius:16px;" onclick="openYoutubeModal('${youtubeId}')"><i class="fas fa-play-circle" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;color:white;"></i></div>`;
+                    grid.appendChild(item);
+                }
             });
         }
         
@@ -252,7 +302,7 @@
     }
 
     function enterEditMode() {
-        document.getElementById('panelTitle').innerHTML = `<i class="fas fa-pen-fancy"></i> Editing · ${currentProject.title}`;
+        document.getElementById('panelTitle').innerHTML = `<i class="fas fa-pen-fancy"></i> Editing · ${escapeHtml(currentProject.title)}`;
         document.getElementById('headerActions').innerHTML = `<button id="cancelEditBtn" class="edit-mode-btn">Cancel</button><button id="saveEditBtn" class="save-note-btn">Save to Cloud</button>`;
         const body = document.getElementById('panelBody');
         body.innerHTML = '';
@@ -269,7 +319,7 @@
         body.appendChild(imgEditDiv);
         
         const vidEditDiv = document.createElement('div'); vidEditDiv.className = 'card-section';
-        vidEditDiv.innerHTML = `<div class="section-label">🎬 Videos (URL only)</div><div id="editVideosGrid" class="media-grid" style="padding:1rem"></div><div style="padding:0 1rem 1rem 1rem;display:flex;gap:8px;"><input type="text" id="newVideoUrl" placeholder="Video URL (mp4)" style="flex:1" class="edit-input"><button id="addVideoBtn" class="edit-mode-btn"><i class="fas fa-plus"></i> Add</button></div>`;
+        vidEditDiv.innerHTML = `<div class="section-label">🎬 YouTube Videos (URL only)</div><div id="editVideosGrid" class="media-grid" style="padding:1rem"></div><div style="padding:0 1rem 1rem 1rem;display:flex;gap:8px;"><input type="text" id="newVideoUrl" placeholder="YouTube URL (e.g., https://youtu.be/... or https://youtube.com/watch?v=...)" style="flex:1" class="edit-input"><button id="addVideoBtn" class="edit-mode-btn"><i class="fas fa-plus"></i> Add</button></div>`;
         body.appendChild(vidEditDiv);
 
         if (quillEditor) quillEditor = null;
@@ -302,8 +352,10 @@
             if (!grid) return;
             grid.innerHTML = '';
             currentVideos.forEach((vid, idx) => {
+                const youtubeId = getYouTubeId(vid.url);
+                const thumb = youtubeId ? `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg` : 'https://placehold.co/400x300/eee/aaa?text=Invalid+URL';
                 const div = document.createElement('div'); div.className = 'media-item';
-                div.innerHTML = `<div style="position:relative;"><img src="${vid.thumb || 'https://placehold.co/400x300/eee/aaa?text=Video'}" style="width:120px;height:120px;object-fit:cover;border-radius:16px;"><button class="delete-media" data-idx="${idx}"><i class="fas fa-times"></i></button></div>`;
+                div.innerHTML = `<div style="position:relative;"><img src="${thumb}" style="width:120px;height:120px;object-fit:cover;border-radius:16px;"><button class="delete-media" data-idx="${idx}"><i class="fas fa-times"></i></button></div>`;
                 div.querySelector('.delete-media').onclick = (e) => { e.stopPropagation(); currentVideos.splice(idx,1); renderEditVideos(); };
                 grid.appendChild(div);
             });
@@ -328,9 +380,11 @@
         };
         
         document.getElementById('addVideoBtn')?.addEventListener('click', () => {
-            const url = document.getElementById('newVideoUrl').value.trim();
+            let url = document.getElementById('newVideoUrl').value.trim();
             if (!url) return;
-            currentVideos.push({ url: url, thumb: 'https://placehold.co/400x300/eee/aaa?text=Video' });
+            const youtubeId = getYouTubeId(url);
+            if (!youtubeId) { alert('Invalid YouTube URL. Please enter a valid YouTube link (youtu.be/... or youtube.com/watch?v=...)'); return; }
+            currentVideos.push({ url: url, thumb: `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg` });
             renderEditVideos();
             document.getElementById('newVideoUrl').value = '';
         });
@@ -346,15 +400,21 @@
                     title: newTitle, desc: newDesc, noteText: newNote,
                     images: currentImages, videos: currentVideos
                 });
-                if (updated) { alert('✅ Saved'); await loadDataFromSupabase(); renderViewMode(); }
-                else alert('Save failed');
+                if (updated) { 
+                    alert('✓ Saved successfully');
+                    await loadDataFromSupabase();
+                    openProject(currentProject.id);
+                } else alert('Save failed');
             } else {
                 const inserted = await addNoteToSupabase({
                     title: newTitle, desc: newDesc, noteText: newNote,
                     images: currentImages, videos: currentVideos
                 });
-                if (inserted) { alert('✅ Created'); await loadDataFromSupabase(); renderEmptyState(); }
-                else alert('Creation failed');
+                if (inserted) { 
+                    alert('✓ Created successfully');
+                    await loadDataFromSupabase();
+                    openProject(inserted.id);
+                } else alert('Creation failed');
             }
         };
     }
@@ -364,33 +424,58 @@
         enterEditMode();
     }
 
-    function renderEmptyState() {
-        currentProject = null;
-        document.getElementById('panelTitle').innerHTML = 'Aesthetic Workspace';
-        document.getElementById('headerActions').innerHTML = '';
-        document.getElementById('panelBody').innerHTML = `<div class="empty-state"><i class="fas fa-folder-open" style="font-size:2rem;"></i><p>Select a treatment or click <strong>➕ Add New Note</strong></p></div>`;
-        renderDropdown();
-    }
-
     function escapeHtml(str) { return str?.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}) || ''; }
 
-    // Modal
-    const modal = document.getElementById('mediaModal'), modalImg = document.getElementById('modalImage'), modalVideo = document.getElementById('modalVideo');
-    window.openImageModal = (url) => { modalImg.style.display = 'block'; modalVideo.style.display = 'none'; modalImg.src = url; modal.classList.add('show'); };
-    window.openVideoModal = (url) => { modalImg.style.display = 'none'; modalVideo.style.display = 'block'; modalVideo.src = url; modalVideo.load(); modal.classList.add('show'); };
-    document.querySelector('.modal-close').onclick = () => { modal.classList.remove('show'); modalVideo.pause(); };
-    modal.onclick = (e) => { if(e.target === modal) { modal.classList.remove('show'); modalVideo.pause(); } };
+    // Modals
+    const modal = document.getElementById('mediaModal'), modalImg = document.getElementById('modalImage'), modalYoutube = document.getElementById('modalYoutube');
+    window.openImageModal = (url) => { 
+        modalImg.style.display = 'block'; 
+        modalYoutube.style.display = 'none'; 
+        modalYoutube.innerHTML = '';
+        modalImg.src = url; 
+        modal.classList.add('show'); 
+    };
+    window.openYoutubeModal = (youtubeId) => {
+        modalImg.style.display = 'none';
+        modalYoutube.style.display = 'block';
+        modalYoutube.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${youtubeId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+        modal.classList.add('show');
+    };
+    document.querySelector('.modal-close').onclick = () => { modal.classList.remove('show'); modalYoutube.innerHTML = ''; modalVideo?.pause?.(); };
+    modal.onclick = (e) => { if(e.target === modal) { modal.classList.remove('show'); modalYoutube.innerHTML = ''; } };
 
     // Event listeners
     document.getElementById('loginBtn').onclick = async () => {
         const { error } = await adminLogin(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
         if (error) alert('Login failed: ' + error.message);
-        else { document.getElementById('loginPanel').style.display = 'none'; document.getElementById('userPanel').style.display = 'flex'; document.getElementById('userEmailDisplay').innerText = currentUser.email; await loadDataFromSupabase(); }
+        else { 
+            document.getElementById('loginPanel').style.display = 'none'; 
+            document.getElementById('userPanel').style.display = 'flex'; 
+            document.getElementById('userEmailDisplay').innerText = currentUser.email;
+            document.getElementById('workspaceLayout').style.display = 'flex';
+            await loadDataFromSupabase(); 
+        }
     };
-    document.getElementById('logoutBtn').onclick = async () => { await adminLogout(); document.getElementById('loginPanel').style.display = 'flex'; document.getElementById('userPanel').style.display = 'none'; renderEmptyState(); };
-    document.getElementById('projectSearchInput').addEventListener('input', () => renderDropdown());
-    document.addEventListener('click', (e) => { const inp = document.getElementById('projectSearchInput'), dd = document.getElementById('dropdownMenu'); if(!inp?.contains(e.target) && !dd?.contains(e.target)) dd?.classList.remove('show'); });
-    checkExistingSession().then(has => { if(!has) renderEmptyState(); });
+    document.getElementById('logoutBtn').onclick = async () => { 
+        await adminLogout(); 
+        document.getElementById('loginPanel').style.display = 'flex'; 
+        document.getElementById('userPanel').style.display = 'none'; 
+        document.getElementById('workspaceLayout').style.display = 'none';
+        document.getElementById('panelBody').innerHTML = '<div class="empty-state">✨ Please login to access your notes.</div>';
+    };
+    
+    document.getElementById('noteSearchInput')?.addEventListener('input', (e) => {
+        currentFilter = e.target.value;
+        renderNotesList();
+    });
+    document.getElementById('addNewNoteBtn')?.addEventListener('click', openCreateMode);
+    
+    checkExistingSession().then(has => { 
+        if(!has) {
+            document.getElementById('workspaceLayout').style.display = 'none';
+            document.getElementById('panelBody').innerHTML = '<div class="empty-state">✨ Please login to access your notes.</div>';
+        }
+    });
 </script>
 </body>
 </html>
