@@ -193,7 +193,7 @@
         quillEditor.clipboard.dangerouslyPasteHTML(currentProject.noteText || '');
 
         // 自定义图片上传：自动生成缩略图，点击查看原图
-        // 自定义图片上传：自动生成缩略图，点击查看原图
+// 自定义图片上传：不压缩，只限制显示尺寸，点击查看原图
 const toolbar = quillEditor.getModule('toolbar');
 if (toolbar) {
     toolbar.addHandler('image', () => {
@@ -207,50 +207,14 @@ if (toolbar) {
                 quillEditor.insertText(range.index, '⏳ Uploading...', 'user');
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        // 生成缩略图
-                        const canvas = document.createElement('canvas');
-                        const maxWidth = 300;
-                        let width = img.width;
-                        let height = img.height;
-                        if (width > maxWidth) {
-                            height = (height * maxWidth) / width;
-                            width = maxWidth;
-                        }
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        const thumbDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-                        const originalDataUrl = e.target.result;
-                        
-                        // 删除占位文字
-                        quillEditor.deleteText(range.index, '⏳ Uploading...'.length);
-                        
-                        // 方法：先插入图片，然后用 DOM 操作包裹链接
-                        quillEditor.insertEmbed(range.index, 'image', thumbDataUrl);
-                        
-                        // 等待图片插入后，用 DOM 操作添加链接
-                        setTimeout(() => {
-                            const editor = document.querySelector('#editQuillContainer .ql-editor');
-                            if (editor) {
-                                const imgElement = editor.querySelector('img:last-child');
-                                if (imgElement && !imgElement.parentElement.classList.contains('image-link-wrapper')) {
-                                    // 创建链接包裹图片
-                                    const link = document.createElement('a');
-                                    link.href = originalDataUrl;
-                                    link.target = '_blank';
-                                    link.style.display = 'inline-block';
-                                    link.style.cursor = 'pointer';
-                                    link.title = 'Click to view full size';
-                                    imgElement.parentNode.insertBefore(link, imgElement);
-                                    link.appendChild(imgElement);
-                                }
-                            }
-                        }, 50);
-                    };
-                    img.src = e.target.result;
+                    const originalDataUrl = e.target.result;
+                    
+                    // 删除占位文字
+                    quillEditor.deleteText(range.index, '⏳ Uploading...'.length);
+                    
+                    // 直接使用原图，不压缩，通过 CSS 限制显示宽度
+                    const imgHtml = `<a href="${originalDataUrl}" target="_blank" style="display: inline-block; cursor: pointer;" title="Click to view full size"><img src="${originalDataUrl}" style="max-width: 300px; height: auto; border-radius: 8px;" class="clickable-image"></a>`;
+                    quillEditor.clipboard.dangerouslyPasteHTML(range.index, imgHtml);
                 };
                 reader.readAsDataURL(file);
             }
