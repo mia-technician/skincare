@@ -48,58 +48,12 @@
         .card-section { background: white; border-radius: 20px; border: 1px solid #f0e2d8; overflow: hidden; margin-bottom: 1.5rem; }
         .section-label { background: #faf3ef; padding: 0.6rem 1.2rem; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid #ecdfd6; }
         .readonly-text { padding: 1.2rem 1.5rem; line-height: 1.6; font-size: 0.85rem; }
-        .readonly-text ul, .readonly-text ol { padding-left: 2rem; margin: 0.5rem 0; }
-        /* 确保所有列表样式正确显示 */
-.readonly-text ul,
-.readonly-text ol {
-    padding-left: 1.8rem;
-    margin: 0.5rem 0;
-}
-
-.readonly-text ul {
-    list-style-type: disc !important;
-}
-
-.readonly-text ul ul {
-    list-style-type: circle !important;
-}
-
-.readonly-text ul ul ul {
-    list-style-type: square !important;
-}
-
-.readonly-text ol {
-    list-style-type: decimal !important;
-}
-
-.readonly-text ol ol {
-    list-style-type: lower-alpha !important;
-}
-
-.readonly-text li {
-    margin-bottom: 0.25rem;
-    display: list-item;
-}
-
-/* 修复 Quill 可能产生的特殊列表 */
-.readonly-text li[data-list="bullet"],
-.readonly-text li[data-list="checked"],
-.readonly-text li[data-list="unchecked"] {
-    list-style-type: disc !important;
-}
-        .media-grid { display: flex; flex-wrap: wrap; gap: 1rem; padding: 1.2rem; }
-        .media-item { position: relative; width: 120px; cursor: pointer; }
-        .media-item img, .media-item .video-thumb { width: 120px; height: 120px; object-fit: cover; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .delete-media { position: absolute; top: -8px; right: -8px; background: #d9534f; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; border: none; }
-        .add-btn { background: #f7ede7; border: 1px dashed #c99a78; border-radius: 16px; width: 120px; height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: #b47c56; }
+        .readonly-text ul, .readonly-text ol { padding-left: 1.8rem; margin: 0.5rem 0; }
+        .readonly-text ul { list-style-type: disc !important; }
+        .readonly-text ol { list-style-type: decimal !important; }
         .edit-input { width: 100%; padding: 0.7rem 1rem; border-radius: 40px; border: 1px solid #e2cfc2; font-size: 0.85rem; }
         .empty-state { text-align: center; padding: 3rem 1.5rem; color: #b38b6e; }
-        .media-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 2000; justify-content: center; align-items: center; cursor: pointer; }
-        .media-modal.show { display: flex; }
-        .media-modal img, .media-modal iframe { max-width: 90%; max-height: 90%; border-radius: 12px; background: black; }
-        .modal-close { position: absolute; top: 24px; right: 32px; color: white; font-size: 40px; cursor: pointer; }
-        .youtube-container { position: relative; width: 100%; max-width: 800px; }
-        .youtube-container iframe { width: 100%; height: 450px; border-radius: 12px; }
+        #editQuillContainer { height: 300px; margin: 1rem; }
         @media (max-width: 900px) { .workspace-layout { flex-direction: column; } .sidebar { width: 100%; } }
     </style>
 </head>
@@ -118,11 +72,10 @@
             </div>
         </div>
         <h1><i class="fas fa-spa"></i> Aesthetic Notes · Admin Workspace</h1>
-        <p>Multi‑image & video gallery | Cloud sync | YouTube support only</p>
+        <p>Rich text editor with full formatting support | Cloud sync</p>
     </div>
     
     <div class="workspace-layout" id="workspaceLayout" style="display: none;">
-        <!-- Left Sidebar: Notes List -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <h3><i class="fas fa-sticky-note"></i> All Notes</h3>
@@ -131,15 +84,12 @@
                     <input type="text" id="noteSearchInput" class="sidebar-search" placeholder="Search by title or description...">
                 </div>
             </div>
-            <div id="notesListContainer" class="notes-list">
-                <!-- Dynamic note list will appear here -->
-            </div>
+            <div id="notesListContainer" class="notes-list"></div>
             <div id="addNewNoteBtn" class="add-note-btn">
                 <i class="fas fa-plus-circle"></i> Add New Note
             </div>
         </div>
         
-        <!-- Right Main Panel -->
         <div id="mainPanel" class="main-panel">
             <div class="panel-header">
                 <h2 id="panelTitle">Aesthetic Workspace</h2>
@@ -152,18 +102,11 @@
     </div>
 </div>
 
-<div id="mediaModal" class="media-modal">
-    <span class="modal-close">&times;</span>
-    <img id="modalImage" style="display: none;">
-    <div id="modalYoutube" class="youtube-container" style="display: none;"></div>
-</div>
-
 <script>
     // ==================== CONFIG ====================
     const SUPABASE_URL = 'https://dmrskyskryrdclknezth.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const STORAGE_BUCKET = 'treatment-images';
 
     let currentUser = null;
     let projectsData = [];
@@ -171,87 +114,54 @@
     let quillEditor = null;
     let currentFilter = '';
 
-    // Helper: Extract YouTube ID
-    function getYouTubeId(url) {
-        if (!url) return null;
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : null;
-    }
-
-    // Upload image to Supabase Storage
-    async function uploadImageToBucket(file, fileName) {
-        const { data, error } = await supabaseClient.storage.from(STORAGE_BUCKET).upload(`public/${fileName}`, file);
-        if (error) throw error;
-        const { data: urlData } = supabaseClient.storage.from(STORAGE_BUCKET).getPublicUrl(`public/${fileName}`);
-        return urlData.publicUrl;
-    }
-
-    // CRUD
+    // ==================== CRUD ====================
     async function fetchAllNotes() {
-    if (!currentUser) return [];
-    const { data, error } = await supabaseClient
-        .from('treatment_notes')
-        .select('*')
-        .order('created_at', { ascending: false });  // 改用 created_at 排序
-    if (error) { 
-        console.error('Fetch error:', error); 
-        return []; 
+        if (!currentUser) return [];
+        const { data, error } = await supabaseClient
+            .from('treatment_notes')
+            .select('*')
+            .order('title', { ascending: true });
+        if (error) { console.error(error); return []; }
+        return data || [];
     }
-    for (let item of data) {
-        if (!item.images) item.images = [];
-        if (!item.videos) item.videos = [];
-        // 确保 note_text 不为空
-        if (!item.note_text) item.note_text = '';
-    }
-    return data;
-}
 
     async function addNoteToSupabase(note) {
         const { data, error } = await supabaseClient.from('treatment_notes').insert([{
-            title: note.title, description: note.desc || '', note_text: note.noteText || '',
-            images: note.images || [], videos: note.videos || []
+            title: note.title,
+            description: note.desc || '',
+            note_text: note.noteText || ''
         }]).select();
         if (error) { console.error(error); return null; }
-        return data[0];
+        return data?.[0] || null;
     }
 
     async function updateNoteInSupabase(id, updates) {
-    // 验证 ID
-    if (!id || id === 'null' || id === 'undefined') {
-        console.error('Invalid id for update:', id);
-        return null;
-    }
-    
-    try {
-        // 只更新数据库表中实际存在的字段（移除 updated_at）
-        const { data, error } = await supabaseClient.from('treatment_notes').update({
-            title: updates.title,
-            description: updates.desc,
-            note_text: updates.noteText,
-            images: updates.images,
-            videos: updates.videos
-            // ❌ 删除 updated_at: new Date() - 数据库没有这个列
-        }).eq('id', id).select();
-        
-        if (error) {
-            console.error('Update error:', error);
+        if (!id || id === 'null') {
+            console.error('Invalid id for update:', id);
             return null;
         }
-        return data?.[0] || null;
-    } catch (err) {
-        console.error('Update exception:', err);
-        return null;
+        try {
+            const { data, error } = await supabaseClient.from('treatment_notes').update({
+                title: updates.title,
+                description: updates.desc,
+                note_text: updates.noteText
+            }).eq('id', id).select();
+            if (error) { console.error('Update error:', error); return null; }
+            return data?.[0] || null;
+        } catch (err) {
+            console.error('Update exception:', err);
+            return null;
+        }
     }
-}
 
-    // Auth
+    // ==================== AUTH ====================
     async function adminLogin(email, password) {
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (!error) currentUser = data.user;
         return { data, error };
     }
     async function adminLogout() { await supabaseClient.auth.signOut(); currentUser = null; }
+    
     async function checkExistingSession() {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
@@ -271,22 +181,24 @@
         let data = await fetchAllNotes();
         if (data.length === 0) {
             const defaultNote = {
-                title: "IPL Photofacial", desc: "Reduces redness, pores", noteText: "<p><strong>IPL Notes</strong>: 30min session.</p>",
-                images: [{ url: "https://picsum.photos/id/20/800/600", thumb: "https://picsum.photos/id/20/400/300" }],
-                videos: []
+                title: "Welcome Note",
+                desc: "Getting started with Aesthetic Notes",
+                noteText: "<h2>Welcome to your Notes Workspace!</h2><p>This is a rich text editor. You can:</p><ul><li>Write formatted text</li><li>Add images and videos</li><li>Create lists and tables</li><li>And much more!</li></ul>"
             };
             const inserted = await addNoteToSupabase(defaultNote);
             if (inserted) data = [inserted];
         }
         projectsData = data.map(item => ({
-            id: item.id, title: item.title || 'Untitled', desc: item.description || '',
-            noteText: item.note_text || '', images: item.images || [], videos: item.videos || []
+            id: item.id,
+            title: item.title || 'Untitled',
+            desc: item.description || '',
+            noteText: item.note_text || ''
         }));
         renderNotesList();
         if (projectsData.length > 0 && !currentProject) openProject(projectsData[0].id);
     }
 
-    // Render sidebar list with sorting and filtering
+    // ==================== UI RENDERING ====================
     function renderNotesList() {
         const container = document.getElementById('notesListContainer');
         if (!container) return;
@@ -296,8 +208,6 @@
             const query = currentFilter.toLowerCase();
             filtered = filtered.filter(p => p.title.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query));
         }
-        
-        // Sort by title A-Z (alphabetical)
         filtered.sort((a, b) => a.title.localeCompare(b.title));
         
         if (filtered.length === 0) {
@@ -320,7 +230,7 @@
     function openProject(id) {
         currentProject = projectsData.find(p => p.id == id);
         if (currentProject) renderViewMode();
-        renderNotesList(); // refresh active highlight
+        renderNotesList();
     }
 
     function renderViewMode() {
@@ -329,39 +239,9 @@
         const body = document.getElementById('panelBody');
         body.innerHTML = '';
         
-        // Rich text content
         const textDiv = document.createElement('div'); textDiv.className = 'card-section';
-        textDiv.innerHTML = `<div class="section-label">📝 Text Notes</div><div class="readonly-text">${currentProject.noteText || '<em>No content</em>'}</div>`;
+        textDiv.innerHTML = `<div class="section-label">📝 Content</div><div class="readonly-text">${currentProject.noteText || '<em>No content</em>'}</div>`;
         body.appendChild(textDiv);
-        
-        // Images
-        if (currentProject.images && currentProject.images.length) {
-            const imgDiv = document.createElement('div'); imgDiv.className = 'card-section';
-            imgDiv.innerHTML = `<div class="section-label">🖼️ Images (${currentProject.images.length})</div><div class="media-grid" id="viewImagesGrid"></div>`;
-            body.appendChild(imgDiv);
-            const grid = imgDiv.querySelector('#viewImagesGrid');
-            currentProject.images.forEach(img => {
-                const item = document.createElement('div'); item.className = 'media-item';
-                item.innerHTML = `<img src="${img.thumb || img.url}" onclick="openImageModal('${img.url}')">`;
-                grid.appendChild(item);
-            });
-        }
-        
-        // YouTube Videos
-        if (currentProject.videos && currentProject.videos.length) {
-            const vidDiv = document.createElement('div'); vidDiv.className = 'card-section';
-            vidDiv.innerHTML = `<div class="section-label">🎬 YouTube Videos (${currentProject.videos.length})</div><div class="media-grid" id="viewVideosGrid"></div>`;
-            body.appendChild(vidDiv);
-            const grid = vidDiv.querySelector('#viewVideosGrid');
-            currentProject.videos.forEach(vid => {
-                const youtubeId = getYouTubeId(vid.url);
-                if (youtubeId) {
-                    const item = document.createElement('div'); item.className = 'media-item';
-                    item.innerHTML = `<div><img src="https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg" style="width:120px;height:120px;object-fit:cover;border-radius:16px;" onclick="openYoutubeModal('${youtubeId}')"><i class="fas fa-play-circle" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;color:white;"></i></div>`;
-                    grid.appendChild(item);
-                }
-            });
-        }
         
         document.getElementById('enterEditBtn')?.addEventListener('click', () => enterEditMode());
     }
@@ -376,97 +256,28 @@
         body.innerHTML += `<div class="card-section"><div class="section-label">📄 Description</div><div style="padding:1rem"><input id="editDescInput" class="edit-input" value="${escapeHtml(currentProject.desc)}"></div></div>`;
         
         const richDiv = document.createElement('div'); richDiv.className = 'card-section';
-        richDiv.innerHTML = `<div class="section-label">✍️ Rich Text</div><div id="editQuillContainer" style="height:200px;"></div>`;
+        richDiv.innerHTML = `<div class="section-label">✍️ Rich Text Editor</div><div id="editQuillContainer"></div>`;
         body.appendChild(richDiv);
-        
-        const imgEditDiv = document.createElement('div'); imgEditDiv.className = 'card-section';
-        imgEditDiv.innerHTML = `<div class="section-label">🖼️ Images</div><div id="editImagesGrid" class="media-grid" style="padding:1rem"></div><div style="padding:0 1rem 1rem 1rem"><input type="file" id="newImageInput" accept="image/*" style="display:none"><button id="addImageBtn" class="edit-mode-btn"><i class="fas fa-plus"></i> Add Image</button></div>`;
-        body.appendChild(imgEditDiv);
-        
-        const vidEditDiv = document.createElement('div'); vidEditDiv.className = 'card-section';
-        vidEditDiv.innerHTML = `<div class="section-label">🎬 YouTube Videos (URL only)</div><div id="editVideosGrid" class="media-grid" style="padding:1rem"></div><div style="padding:0 1rem 1rem 1rem;display:flex;gap:8px;"><input type="text" id="newVideoUrl" placeholder="YouTube URL (e.g., https://youtu.be/... or https://youtube.com/watch?v=...)" style="flex:1" class="edit-input"><button id="addVideoBtn" class="edit-mode-btn"><i class="fas fa-plus"></i> Add</button></div>`;
-        body.appendChild(vidEditDiv);
 
         if (quillEditor) quillEditor = null;
         quillEditor = new Quill('#editQuillContainer', {
-    theme: 'snow',
-    modules: {
-        toolbar: [
-            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],  // 标题级别
-            ['bold', 'italic', 'underline', 'strike'],   // 粗体、斜体、下划线、删除线
-            [{ 'color': [] }, { 'background': [] }],     // 文字颜色、背景色
-            [{ 'align': [] }],                           // 对齐方式
-            [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }], // 有序列表、无序列表、待办清单
-            [{ 'indent': '-1'}, { 'indent': '+1' }],     // 缩进
-            [{ 'script': 'sub'}, { 'script': 'super' }], // 下标、上标
-            ['blockquote', 'code-block'],                // 引用块、代码块
-            ['link', 'image', 'video'],                  // 链接、图片、视频
-            ['clean']                                    // 清除格式
-        ]
-    }
-});
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'align': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+                    [{ 'indent': '-1'}, { 'indent': '+1' }],
+                    [{ 'script': 'sub'}, { 'script': 'super' }],
+                    ['blockquote', 'code-block'],
+                    ['link', 'image', 'video', 'clean']
+                ]
+            }
+        });
         quillEditor.setText('');
         quillEditor.clipboard.dangerouslyPasteHTML(currentProject.noteText || '');
-
-        let currentImages = [...(currentProject.images || [])];
-        let currentVideos = [...(currentProject.videos || [])];
-
-        function renderEditImages() {
-            const grid = document.getElementById('editImagesGrid');
-            if (!grid) return;
-            grid.innerHTML = '';
-            currentImages.forEach((img, idx) => {
-                const div = document.createElement('div'); div.className = 'media-item';
-                div.innerHTML = `<img src="${img.thumb || img.url}" style="width:120px;height:120px;"><button class="delete-media" data-idx="${idx}"><i class="fas fa-times"></i></button>`;
-                div.querySelector('.delete-media').onclick = (e) => { e.stopPropagation(); currentImages.splice(idx,1); renderEditImages(); };
-                grid.appendChild(div);
-            });
-            const addBox = document.createElement('div'); addBox.className = 'add-btn'; addBox.innerHTML = '<i class="fas fa-plus fa-2x"></i><span>Add Image</span>';
-            addBox.onclick = () => document.getElementById('newImageInput').click();
-            grid.appendChild(addBox);
-        }
-        
-        function renderEditVideos() {
-            const grid = document.getElementById('editVideosGrid');
-            if (!grid) return;
-            grid.innerHTML = '';
-            currentVideos.forEach((vid, idx) => {
-                const youtubeId = getYouTubeId(vid.url);
-                const thumb = youtubeId ? `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg` : 'https://placehold.co/400x300/eee/aaa?text=Invalid+URL';
-                const div = document.createElement('div'); div.className = 'media-item';
-                div.innerHTML = `<div style="position:relative;"><img src="${thumb}" style="width:120px;height:120px;object-fit:cover;border-radius:16px;"><button class="delete-media" data-idx="${idx}"><i class="fas fa-times"></i></button></div>`;
-                div.querySelector('.delete-media').onclick = (e) => { e.stopPropagation(); currentVideos.splice(idx,1); renderEditVideos(); };
-                grid.appendChild(div);
-            });
-        }
-        
-        renderEditImages();
-        renderEditVideos();
-
-        const fileInput = document.getElementById('newImageInput');
-        document.getElementById('addImageBtn')?.addEventListener('click', () => fileInput.click());
-        fileInput.onchange = async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const ext = file.name.split('.').pop();
-            const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 6)}.${ext}`;
-            try {
-                const url = await uploadImageToBucket(file, fileName);
-                currentImages.push({ url: url, thumb: url });
-                renderEditImages();
-            } catch (err) { alert('Upload failed: ' + err.message); }
-            fileInput.value = '';
-        };
-        
-        document.getElementById('addVideoBtn')?.addEventListener('click', () => {
-            let url = document.getElementById('newVideoUrl').value.trim();
-            if (!url) return;
-            const youtubeId = getYouTubeId(url);
-            if (!youtubeId) { alert('Invalid YouTube URL. Please enter a valid YouTube link (youtu.be/... or youtube.com/watch?v=...)'); return; }
-            currentVideos.push({ url: url, thumb: `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg` });
-            renderEditVideos();
-            document.getElementById('newVideoUrl').value = '';
-        });
 
         document.getElementById('cancelEditBtn').onclick = () => renderViewMode();
         document.getElementById('saveEditBtn').onclick = async () => {
@@ -476,8 +287,7 @@
             
             if (currentProject.id && currentProject.id !== 'null') {
                 const updated = await updateNoteInSupabase(currentProject.id, {
-                    title: newTitle, desc: newDesc, noteText: newNote,
-                    images: currentImages, videos: currentVideos
+                    title: newTitle, desc: newDesc, noteText: newNote
                 });
                 if (updated) { 
                     alert('✓ Saved successfully');
@@ -486,8 +296,7 @@
                 } else alert('Save failed');
             } else {
                 const inserted = await addNoteToSupabase({
-                    title: newTitle, desc: newDesc, noteText: newNote,
-                    images: currentImages, videos: currentVideos
+                    title: newTitle, desc: newDesc, noteText: newNote
                 });
                 if (inserted) { 
                     alert('✓ Created successfully');
@@ -499,31 +308,13 @@
     }
 
     function openCreateMode() {
-        currentProject = { id: null, title: 'New Treatment', desc: '', noteText: '', images: [], videos: [] };
+        currentProject = { id: null, title: 'New Note', desc: '', noteText: '' };
         enterEditMode();
     }
 
     function escapeHtml(str) { return str?.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}) || ''; }
 
-    // Modals
-    const modal = document.getElementById('mediaModal'), modalImg = document.getElementById('modalImage'), modalYoutube = document.getElementById('modalYoutube');
-    window.openImageModal = (url) => { 
-        modalImg.style.display = 'block'; 
-        modalYoutube.style.display = 'none'; 
-        modalYoutube.innerHTML = '';
-        modalImg.src = url; 
-        modal.classList.add('show'); 
-    };
-    window.openYoutubeModal = (youtubeId) => {
-        modalImg.style.display = 'none';
-        modalYoutube.style.display = 'block';
-        modalYoutube.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${youtubeId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-        modal.classList.add('show');
-    };
-    document.querySelector('.modal-close').onclick = () => { modal.classList.remove('show'); modalYoutube.innerHTML = ''; modalVideo?.pause?.(); };
-    modal.onclick = (e) => { if(e.target === modal) { modal.classList.remove('show'); modalYoutube.innerHTML = ''; } };
-
-    // Event listeners
+    // ==================== EVENT LISTENERS ====================
     document.getElementById('loginBtn').onclick = async () => {
         const { error } = await adminLogin(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
         if (error) alert('Login failed: ' + error.message);
@@ -535,6 +326,7 @@
             await loadDataFromSupabase(); 
         }
     };
+    
     document.getElementById('logoutBtn').onclick = async () => { 
         await adminLogout(); 
         document.getElementById('loginPanel').style.display = 'flex'; 
