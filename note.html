@@ -430,31 +430,35 @@
 
         document.getElementById('cancelEditBtn').onclick = () => renderViewMode();
         document.getElementById('saveEditBtn').onclick = async () => {
-            const newTitle = document.getElementById('editTitleInput').value.trim() || 'Untitled';
-            const newDesc = document.getElementById('editDescInput').value.trim() || '';
-            const newNote = quillEditor.root.innerHTML;
-            
-            if (currentProject.id && currentProject.id !== 'null') {
-                const updated = await updateNoteInSupabase(currentProject.id, {
-                    title: newTitle, desc: newDesc, noteText: newNote
-                });
-                if (updated) { 
-                    alert('✓ Saved successfully');
-                    await loadDataFromSupabase();
-                    openProject(currentProject.id);
-                } else alert('Save failed');
-            } else {
-                const inserted = await addNoteToSupabase({
-                    title: newTitle, desc: newDesc, noteText: newNote
-                });
-                if (inserted) { 
-                    alert('✓ Created successfully');
-                    await loadDataFromSupabase();
-                    openProject(inserted.id);
-                } else alert('Creation failed');
-            }
-        };
+    const newTitle = document.getElementById('editTitleInput').value.trim() || 'Untitled';
+    const newDesc = document.getElementById('editDescInput').value.trim() || '';
+    
+    // ❌ 删除这段错误的代码
+    // editorContent.querySelectorAll('[data-list="bullet"]').forEach(el => { ... });
+    
+    // ✅ 直接保存，不做任何转换
+    const newNote = quillEditor.root.innerHTML;
+    
+    if (currentProject.id && currentProject.id !== 'null') {
+        const updated = await updateNoteInSupabase(currentProject.id, {
+            title: newTitle, desc: newDesc, noteText: newNote
+        });
+        if (updated) { 
+            alert('✓ Saved successfully');
+            await loadDataFromSupabase();
+            openProject(currentProject.id);
+        } else alert('Save failed');
+    } else {
+        const inserted = await addNoteToSupabase({
+            title: newTitle, desc: newDesc, noteText: newNote
+        });
+        if (inserted) { 
+            alert('✓ Created successfully');
+            await loadDataFromSupabase();
+            openProject(inserted.id);
+        } else alert('Creation failed');
     }
+};
 
     function openCreateMode() {
         currentProject = { id: null, title: 'New Note', desc: '', noteText: '' };
