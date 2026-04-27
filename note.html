@@ -324,8 +324,22 @@
 
         if (quillEditor) quillEditor = null;
         quillEditor = new Quill('#editQuillContainer', {
-            theme: 'snow', modules: { toolbar: [['bold','italic','underline'],[{ 'color': [] }],[{ 'list': 'ordered'},{ 'list': 'bullet' }],['clean']] }
-        });
+    theme: 'snow',
+    modules: {
+        toolbar: [
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],  // 标题级别
+            ['bold', 'italic', 'underline', 'strike'],   // 粗体、斜体、下划线、删除线
+            [{ 'color': [] }, { 'background': [] }],     // 文字颜色、背景色
+            [{ 'align': [] }],                           // 对齐方式
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }], // 有序列表、无序列表、待办清单
+            [{ 'indent': '-1'}, { 'indent': '+1' }],     // 缩进
+            [{ 'script': 'sub'}, { 'script': 'super' }], // 下标、上标
+            ['blockquote', 'code-block'],                // 引用块、代码块
+            ['link', 'image', 'video'],                  // 链接、图片、视频
+            ['clean']                                    // 清除格式
+        ]
+    }
+});
         quillEditor.setText('');
         quillEditor.clipboard.dangerouslyPasteHTML(currentProject.noteText || '');
 
