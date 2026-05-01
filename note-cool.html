@@ -61,10 +61,65 @@
             font-size: 1.2rem;
             font-weight: 700;
             color: #1c5a6e;
-            margin: 0.8rem 0 0.5rem 0;
+            margin: 1rem 0 0.5rem 0;
             padding-bottom: 4px;
             border-bottom: 2px solid #cbe4ed;
             display: inline-block;
+        }
+
+        /* 只读信息卡片样式 */
+        .info-card {
+            background: #f8fbfd;
+            border: 1px solid #dce9ef;
+            border-radius: 24px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .info-header {
+            background: #eef3f7;
+            padding: 12px 20px;
+            border-bottom: 1px solid #dce9ef;
+        }
+
+        .info-header h3 {
+            color: #1c5a6e;
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-content {
+            padding: 16px 22px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #2c5a6e;
+        }
+
+        .info-content ul, .info-content ol {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+
+        .info-content li {
+            margin: 4px 0;
+        }
+
+        .info-content p {
+            margin: 8px 0;
+        }
+
+        .badge {
+            background: #e3f3f0;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #1f6d6a;
+            display: inline-block;
+            margin-right: 8px;
         }
 
         .area-card {
@@ -169,13 +224,6 @@
             margin-top: 4px;
         }
 
-        .helper-note {
-            margin-top: 4px;
-            font-size: 0.65rem;
-            color: #7c9aa8;
-            text-align: right;
-        }
-
         .add-area-btn {
             background: #eef2f5;
             border: 2px dashed #659eb0;
@@ -223,23 +271,6 @@
             color: #6e8b9b;
             border-top: 1px solid #e0ecf2;
         }
-
-        .hidden-export {
-            position: absolute;
-            left: -9999px;
-            top: -9999px;
-            width: 900px;
-            background: white;
-            padding: 30px;
-            font-family: 'Courier New', monospace;
-            white-space: pre-wrap;
-            z-index: -1;
-        }
-
-        .conditional-field {
-            margin-top: 8px;
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -250,11 +281,14 @@
     </div>
 
     <div class="questions-area" id="questionsArea">
+        <!-- ========== 多区域容器 ========== -->
         <div id="areasContainer"></div>
         <button id="addAreaBtn" class="add-area-btn">❄️ Add a new area</button>
 
-        <!-- 共享信息部分 -->
+        <!-- ========== SHARED INFORMATION ========== -->
         <div class="section-title">📋 SHARED INFORMATION</div>
+        
+        <!-- 临床记录表单 -->
         <div class="question-card" style="border:1px solid #e2ecf0; border-radius:20px; padding:16px; margin-top:12px; background:#fafefc;">
             
             <div class="question-field">
@@ -269,6 +303,7 @@
                 <label>📊 Current weight (kg/lbs) & Ideal weight</label>
                 <input type="text" id="weight_info" placeholder="e.g., Current: 75kg, Ideal: 65kg">
             </div>
+
             <div class="question-field">
                 <label>🥗 Diet & exercise plan</label>
                 <div class="checkbox-group" id="diet_exercise_group">
@@ -277,23 +312,26 @@
                     <label><input type="checkbox" value="On Exercise Plan"> On Exercise Plan</label>
                 </div>
             </div>
+
             <div class="question-field">
                 <label>👶 Family planning</label>
-                <div class="radio-group" id="family_planning_group">
+                <div class="radio-group">
                     <label><input type="radio" name="family_planning" value="Done with children plan" checked> Done with children plan</label>
                     <label><input type="radio" name="family_planning" value="Planning more children in the future"> Planning more children in the future</label>
                 </div>
             </div>
+
             <div class="question-field">
                 <label>📅 Surgery in TX areas and Surgery Time</label>
                 <input type="text" id="surgery_history" placeholder="e.g., Abdominoplasty, Jan 2000">
             </div>
+
             <div class="question-field">
                 <label>💊 Medications & Allergies</label>
                 <input type="text" id="med_allergy" value="no medication, NKDA">
             </div>
 
-            <!-- Contraindications（None 逻辑） -->
+            <!-- ⚠️ Contraindications -->
             <div class="question-field">
                 <label>⚠️ Contraindications:</label>
                 <div class="checkbox-group" id="contraindications_group">
@@ -313,28 +351,78 @@
                 <div class="inline-note">Confirm with doctor if patient has any of these.</div>
             </div>
 
-            <!-- 罕见副作用纯文本 -->
-            <div class="question-field">
-                <label>⚠️ Rare side effects informed:</label>
-                <div class="inline-note" style="margin-top:4px; background:#f9f2e0; padding:8px; border-radius:12px;">
-                    • Darker skin colour (can occur on darker skin type, resolves on its own, or can be accelerated with Lytera)<br>
-                    • Hardness or discrete nodules (massage could help)<br>
-                    • Paradoxical Adipose Hyperplasia (PAH) – enlargement of the treated area, extremely rare (0.2%), requires surgical intervention<br>
-                    • Hernia – requires surgical intervention
+            <!-- 只读教育内容块 1：CoolSculpting Technology -->
+            <div class="info-card">
+                <div class="info-header">
+                    <h3>❄️ CoolSculpting / TruSculpt Technology</h3>
+                </div>
+                <div class="info-content">
+                    <p><span class="badge">KEY FACTS</span> CoolSculpting is a fat reduction treatment for areas resistant to diet and exercise.</p>
+                    <ul>
+                        <li><strong>Not a weight loss treatment</strong> (like gastric bypass) — not a surgical procedure (like liposuction).</li>
+                        <li><strong>Non-surgical localized fat reduction</strong>, FDA & Health Canada Approved.</li>
+                        <li>8 million+ treatments performed worldwide.</li>
+                        <li>Clinical study shows <strong>20% reduction of fat cells</strong> in a single treatment.</li>
+                        <li>Most patients reach goal in <strong>3 treatments</strong>; a few may need more.</li>
+                        <li>Fat cells crystallize (freeze) → break down → die → eliminated by lymphatic system within 6 months.</li>
+                        <li>Results visible from <strong>3 weeks</strong>; reassess at <strong>3 months</strong>.</li>
+                        <li><strong>Fat cells are gone permanently</strong>. However, remaining fat cells can enlarge with weight gain — maintaining stable weight is key.</li>
+                    </ul>
                 </div>
             </div>
 
-            <div class="question-field">
-                <label>📌 Sequence start with which area?</label>
-                <input type="text" id="sequence_start" value="Area A" placeholder="e.g., Area A">
+            <!-- 只读教育内容块 2：Side Effects -->
+            <div class="info-card">
+                <div class="info-header">
+                    <h3>⚠️ Side Effects</h3>
+                </div>
+                <div class="info-content">
+                    <p><strong>Common side effects (few hours to 2 weeks):</strong> redness, bruising, deep itching, tingling, numbness, tenderness, pain, strong cramping, nausea, bloating, diarrhea, muscle spasms, aching. Numbness may persist up to 2 months.</p>
+                    <p><strong>Rare side effects informed:</strong></p>
+                    <ul>
+                        <li>Darker skin colour (can occur on darker skin type, resolves on its own, or accelerated with Lytera).</li>
+                        <li>Hardness or discrete nodules — massage may help.</li>
+                        <li><strong>Paradoxical Adipose Hyperplasia (PAH)</strong> — enlargement of treated area, extremely rare (0.2%), requires surgical intervention.</li>
+                        <li><strong>Hernia</strong> — requires surgical intervention.</li>
+                    </ul>
+                </div>
             </div>
 
+            <!-- 只读教育内容块 3：Treatment Process -->
+            <div class="info-card">
+                <div class="info-header">
+                    <h3>📋 Treatment Process</h3>
+                </div>
+                <div class="info-content">
+                    <ul>
+                        <li>Shave or trim long hair on treatment areas at least 1 day prior.</li>
+                        <li>Wear loose clothing, slip-on shoes.</li>
+                        <li>Eat a full breakfast, bring snacks (empty stomach may cause headache/nausea). Lunch provided if full-day treatment.</li>
+                        <li>Sign consents, take photos, mark area with semi-permanent markers (washes off in days).</li>
+                        <li>Measure and record patient's weight.</li>
+                        <li>One applicator per session (35–75 min). Multiple applicators may take half or full day — bathroom breaks, laptop/phone use, or napping are fine.</li>
+                        <li>Pre-wipe area with anti‑freeze solution, apply gel/gel pad to protect skin.</li>
+                        <li>Applicator suctions area into cup: first few minutes feel cold/prickling/tingling → then area goes numb.</li>
+                        <li>After treatment: 2‑minute massage to break down crystallized fat cells (uncomfortable but manageable).</li>
+                        <li>Return to work / normal activities immediately after treatment.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 📋 Pre & Post care -->
             <div class="question-field">
                 <label>📋 Pre & Post care reviewed and given:</label>
                 <div><a href="https://mia-technician.github.io/skincare/prepost.html" target="_blank" style="color:#1c6d5e; text-decoration:underline;">Click here for Pre & Post care instructions</a></div>
                 <div class="inline-note">Patient has been provided with the above link and instructions reviewed.</div>
             </div>
 
+            <!-- 📌 Sequence start with which area? -->
+            <div class="question-field">
+                <label>📌 Sequence start with which area?</label>
+                <input type="text" id="sequence_start" value="Area A" placeholder="e.g., Area A">
+            </div>
+
+            <!-- 💰 Quote -->
             <div class="question-field">
                 <label>💰 Quote:</label>
                 <textarea id="quote_info" rows="2" placeholder="Paste or type quote details here..."></textarea>
@@ -345,9 +433,8 @@
     <div class="action-bar">
         <button class="print-btn" id="exportNoteBtn">📋 Generate Clinic Note (Copy/Export)</button>
     </div>
-    <footer>Each area has its own consultation details | Click + to add multiple areas.</footer>
+    <footer>Each area has its own consultation details | Click + to add multiple areas</footer>
 </div>
-<div id="exportTextContainer" class="hidden-export"></div>
 
 <script>
     let areas = [];
@@ -450,8 +537,6 @@
                 <div class="question-field">
                     <label>Series of treatments required x <input type="number" class="plan-series" data-id="${area.id}" min="0" step="1" value="${area.planSeries}" style="width:70px; margin-left:6px;"></label>
                 </div>
-
-                <div class="helper-note">❄️ CoolSculpting: non-surgical localized fat reduction, FDA & Health Canada approved. 20% fat cell reduction per TX, results seen from 3 weeks, final at 6 months. Fat cells gone permanently but remaining can enlarge with weight gain.</div>
             `;
             container.appendChild(card);
         });
@@ -596,6 +681,28 @@
         note += `Date: ${dateTime}\n`;
         note += `Provider: CoolSculpting Clinic\n\n`;
 
+        note += `COOLSCULPTING TECHNOLOGY (as explained to patient)\n`;
+        note += `- Non-surgical localized fat reduction for areas resistant to diet and exercise.\n`;
+        note += `- NOT a weight loss treatment (gastric bypass) NOT a surgical procedure (liposuction).\n`;
+        note += `- FDA & Health Canada Approved. 8M+ treatments worldwide.\n`;
+        note += `- 20% fat cell reduction per treatment. Most reach goal in 3 treatments.\n`;
+        note += `- Fat cells crystallize → die → eliminated by lymphatic system within 6 months.\n`;
+        note += `- Results from 3 weeks; reassess at 3 months.\n`;
+        note += `- Fat cells gone permanently; remaining cells enlarge with weight gain — stable weight essential.\n\n`;
+
+        note += `SIDE EFFECTS INFORMED\n`;
+        note += `- Common: redness, bruising, itching, tingling, numbness, tenderness, pain, cramping, nausea, bloating, diarrhea, muscle spasms, aching (days to 2 weeks; numbness up to 2 months).\n`;
+        note += `- Rare: darker skin colour, hardness/nodules, PAH (0.2%, surgical intervention), hernia (surgical intervention).\n\n`;
+
+        note += `TREATMENT PROCESS EXPLAINED\n`;
+        note += `- Shave/trim hair 1 day prior; loose clothing, slip-on shoes.\n`;
+        note += `- Eat full breakfast, bring snacks; lunch provided for full day.\n`;
+        note += `- Sign consents, photos, semi-permanent markings.\n`;
+        note += `- Weight recorded. One applicator (35-75 min) or multiple (half/full day).\n`;
+        note += `- Anti-freeze wipe + gel pad. Applicator suction: cold/prickling → numbness.\n`;
+        note += `- Post-treatment 2-min massage (uncomfortable but manageable).\n`;
+        note += `- Return to normal activities immediately.\n\n`;
+
         note += `INFORMATION GATHERING\n`;
         note += `- Intake form reviewed: ${shared.intakeReviewed}\n`;
         note += `- Current weight / ideal weight: ${shared.weightInfo || 'Not specified'}\n`;
@@ -632,36 +739,8 @@
 
         note += `TREATMENT OVERVIEW & PLAN\n`;
         note += `- Sequence start with: ${shared.sequenceStart}\n`;
-        note += `- Pre & Post care reviewed and given: https://mia-technician.github.io/skincare/prepost.html\n`;
+        note += `- Pre & Post care instructions provided via link\n`;
         note += `- Quote: ${shared.quoteInfo || 'Not provided'}\n\n`;
-
-        note += `COOLSCULPTING EDUCATION PROVIDED\n`;
-        note += `- CoolSculpting is non-surgical localized fat reduction, FDA & Health Canada approved.\n`;
-        note += `- 8 million TX worldwide, reduces 20% fat cells in 1 TX, most reach goal in 3 TX.\n`;
-        note += `- Fat cells are crystallized → die → eliminated by lymphatic system within 6 months.\n`;
-        note += `- Results seen from 3 weeks, reassess at 3 months.\n`;
-        note += `- Fat cells gone permanently, but remaining cells can enlarge with weight gain.\n`;
-        note += `- Side effects (redness, bruising, itching, tingling, numbness, cramping, etc.) may last days to weeks. Numbness up to 2 months.\n`;
-        note += `- Rare side effects have been informed as listed in the consultation form.\n\n`;
-
-        note += `TREATMENT PROCESS EXPLAINED\n`;
-        note += `- Eat a meal before treatment\n`;
-        note += `- Wear loose, comfortable clothing and bring slippers\n`;
-        note += `- Clinical photos will be taken\n`;
-        note += `- Treatment area will be marked (marks will fade over the next few days)\n`;
-        note += `- Weight will be recorded\n`;
-        note += `- Skin will be cleansed with an anti-freeze wipe\n`;
-        note += `- A gel pad will be applied\n`;
-        note += `- The applicator will be placed on the treatment area\n`;
-        note += `- You may feel intense cold for the first 3–5 minutes, followed by numbness\n`;
-        note += `- During treatment, you may relax, read, or use your phone/computer\n`;
-        note += `- You will be provided with an emergency button—press it to alert staff if needed\n`;
-        note += `- Treatment time is approximately 35–45 minutes, depending on the applicator used\n`;
-        note += `- After treatment, the applicator will be removed\n`;
-        note += `- A 2-minute massage will be performed (may feel uncomfortable but is tolerable)\n`;
-        note += `- The area will be cleaned, and additional applicators may be applied if needed\n`;
-        note += `- Once complete, you may resume normal daily activities\n`;
-        note += `- Next treatment is typically scheduled in 1–3 months, if required\n\n`;
 
         note += `PLAN\n`;
         note += `- A series of treatments required for best results.\n`;
