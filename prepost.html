@@ -683,28 +683,20 @@ const fieldMapping = {
     };
 
     function getCurrentDocumentData() {
-        const data = { title: document.getElementById('docTitle').value.trim() || 'Untitled' };
-        
-        contentAreas.forEach(area => {
-            const el = document.getElementById(area);
-            if (el) {
-                const dbField = fieldMapping[area];
-                const clone = el.cloneNode(true);
-                const allElements = clone.querySelectorAll('*');
-                allElements.forEach(child => {
-                    child.style.fontSize = '';
-                    child.style.fontFamily = '';
-                    child.style.lineHeight = '';
-                    child.style.color = '';
-                });
-                data[dbField] = clone.innerHTML || '';
-            } else {
-                data[dbField] = '';
-            }
-        });
-        
-        return data;
-    }
+    const data = { title: document.getElementById('docTitle').value.trim() || 'Untitled' };
+    
+    contentAreas.forEach(area => {
+        const el = document.getElementById(area);
+        if (el) {
+            const dbField = fieldMapping[area];
+            data[dbField] = el.innerHTML || '';
+            console.log(`Mapping ${area} -> ${dbField}:`, data[dbField]); // 调试用
+        }
+    });
+    
+    console.log('Final data object:', data); // 调试用
+    return data;
+}
 
     function clearEditor() {
         document.getElementById('docTitle').value = '';
