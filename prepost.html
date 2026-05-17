@@ -351,16 +351,16 @@
                 </div>
 
                                 <div class="section">
-                    <div class="section-header-wrapper">
-                        <span class="section-header">🩺 TREATMENT PROCESS</span>
-                        <div class="inline-toolbar">
-                            <button class="inline-bold" data-target="preTreatment"><b>B</b></button>
-                            <button class="inline-bullet" data-target="preTreatment">•</button>
-                            <button class="inline-number" data-target="preTreatment">1.</button>
-                        </div>
-                    </div>
-                    <div class="section-content" id="Treatmentprocess" contenteditable="true"></div>
-                </div>
+    <div class="section-header-wrapper">
+        <span class="section-header">🩺 TREATMENT PROCESS</span>
+        <div class="inline-toolbar">
+            <button class="inline-bold" data-target="Treatmentprocess"><b>B</b></button>
+            <button class="inline-bullet" data-target="Treatmentprocess">•</button>
+            <button class="inline-number" data-target="Treatmentprocess">1.</button>
+        </div>
+    </div>
+    <div class="section-content" id="Treatmentprocess" contenteditable="true"></div>
+</div>
                 
                 <div class="section">
                     <div class="section-header-wrapper">
@@ -410,17 +410,18 @@
     let currentActiveEditor = null;
 
     // 内容区域ID映射
-    const contentAreas = ['resultPlans', 'contraindications', 'preTreatment', 'sideEffects', 'postDo', 'postAvoid'];
+    const contentAreas = ['resultPlans', 'contraindications', 'preTreatment', 'sideEffects', 'Treatmentprocess', 'postDo', 'postAvoid'];
     
     // 数据库字段名映射
-    const fieldMapping = {
-        'resultPlans': 'result_plans',
-        'contraindications': 'contraindications',
-        'preTreatment': 'pre_treatment',
-        'sideEffects': 'side_effects',
-        'postDo': 'post_do',
-        'postAvoid': 'post_avoid'
-    };
+const fieldMapping = {
+    'resultPlans': 'result_plans',
+    'contraindications': 'contraindications',
+    'preTreatment': 'pre_treatment',
+    'sideEffects': 'side_effects',
+    'Treatmentprocess': 'treatment_process',
+    'postDo': 'post_do',
+    'postAvoid': 'post_avoid'
+};
     
     // 统一字体处理函数 - 清理内联样式
     function cleanInlineStyles(element) {
