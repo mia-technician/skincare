@@ -685,16 +685,27 @@ const fieldMapping = {
     function getCurrentDocumentData() {
     const data = { title: document.getElementById('docTitle').value.trim() || 'Untitled' };
     
-    contentAreas.forEach(area => {
+    // 确保所有字段都被包含
+    const areas = ['resultPlans', 'contraindications', 'preTreatment', 'sideEffects', 'Treatmentprocess', 'postDo', 'postAvoid'];
+    
+    areas.forEach(area => {
         const el = document.getElementById(area);
-        if (el) {
-            const dbField = fieldMapping[area];
+        const dbField = {
+            'resultPlans': 'result_plans',
+            'contraindications': 'contraindications',
+            'preTreatment': 'pre_treatment',
+            'sideEffects': 'side_effects',
+            'Treatmentprocess': 'treatment_process',
+            'postDo': 'post_do',
+            'postAvoid': 'post_avoid'
+        }[area];
+        
+        if (el && dbField) {
             data[dbField] = el.innerHTML || '';
-            console.log(`Mapping ${area} -> ${dbField}:`, data[dbField]); // 调试用
         }
     });
     
-    console.log('Final data object:', data); // 调试用
+    console.log('Saving data:', data);
     return data;
 }
 
