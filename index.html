@@ -746,7 +746,7 @@
                 <div id="productForm" class="product-form">
                     <div class="form-row">
                         <div class="form-group"><label>Product Name *</label><input type="text" id="productName" placeholder="e.g., Vitamin C"></div>
-                        <div class="form-group"><label>Brand</label><select id="productBrand"><option>SkinMedica</option><option>Skinceuticals</option><option>FNL</option><option>ColorScience</option><option>Others</option></select></div>
+                        <div class="form-group"><label>Brand</label><select id="productBrand"><option>SkinBetter</option><option>Skinceuticals</option><option>FNL</option><option>ColorScience</option><option>Others</option></select></div>
                         <div class="form-group"><label>Price ($)</label><input type="number" id="productPrice" step="0.01"></div>
                     </div>
                     <div class="form-row">
@@ -1967,7 +1967,7 @@ function printRoutine() {
 }
 
 function renderBrandTabs() { 
-    let brands = ["all", "SkinMedica", "Skinceuticals", "FNL", "ColorScience", "Others"]; 
+    let brands = ["all", "SkinBetter", "Skinceuticals", "FNL", "ColorScience", "Others"]; 
     let container = document.getElementById('brandTabs'); 
     if (!container) return; 
     container.innerHTML = brands.map(b => `<button class="brand-tab ${b === currentBrand ? 'active' : ''}" data-brand="${b}">${b === 'all' ? 'All' : b}</button>`).join(''); 
