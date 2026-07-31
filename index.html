@@ -880,21 +880,21 @@ let supabaseClient = null;
 // ==================== 默认数据 ====================
 const DEFAULT_PRODUCTS = [
     { id: "clarify-cleanser", name: "Clarify Cleanser", brand: "FNL", price: 50, benefit: "Antibacterial", usage: "Pea size - cleanse", image: "https://static.wixstatic.com/media/11a6e1_964680bfdf1b4efa9039db6f52428325~mv2.webp" },
-    { id: "cleanser", name: "Cleanser", brand: "SkinMedica", price: 46, benefit: "Cleans · Removes SPF", usage: "Pea size - add water - cleanse", image: "https://static.wixstatic.com/media/11a6e1_cd31f58211984ecabef518ed158ea4dc~mv2.webp" },
+    { id: "cleanser", name: "Cleanser", brand: "Others", price: 46, benefit: "Cleans · Removes SPF", usage: "Pea size - add water - cleanse", image: "https://static.wixstatic.com/media/11a6e1_cd31f58211984ecabef518ed158ea4dc~mv2.webp" },
     { id: "exo-gf", name: "Exo-GF Serum", brand: "FNL", price: 275, benefit: "Regenerates", usage: "1 pump", image: "https://static.wixstatic.com/media/11a6e1_62da2e3f71ff44229d4e90fc5289cf18~mv2.jpg" },
     { id: "exfoliating-pad", name: "Exfoliating Pad 10%", brand: "FNL", price: 88, benefit: "Minimizes blackheads", usage: "Wipe face gently", image: "https://static.wixstatic.com/media/11a6e1_c4491a22e89846ba84ef28f5820ff427~mv2.webp" },
     { id: "glycolic-lotion", name: "Glycolic Lotion 10%", brand: "FNL", price: 98, benefit: "Improves texture", usage: "Pea size - apply", image: "https://static.wixstatic.com/media/11a6e1_74ebb016820f45008058763526dfad76~mv2.webp" },
-    { id: "ha5", name: "HA5", brand: "SkinMedica", price: 196, benefit: "Hydrator", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_20f2ce9ce07a4ccaa0b5d5c6631fc0dc~mv2.webp" },
-    { id: "lumivive-day", name: "Lumivive - Day", brand: "SkinMedica", price: 285, benefit: "Antioxidant", usage: "1 pump - face & neck", image: "https://static.wixstatic.com/media/11a6e1_b12de65e4f8d4240ab28bdeecda8f811~mv2.webp" },
-    { id: "lumivive-night", name: "Lumivive - Night", brand: "SkinMedica", price: 285, benefit: "Night Repair", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_b12de65e4f8d4240ab28bdeecda8f811~mv2.webp" },
-    { id: "lytera", name: "Lytera", brand: "SkinMedica", price: 170, benefit: "Brightener", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_daddf6362e3b4bb0871467d485dcc76b~mv2.jpg" },
-    { id: "moisturizer", name: "Moisturizer", brand: "SkinMedica", price: 155, benefit: "Soothing", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_0f0aeb5de10d4a7ca110e93adb057e80~mv2.webp" },
+    { id: "ha5", name: "HA5", brand: "Others", price: 196, benefit: "Hydrator", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_20f2ce9ce07a4ccaa0b5d5c6631fc0dc~mv2.webp" },
+    { id: "lumivive-day", name: "Lumivive - Day", brand: "Others", price: 285, benefit: "Antioxidant", usage: "1 pump - face & neck", image: "https://static.wixstatic.com/media/11a6e1_b12de65e4f8d4240ab28bdeecda8f811~mv2.webp" },
+    { id: "lumivive-night", name: "Lumivive - Night", brand: "Others", price: 285, benefit: "Night Repair", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_b12de65e4f8d4240ab28bdeecda8f811~mv2.webp" },
+    { id: "lytera", name: "Lytera", brand: "Others", price: 170, benefit: "Brightener", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_daddf6362e3b4bb0871467d485dcc76b~mv2.jpg" },
+    { id: "moisturizer", name: "Moisturizer", brand: "Others", price: 155, benefit: "Soothing", usage: "1 pump - apply", image: "https://static.wixstatic.com/media/11a6e1_0f0aeb5de10d4a7ca110e93adb057e80~mv2.webp" },
     { id: "retinol", name: "Retinol", brand: "Skinceuticals", price: 66, benefit: "Cell turnover", usage: "Start 2x/week", image: "https://static.wixstatic.com/media/11a6e1_4f3763842728442482947369cfee0b18~mv2.png" },
     { id: "retinol-fnl", name: "Retinol (FNL)", brand: "FNL", price: 115, benefit: "Cell turnover", usage: "Start 2x/week", image: "https://static.wixstatic.com/media/11a6e1_c1094fd984f449a6bdd6a96bf13623ac~mv2.webp" },
     { id: "silymarin", name: "Silymarin", brand: "Skinceuticals", price: 220, benefit: "Antioxidant for acne", usage: "1 pump", image: "https://static.wixstatic.com/media/11a6e1_8868dfe199c3466dafa239c238115433~mv2.webp" },
     { id: "spf-powder", name: "SPF Powder Brush", brand: "ColorScience", price: 93.90, benefit: "Easy reapply", usage: "Brush over face", image: "https://static.wixstatic.com/media/11a6e1_02ac891ebdc24945ad2bb305d9be5579~mv2.jpg" },
-    { id: "spf50", name: "SPF50 Sheer Physical", brand: "SkinMedica", price: 66, benefit: "Physical SPF", usage: "1 pump - last step", image: "https://static.wixstatic.com/media/11a6e1_d2faad5c91134e0589fb5538c8f76d86~mv2.webp" },
-    { id: "tns", name: "TNS+ Serum", brand: "SkinMedica", price: 330, benefit: "Lifting · Anti-aging", usage: "1 pump - apply to face", image: "https://static.wixstatic.com/media/11a6e1_8eb00266d932471483652b5a40828272~mv2.jpg" }
+    { id: "spf50", name: "SPF50 Sheer Physical", brand: "Others", price: 66, benefit: "Physical SPF", usage: "1 pump - last step", image: "https://static.wixstatic.com/media/11a6e1_d2faad5c91134e0589fb5538c8f76d86~mv2.webp" },
+    { id: "tns", name: "TNS+ Serum", brand: "Others", price: 330, benefit: "Lifting · Anti-aging", usage: "1 pump - apply to face", image: "https://static.wixstatic.com/media/11a6e1_8eb00266d932471483652b5a40828272~mv2.jpg" }
 ].sort((a, b) => a.name.localeCompare(b.name));
 
     // 默认疗程数据
