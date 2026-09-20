@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>抗光老化 · 五道防线</title>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:#dfe6ec;
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+    display:flex;justify-content:center;
+    padding:28px 16px 60px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{width:880px;max-width:100%;}
+
+  .page{
+    width:880px;
+    background:#FFFBF3;
+    background-image:radial-gradient(#F0E2CC 1.6px,transparent 1.6px);
+    background-size:24px 24px;
+    padding:44px 38px 46px;
+    border-radius:8px;
+  }
+
+  /* ---------- 标题 ---------- */
+  .head{text-align:center;margin-bottom:26px;}
+  .badge{
+    display:inline-block;background:#2B2B2B;color:#FFD166;
+    font-size:11px;font-weight:800;letter-spacing:.18em;
+    padding:6px 16px;border-radius:999px;margin-bottom:14px;
+  }
+  .head h1{font-size:33px;line-height:1.32;font-weight:900;color:#22201E;letter-spacing:-.01em;}
+  .sub-en{
+    font-size:12px;font-weight:700;color:#9C948A;letter-spacing:.08em;
+    margin-top:10px;text-transform:uppercase;
+  }
+  .headline-note{
+    margin-top:16px;display:inline-block;
+    background:#FFF1C9;border:2.5px solid #2B2B2B;border-radius:16px;
+    padding:10px 20px;font-size:13.5px;font-weight:800;color:#22201E;
+    box-shadow:3px 3px 0 #2B2B2B;
+  }
+
+  /* ---------- 防线卡 ---------- */
+  .def{
+    background:var(--bg);
+    border:3px solid #2B2B2B;
+    border-radius:26px;
+    padding:22px 24px;
+    box-shadow:6px 6px 0 #2B2B2B;
+  }
+  .def-head{display:flex;gap:16px;align-items:flex-start;}
+  .num{
+    flex:0 0 52px;height:52px;border-radius:50%;
+    background:var(--c);border:3px solid #2B2B2B;
+    display:flex;align-items:center;justify-content:center;
+    font-size:23px;font-weight:900;color:#fff;
+  }
+  .def-title{flex:1;min-width:0;}
+  .def-title h2{font-size:21px;font-weight:900;color:#22201E;line-height:1.35;}
+  .en{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#9C948A;margin-top:4px;text-transform:uppercase;}
+  .pri{
+    display:inline-block;margin-top:8px;
+    background:#E0453A;color:#fff;font-size:11px;font-weight:900;
+    letter-spacing:.08em;padding:4px 12px;border-radius:999px;
+  }
+  .role{
+    margin-top:14px;font-size:13.5px;font-weight:800;color:#22201E;
+    background:#fff;border-left:5px solid var(--c);border-radius:0 12px 12px 0;
+    padding:10px 14px;line-height:1.6;
+  }
+  .role b{color:var(--c);}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+  .chips span{
+    background:#fff;border:2px solid #2B2B2B;border-radius:999px;
+    font-size:12.5px;font-weight:700;color:#3A3632;padding:5px 12px;
+  }
+
+  .key{
+    margin-top:14px;background:#fff;border:2.5px dashed #2B2B2B;
+    border-radius:14px;padding:11px 15px;font-size:13.5px;font-weight:800;color:#22201E;
+    line-height:1.65;
+  }
+  .note{
+    margin-top:12px;background:#FFF8E6;border:2px dashed #D9A400;
+    border-radius:14px;padding:11px 15px;font-size:12.5px;font-weight:700;
+    color:#8A6A00;line-height:1.65;
+  }
+
+  /* 子弹列表 */
+  .list{margin-top:14px;display:flex;flex-direction:column;gap:10px;}
+  .item{
+    background:#fff;border:2.5px solid #2B2B2B;border-radius:16px;
+    padding:12px 15px;box-shadow:3px 3px 0 #2B2B2B;
+  }
+  .item h4{
+    font-size:14.5px;font-weight:900;color:#22201E;
+    display:flex;align-items:center;gap:7px;line-height:1.4;
+  }
+  .item h4 em{
+    font-style:normal;font-size:10px;font-weight:900;color:#fff;
+    border-radius:999px;padding:3px 9px;letter-spacing:.04em;
+    flex:0 0 auto;
+  }
+  .item p{font-size:12.5px;color:#4A4540;line-height:1.62;margin-top:7px;}
+  .item p b{color:#22201E;}
+
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+  .split .item{margin:0;}
+
+  /* 箭头 / 间距 */
+  .arrow{text-align:center;font-size:26px;font-weight:900;color:#2B2B2B;line-height:1;padding:13px 0;}
+  .sp{height:22px;}
+  .sp-lg{height:30px;}
+
+  /* ---------- 顺序区 ---------- */
+  .orderbox{
+    background:#2B2B2B;border-radius:26px;padding:26px;
+    box-shadow:6px 6px 0 #FFD166;
+  }
+  .orderbox h3{
+    font-size:18px;font-weight:900;color:#FFD166;text-align:center;
+    letter-spacing:.02em;margin-bottom:6px;
+  }
+  .orderbox .sub{text-align:center;font-size:11px;color:#8E8A85;font-weight:700;letter-spacing:.1em;margin-bottom:20px;text-transform:uppercase;}
+  .olist{display:flex;flex-direction:column;gap:9px;}
+  .orow{
+    display:flex;align-items:center;gap:13px;
+    background:rgba(255,255,255,.07);border-radius:14px;padding:11px 15px;
+  }
+  .orow i{
+    flex:0 0 30px;height:30px;border-radius:50%;
+    background:#FFD166;color:#2B2B2B;
+    display:flex;align-items:center;justify-content:center;
+    font-style:normal;font-size:14px;font-weight:900;
+  }
+  .orow div{flex:1;}
+  .orow strong{display:block;font-size:14px;font-weight:900;color:#fff;line-height:1.35;}
+  .orow small{display:block;font-size:11.5px;color:#B8B2AA;font-weight:700;margin-top:3px;line-height:1.45;}
+
+  /* 一日流程 */
+  .daygrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;}
+  .day{
+    background:#fff;border:3px solid #2B2B2B;border-radius:20px;
+    padding:16px 18px;box-shadow:4px 4px 0 #2B2B2B;
+  }
+  .day h4{
+    font-size:15px;font-weight:900;color:#22201E;
+    display:flex;align-items:center;gap:7px;margin-bottom:12px;
+  }
+  .day h4 span{font-size:17px;}
+  .stepflow{display:flex;flex-direction:column;gap:6px;}
+  .stepflow div{
+    background:#F6F3EE;border-radius:10px;
+    padding:8px 12px;font-size:12.5px;font-weight:800;color:#3A3632;
+  }
+  .stepflow div.hi{background:#FFE9E6;color:#C93B2B;}
+  .stepflow div small{display:block;font-size:10.5px;font-weight:700;color:#8E8A85;margin-top:2px;}
+  .stepflow i{text-align:center;font-style:normal;font-weight:900;color:#B8B2AA;font-size:13px;line-height:1;}
+
+  /* 金句 */
+  .quote{
+    background:#FFF1C9;border:3px solid #2B2B2B;border-radius:26px;
+    padding:26px;box-shadow:6px 6px 0 #2B2B2B;text-align:center;
+  }
+  .quote .mark{font-size:26px;color:#E0A800;font-weight:900;line-height:1;}
+  .quote p{font-size:16px;font-weight:900;color:#22201E;line-height:1.8;margin-top:8px;}
+
+  /* 工具栏 */
+  .toolbar{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:24px;}
+  .toolbar button{
+    background:#2B2B2B;color:#FFD166;border:none;border-radius:999px;
+    padding:13px 32px;font-size:15px;font-weight:900;cursor:pointer;
+    box-shadow:4px 4px 0 #FFD166;font-family:inherit;transition:.1s;
+  }
+  .toolbar button:active{transform:translate(2px,2px);box-shadow:2px 2px 0 #FFD166;}
+  .toolbar p{font-size:12px;color:#6B7280;text-align:center;line-height:1.6;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div id="poster" class="page">
+
+    <!-- ===== 标题 ===== -->
+    <header class="head">
+      <div class="badge">BLOCK THE AGING LOOP</div>
+      <h1>抗光老化 · 五道防线</h1>
+      <p class="sub-en">5 Lines of Defense · Endogenous Photosensitizer Loop</p>
+      <div class="headline-note">🎯 每一道防线，精准打断闭环的一环</div>
+    </header>
+
+    <!-- ================= 防线 1（升级版） ================= -->
+    <section class="def" style="--c:#F5A623;--bg:#FFF6E0;">
+      <div class="def-head">
+        <div class="num">1</div>
+        <div class="def-title">
+          <h2>防晒 · 覆盖五大外界损伤源</h2>
+          <p class="en">Sunscreen · Cover All 5 External Stressors</p>
+          <div class="pri">优先级 NO.1</div>
+        </div>
+      </div>
+
+      <div class="role">
+        <b>要彻底打断光老化，必须覆盖 5 大外界损伤源：</b><br>
+        UVB · UVA · 高能蓝光 · 红外热能 · 环境自由基污染
+      </div>
+
+      <div class="note" style="background:#E8F4FF;border-color:#5AA9E6;color:#1F5C93;">
+        📌 以下全部只讲：<b>物理遮挡 + 物理粉体防护机制</b>，无任何化学防晒内容
+      </div>
+
+      <!-- 1. UVB -->
+      <div class="item" style="margin-top:14px;">
+        <h4><em style="background:#F5A623;">UVB</em>浅层晒伤 · 表皮损伤 · DNA 突变</h4>
+        <p><b>伤害特点：</b>主打表皮损伤、晒伤、脱皮、角质异常增生、表皮色沉</p>
+        <p><b>纯物理有效成分：氧化锌、二氧化钛</b></p>
+        <p>· 物理折射 + 散射紫外线<br>· 直接挡断 UVB 进入表皮，避免表皮 DNA 损伤、角质紊乱、表层氧化垃圾生成</p>
+      </div>
+
+      <!-- 2. UVA -->
+      <div class="item" style="margin-top:10px;">
+        <h4><em style="background:#E0453A;">UVA</em>真皮老化主力 · 最深 · 最致命</h4>
+        <p><b>伤害特点：</b>穿透全层皮肤、直达真皮，专门激活内源感光垃圾，制造巨量 ROS；破坏胶原、弹性蛋白、DEJ 基底膜，诱发端粒损伤与表观老化——细纹、松弛、暗沉、真皮色沉的最大来源</p>
+        <p><b>纯物理有效成分：高浓度氧化锌（主力）＞ 二氧化钛</b></p>
+        <p>· 氧化锌广谱阻隔 UVA 能力远优于二氧化钛<br>· 稳定、不被光降解，全天持续阻断 UVA 激发的自由基放大循环</p>
+        <p style="color:#C93B2B;font-weight:800;">⚠️ UVA 真正可怕的不是单次照射，是它持续不断激活皮肤内部旧垃圾、制造新垃圾的无限循环</p>
+      </div>
+
+      <!-- 3. 蓝光 -->
+      <div class="item" style="margin-top:10px;">
+        <h4><em style="background:#5AA9E6;">HEV</em>高能蓝光 · 最难防 · 色沉专属杀手</h4>
+        <p><b>伤害特点：</b>普通物理粉体能挡大部分 UV，但蓝光穿透力极强、接近真皮底层；专门消耗皮肤谷胱甘肽、刺激褐黑素生成、加重黄褐斑、反复暗沉、炎症色沉</p>
+        <p><b>能防蓝光的纯物理成分（只有这两类）：</b></p>
+        <p>① <b>高浓度氧化锌</b>：反射散射一部分短波蓝光</p>
+        <p>② <b>氧化铁（红/黄铁氧化物）</b>：物理体系里最强的蓝光吸收材质，有色物理防晒、素颜物理膏的核心抗蓝光原料</p>
+        <p style="color:#C93B2B;font-weight:800;">⚠️ 没有氧化铁 = 纯白物理防晒几乎不防蓝光</p>
+      </div>
+
+      <!-- 4. 红外 -->
+      <div class="item" style="margin-top:10px;">
+        <h4><em style="background:#E67E22;">IRA</em>红外热能 · 热老化 · 松弛元凶 · 99% 人忽略</h4>
+        <p><b>伤害特点：</b>日光红外线带来真皮升温、热应激；不需要紫外线、不需要晒红，只要温度升高：直接爆发 ROS、激活热休克通路、大量 MMP 释放、弹性纤维慢性断裂 → 皮肤松弛、下垂、软塌、毛孔垮塌</p>
+        <p><b>纯物理防护（粉体几乎挡不住热，唯一有效是）：</b></p>
+        <p>① <b>物理硬遮挡</b>：遮阳伞、宽檐帽、物理衣料——唯一真正能阻挡红外热能的防晒手段</p>
+        <p>② <b>高浓度氧化锌</b>：微弱反射一部分红外，但效果有限</p>
+        <p style="color:#C93B2B;font-weight:800;">⚠️ 核心真理：热老化只能靠「遮热」，涂任何粉体都无法完全解决</p>
+      </div>
+
+      <!-- 5. 污染 -->
+      <div class="item" style="margin-top:10px;">
+        <h4><em style="background:#8E8A85;">PM</em>环境自由基污染 · PM2.5 / 废气 / 悬浮物</h4>
+        <p><b>伤害特点：</b>污染物附着表皮 → 持续自产 ROS、破坏屏障、加重炎症、累积更多氧化变性垃圾，让皮肤「底子越来越容易氧化、越来越暗沉」</p>
+        <p><b>纯物理防护手段：氧化锌形成致密物理膜</b></p>
+        <p>· 隔离颗粒物附着表皮<br>· 减少污染持续诱发的表皮氧化压力</p>
+      </div>
+    </section>
+
+    <div class="arrow">↓</div>
+
+    <!-- ================= 防线 2 ================= -->
+    <section class="def" style="--c:#5AA9E6;--bg:#EAF4FF;">
+      <div class="def-head">
+        <div class="num">2</div>
+        <div class="def-title">
+          <h2>抗氧化 · 淬灭已生成的 ROS</h2>
+          <p class="en">Antioxidants · Quench &amp; Interrupt</p>
+        </div>
+      </div>
+
+      <div class="role">
+        <b>两个任务：</b>① 立刻中和已爆出的自由基，保护胶原、DNA 不被攻击；② 减少新氧化碎片生成，不让感光垃圾继续变多
+      </div>
+
+      <div class="list">
+        <div class="item">
+          <h4><em style="background:#5AA9E6;">1</em>直接供氢 · 快速淬灭自由基</h4>
+          <p><b>L-抗坏血酸（原型 VC）</b>：水溶性，胞内与真皮层中和 ROS，刺激胶原合成；搭配维 E + 阿魏酸，经典协同循环</p>
+          <p><b>脂溶性 VC 衍生物</b>：保护细胞膜脂质相，填补原型 VC 护不住细胞膜的短板</p>
+          <p><b>生育酚（维 E）</b>：脂溶性，专护细胞膜脂质过氧化，与 VC 互相再生</p>
+          <p><b>阿魏酸</b>：稳定 VC，进一步淬灭多种自由基</p>
+        </div>
+
+        <div class="item">
+          <h4><em style="background:#5AA9E6;">2</em>多酚类 · 广谱抗氧化 + 自带抗炎</h4>
+          <p>白藜芦醇、绿茶 EGCG、鞣花酸、根皮素</p>
+          <p>特点：抗氧化之外自带 <b>NF-κB 抑制</b>，抗氧化 + 抗炎二合一</p>
+        </div>
+
+        <div class="item">
+          <h4><em style="background:#5AA9E6;">3</em>细胞内源抗氧化补给</h4>
+          <p>谷胱甘肽、辅酶 Q10 · <b>补给皮肤自身抗氧化储备</b></p>
+        </div>
+      </div>
+
+      <div class="note">
+        ⚠️ <b>抗氧化 ≠ 修护屏障</b><br>
+        单纯原型 VC 精华本身没有修护屏障能力，高浓度甚至会轻微剥脱；<br>
+        只有一部分多酚类抗氧化剂，同时具备舒缓修护。
+      </div>
+    </section>
+
+    <div class="arrow">↓</div>
+
+    <!-- ================= 防线 3 ================= -->
+    <section class="def" style="--c:#9B7BFF;--bg:#F3EDFF;">
+      <div class="def-head">
+        <div class="num">3</div>
+        <div class="def-title">
+          <h2>代谢更新 · 清理「感光垃圾库」</h2>
+          <p class="en">Metabolic Renewal · Clear the Debris</p>
+        </div>
+      </div>
+
+      <div class="role">
+        <b>目标：</b>降低皮肤里感光团的<b>存量</b>。垃圾变少 → 同等 UVA 照射，能引爆的自由基就变少，<b>把放大器功率降下来</b>
+      </div>
+
+      <div class="split">
+        <div class="item">
+          <h4>🍋 刷酸</h4>
+          <p><b>水杨酸 / LHA</b>：脂溶性，疏通毛孔角栓，清除浅层氧化脂质碎片</p>
+          <p><b>甘醇酸、乳糖酸</b>：加速角质代谢，带走表层变性蛋白与糖化碎片；乳糖酸兼顾保湿修护</p>
+          <p><b>鞣花酸</b>：代谢 + 抗氧化兼顾</p>
+          <p style="color:#8E8A85;font-weight:800;">👉 主攻：角质层 + 浅层真皮碎片</p>
+        </div>
+
+        <div class="item">
+          <h4>🌙 Retinol / 维 A 醇</h4>
+          <p>机制<b>不是表层剥脱</b>：A醇进入细胞，激活<b>溶酶体</b>，让细胞自己消化胞内堆积的脂褐素、受损线粒体、氧化碎片（senolytic 相关通路）</p>
+          <p>顺带：下调 MMP、刺激胶原新生、抑制黑素合成</p>
+          <p style="color:#8E8A85;font-weight:800;">👉 主攻：细胞内部的衰老感光残渣</p>
+        </div>
+      </div>
+
+      <div class="key">🔁 <b>互补关系：</b>刷酸清表层垃圾，A醇清细胞内部残渣</div>
+
+      <div class="note">
+        ⚠️ A醇、高浓度刷酸初期会<b>短暂削弱屏障</b>，后续一定要搭配屏障修护，不能猛上。
+      </div>
+    </section>
+
+    <div class="arrow">↓</div>
+
+    <!-- ================= 防线 4 ================= -->
+    <section class="def" style="--c:#FF6B5A;--bg:#FFEEEC;">
+      <div class="def-head">
+        <div class="num">4</div>
+        <div class="def-title">
+          <h2>光电项目 · 强力清除变性基质</h2>
+          <p class="en">Energy-Based Devices · Deep Matrix Clearance</p>
+        </div>
+      </div>
+
+      <div class="role">
+        <b>定位：</b>酸和 A醇偏<b>日常居家慢清理</b>；光电是<b>一次性批量清理</b>真皮里已坏掉的弹性蛋白、变性胶原——这些大分子碎片居家护肤品很难代谢掉
+      </div>
+
+      <div class="list">
+        <div class="item">
+          <h4>💡 非剥脱点阵 · Clear &amp; Brilliant / 1565nm</h4>
+          <p>刺激真皮重塑，巨噬细胞吞噬清除变性弹性蛋白与氧化基质碎片，长出新鲜胶原</p>
+        </div>
+        <div class="item">
+          <h4>🔥 CO₂ 点阵</h4>
+          <p>更强的真皮重塑，清除<b>重度光老化</b>的破损基质</p>
+        </div>
+      </div>
+
+      <div class="key">🧩 <b>核心逻辑：</b>真皮里被氧化切碎、失去功能的旧胶原弹性蛋白，本身就是很强的<b>内源感光团</b>。光电启动真皮重塑，把这些「坏掉的脚手架」代谢带走，重建健康 ECM，<b>减少真皮深层的感光垃圾库存</b>。</div>
+
+      <div class="note">
+        ⚠️ <b>不是所有光电都抗光老化</b>；一定要避开会造成光损伤的光源。
+      </div>
+    </section>
+
+    <div class="arrow">↓</div>
+
+    <!-- ================= 防线 5 ================= -->
+    <section class="def" style="--c:#2EC4B6;--bg:#E6FAF7;">
+      <div class="def-head">
+        <div class="num">5</div>
+        <div class="def-title">
+          <h2>屏障修护 + 抗炎 · 底层维稳</h2>
+          <p class="en">Barrier Repair &amp; Anti-Inflammation</p>
+        </div>
+      </div>
+
+      <div class="role">
+        <b>为什么独立成一道：</b>慢性炎症本身就是制造 ROS、上调 MMP 的<b>巨大推手</b>。炎症不停，自由基就源源不断持续自产
+      </div>
+
+      <div class="chips">
+        <span>神经酰胺</span>
+        <span>胆固醇</span>
+        <span>脂肪酸</span>
+        <span>泛醇 B5</span>
+        <span>积雪草苷</span>
+        <span>红没药醇</span>
+        <span>烟酰胺</span>
+        <span>甘草酸二钾</span>
+      </div>
+
+      <div class="key">⭐ <b>烟酰胺：</b>屏障修护 + 抗炎 + 抑制黑素，还有弱抗氧化，<b>多效合一</b>（抑制 NF-κB 通路，压低炎症衰老 Inflammaging）</div>
+
+      <div class="note">
+        ❌ <b>重点重申：不是抗氧化就等于抗炎修护</b><br>
+        高浓度原型 VC 抗氧化很强，但低 pH，屏障脆弱皮肤用了反而泛红、刺激炎症；<br>
+        B5 修护能力强，抗氧化能力偏弱。<br>
+        👉 <b>理想搭配：抗氧化主力 + 屏障修护抗炎辅助</b>，而不是同一个成分包办全部。
+      </div>
+    </section>
+
+    <div class="sp-lg"></div>
+
+    <!-- ================= 完整顺序 ================= -->
+    <section class="orderbox">
+      <h3>📌 完整先后顺序</h3>
+      <p class="sub">Priority &amp; Daily Routine</p>
+
+      <div class="olist">
+        <div class="orow"><i>1</i><div><strong>硬防晒</strong><small>最高权重 · 全波段通杀 —— 遮阳伞、帽子、遮挡布料，唯一能同时挡 UVA/UVB、蓝光、红外热能、污染颗粒</small></div></div>
+        <div class="orow"><i>2</i><div><strong>纯物理防晒涂抹</strong><small>粉体屏障 —— 氧化锌 + 氧化铁，补足硬防晒漏光部分，巩固 UVA、UVB、蓝光、表层污染隔离</small></div></div>
+        <div class="orow"><i>3</i><div><strong>日间抗氧化</strong><small>填补物理防晒的所有短板：穿透进来的蓝光残留自由基、红外热应激内源 ROS、室内屏幕蓝光、日常环境自产氧化压力</small></div></div>
+        <div class="orow"><i>4</i><div><strong>晚间代谢清理</strong><small>温和刷酸清表层 + A醇清细胞深层，双重降低皮肤「感光垃圾总量」</small></div></div>
+        <div class="orow"><i>5</i><div><strong>定期光电</strong><small>高阶真皮垃圾清除，批量移除深层感光损伤基底，让抗老底盘变年轻</small></div></div>
+        <div class="orow"><i>6</i><div><strong>全程维稳</strong><small>屏障修护 + 抗炎，压低内生氧化循环</small></div></div>
+      </div>
+
+      <div class="daygrid">
+        <div class="day">
+          <h4><span>☀️</span>白天</h4>
+          <div class="stepflow">
+            <div>修护 / 抗炎精华</div>
+            <i>↓</i>
+            <div>抗氧化精华</div>
+            <i>↓</i>
+            <div class="hi">防晒 <small>最后一步，不可省</small></div>
+          </div>
+        </div>
+
+        <div class="day">
+          <h4><span>🌙</span>晚上</h4>
+          <div class="stepflow">
+            <div>修护打底 <small>可选</small></div>
+            <i>↓</i>
+            <div class="hi">A醇 / 酸 <small>轮换使用，不要同一天叠多种猛药</small></div>
+            <i>↓</i>
+            <div>保湿修护</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sp-lg"></div>
+
+    <!-- ================= 金句 ================= -->
+    <section class="quote">
+      <div class="mark">❝</div>
+      <p>
+        防晒是总开关，抗氧化是灭火器，<br>
+        A醇和酸负责清库存，光电负责拆危房，<br>
+        屏障修护抗炎——让这一切不再复燃。
+      </p>
+    </section>
+
+  </div>
+
+  <!-- ===== 工具栏 ===== -->
+  <div class="toolbar">
+    <button id="saveBtn">⬇ 导出为 JPEG</button>
+    <p>若按钮无反应，用浏览器截图：Ctrl/Cmd + Shift + P → 输入 “Capture full size screenshot”</p>
+  </div>
+</div>
+
+<script>
+  document.getElementById('saveBtn').addEventListener('click', async function () {
+    const btn = this;
+    const poster = document.getElementById('poster');
+    const oldText = btn.textContent;
+    btn.textContent = '生成中…';
+    btn.disabled = true;
+
+    try {
+      const canvas = await html2canvas(poster, {
+        scale: 2,
+        backgroundColor: '#FFFBF3',
+        useCORS: true,
+        width: poster.scrollWidth,
+        height: poster.scrollHeight
+      });
+      const url = canvas.toDataURL('image/jpeg', 0.95);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '抗光老化-五道防线.jpg';
+      a.click();
+    } catch (e) {
+      alert('导出失败，请用截图方式保存');
+    }
+
+    btn.textContent = oldText;
+    btn.disabled = false;
+  });
+</script>
+
+</body>
+</html>
