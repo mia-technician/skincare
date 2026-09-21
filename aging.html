@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>光老化 · 内源感光垃圾闭环图</title>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:#dfe6ec;
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+    display:flex;justify-content:center;
+    padding:28px 16px 60px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{width:860px;max-width:100%;}
+
+  /* ---------- 画布 ---------- */
+  .page{
+    width:860px;
+    background:#FFFBF3;
+    background-image:radial-gradient(#F0E2CC 1.6px,transparent 1.6px);
+    background-size:24px 24px;
+    padding:44px 38px 46px;
+    border-radius:8px;
+  }
+
+  /* ---------- 标题 ---------- */
+  .head{text-align:center;margin-bottom:26px;}
+  .badge{
+    display:inline-block;background:#2B2B2B;color:#FFD166;
+    font-size:11px;font-weight:800;letter-spacing:.18em;
+    padding:6px 16px;border-radius:999px;margin-bottom:14px;
+  }
+  .head h1{font-size:33px;line-height:1.32;font-weight:900;color:#22201E;letter-spacing:-.01em;}
+  .sub-en{
+    font-size:12px;font-weight:700;color:#9C948A;letter-spacing:.08em;
+    margin-top:10px;text-transform:uppercase;
+  }
+  .conds{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px;}
+  .conds span{
+    background:#fff;border:2px solid #2B2B2B;border-radius:999px;
+    font-size:12px;font-weight:700;padding:5px 12px;color:#3A3632;
+    box-shadow:2px 2px 0 #2B2B2B;
+  }
+
+  /* ---------- 步骤卡 ---------- */
+  .step{
+    display:flex;gap:16px;
+    background:var(--bg);
+    border:3px solid #2B2B2B;
+    border-radius:24px;
+    padding:20px 22px;
+    box-shadow:5px 5px 0 #2B2B2B;
+  }
+  .num{
+    flex:0 0 48px;height:48px;border-radius:50%;align-self:flex-start;
+    background:var(--c);border:3px solid #2B2B2B;
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;font-weight:900;color:#fff;
+  }
+  .body{flex:1;min-width:0;}
+  .body h2{font-size:20.5px;font-weight:900;color:#22201E;line-height:1.4;}
+  .en{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#9C948A;margin-top:4px;text-transform:uppercase;}
+  .txt{font-size:14px;color:#4A4540;line-height:1.6;margin-top:10px;}
+
+  /* 标签 */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+  .chips span{
+    background:#fff;border:2px solid #2B2B2B;border-radius:999px;
+    font-size:12.5px;font-weight:700;color:#3A3632;padding:5px 12px;
+  }
+  .key{
+    margin-top:14px;background:#fff;border:2.5px dashed #2B2B2B;
+    border-radius:14px;padding:10px 14px;font-size:13.5px;font-weight:800;color:#22201E;
+  }
+
+  /* 横向小流程 */
+  .flow-inline{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;}
+  .flow-inline span{
+    background:#fff;border:2px solid #2B2B2B;border-radius:12px;
+    padding:8px 12px;font-size:13px;font-weight:800;color:#3A3632;
+  }
+  .flow-inline i{font-style:normal;font-weight:900;color:#2B2B2B;font-size:16px;}
+  .flow-inline .hot{background:#FFE1DC;color:#D63A2A;}
+
+  /* 箭头 */
+  .arrow{text-align:center;font-size:26px;font-weight:900;color:#2B2B2B;line-height:1;padding:12px 0;}
+
+  /* 五大结构子卡 */
+  .subgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+  .sub{
+    background:#fff;border:2.5px solid #2B2B2B;border-radius:16px;
+    padding:12px 14px;box-shadow:3px 3px 0 #2B2B2B;
+  }
+  .sub.wide{grid-column:1 / -1;}
+  .sub h4{font-size:15px;font-weight:900;color:#22201E;}
+  .en2{font-size:10px;color:#9C948A;font-weight:700;letter-spacing:.04em;margin-top:2px;text-transform:uppercase;}
+  .sub p{font-size:12.5px;line-height:1.55;color:#4A4540;margin-top:7px;}
+  .sub .res{color:#E0453A;font-weight:800;margin-top:6px;}
+
+  /* 闭环回环 */
+  .loopback{
+    margin-top:14px;text-align:center;
+    background:#E6FAF7;border:3px dashed #2B2B2B;border-radius:999px;
+    padding:12px;font-size:14.5px;font-weight:900;color:#1E9E93;
+  }
+  .loopback span{font-size:19px;margin-right:6px;}
+
+  /* 短板 */
+  .shortfall{
+    background:#2B2B2B;border-radius:24px;padding:24px;
+    box-shadow:5px 5px 0 #FFD166;
+  }
+  .shortfall h3{font-size:17px;font-weight:900;color:#FFD166;margin-bottom:14px;}
+  .shortfall .def{
+    font-size:13.5px;font-weight:800;color:#fff;
+    background:rgba(255,255,255,.1);border-radius:12px;
+    padding:9px 14px;display:inline-block;
+  }
+  .shortfall .two{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
+  .shortfall .two div{font-size:13.5px;font-weight:700;border-radius:12px;padding:9px 14px;}
+  .shortfall .ok{background:rgba(46,196,182,.18);color:#7FF0E2;}
+  .shortfall .no{background:rgba(255,107,90,.18);color:#FFB3A8;}
+  .shortfall .concl{
+    margin-top:16px;font-size:14px;font-weight:800;color:#fff;line-height:1.7;
+    border-top:1.5px dashed rgba(255,255,255,.25);padding-top:14px;
+  }
+
+  /* 破局 */
+  .solutions h3{font-size:18px;font-weight:900;color:#22201E;text-align:center;margin-bottom:14px;}
+  .solgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .sol{
+    background:#fff;border:3px solid #2B2B2B;border-radius:18px;
+    padding:14px 16px;box-shadow:4px 4px 0 #2B2B2B;
+  }
+  .sol h4{font-size:15.5px;font-weight:900;color:#22201E;}
+  .sol p{font-size:12.5px;color:#4A4540;line-height:1.55;margin-top:6px;}
+
+  /* 金句 */
+  .quote{
+    background:#FFF1C9;border:3px solid #2B2B2B;border-radius:24px;
+    padding:26px;box-shadow:5px 5px 0 #2B2B2B;text-align:center;
+  }
+  .quote .mark{font-size:26px;color:#E0A800;font-weight:900;line-height:1;}
+  .quote p{font-size:16px;font-weight:900;color:#22201E;line-height:1.8;margin-top:8px;}
+
+  .sp{height:20px;}
+  .sp-lg{height:30px;}
+
+  /* ---------- 工具栏（不会被导出） ---------- */
+  .toolbar{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:22px;}
+  .toolbar button{
+    background:#2B2B2B;color:#FFD166;border:none;border-radius:999px;
+    padding:13px 32px;font-size:15px;font-weight:900;cursor:pointer;
+    box-shadow:4px 4px 0 #FFD166;font-family:inherit;transition:.1s;
+  }
+  .toolbar button:active{transform:translate(2px,2px);box-shadow:2px 2px 0 #FFD166;}
+  .toolbar p{font-size:12px;color:#6B7280;text-align:center;line-height:1.6;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div id="poster" class="page">
+
+    <!-- ===== 标题 ===== -->
+    <header class="head">
+      <div class="badge">SKIN AGING LOOP</div>
+      <h1>光老化「内源感光垃圾<br>· 自由基放大闭环」</h1>
+      <p class="sub-en">Endogenous Photosensitizer · Radical Amplifying Loop</p>
+      <div class="conds">
+        <span>无防晒</span>
+        <span>无外抗氧化</span>
+        <span>日常 UVA 照射</span>
+        <span>自然衰老加速模型</span>
+      </div>
+    </header>
+
+    <!-- ===== 第一步 ===== -->
+    <section class="step" style="--c:#5AA9E6;--bg:#EAF4FF;">
+      <div class="num">1</div>
+      <div class="body">
+        <h2>皮肤正常代谢 → 产生「衰老感光代谢碎片」</h2>
+        <p class="en">Normal Metabolism → Photosensitive Aging Debris</p>
+        <p class="txt">细胞日常代谢、老旧组织拆解，自然堆积内源垃圾：</p>
+        <div class="chips">
+          <span>脂褐素</span>
+          <span>氧化脂质碎片</span>
+          <span>变性氧化蛋白</span>
+          <span>AGEs 糖化终产物</span>
+          <span>内源黄素 · 卟啉类感光物质</span>
+        </div>
+        <div class="key">⭐ 自带「感光属性」= 天然 UVA 接收器 · 自由基放大器</div>
+      </div>
+    </section>
+
+    <div class="arrow">↓</div>
+
+    <!-- ===== 第二步 ===== -->
+    <section class="step" style="--c:#F5B301;--bg:#FFF6E0;">
+      <div class="num">2</div>
+      <div class="body">
+        <h2>日常 UVA 照射 → 被内源感光垃圾捕捉能量</h2>
+        <p class="en">Daily UVA → Energy Captured by Endogenous Debris</p>
+        <div class="flow-inline">
+          <span>老旧垃圾接住 UVA 光子</span>
+          <i>→</i>
+          <span>稳态变激发态</span>
+          <i>→</i>
+          <span class="hot">批量爆发 ROS 自由基</span>
+        </div>
+        <div class="key">❗ 不是 UVA 直接伤人，是「垃圾」在放大伤害</div>
+      </div>
+    </section>
+
+    <div class="arrow">↓</div>
+
+    <!-- ===== 第三步 ===== -->
+    <section class="step" style="--c:#FF6B5A;--bg:#FFEEEC;">
+      <div class="num">3</div>
+      <div class="body">
+        <h2>过量自由基 全面攻击皮肤五大核心结构</h2>
+        <p class="en">Free Radicals Attack 5 Core Structures</p>
+
+        <div class="subgrid">
+          <div class="sub">
+            <h4>🧱 细胞外基质</h4>
+            <p class="en2">Extracellular Matrix</p>
+            <p>I/III型胶原 · 弹性蛋白 · 玻尿酸 · 糖胺聚糖 · 纤连蛋白 · DEJ 基底膜</p>
+            <p class="res">→ 断裂降解 · 松弛 · 干纹 · 毛孔塌陷</p>
+          </div>
+
+          <div class="sub">
+            <h4>🔬 皮肤细胞本体</h4>
+            <p class="en2">Skin Cells</p>
+            <p>角质细胞 · 成纤维细胞 · 黑素细胞 · 微血管内皮细胞 · 肥大细胞</p>
+            <p class="res">→ 功能受损 · 提前衰老 · 炎症 · 色沉</p>
+          </div>
+
+          <div class="sub">
+            <h4>🫧 细胞膜</h4>
+            <p class="en2">Cell Membrane</p>
+            <p>脂质过氧化链式反应</p>
+            <p class="res">→ 屏障持续变弱</p>
+          </div>
+
+          <div class="sub">
+            <h4>🧬 细胞核 & 线粒体 DNA</h4>
+            <p class="en2">Nuclear & Mitochondrial DNA</p>
+            <p>DNA 氧化损伤 · 端粒加速磨损 · 线粒体破损漏电</p>
+            <p class="res">→ 产生更多内源自由基</p>
+          </div>
+
+          <div class="sub wide">
+            <h4>🔥 皮肤微环境</h4>
+            <p class="en2">Skin Micro-environment</p>
+            <p>激活 MMP 降解酶 · NF-κB 炎症通路</p>
+            <p class="res">→ 慢性低度炎症常驻（炎症衰老）</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="arrow">↓</div>
+
+    <!-- ===== 第四步 ===== -->
+    <section class="step" style="--c:#9B7BFF;--bg:#F3EDFF;">
+      <div class="num">4</div>
+      <div class="body">
+        <h2>损伤代谢 → 产出更多新的「氧化衰老碎片」</h2>
+        <p class="en">Damage Metabolism → More Oxidized Debris</p>
+        <div class="flow-inline">
+          <span>上一轮自由基的破坏产物</span>
+          <i>→</i>
+          <span class="hot">新一轮 · 更多 · 更强的感光垃圾</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="arrow">↓</div>
+
+    <!-- ===== 第五步 ===== -->
+    <section class="step" style="--c:#2EC4B6;--bg:#E6FAF7;">
+      <div class="num">5</div>
+      <div class="body">
+        <h2>闭环放大循环</h2>
+        <p class="en">Closed-Loop Amplification</p>
+        <div class="flow-inline">
+          <span>更多感光垃圾</span>
+          <i>→</i>
+          <span>同样 UVA</span>
+          <i>→</i>
+          <span class="hot">倍数更多自由基</span>
+          <i>→</i>
+          <span>损伤更重</span>
+          <i>→</i>
+          <span class="hot">垃圾更多</span>
+        </div>
+        <div class="key">♾️ 无限复利式老化：越老 → 越容易老</div>
+      </div>
+    </section>
+
+    <div class="loopback"><span>↺</span>回到第一步 · 无限循环</div>
+
+    <div class="sp-lg"></div>
+
+    <!-- ===== 防御短板 ===== -->
+    <section class="shortfall">
+      <h3>⚠️ 人体自带防御的真实短板</h3>
+      <div class="def">人体自有：SOD · 谷胱甘肽 · 辅酶 Q10 · VE</div>
+      <div class="two">
+        <div class="ok">✅ 能清少量基础自由基</div>
+        <div class="no">❌ 完全扛不住「感光垃圾 + 日常 UVA」的持续放大式氧化压力</div>
+      </div>
+      <p class="concl">
+        损伤永远「产出 ＞ 清除」<br>
+        哪怕不过度暴晒，也会逐年累积、匀速变老；<br>
+        日晒越多，老化指数级加速。
+      </p>
+    </section>
+
+    <div class="sp"></div>
+
+    <!-- ===== 破局逻辑 ===== -->
+    <section class="solutions">
+      <h3>🔧 破局逻辑 · 打断每一环</h3>
+      <div class="solgrid">
+        <div class="sol">
+          <h4>🛡 抗氧化</h4>
+          <p>直接淬灭自由基，终止氧化攻击</p>
+        </div>
+        <div class="sol">
+          <h4>🍋 规律刷酸 / 温和代谢</h4>
+          <p>减少内源感光垃圾存量，切断放大器</p>
+        </div>
+        <div class="sol">
+          <h4>☀️ 防晒</h4>
+          <p>截断 UVA 能量来源，从源头停掉循环</p>
+        </div>
+        <div class="sol">
+          <h4>💧 修护屏障 + 抗炎</h4>
+          <p>终止慢性炎症衰老，减少 MMP 胶原降解</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="sp"></div>
+
+    <!-- ===== 金句 ===== -->
+    <section class="quote">
+      <div class="mark">❝</div>
+      <p>
+        皮肤的衰老，不是紫外线单次照射造成的，<br>
+        是老旧代谢垃圾不断累积、不断放大紫外线氧化伤害，<br>
+        形成「越老、越容易老」的无限恶性循环。
+      </p>
+    </section>
+
+  </div>
+
+  <!-- ===== 工具栏 ===== -->
+  <div class="toolbar">
+    <button id="saveBtn">⬇ 导出为 JPEG</button>
+    <p>若按钮无反应，用浏览器截图：Ctrl/Cmd + Shift + P → 输入 “Capture full size screenshot”</p>
+  </div>
+</div>
+
+<script>
+  document.getElementById('saveBtn').addEventListener('click', async function () {
+    const btn = this;
+    const poster = document.getElementById('poster');
+    const oldText = btn.textContent;
+    btn.textContent = '生成中…';
+    btn.disabled = true;
+
+    try {
+      const canvas = await html2canvas(poster, {
+        scale: 2,
+        backgroundColor: '#FFFBF3',
+        useCORS: true,
+        width: poster.scrollWidth,
+        height: poster.scrollHeight
+      });
+      const url = canvas.toDataURL('image/jpeg', 0.95);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '光老化-内源感光垃圾闭环图.jpg';
+      a.click();
+    } catch (e) {
+      alert('导出失败，请用截图方式保存');
+    }
+
+    btn.textContent = oldText;
+    btn.disabled = false;
+  });
+</script>
+
+</body>
+</html>
