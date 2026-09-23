@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>光老化 · UVA与感光发色团的经年战役</title>
+<title>氧化：代谢氧化（自然老化） · 光氧化（光老化） · 污染氧化，皮肤老化的经年战役</title>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
@@ -184,140 +184,426 @@
       <div class="body">
         <h2>皮肤日常代谢 → 天然ROS</h2>
         <p class="en">Normal Metabolism → Photosensitive Aging Debris</p>
-        <!-- ================= 自然老化 · 基础代谢ROS分支图（完整版） ================= -->
-<section class="def" style="--c:#7B9E3A;--bg:#F3F8E8;">
-  <!-- ============================================================ -->
-  <!-- ===== 第一部分：触发链条（纵向节点） ===== -->
-  <!-- ============================================================ -->
+       <!-- ================= 老化多源 → ROS 汇聚 → 氧化无限循环（含双通路 + 无法100%停止） ================= -->
+<section class="def" style="--c:#7B5EE6;--bg:#F5F1FF;">
+  <div class="def-head">
+    <div class="num">♾️</div>
+    <div class="def-title">
+      <h2>老化多源 · 殊途同归 → ROS 氧化无限循环</h2>
+      <p class="en">Multiple Aging Sources · Converge on ROS Amplification</p>
+    </div>
+  </div>
 
-  <div class="chain">
+  <div class="role">
+    <b>核心逻辑：</b>老化有多种原因，但几乎所有老化路径都最终被 <b>ROS 导致的氧化无限循环并放大</b>。抗老分为「补充」和「补救」——不做抗氧化，就像往破桶里加水，事倍功半。
+  </div>
 
-    <!-- 节点 1 -->
-    <div class="chain-node" style="border-color:#7B9E3A;background:#fff;">
-      <div class="chain-icon" style="background:#7B9E3A;">1</div>
-      <div class="chain-text">
-        <strong>线粒体有氧呼吸</strong>
-        <span>Mitochondrial Aerobic Respiration</span>
+  <!-- ===== 四大来源 ===== -->
+  <div class="src-grid">
+
+    <!-- 来源 1 -->
+    <div class="src-card" style="border-color:#5AA9E6;background:#EAF4FF;">
+      <div class="src-head" style="background:#5AA9E6;">
+        <span>1</span>部分天然皮肤组织
+      </div>
+      <div class="src-body">
+        <p class="src-label">作为发色团吸收 UVA 和蓝光 → 产生 ROS</p>
+        <div class="src-chips">
+          <span>表皮细胞 DNA（吸 UVB）</span>
+          <span>线粒体</span>
+          <span>褐黑素</span>
+          <span>血红蛋白</span>
+        </div>
       </div>
     </div>
 
-    <div class="chain-arrow">↓</div>
-
-    <!-- 节点 2 -->
-    <div class="chain-node" style="border-color:#7B9E3A;background:#fff;">
-      <div class="chain-icon" style="background:#7B9E3A;">2</div>
-      <div class="chain-text">
-        <strong>持续释放低水平 ROS</strong>
-        <span>Continuous Low-Level ROS Release</span>
+    <!-- 来源 2 -->
+    <div class="src-card" style="border-color:#9B7BFF;background:#F3EDFF;">
+      <div class="src-head" style="background:#9B7BFF;">
+        <span>2</span>缓慢累积的自然老化产物
+      </div>
+      <div class="src-body">
+        <p class="src-label">作为发色团吸收 UVA 和蓝光 → 产生 ROS</p>
+        <div class="src-chips">
+          <span>脂褐素（分解不掉线粒体残骸的溶酶体）</span>
+          <span>弹性纤维上的 AGEs 糖化基团</span>
+          <span>胶原纤维上的氧化交联基团</span>
+        </div>
       </div>
     </div>
 
-    <div class="chain-arrow">↓</div>
-
-    <!-- 节点 3 -->
-    <div class="chain-node" style="border-color:#5AA9E6;background:#EAF4FF;">
-      <div class="chain-icon" style="background:#5AA9E6;">3</div>
-      <div class="chain-text">
-        <strong>细胞自带抗氧化系统中和大部分 ROS</strong>
-        <span>SOD · 谷胱甘肽 Glutathione</span>
+    <!-- 来源 3 -->
+    <div class="src-card" style="border-color:#F5A623;background:#FFF6E0;">
+      <div class="src-head" style="background:#F5A623;">
+        <span>3</span>天然老化事件
+      </div>
+      <div class="src-body">
+        <p class="src-label">能独立启动老化信号，也同时产生 ROS</p>
+        <div class="src-chips">
+          <span>端粒磨损</span>
+          <span>表观遗传改变</span>
+          <span>蛋白错折叠</span>
+          <span>干细胞耗竭</span>
+          <span>糖化</span>
+          <span>微生物刺激导致的炎症</span>
+          <span>机械损伤</span>
+          <span>来不及清理的代谢废物（线粒体有氧呼吸）</span>
+        </div>
       </div>
     </div>
 
-    <div class="chain-arrow">↓</div>
-
-    <!-- 节点 4 -->
-    <div class="chain-node" style="border-color:#E0453A;background:#FFEEEC;">
-      <div class="chain-icon" style="background:#E0453A;">4</div>
-      <div class="chain-text">
-        <strong>剩余 ROS 攻击其他组织分子 → 产生过氧化碎片 🧩</strong>
-        <span>Lipid · Protein · DNA Peroxidation Debris</span>
+    <!-- 来源 4 -->
+    <div class="src-card" style="border-color:#E0453A;background:#FFEEEC;">
+      <div class="src-head" style="background:#E0453A;">
+        <span>4</span>环境污染
       </div>
-    </div>
-
-    <div class="chain-arrow">↓</div>
-
-    <!-- 节点 5 -->
-    <div class="chain-node" style="border-color:#D9A400;background:#FFF6E0;">
-      <div class="chain-icon" style="background:#D9A400;">5</div>
-      <div class="chain-text">
-        <strong>🧩 溶酶体分解掉大部分过氧化碎片 🧩</strong>
-        <span>Lysosome Digests Most Peroxidation Debris</span>
+      <div class="src-body">
+        <p class="src-label">直接与组织发生化学反应产生 ROS，或诱导细胞产生 ROS</p>
+        <div class="src-chips">
+          <span>臭氧 · 耗尽表层抗氧化剂</span>
+          <span>PM2.5</span>
+          <span>柴油</span>
+          <span>烟草</span>
+        </div>
       </div>
     </div>
 
   </div>
 
-  <!-- ===== 分叉连接线 ===== -->
-  <div class="fork">
-    <div class="fork-line"></div>
-    <div class="fork-bar"></div>
-    <div class="fork-arms">
-      <div class="fork-arm"><span class="arrowhead">↓</span></div>
-      <div class="fork-arm"><span class="arrowhead">↓</span></div>
-      <div class="fork-arm"><span class="arrowhead">↓</span></div>
+  <!-- ===== 汇聚线 ===== -->
+  <div class="merge">
+    <div class="merge-arms">
+      <div class="merge-arm"></div>
+      <div class="merge-arm"></div>
+      <div class="merge-arm"></div>
+      <div class="merge-arm"></div>
+    </div>
+    <div class="merge-bar"></div>
+    <div class="merge-line"></div>
+  </div>
+
+  <!-- ===== 汇聚点 ===== -->
+  <div class="hub">
+    <div class="hub-icon">⚡</div>
+    <div class="hub-text">
+      <strong>ROS 爆发</strong>
+      <span>所有路径的共同终点</span>
     </div>
   </div>
 
-  <!-- ============================================================ -->
-  <!-- ===== 第二部分：三条结果路径 ===== -->
-  <!-- ============================================================ -->
+  <div class="chain-arrow">↓</div>
 
-  <div class="branch-grid" style="grid-template-columns:1fr 1fr 1fr;">
+  <!-- ===== 氧化无限循环（双通路 + 无法100%停止） ===== -->
+  <div class="loop-box">
+    <div class="loop-title">氧化无限循环 · 双通路放大</div>
 
-    <!-- 结果 A -->
-    <div class="branch-card" style="border-color:#E0453A;background:#FFEEEC;">
-      <div class="branch-head" style="background:#E0453A;">
-        <span>A</span>ROS攻击无限♾️循环♻️
-      </div>
-      <div class="branch-body">
-        <div class="node">缓慢持续扩大的过氧化损伤</div>
-        <div class="node-arrow">↓</div>
-        <div class="node hot-node">产生新的ROS重复第4️⃣步循环♻️，持续扩大过氧化损伤</div>
-        <div class="node-arrow">↓</div>
-        <div class="node result-node">生理性老化的其中一环</div>
+    <!-- 起点 -->
+    <div class="loop-start">
+      <span>ROS 攻击组织分子</span>
+      <i>→</i>
+      <span class="hot">产生过氧化碎片 🧩</span>
+    </div>
+
+    <!-- 分叉线 -->
+    <div class="mini-fork">
+      <div class="mini-fork-line"></div>
+      <div class="mini-fork-bar"></div>
+      <div class="mini-fork-arms">
+        <div class="mini-fork-arm"><span class="arrowhead">↓</span></div>
+        <div class="mini-fork-arm"><span class="arrowhead">↓</span></div>
       </div>
     </div>
 
-    <!-- 结果 B -->
-    <div class="branch-card" style="border-color:#9B7BFF;background:#F3EDFF;">
-      <div class="branch-head" style="background:#9B7BFF;">
-        <span>B</span>形成新的感光团
+    <!-- 两条通路 -->
+    <div class="path-grid">
+
+      <!-- 通路 1 -->
+      <div class="path-card" style="border-color:#E0453A;background:#FFEEEC;">
+        <div class="path-label" style="background:#E0453A;">通路 1</div>
+        <div class="node hot-node">碎片继续自产 ROS</div>
+        <div class="node-arrow">↓</div>
+        <div class="node result-node">ROS 越积越多</div>
       </div>
-      <div class="branch-body">
-        <div class="node">分解不掉线粒体残骸的溶酶体</div>
+
+      <!-- 通路 2 -->
+      <div class="path-card" style="border-color:#7B5EE6;background:#F3EDFF;">
+        <div class="path-label" style="background:#7B5EE6;">通路 2</div>
+        <div class="node hot-node">碎片本身是发色团</div>
         <div class="node-arrow">↓</div>
-        <div class="node hot-node">形成脂褐素（年龄色素）</div>
+        <div class="node">继续吸收 UVA / 蓝光</div>
         <div class="node-arrow">↓</div>
-        <div class="node result-node">生理性老化的其中一环</div>
-        <div class="node-arrow">↓</div>
-        <div class="node hot-node">脂褐素作为感光团，吸收UVA及蓝光 → 启动🌞光老化</div>
+        <div class="node result-node">再次爆发 ROS</div>
       </div>
+
     </div>
 
-    <!-- 结果 C -->
-    <div class="branch-card" style="border-color:#2EC4B6;background:#E6FAF7;">
-      <div class="branch-head" style="background:#2EC4B6;">
-        <span>C</span>胶原、弹性蛋白老化降解
+    <!-- 双通路汇合 -->
+    <div class="mini-merge">
+      <div class="mini-merge-arms">
+        <div class="mini-merge-arm"></div>
+        <div class="mini-merge-arm"></div>
       </div>
-      <div class="branch-body">
-        <div class="node">🧩 剩余过氧化碎片缓慢堆积</div>
-        <div class="node-arrow">↓</div>
-        <div class="node hot-node">分泌SASP炎症因子</div>
-        <div class="node-arrow">↓</div>
-        <div class="node">刺激成纤维细胞、免疫细胞分泌MMP（胶原剪）</div>
-        <div class="node-arrow">↓</div>
-        <div class="node">降解胶原（成年后再生、修复缓慢）、弹性蛋白（成年后几乎无法再生）</div>
-        <div class="node-arrow">↓</div>
-        <div class="node result-node">生理性老化的其中一环</div>
-      </div>
+      <div class="mini-merge-bar"></div>
+      <div class="mini-merge-line"></div>
     </div>
 
+    <div class="loop-return">
+      <span>↺</span>两条通路同时放大 → 下一轮损伤更重 → 无限循环
+    </div>
+
+    <!-- 新增解释 -->
+    <div class="loop-explain">
+      <div class="loop-explain-icon">🧯</div>
+      <div class="loop-explain-text">
+        <strong>防晒和抗氧化能浇熄部分战火，但无法 100% 停止</strong>
+        <p>防晒挡住的是「外部输入」，抗氧化中和的是「已生成的 ROS」——两者都在<b>降低火势</b>，但内源代谢 ROS、碎片自产 ROS、碎片感光再产 ROS 这三条内线始终在运转。氧化循环可以被压到很低，但不可能被完全归零。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="chain-arrow">↓</div>
+
+  <!-- ===== 破桶比喻 ===== -->
+  <div class="bucket-box">
+    <div class="bucket-visual">🪣</div>
+    <div class="bucket-text">
+      <strong>不做抗氧化的抗老 = 往破桶里加水</strong>
+      <p>补充（补水、补脂、补胶原）只是往里倒水；不修补漏洞（不抗氧化），水永远存不住。<b>事倍功半。</b></p>
+    </div>
+  </div>
+
+  <div class="two-way">
+    <div class="way-card" style="border-color:#5AA9E6;background:#EAF4FF;">
+      <div class="way-head" style="background:#5AA9E6;">补充</div>
+      <p>给皮肤补充它缺的东西：水分、脂质、胶原、营养</p>
+    </div>
+    <div class="way-card" style="border-color:#E0453A;background:#FFEEEC;">
+      <div class="way-head" style="background:#E0453A;">补救</div>
+      <p>阻止正在发生的破坏：抗氧化、抗炎、修护屏障、清代谢废物</p>
+    </div>
   </div>
 
   <div class="key" style="margin-top:16px;">
-    🔑 <b>关键认知：以上均为生理性老化，只要细胞在呼吸就会发生，与光老化无关。</b>
+    🔑 <b>关键认知：</b>老化的原因可以有很多种，但它们的伤害最终几乎都会汇聚到 ROS。过氧化碎片一旦形成，会走两条路继续放大——<b>自己产 ROS</b>，或<b>作为发色团继续吸光再产 ROS</b>。防晒和抗氧化能压低火势，但无法让循环归零，所以抗老需要<b>长期、多层次地持续压制</b>。
   </div>
 </section>
+
+<!-- ================= 配套样式 ================= -->
+<style>
+  /* 四源网格 */
+  .src-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-top:18px;
+  }
+  .src-card{
+    border:2.5px solid #2B2B2B;
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:3px 3px 0 #2B2B2B;
+  }
+  .src-head{
+    display:flex;align-items:center;gap:8px;
+    color:#fff;font-size:13.5px;font-weight:900;
+    padding:9px 14px;
+  }
+  .src-head span{
+    background:rgba(255,255,255,.28);border-radius:50%;
+    width:23px;height:23px;flex:0 0 23px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12.5px;
+  }
+  .src-body{padding:11px 14px 13px;}
+  .src-label{
+    font-size:12px;font-weight:800;color:#3A3632;
+    line-height:1.5;margin-bottom:9px;
+  }
+  .src-chips{display:flex;flex-wrap:wrap;gap:6px;}
+  .src-chips span{
+    background:#fff;border:1.5px solid #2B2B2B;border-radius:999px;
+    font-size:11.5px;font-weight:700;color:#3A3632;padding:4px 10px;
+  }
+
+  /* 汇聚线 */
+  .merge{position:relative;height:44px;margin:6px auto 0;max-width:820px;}
+  .merge-arms{
+    position:absolute;left:12%;right:12%;top:0;
+    display:flex;justify-content:space-between;
+  }
+  .merge-arm{width:2.5px;height:22px;background:#2B2B2B;}
+  .merge-bar{
+    position:absolute;left:12%;right:12%;top:22px;height:2.5px;
+    background:#2B2B2B;border-radius:2px;
+  }
+  .merge-line{
+    position:absolute;left:50%;top:22px;width:2.5px;height:22px;
+    background:#2B2B2B;transform:translateX(-50%);
+  }
+
+  /* 汇聚点 */
+  .hub{
+    display:flex;align-items:center;gap:14px;
+    background:#2B2B2B;border-radius:20px;
+    padding:16px 22px;box-shadow:4px 4px 0 #7B5EE6;
+    max-width:420px;margin:0 auto;
+  }
+  .hub-icon{
+    flex:0 0 46px;height:46px;border-radius:50%;
+    background:#7B5EE6;color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;
+  }
+  .hub-text strong{
+    display:block;font-size:17px;font-weight:900;color:#FFD166;line-height:1.3;
+  }
+  .hub-text span{
+    display:block;font-size:11.5px;font-weight:700;color:#B8B2AA;margin-top:3px;
+  }
+
+  .chain-arrow{
+    text-align:center;font-size:20px;font-weight:900;
+    color:#2B2B2B;line-height:1;padding:8px 0;
+  }
+
+  /* 循环盒子 */
+  .loop-box{
+    background:#fff;border:2.5px dashed #E0453A;border-radius:18px;
+    padding:18px;text-align:center;
+  }
+  .loop-title{
+    display:inline-block;background:#E0453A;color:#fff;
+    font-size:12.5px;font-weight:900;letter-spacing:.06em;
+    padding:5px 16px;border-radius:999px;margin-bottom:14px;
+  }
+  .loop-start{
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:7px;
+  }
+  .loop-start span{
+    background:#F6F3EE;border-radius:10px;
+    padding:7px 11px;font-size:12px;font-weight:800;color:#3A3632;
+  }
+  .loop-start span.hot{background:#FFE1DC;color:#C93B2B;}
+  .loop-start i{font-style:normal;font-weight:900;color:#B8B2AA;font-size:14px;}
+
+  /* 双通路分叉线 */
+  .mini-fork{
+    position:relative;height:38px;margin:6px auto 0;max-width:420px;
+  }
+  .mini-fork-line{
+    position:absolute;left:50%;top:0;width:2.5px;height:16px;
+    background:#2B2B2B;transform:translateX(-50%);
+  }
+  .mini-fork-bar{
+    position:absolute;left:25%;right:25%;top:16px;height:2.5px;
+    background:#2B2B2B;border-radius:2px;
+  }
+  .mini-fork-arms{
+    position:absolute;left:25%;right:25%;top:16px;
+    display:flex;justify-content:space-between;
+  }
+  .mini-fork-arm{
+    width:2.5px;height:22px;background:#2B2B2B;position:relative;
+  }
+  .mini-fork-arm .arrowhead{
+    position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
+    font-size:13px;font-weight:900;color:#2B2B2B;line-height:1;
+  }
+
+  /* 两条通路 */
+  .path-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;
+  }
+  .path-card{
+    border:2.5px solid #2B2B2B;border-radius:14px;
+    padding:13px 13px 14px;box-shadow:3px 3px 0 #2B2B2B;
+  }
+  .path-label{
+    display:inline-block;color:#fff;font-size:11px;font-weight:900;
+    letter-spacing:.06em;padding:3px 12px;border-radius:999px;margin-bottom:10px;
+  }
+
+  /* 双通路汇合 */
+  .mini-merge{position:relative;height:38px;margin:8px auto 0;max-width:420px;}
+  .mini-merge-arms{
+    position:absolute;left:25%;right:25%;top:0;
+    display:flex;justify-content:space-between;
+  }
+  .mini-merge-arm{width:2.5px;height:20px;background:#2B2B2B;}
+  .mini-merge-bar{
+    position:absolute;left:25%;right:25%;top:20px;height:2.5px;
+    background:#2B2B2B;border-radius:2px;
+  }
+  .mini-merge-line{
+    position:absolute;left:50%;top:20px;width:2.5px;height:18px;
+    background:#2B2B2B;transform:translateX(-50%);
+  }
+
+  .loop-return{
+    display:inline-block;margin-top:10px;
+    background:#FFF1C9;border:2px dashed #D9A400;border-radius:999px;
+    padding:8px 18px;font-size:12.5px;font-weight:900;color:#8A6A00;
+  }
+  .loop-return span{font-size:15px;margin-right:4px;}
+
+  /* 新增：循环无法100%停止解释 */
+  .loop-explain{
+    display:flex;align-items:flex-start;gap:12px;
+    background:#FFF8E6;border:2px dashed #D9A400;border-radius:16px;
+    padding:14px 16px;margin-top:14px;text-align:left;
+  }
+  .loop-explain-icon{
+    font-size:24px;line-height:1;flex:0 0 auto;
+  }
+  .loop-explain-text strong{
+    display:block;font-size:13.5px;font-weight:900;color:#8A6A00;line-height:1.4;
+  }
+  .loop-explain-text p{
+    font-size:12px;color:#6B5300;line-height:1.65;margin-top:6px;
+  }
+  .loop-explain-text p b{color:#C93B2B;}
+
+  /* 通用节点 */
+  .node{
+    background:#F6F3EE;border-radius:11px;padding:9px 12px;
+    font-size:12px;font-weight:800;color:#3A3632;line-height:1.5;
+  }
+  .node.hot-node{background:#FFE1DC;color:#C93B2B;}
+  .node.result-node{background:#FFF1C9;color:#8A6A00;}
+  .node-arrow{
+    text-align:center;font-size:13px;font-weight:900;
+    color:#B8B2AA;line-height:1;padding:5px 0;
+  }
+
+  /* 破桶 */
+  .bucket-box{
+    display:flex;align-items:center;gap:16px;
+    background:#FFF1C9;border:3px solid #2B2B2B;border-radius:20px;
+    padding:18px 20px;box-shadow:4px 4px 0 #2B2B2B;
+  }
+  .bucket-visual{font-size:40px;line-height:1;flex:0 0 auto;}
+  .bucket-text strong{
+    display:block;font-size:15.5px;font-weight:900;color:#22201E;line-height:1.4;
+  }
+  .bucket-text p{
+    font-size:12.5px;color:#4A4540;line-height:1.6;margin-top:6px;
+  }
+  .bucket-text p b{color:#C93B2B;}
+
+  /* 补充 vs 补救 */
+  .two-way{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;
+  }
+  .way-card{
+    border:2.5px solid #2B2B2B;border-radius:16px;
+    padding:13px 15px;box-shadow:3px 3px 0 #2B2B2B;
+  }
+  .way-head{
+    display:inline-block;color:#fff;font-size:12.5px;font-weight:900;
+    padding:4px 14px;border-radius:999px;margin-bottom:8px;
+  }
+  .way-card p{font-size:12.5px;color:#4A4540;line-height:1.6;}
+</style></section>
 
 <!-- ================= 配套样式 ================= -->
 <style>
