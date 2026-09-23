@@ -945,42 +945,5 @@
 
   </div>
 
-  <!-- ===== 工具栏 ===== -->
-  <div class="toolbar">
-    <button id="saveBtn">⬇ 导出为 JPEG</button>
-    <p>若按钮无反应，用浏览器截图：Ctrl/Cmd + Shift + P → 输入 “Capture full size screenshot”</p>
-  </div>
-</div>
-
-<script>
-  document.getElementById('saveBtn').addEventListener('click', async function () {
-    const btn = this;
-    const poster = document.getElementById('poster');
-    const oldText = btn.textContent;
-    btn.textContent = '生成中…';
-    btn.disabled = true;
-
-    try {
-      const canvas = await html2canvas(poster, {
-        scale: 2,
-        backgroundColor: '#FFFBF3',
-        useCORS: true,
-        width: poster.scrollWidth,
-        height: poster.scrollHeight
-      });
-      const url = canvas.toDataURL('image/jpeg', 0.95);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = '光老化-内源感光垃圾闭环图.jpg';
-      a.click();
-    } catch (e) {
-      alert('导出失败，请用截图方式保存');
-    }
-
-    btn.textContent = oldText;
-    btn.disabled = false;
-  });
-</script>
-
 </body>
 </html>
