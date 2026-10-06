@@ -61,7 +61,50 @@
     min-width:230px;font-size:.78rem;line-height:1.4;
   }
 
-  td.stars{white-space:nowrap;font-size:.88rem;letter-spacing:.5px;color:#b99f87;}
+  /* ============ 星级（Font Awesome） ============ */
+  td.stars{white-space:nowrap;font-size:.88rem;letter-spacing:0;color:#b99f87;}
+  td.stars .fa-star,
+  td.stars .far.fa-star{
+    font-size:.8rem;
+    margin:0 .5px;
+    vertical-align:middle;
+  }
+  td.stars .fas.fa-star{color:#d4a04a;}
+  td.stars .far.fa-star{color:#d9c5b0;}
+
+  /* ============ 勾叉（Font Awesome） ============ */
+  td.stars .fa-check-circle,
+  td.stars .fa-times-circle{
+    font-size:.82rem;
+    margin:0 1px;
+    vertical-align:middle;
+  }
+  td.stars .fa-check-circle{color:#2d6a4f;}
+  td.stars .fa-times-circle{color:#c93b2b;}
+
+  /* 星级备注文字（Mixed / Vascular / Pigment / Optical） */
+  td.stars .type-note{
+    display:inline-block;
+    font-size:.68rem;
+    font-weight:700;
+    margin-left:4px;
+    vertical-align:middle;
+  }
+  td.stars .type-note.mixed{color:#7a6e62;}
+  td.stars .type-note.vascular{color:#4a6fa5;}
+  td.stars .type-note.pigment{color:#8a5a2a;}
+  td.stars .type-note.optical{color:#7a6e62;}
+
+  /* 干皮/油皮提示小字 */
+  td.stars .fit-note{
+    display:block;
+    font-size:.62rem;
+    font-weight:500;
+    color:#b7a99a;
+    line-height:1.35;
+    margin-top:4px;
+    white-space:normal;
+  }
 
   td.pos{
     text-align:left;font-size:.7rem;color:#5a4f43;font-weight:600;
@@ -97,6 +140,8 @@
     .legend{font-size:.7rem;}
     th,td{padding:9px 7px;font-size:.7rem;}
     td.stars{font-size:.82rem;}
+    td.stars .fa-star,td.stars .far.fa-star{font-size:.74rem;}
+    td.stars .fa-check-circle,td.stars .fa-times-circle{font-size:.76rem;}
     td.name{font-size:.72rem;min-width:190px;}
     td.brand{min-width:110px;}
     .table-wrap{max-height:none;}
@@ -147,72 +192,72 @@
             <span class="brand-count">7 products</span>
           </td>
           <td class="name">A.G.E. Interrupter Advanced</td>
-          <td class="stars hl-anti">⭐⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars hl-dry">✅✅✅</td>
-          <td class="stars">❌</td>
+          <td class="stars hl-anti"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars hl-dry"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
+          <td class="stars"><i class="fas fa-times-circle"></i></td>
           <td class="pos">Anti-Aging + Dry Skin</td>
         </tr>
         <tr>
           <td class="name">Triple Lipid Restore 2:4:2</td>
-          <td class="stars">⭐⭐⭐⭐⭐</td>
-          <td class="stars hl-hydra">⭐⭐⭐⭐⭐</td>
-          <td class="stars hl-barrier">⭐⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars">✅✅✅</td>
-          <td class="stars">❌</td>
-         <td class="pos">Anti-Aging + Barrier</td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars hl-hydra"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars hl-barrier"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
+          <td class="stars"><i class="fas fa-times-circle"></i></td>
+          <td class="pos">Anti-Aging + Barrier</td>
         </tr>
         <tr>
           <td class="name">Phyto A+ Brightening Treatment</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars hl-bright">⭐⭐⭐⭐⭐</td>
-          <td class="stars">❌</td>
-          <td class="stars hl-oily">✅✅✅</td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars hl-bright"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars"><i class="fas fa-times-circle"></i></td>
+          <td class="stars hl-oily"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
           <td class="pos">Brightening + Oil Control</td>
         </tr>
         <tr>
           <td class="name">P-TIOX Cream</td>
-          <td class="stars hl-anti">⭐⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars">✅</td>
-          <td class="stars">✅</td>
+          <td class="stars hl-anti"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-check-circle"></i></td>
+          <td class="stars"><i class="fas fa-check-circle"></i></td>
           <td class="pos">Peptide Anti-Wrinkle</td>
         </tr>
         <tr>
           <td class="name">Advanced RGN-6</td>
-          <td class="stars hl-anti">⭐⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars hl-barrier">⭐⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars">✅</td>
-          <td class="stars">✅</td>
+          <td class="stars hl-anti"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars hl-barrier"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-check-circle"></i></td>
+          <td class="stars"><i class="fas fa-check-circle"></i></td>
           <td class="pos">Regeneration</td>
         </tr>
         <tr>
           <td class="name">Metacell Renewal B3</td>
-          <td class="stars hl-anti">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars">✅</td>
-          <td class="stars hl-oily">✅✅</td>
+          <td class="stars hl-anti"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-check-circle"></i></td>
+          <td class="stars hl-oily"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
           <td class="pos">Lightweight Anti-Aging</td>
         </tr>
         <tr>
           <td class="name">Daily Moisture</td>
-          <td class="stars">⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars">❌</td>
-          <td class="stars hl-oily">✅✅✅</td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-times-circle"></i></td>
+          <td class="stars hl-oily"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
           <td class="pos">Oily Skin Moisturizer</td>
         </tr>
 
@@ -223,32 +268,32 @@
             <span class="brand-count">3 products</span>
           </td>
           <td class="name">Dermal Repair Cream</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars hl-hydra">⭐⭐⭐⭐⭐</td>
-          <td class="stars hl-barrier">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars hl-dry">✅✅✅</td>
-          <td class="stars">❌</td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars hl-hydra"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars hl-barrier"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars hl-dry"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
+          <td class="stars"><i class="fas fa-times-circle"></i></td>
           <td class="pos">Rich + Repair</td>
         </tr>
         <tr>
           <td class="name">Rejuvenative Moisturizer</td>
-          <td class="stars hl-anti">⭐⭐⭐</td>
-          <td class="stars hl-hydra">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars hl-dry">✅✅</td>
-          <td class="stars">✅</td>
+          <td class="stars hl-anti"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars hl-hydra"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars hl-dry"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
+          <td class="stars"><i class="fas fa-check-circle"></i></td>
           <td class="pos">Hydrating + Dry/Mature Skin</td>
         </tr>
         <tr>
           <td class="name">Ultra Sheer Moisturizer</td>
-          <td class="stars">⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars">❌</td>
-          <td class="stars hl-oily">✅✅✅</td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-times-circle"></i></td>
+          <td class="stars hl-oily"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
           <td class="pos">Lightweight / Oily Skin</td>
         </tr>
 
@@ -259,22 +304,22 @@
             <span class="brand-count">2 products</span>
           </td>
           <td class="name">Trio Rebalancing</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars hl-hydra">⭐⭐⭐⭐⭐</td>
-          <td class="stars hl-barrier">⭐⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars">✅✅</td>
-          <td class="stars">✅</td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars hl-hydra"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars hl-barrier"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
+          <td class="stars"><i class="fas fa-check-circle"></i></td>
           <td class="pos">Repair + Hydration</td>
         </tr>
         <tr>
           <td class="name">Trio Luxe</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars hl-hydra">⭐⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars hl-dry">✅✅✅</td>
-          <td class="stars">❌</td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars hl-hydra"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars hl-dry"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
+          <td class="stars"><i class="fas fa-times-circle"></i></td>
           <td class="pos">Very Dry Skin</td>
         </tr>
 
@@ -285,73 +330,73 @@
             <span class="brand-count">7 products</span>
           </td>
           <td class="name">Intense Hydration</td>
-          <td class="stars hl-anti">⭐⭐⭐⭐⭐</td>
-          <td class="stars hl-hydra">⭐⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars hl-dry">✅✅✅</td>
-          <td class="stars">❌</td>
+          <td class="stars hl-anti"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars hl-hydra"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars hl-dry"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
+          <td class="stars"><i class="fas fa-times-circle"></i></td>
           <td class="pos">Anti-Aging + Hydration</td>
         </tr>
         <tr>
           <td class="name">Pre/Post-Treatment 2</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐⭐</td>
-          <td class="stars hl-barrier">⭐⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐</td>
-          <td class="stars">✅✅✅</td>
-          <td class="stars">❌</td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars hl-barrier"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
+          <td class="stars"><i class="fas fa-times-circle"></i></td>
           <td class="pos">Sensitive / Post-Treatment</td>
         </tr>
         <tr>
           <td class="name">Youth Solution (Dry)</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars hl-bright">⭐⭐⭐⭐⭐</td>
-          <td class="stars hl-dry">✅✅✅</td>
-          <td class="stars">❌</td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars hl-bright"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars hl-dry"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
+          <td class="stars"><i class="fas fa-times-circle"></i></td>
           <td class="pos">Radiance + Dry Skin</td>
         </tr>
         <tr>
           <td class="name">Youth Solution (Combination)</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars hl-bright">⭐⭐⭐⭐⭐</td>
-          <td class="stars">✅</td>
-          <td class="stars hl-oily">✅✅</td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars hl-bright"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars"><i class="fas fa-check-circle"></i></td>
+          <td class="stars hl-oily"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
           <td class="pos">Radiance + Combination Skin</td>
         </tr>
         <tr>
           <td class="name">Glycolic Acid Night 10%</td>
-          <td class="stars hl-anti">⭐⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐</td>
-          <td class="stars">⭐</td>
-          <td class="stars hl-bright">⭐⭐⭐⭐⭐</td>
-          <td class="stars">❌</td>
-          <td class="stars">✅✅</td>
+          <td class="stars hl-anti"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars hl-bright"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></td>
+          <td class="stars"><i class="fas fa-times-circle"></i></td>
+          <td class="stars"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
           <td class="pos">Strong Resurfacing</td>
         </tr>
         <tr>
           <td class="name">Glycolic Acid Night 5%</td>
-          <td class="stars hl-anti">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐⭐</td>
-          <td class="stars">⭐⭐</td>
-          <td class="stars hl-bright">⭐⭐⭐⭐</td>
-          <td class="stars">✅</td>
-          <td class="stars">✅</td>
+          <td class="stars hl-anti"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars hl-bright"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-check-circle"></i></td>
+          <td class="stars"><i class="fas fa-check-circle"></i></td>
           <td class="pos">Gentle Resurfacing</td>
         </tr>
         <tr>
           <td class="name">Glycolic Acid Lotion 10%</td>
-          <td class="stars hl-anti">⭐⭐⭐⭐</td>
-          <td class="stars">⭐⭐</td>
-          <td class="stars">⭐</td>
-          <td class="stars">⭐⭐⭐⭐</td>
-          <td class="stars">❌</td>
-          <td class="stars hl-oily">✅✅✅</td>
-          <td class="pos">Exfoliating + 2% Salicylic Acid - acne-prone & clogged pores</td>
+          <td class="stars hl-anti"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></td>
+          <td class="stars"><i class="fas fa-times-circle"></i></td>
+          <td class="stars hl-oily"><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i><i class="fas fa-check-circle"></i></td>
+          <td class="pos">Exfoliating + 2% Salicylic Acid — acne-prone &amp; clogged pores</td>
         </tr>
 
       </tbody>
