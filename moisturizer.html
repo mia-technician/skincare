@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Cream Comparison | 4 Major Brands</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#faf8f5;font-family:'Inter',sans-serif;color:#2c2824;line-height:1.65;-webkit-font-smoothing:antialiased;}
+  .container{max-width:1280px;margin:0 auto;padding:0 20px;}
+
+  .hero{background:#5a4c3e;color:#f7f0e4;text-align:center;padding:64px 20px 56px;}
+  .hero .badge{display:inline-block;background:rgba(247,240,228,.15);color:#f7f0e4;font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:6px 18px;border-radius:999px;margin-bottom:18px;}
+  .hero h1{font-family:'Cormorant Garamond',serif;font-size:2.3rem;font-weight:600;margin-bottom:12px;color:#f7f0e4;line-height:1.2;}
+  .hero p{font-size:.9rem;opacity:.85;max-width:720px;margin:0 auto;line-height:1.7;}
+
+  .legend{display:flex;flex-wrap:wrap;gap:12px;margin:32px 0 24px;font-size:.76rem;color:#7a6e62;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;background:#fffdf9;border:1px solid #eee5dc;border-radius:999px;padding:5px 13px;}
+  .legend .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .legend .dot.anti{background:#b99f87;}
+  .legend .dot.hydra{background:#8fa6d9;}
+  .legend .dot.barrier{background:#7a9e7e;}
+  .legend .dot.dry{background:#5e79b5;}
+  .legend .dot.oily{background:#c19a2a;}
+  .legend .dot.sens{background:#c78fe0;}
+  .legend .dot.bright{background:#e6c258;}
+
+  /* ============ 表格：首行固定 ============ */
+  .table-wrap{
+    overflow-x:auto;
+    overflow-y:auto;
+    max-height:80vh;
+    border-radius:18px;
+    border:1px solid #eee5dc;
+    background:#fffdf9;
+    box-shadow:0 6px 18px rgba(0,0,0,.04);
+    -webkit-overflow-scrolling:touch;
+    margin-bottom:32px;
+  }
+  table{width:100%;border-collapse:collapse;font-size:.76rem;min-width:1150px;}
+  th,td{padding:11px 9px;text-align:center;border-bottom:1px solid #f0e8e0;vertical-align:middle;line-height:1.5;}
+  thead th{
+    background:#f5efe8;color:#5f5347;font-weight:700;
+    font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;
+    white-space:nowrap;position:sticky;top:0;z-index:2;
+    box-shadow:0 2px 4px rgba(0,0,0,.06);
+  }
+  thead th.left{text-align:left;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:nth-child(even){background:#fdfaf6;}
+
+  td.brand{
+    font-weight:700;color:#2c2824;min-width:130px;
+    vertical-align:middle;border-right:1px solid #eee5dc;text-align:left;
+  }
+  td.brand .brand-name{display:block;font-size:.9rem;margin-bottom:3px;}
+  td.brand .brand-count{font-size:.68rem;color:#b99f87;font-weight:600;letter-spacing:.04em;}
+
+  td.name{
+    text-align:left;font-weight:700;color:#2c2824;
+    min-width:230px;font-size:.78rem;line-height:1.4;
+  }
+
+  td.stars{white-space:nowrap;font-size:.88rem;letter-spacing:.5px;color:#b99f87;}
+
+  td.pos{
+    text-align:left;font-size:.7rem;color:#5a4f43;font-weight:600;
+    min-width:140px;line-height:1.45;
+  }
+
+  td.stars.hl-anti{background:#fdf3e7;}
+  td.stars.hl-hydra{background:#e8f0fa;}
+  td.stars.hl-barrier{background:#e8f5ef;}
+  td.stars.hl-bright{background:#fff9e6;}
+  td.stars.hl-sens{background:#f3edff;}
+
+  .note-box{
+    background:#fff9f2;border:1px dashed #d2c0b0;border-radius:18px;
+    padding:22px 26px;margin:32px 0;font-size:.85rem;color:#5a4f43;line-height:1.85;
+  }
+  .note-box strong{color:#2c2824;}
+
+  .cta-wrap{text-align:center;margin:48px 0 32px;}
+  .cta-btn{display:inline-block;background:#b99f87;color:#fff;padding:15px 40px;border-radius:50px;font-size:.95rem;font-weight:600;text-decoration:none;letter-spacing:.03em;transition:all .2s;box-shadow:0 6px 16px rgba(185,159,135,.35);}
+  .cta-btn:hover{background:#9f8468;transform:translateY(-2px);box-shadow:0 10px 22px rgba(185,159,135,.45);}
+  .cta-note{font-size:.85rem;color:#7a6e62;margin-top:20px;line-height:1.9;}
+  .cta-note a{color:#b99f87;text-decoration:none;font-weight:600;}
+
+  .footer{text-align:center;padding:40px 24px;border-top:1px solid #e8dfd5;color:#9b8b7c;font-size:.75rem;margin-top:48px;}
+
+  @media(max-width:700px){
+    .container{padding:0 14px;}
+    .hero{padding:48px 16px 40px;}
+    .hero h1{font-size:1.7rem;}
+    .hero p{font-size:.82rem;}
+    .legend{font-size:.7rem;}
+    th,td{padding:9px 7px;font-size:.7rem;}
+    td.stars{font-size:.82rem;}
+    td.name{font-size:.72rem;min-width:190px;}
+    td.brand{min-width:110px;}
+    /* 手机端去掉高度限制，避免表格太矮 */
+    .table-wrap{max-height:none;}
+    .cta-btn{width:100%;padding:14px 20px;}
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="badge">Clinical Reference</div>
+  <h1>Cream Comparison · 4 Major Brands</h1>
+  <p>SkinCeuticals · SkinMedica · SkinBetter · Functionalab</p>
+</section>
+
+<div class="container">
+
+  <div class="legend">
+    <span><span class="dot anti"></span> ⭐ Anti-Aging</span>
+    <span><span class="dot hydra"></span> 🌊 Hydration</span>
+    <span><span class="dot barrier"></span> 🧱 Barrier</span>
+    <span><span class="dot dry"></span> 💙 Dry Skin</span>
+    <span><span class="dot oily"></span> 💛 Oily Skin</span>
+    <span><span class="dot sens"></span> 🌿 Sensitive</span>
+    <span><span class="dot bright"></span> ✨ Brightening</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="left">Brand</th>
+          <th class="left">Product</th>
+          <th>⭐ Anti-Aging</th>
+          <th>🌊 Hydration</th>
+          <th>🧱 Barrier</th>
+          <th>💙 Dry</th>
+          <th>💛 Oily</th>
+          <th>🌿 Sensitive</th>
+          <th>✨ Brightening</th>
+          <th class="left">Positioning</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- ============ SkinCeuticals ============ -->
+        <tr>
+          <td rowspan="7" class="brand">
+            <span class="brand-name">SkinCeuticals</span>
+            <span class="brand-count">7 products</span>
+          </td>
+          <td class="name">A.G.E. Interrupter Advanced</td>
+          <td class="stars hl-anti">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="pos">Anti-Aging + Dry Skin</td>
+        </tr>
+        <tr>
+          <td class="name">Triple Lipid Restore 2:4:2</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars hl-hydra">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="pos">Anti-Aging + Barrier</td>
+        </tr>
+        <tr>
+          <td class="name">Phyto A+ Brightening Treatment</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars hl-bright">⭐⭐⭐⭐⭐</td>
+          <td class="pos">Brightening + Oil Control</td>
+        </tr>
+        <tr>
+          <td class="name">P-TIOX Cream</td>
+          <td class="stars hl-anti">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="pos">Peptide Anti-Wrinkle</td>
+        </tr>
+        <tr>
+          <td class="name">Advanced RGN-6</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="pos">Regeneration</td>
+        </tr>
+        <tr>
+          <td class="name">Metacell Renewal B3</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars hl-oily">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="pos">Lightweight Anti-Aging</td>
+        </tr>
+        <tr>
+          <td class="name">Daily Moisture</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="pos">Oily Skin Moisturizer</td>
+        </tr>
+
+        <!-- ============ SkinMedica ============ -->
+        <tr>
+          <td rowspan="3" class="brand">
+            <span class="brand-name">SkinMedica</span>
+            <span class="brand-count">3 products</span>
+          </td>
+          <td class="name">Dermal Repair Cream</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars hl-hydra">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="pos">Rich + Repair</td>
+        </tr>
+        <tr>
+          <td class="name">Rejuvenative Moisturizer</td>
+          <td class="stars hl-anti">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars hl-hydra">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="pos">Hydrating + Dry/Mature Skin</td>
+        </tr>
+        <tr>
+          <td class="name">Ultra Sheer Moisturizer</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars hl-oily">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="pos">Lightweight / Oily Skin</td>
+        </tr>
+
+        <!-- ============ SkinBetter ============ -->
+        <tr>
+          <td rowspan="3" class="brand">
+            <span class="brand-name">SkinBetter</span>
+            <span class="brand-count">3 products</span>
+          </td>
+          <td class="name">Trio Rebalancing</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars hl-hydra">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars hl-sens">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="pos">Repair + Hydration</td>
+        </tr>
+        <tr>
+          <td class="name">Trio Luxe</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars hl-hydra">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="pos">Very Dry Skin</td>
+        </tr>
+        <tr>
+          <td class="name">InterFuse Intensive Treatment LINES</td>
+          <td class="stars hl-anti">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="pos">Expression Lines + Firmness</td>
+        </tr>
+
+        <!-- ============ Functionalab ============ -->
+        <tr>
+          <td rowspan="7" class="brand">
+            <span class="brand-name">Functionalab</span>
+            <span class="brand-count">7 products</span>
+          </td>
+          <td class="name">Intense Hydration</td>
+          <td class="stars hl-anti">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="pos">Anti-Aging + Hydration</td>
+        </tr>
+        <tr>
+          <td class="name">Pre/Post-Treatment 2</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars hl-barrier">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐</td>
+          <td class="pos">Sensitive / Post-Treatment</td>
+        </tr>
+        <tr>
+          <td class="name">Youth Solution (Dry)</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars hl-hydra">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="pos">Radiance + Dry Skin</td>
+        </tr>
+        <tr>
+          <td class="name">Youth Solution (Combination)</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars hl-oily">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="pos">Radiance + Combination Skin</td>
+        </tr>
+        <tr>
+          <td class="name">Glycolic Acid Night 10%</td>
+          <td class="stars hl-anti">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars">⭐</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐</td>
+          <td class="stars">⭐⭐⭐⭐⭐</td>
+          <td class="pos">Strong Resurfacing</td>
+        </tr>
+        <tr>
+          <td class="name">Glycolic Acid Night 5%</td>
+          <td class="stars hl-anti">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars">⭐⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="pos">Gentle Resurfacing</td>
+        </tr>
+        <tr>
+          <td class="name">Glycolic Acid Lotion 10%</td>
+          <td class="stars hl-anti">⭐⭐⭐⭐</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars">⭐</td>
+          <td class="stars">⭐⭐</td>
+          <td class="stars hl-oily">⭐⭐⭐⭐⭐</td>
+          <td class="stars">⭐</td>
+          <td class="stars">⭐⭐⭐⭐</td>
+          <td class="pos">Exfoliating + Acne-Prone</td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note-box">
+    <p><strong>* Key Points:</strong></p>
+    <ul>
+      <li><i class="fas fa-circle"></i><span><strong>Highlighted cells</strong> = each product's strongest selling point.</span></li>
+      <li><i class="fas fa-circle"></i><span><strong>Functionalab Youth Solution</strong> comes in two versions — Dry and Combination.</span></li>
+      <li><i class="fas fa-circle"></i><span><strong>Functionalab Glycolic Acid Lotion 10%</strong> contains 2% Salicylic Acid, targeting acne-prone skin and clogged pores.</span></li>
+      <li><i class="fas fa-circle"></i><span><strong>Glycolic Acid Night 5%</strong> is the beginner-friendly resurfacing option; 10% is for experienced users.</span></li>
+      <li><i class="fas fa-circle"></i><span><strong>Don't say "more stars = better"</strong> — different products serve different skin types and concerns.</span></li>
+    </ul>
+  </div>
+
+  <div class="cta-wrap">
+    <a class="cta-btn" href="https://mia-technician.github.io/promo/order.html" target="_blank">
+      🛍️ View the Product Menu &amp; Place Order
+    </a>
+    <p class="cta-note">
+      Questions? Contact Mia directly:<br>
+      📞 Call / Text: <a href="tel:6045802464">604-580-2464</a><br>
+      ✉️ Email: <a href="mailto:mia.lu@dermapure.com">mia.lu@dermapure.com</a>
+    </p>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <p>✦ Clinical Reference · Cream Comparison ✦</p>
+  <p style="margin-top:8px;">© 2026 Mia @ BC Laser</p>
+</footer>
+
+</body>
+</html>
