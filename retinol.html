@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Retinol Comparison | All Concentrations</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#faf8f5;font-family:'Inter',sans-serif;color:#2c2824;line-height:1.65;-webkit-font-smoothing:antialiased;}
+  .container{max-width:960px;margin:0 auto;padding:0 20px;}
+
+  .hero{background:#5a4c3e;color:#f7f0e4;text-align:center;padding:64px 20px 56px;}
+  .hero .badge{display:inline-block;background:rgba(247,240,228,.15);color:#f7f0e4;font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:6px 18px;border-radius:999px;margin-bottom:18px;}
+  .hero h1{font-family:'Cormorant Garamond',serif;font-size:2.3rem;font-weight:600;margin-bottom:12px;color:#f7f0e4;line-height:1.2;}
+  .hero p{font-size:.9rem;opacity:.85;max-width:720px;margin:0 auto;line-height:1.7;}
+
+  .legend{display:flex;flex-wrap:wrap;gap:12px;margin:32px 0 24px;font-size:.76rem;color:#7a6e62;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;background:#fffdf9;border:1px solid #eee5dc;border-radius:999px;padding:5px 13px;}
+  .legend .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .legend .dot.tol{background:#2d6a4f;}
+  .legend .dot.str{background:#c93b2b;}
+  .legend .dot.dry{background:#8fa6d9;}
+  .legend .dot.oily{background:#e6c258;}
+  .legend .dot.fol{background:#7a9e7e;}
+
+  .table-wrap{overflow-x:auto;border-radius:18px;border:1px solid #eee5dc;background:#fffdf9;box-shadow:0 6px 18px rgba(0,0,0,.04);-webkit-overflow-scrolling:touch;margin:0 0 32px;}
+  table{width:100%;border-collapse:collapse;font-size:.82rem;min-width:720px;}
+  th,td{padding:14px 12px;text-align:center;border-bottom:1px solid #f0e8e0;vertical-align:middle;line-height:1.55;}
+  thead th{background:#f5efe8;color:#5f5347;font-weight:700;font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;position:sticky;top:0;}
+  thead th.left{text-align:left;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:nth-child(even){background:#fdfaf6;}
+
+  td.brand{font-weight:700;color:#2c2824;min-width:150px;vertical-align:middle;border-right:1px solid #eee5dc;text-align:left;}
+  td.brand .brand-name{display:block;font-size:.92rem;margin-bottom:3px;}
+  td.brand .brand-type{font-size:.68rem;color:#9b8b7c;font-weight:500;line-height:1.45;}
+
+  td.conc{font-weight:600;color:#5f5347;white-space:nowrap;font-size:.82rem;}
+  td.conc .conc-tag{display:inline-block;background:#f5efe8;border-radius:8px;padding:3px 10px;font-size:.74rem;font-weight:700;}
+
+  td.stars{white-space:nowrap;font-size:1rem;letter-spacing:.5px;}
+  td.stars.tol{color:#2d6a4f;}
+  td.stars.str{color:#c93b2b;}
+  td.stars.dry{color:#5e79b5;}
+  td.stars.oily{color:#c19a2a;}
+  td.stars.fol{color:#5c8a60;}
+
+  .note{background:#fff9f2;border:1px dashed #d2c0b0;border-radius:18px;padding:20px 24px;margin:28px 0;font-size:.85rem;color:#5a4f43;line-height:1.8;}
+  .note strong{color:#2c2824;}
+  .note ul{list-style:none;margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+  .note ul li{display:grid;grid-template-columns:16px 1fr;gap:8px;align-items:start;line-height:1.65;}
+  .note ul li i{color:#c4a47c;margin-top:5px;font-size:.72rem;}
+
+  .cta-wrap{text-align:center;margin:48px 0 32px;}
+  .cta-btn{display:inline-block;background:#b99f87;color:#fff;padding:15px 40px;border-radius:50px;font-size:.95rem;font-weight:600;text-decoration:none;letter-spacing:.03em;transition:all .2s;box-shadow:0 6px 16px rgba(185,159,135,.35);}
+  .cta-btn:hover{background:#9f8468;transform:translateY(-2px);box-shadow:0 10px 22px rgba(185,159,135,.45);}
+  .cta-note{font-size:.85rem;color:#7a6e62;margin-top:20px;line-height:1.9;}
+  .cta-note a{color:#b99f87;text-decoration:none;font-weight:600;}
+
+  .footer{text-align:center;padding:40px 24px;border-top:1px solid #e8dfd5;color:#9b8b7c;font-size:.75rem;margin-top:48px;}
+
+  @media(max-width:700px){
+    .container{padding:0 14px;}
+    .hero{padding:48px 16px 40px;}
+    .hero h1{font-size:1.7rem;}
+    .hero p{font-size:.82rem;}
+    .legend{font-size:.7rem;}
+    th,td{padding:10px 8px;font-size:.76rem;}
+    td.stars{font-size:.88rem;}
+    td.brand .brand-name{font-size:.85rem;}
+    td.brand .brand-type{font-size:.64rem;}
+    .cta-btn{width:100%;padding:14px 20px;}
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="badge">Clinical Reference</div>
+  <h1>Retinol Comparison · All Concentrations</h1>
+  <p>Every concentration across 5 major brands · tolerability, strength, skin-type and follicle suitability</p>
+</section>
+
+<div class="container">
+
+  <div class="legend">
+    <span><span class="dot tol"></span> ⭐ Tolerability — higher = gentler</span>
+    <span><span class="dot str"></span> 🔥 Strength — higher = stronger</span>
+    <span><span class="dot dry"></span> 💧 Dry Skin Fit</span>
+    <span><span class="dot oily"></span> 🌿 Oily Skin Fit</span>
+    <span><span class="dot fol"></span> 🧴 Follicle-Friendly</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="left">Brand</th>
+          <th>Conc.</th>
+          <th>⭐ Tol.</th>
+          <th>🔥 Str.</th>
+          <th>💧 Dry</th>
+          <th>🌿 Oily</th>
+          <th>🧴 Follicle</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- ============ Functionalab ============ -->
+        <tr>
+          <td rowspan="2" class="brand">
+            <span class="brand-name">Functionalab</span>
+            <span class="brand-type">Encapsulated pure retinol</span>
+          </td>
+          <td class="conc"><span class="conc-tag">0.5%</span></td>
+          <td class="stars tol">★★★★★</td>
+          <td class="stars str">★★</td>
+          <td class="stars dry">★★★★★</td>
+          <td class="stars oily">★★★★</td>
+          <td class="stars fol">★★</td>
+        </tr>
+        <tr>
+          <td class="conc"><span class="conc-tag">1.0%</span></td>
+          <td class="stars tol">★★★★</td>
+          <td class="stars str">★★★</td>
+          <td class="stars dry">★★★★</td>
+          <td class="stars oily">★★★★</td>
+          <td class="stars fol">★★</td>
+        </tr>
+
+        <!-- ============ SkinBetter ============ -->
+        <tr>
+          <td rowspan="2" class="brand">
+            <span class="brand-name">SkinBetter</span>
+            <span class="brand-type">AlphaRet® — patented double-conjugated retinoid</span>
+          </td>
+          <td class="conc"><span class="conc-tag">AlphaRet Overnight</span></td>
+          <td class="stars tol">★★★★</td>
+          <td class="stars str">★★★★★</td>
+          <td class="stars dry">★★★★★</td>
+          <td class="stars oily">★★★★</td>
+          <td class="stars fol">★★★★</td>
+        </tr>
+        <tr>
+          <td class="conc"><span class="conc-tag">AlphaRet Clear</span></td>
+          <td class="stars tol">★★★★</td>
+          <td class="stars str">★★★★★</td>
+          <td class="stars dry">★★★</td>
+          <td class="stars oily">★★★★★</td>
+          <td class="stars fol">★★★★★</td>
+        </tr>
+
+        <!-- ============ SkinMedica ============ -->
+        <tr>
+          <td rowspan="3" class="brand">
+            <span class="brand-name">SkinMedica</span>
+            <span class="brand-type">Retinol Complex — PhytoShield™</span>
+          </td>
+          <td class="conc"><span class="conc-tag">0.25%</span></td>
+          <td class="stars tol">★★★★</td>
+          <td class="stars str">★</td>
+          <td class="stars dry">★★★★★</td>
+          <td class="stars oily">★★★</td>
+          <td class="stars fol">★★★★</td>
+        </tr>
+        <tr>
+          <td class="conc"><span class="conc-tag">0.5%</span></td>
+          <td class="stars tol">★★★</td>
+          <td class="stars str">★★</td>
+          <td class="stars dry">★★★★</td>
+          <td class="stars oily">★★★</td>
+          <td class="stars fol">★★★★</td>
+        </tr>
+        <tr>
+          <td class="conc"><span class="conc-tag">1.0%</span></td>
+          <td class="stars tol">★★</td>
+          <td class="stars str">★★★</td>
+          <td class="stars dry">★★★</td>
+          <td class="stars oily">★★</td>
+          <td class="stars fol">★★★★</td>
+        </tr>
+
+        <!-- ============ SkinCeuticals ============ -->
+        <tr>
+          <td rowspan="3" class="brand">
+            <span class="brand-name">SkinCeuticals</span>
+            <span class="brand-type">Pure retinol — stabilization / delivery tech</span>
+          </td>
+          <td class="conc"><span class="conc-tag">0.3%</span></td>
+          <td class="stars tol">★★★</td>
+          <td class="stars str">★</td>
+          <td class="stars dry">★★</td>
+          <td class="stars oily">★★★★</td>
+          <td class="stars fol">★★★★★</td>
+        </tr>
+        <tr>
+          <td class="conc"><span class="conc-tag">0.5%</span></td>
+          <td class="stars tol">★★</td>
+          <td class="stars str">★★</td>
+          <td class="stars dry">★★</td>
+          <td class="stars oily">★★★★</td>
+          <td class="stars fol">★★★★★</td>
+        </tr>
+        <tr>
+          <td class="conc"><span class="conc-tag">1.0%</span></td>
+          <td class="stars tol">★</td>
+          <td class="stars str">★★★★</td>
+          <td class="stars dry">★</td>
+          <td class="stars oily">★★★★★</td>
+          <td class="stars fol">★★★★★</td>
+        </tr>
+
+        <!-- ============ ZO ============ -->
+        <tr>
+          <td rowspan="3" class="brand">
+            <span class="brand-name">ZO Skin Health</span>
+            <span class="brand-type">Retinol — microemulsion delivery</span>
+          </td>
+          <td class="conc"><span class="conc-tag">0.25%</span></td>
+          <td class="stars tol">★★</td>
+          <td class="stars str">★★</td>
+          <td class="stars dry">★★</td>
+          <td class="stars oily">★★★★</td>
+          <td class="stars fol">★★★★</td>
+        </tr>
+        <tr>
+          <td class="conc"><span class="conc-tag">0.5%</span></td>
+          <td class="stars tol">★</td>
+          <td class="stars str">★★★★</td>
+          <td class="stars dry">★</td>
+          <td class="stars oily">★★★★★</td>
+          <td class="stars fol">★★★★</td>
+        </tr>
+        <tr>
+          <td class="conc"><span class="conc-tag">1.0%</span></td>
+          <td class="stars tol">★</td>
+          <td class="stars str">★★★★★</td>
+          <td class="stars dry">★</td>
+          <td class="stars oily">★★★★★</td>
+          <td class="stars fol">★★★★</td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <p><strong>* How to read this table:</strong></p>
+    <ul>
+      <li><i class="fas fa-circle"></i><span><strong>⭐ Tolerability</strong> — higher = gentler.</span></li>
+      <li><i class="fas fa-circle"></i><span><strong>🔥 Strength</strong> — higher = stronger.</span></li>
+      <li><i class="fas fa-circle"></i><span><strong>💧 Dry Skin Fit</strong> — higher = better for dry skin (richer textures, stronger buffers).</span></li>
+      <li><i class="fas fa-circle"></i><span><strong>🌿 Oily Skin Fit</strong> — higher = better for oily / acne-prone skin (lighter textures, less residue).</span></li>
+      <li><i class="fas fa-circle"></i><span><strong>🧴 Follicle-Friendly</strong> — higher = less likely to clog pores / trigger closed comedones. Based on known comedogenic ingredients and official "non-comedogenic" claims, <strong>not</strong> brand rankings.</span></li>
+      <li><i class="fas fa-circle"></i><span><strong>AlphaRet</strong> is rated ★★★★★ for strength because clinical trials show it is <strong>non-inferior to 0.025% prescription tretinoin</strong>.</span></li>
+      <li><i class="fas fa-circle"></i><span>Melasma and rosacea should never be managed based on "which retinol is gentlest" alone — always assess in person.</span></li>
+    </ul>
+  </div>
+
+  <div class="cta-wrap">
+    <a class="cta-btn" href="https://mia-technician.github.io/promo/order.html" target="_blank">
+      🛍️ View the Product Menu &amp; Place Order
+    </a>
+    <p class="cta-note">
+      Questions? Contact Mia directly:<br>
+      📞 Call / Text: <a href="tel:6045802464">604-580-2464</a><br>
+      ✉️ Email: <a href="mailto:mia.lu@dermapure.com">mia.lu@dermapure.com</a>
+    </p>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <p>✦ Clinical Reference · Retinol Comparison ✦</p>
+  <p style="margin-top:8px;">© 2026 Mia @ BC Laser</p>
+</footer>
+
+</body>
+</html>
