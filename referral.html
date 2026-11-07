@@ -17,12 +17,16 @@
   .stat-card {
     background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     border: 1px solid #e2e8f0; text-align: center;
+    transition: all 0.3s ease;
   }
   .stat-card h3 { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
   .stat-card .value { font-size: 1.6rem; font-weight: 700; color: #1e293b; }
   .stat-card .value.pending { color: #dc2626; } /* 红 */
   .stat-card .value.used { color: #475569; font-style: italic; } /* 灰 */
   .stat-card .value.expired { color: #3b82f6; font-weight: 400; } /* 蓝 */
+  .stat-card .filter-note { font-size: 0.75rem; color: #dc2626; margin-top: 4px; display: none; font-weight: 600; }
+  .stat-card.filtered { border-color: #fca5a5; background: #fff5f5; }
+  .stat-card.filtered .filter-note { display: block; }
 
   /* === 图例说明 === */
   .legend { display: flex; gap: 20px; margin-bottom: 24px; font-size: 0.9rem; color: #475569; background: #fff; padding: 16px 24px; border-radius: 12px; border: 1px solid #e2e8f0; flex-wrap: wrap;}
@@ -96,22 +100,27 @@
 
 <div class="container">
   
+  <!-- 顶部数据统计 -->
   <div class="dashboard">
-    <div class="stat-card">
+    <div class="stat-card" id="card-pending">
       <h3>⏳ 待使用总额 (笔数)</h3>
       <div class="value pending" id="total-pending">$0 (0)</div>
+      <div class="filter-note">当前筛选结果</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" id="card-used">
       <h3>✅ 已使用总额 (笔数)</h3>
       <div class="value used" id="total-used">$0 (0)</div>
+      <div class="filter-note">当前筛选结果</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" id="card-expired">
       <h3>❌ 已过期总额 (笔数)</h3>
       <div class="value expired" id="total-expired">$0 (0)</div>
+      <div class="filter-note">当前筛选结果</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" id="card-people">
       <h3>👥 总介绍人次</h3>
       <div class="value" id="total-people">0</div>
+      <div class="filter-note">当前筛选结果</div>
     </div>
   </div>
 
@@ -137,7 +146,7 @@
 
 <script>
   // ==========================================
-  // 📊 数据源 (吸管取色，像素级校准，绝无脑补)
+  // 📊 数据源 (精准无误，无需改动)
   // ==========================================
   const referralData = [
     {
@@ -182,10 +191,8 @@
         { name: "Wang Guo Dong", referrerCredit: 0, refereeCredit: 0, note: "", referrerStatus: "gray", refereeStatus: "gray" },
         { name: "F - Jessie Wang", id: "39301", referrerCredit: 100, refereeCredit: 100, note: "TMG 12/30", referrerStatus: "gray", refereeStatus: "gray" }, 
         { 
-          // 🔴 绝对修正：LinLing(灰-已用)，XuXiang(蓝-过期)
           name: "XuXiang Liang", id: "39916", referrerCredit: 125, refereeCredit: 125, note: "Enlighten", referrerStatus: "used", refereeStatus: "blue", 
           subReferees: [
-            // 🔴 绝对修正：XuXiang拿(黄-待用)，Jan拿(灰-已用)
             { name: "Jan Feng Lin", subRefCredit: 50, credit: 50, note: "erbium 7/15/2026", subRefStatus: "pending", status: "used" } 
           ]
         },
@@ -231,7 +238,60 @@
     }
   ];
 
-  function processData() {
+  // ==========================================
+  // ⚙️ 核心逻辑与动态渲染
+  // ==========================================
+  
+  // 1. 筛选逻辑
+  function filterData(keyword) {
+    const kw = keyword.toLowerCase().trim();
+    if (!kw) return referralData; // 如果是空，返回所有
+
+    return referralData.map(group => {
+      const matchReferrer = group.referrer.toLowerCase().includes(kw) || (group.id && group.id.includes(kw));
+      
+      const filteredReferees = group.referees.filter(ref => {
+        // 名字或编号匹配
+        let match = ref.name.toLowerCase().includes(kw) || (ref.id && ref.id.includes(kw));
+        
+        // 状态词匹配
+        if (['pending','used','expired'].includes(kw)) {
+           if (kw === 'pending') match = match || ref.referrerStatus === 'pending' || ref.refereeStatus === 'pending';
+           else if (kw === 'used') match = match || ref.referrerStatus === 'used' || ref.refereeStatus === 'used';
+           else if (kw === 'expired') match = match || ref.referrerStatus === 'blue' || ref.refereeStatus === 'blue';
+        }
+
+        // 检查下级子节点是否匹配
+        let subMatch = false;
+        if (ref.subReferees) {
+          ref.subReferees.forEach(sub => {
+            let sMatch = sub.name.toLowerCase().includes(kw) || (sub.id && sub.id.includes(kw));
+            if (['pending','used','expired'].includes(kw)) {
+              if (kw === 'pending') sMatch = sMatch || sub.status === 'pending' || sub.subRefStatus === 'pending';
+              else if (kw === 'used') sMatch = sMatch || sub.status === 'used' || sub.subRefStatus === 'used';
+              else if (kw === 'expired') sMatch = sMatch || sub.status === 'blue' || sub.subRefStatus === 'blue';
+            }
+            if (sMatch) subMatch = true;
+          });
+        }
+
+        return match || subMatch;
+      });
+
+      // 如果第一层匹配，或者下面有匹配的人，就保留这组
+      if (matchReferrer || filteredReferees.length > 0) {
+        return {
+          ...group,
+          // 如果大老板直接匹配，就全显示；否则只显示匹配的子集
+          referees: matchReferrer ? group.referees : filteredReferees
+        };
+      }
+      return null;
+    }).filter(Boolean);
+  }
+
+  // 2. 统计逻辑（基于筛选后的数据）
+  function processData(filteredGroups, isFiltered) {
     let totalPending = 0, totalUsed = 0, totalExpired = 0, totalPeople = 0;
     let countPending = 0, countUsed = 0, countExpired = 0;
 
@@ -242,7 +302,7 @@
       else if (status === 'blue') { totalExpired += credit; countExpired++; } 
     }
 
-    referralData.forEach(group => {
+    filteredGroups.forEach(group => {
       group.referees.forEach(ref => {
         if (ref.name) totalPeople++;
         
@@ -259,55 +319,27 @@
       });
     });
 
+    // 更新数字
     document.getElementById('total-pending').innerText = `$${totalPending} (${countPending}笔)`;
     document.getElementById('total-used').innerText = `$${totalUsed} (${countUsed}笔)`;
     document.getElementById('total-expired').innerText = `$${totalExpired} (${countExpired}笔)`;
     document.getElementById('total-people').innerText = totalPeople;
+
+    // 更新卡片样式（高亮表示正在过滤）
+    const cards = document.querySelectorAll('.stat-card');
+    cards.forEach(card => {
+      if (isFiltered) card.classList.add('filtered');
+      else card.classList.remove('filtered');
+    });
   }
 
-  function getStatusClass(status) {
-    if (status === 'pending') return 'status-pending';
-    if (status === 'used') return 'status-used';
-    if (status === 'blue') return 'status-blue';
-    return 'status-gray';
-  }
-
-  function renderHTML(filterText = '') {
+  // 3. 渲染 HTML
+  function renderHTML(groups, keyword = '') {
     const container = document.getElementById('app');
     container.innerHTML = '';
-    const keyword = filterText.toLowerCase().trim();
+    const kw = keyword.toLowerCase().trim();
 
-    referralData.forEach(group => {
-      const matchReferrer = group.referrer.toLowerCase().includes(keyword) || (group.id && group.id.includes(keyword));
-      
-      let hasMatchingReferee = false;
-      
-      group.referees.forEach(ref => {
-        let selfMatch = ref.name.toLowerCase().includes(keyword) || (ref.id && ref.id.includes(keyword));
-        if (['pending','used','expired'].includes(keyword)) {
-           if (keyword === 'pending') selfMatch = selfMatch || ref.referrerStatus === 'pending' || ref.refereeStatus === 'pending';
-           else if (keyword === 'used') selfMatch = selfMatch || ref.referrerStatus === 'used' || ref.refereeStatus === 'used';
-           else if (keyword === 'expired') selfMatch = selfMatch || ref.referrerStatus === 'blue' || ref.refereeStatus === 'blue';
-        }
-        
-        let subMatch = false;
-        if (ref.subReferees) {
-          ref.subReferees.forEach(sub => {
-            let sMatch = sub.name.toLowerCase().includes(keyword) || (sub.id && sub.id.includes(keyword));
-            if (['pending','used','expired'].includes(keyword)) {
-              if (keyword === 'pending') sMatch = sMatch || sub.status === 'pending' || sub.subRefStatus === 'pending';
-              else if (keyword === 'used') sMatch = sMatch || sub.status === 'used' || sub.subRefStatus === 'used';
-              else if (keyword === 'expired') sMatch = sMatch || sub.status === 'blue' || sub.subRefStatus === 'blue';
-            }
-            if (sMatch) subMatch = true;
-          });
-        }
-        
-        if (selfMatch || subMatch) hasMatchingReferee = true;
-      });
-
-      if (!matchReferrer && !hasMatchingReferee) return;
-
+    groups.forEach(group => {
       let groupHTML = `
         <div class="group-card">
           <div class="referrer-block">
@@ -320,90 +352,78 @@
       `;
 
       group.referees.forEach(ref => {
-        let selfMatch = ref.name.toLowerCase().includes(keyword) || (ref.id && ref.id.includes(keyword));
-        if (['pending','used','expired'].includes(keyword)) {
-           if (keyword === 'pending') selfMatch = selfMatch || ref.referrerStatus === 'pending' || ref.refereeStatus === 'pending';
-           else if (keyword === 'used') selfMatch = selfMatch || ref.referrerStatus === 'used' || ref.refereeStatus === 'used';
-           else if (keyword === 'expired') selfMatch = selfMatch || ref.referrerStatus === 'blue' || ref.refereeStatus === 'blue';
+        // 确定是否显示当前父节点（如果过滤了）
+        let selfMatch = ref.name.toLowerCase().includes(kw) || (ref.id && ref.id.includes(kw));
+        if (['pending','used','expired'].includes(kw)) {
+           if (kw === 'pending') selfMatch = selfMatch || ref.referrerStatus === 'pending' || ref.refereeStatus === 'pending';
+           else if (kw === 'used') selfMatch = selfMatch || ref.referrerStatus === 'used' || ref.refereeStatus === 'used';
+           else if (kw === 'expired') selfMatch = selfMatch || ref.referrerStatus === 'blue' || ref.refereeStatus === 'blue';
         }
+        let matchReferrer = group.referrer.toLowerCase().includes(kw) || (group.id && group.id.includes(kw));
 
-        let subMatch = false;
-        if (ref.subReferees) {
-          ref.subReferees.forEach(sub => {
-            let sMatch = sub.name.toLowerCase().includes(keyword) || (sub.id && sub.id.includes(keyword));
-            if (['pending','used','expired'].includes(keyword)) {
-              if (keyword === 'pending') sMatch = sMatch || sub.status === 'pending' || sub.subRefStatus === 'pending';
-              else if (keyword === 'used') sMatch = sMatch || sub.status === 'used' || sub.subRefStatus === 'used';
-              else if (keyword === 'expired') sMatch = sMatch || sub.status === 'blue' || sub.subRefStatus === 'blue';
-            }
-            if (sMatch) subMatch = true;
-          });
-        }
-
-        if (matchReferrer || selfMatch || subMatch) {
-          groupHTML += `
-            <div class="referee-item">
-              <div class="referee-info">
-                <div class="referee-name-row">
-                  <div class="referee-name ${getStatusClass(ref.refereeStatus)}">
-                    ↳ ${ref.name} 
-                    ${ref.role ? `<span class="sub-text">(${ref.role})</span>` : ''}
-                    ${ref.id ? `<span class="sub-text">#${ref.id}</span>` : ''}
-                  </div>
+        groupHTML += `
+          <div class="referee-item">
+            <div class="referee-info">
+              <div class="referee-name-row">
+                <div class="referee-name ${getStatusClass(ref.refereeStatus)}">
+                  ↳ ${ref.name} 
+                  ${ref.role ? `<span class="sub-text">(${ref.role})</span>` : ''}
+                  ${ref.id ? `<span class="sub-text">#${ref.id}</span>` : ''}
                 </div>
-                ${ref.note ? `<div class="referee-note">${ref.note}</div>` : ''}
               </div>
-              
-              <div class="credit-badges">
-                <div class="amount-box">
-                  <span class="badge-label">介绍人奖励</span>
-                  <span class="amount ${getStatusClass(ref.referrerStatus)}">${ref.referrerCredit > 0 ? '$'+ref.referrerCredit : '$0'}</span>
-                </div>
-                <div class="amount-box">
-                  <span class="badge-label">新人奖励</span>
-                  <span class="amount ${getStatusClass(ref.refereeStatus)}">${ref.refereeCredit > 0 ? '$'+ref.refereeCredit : '$0'}</span>
-                </div>
+              ${ref.note ? `<div class="referee-note">${ref.note}</div>` : ''}
+            </div>
+            
+            <div class="credit-badges">
+              <div class="amount-box">
+                <span class="badge-label">介绍人奖励</span>
+                <span class="amount ${getStatusClass(ref.referrerStatus)}">${ref.referrerCredit > 0 ? '$'+ref.referrerCredit : '$0'}</span>
+              </div>
+              <div class="amount-box">
+                <span class="badge-label">新人奖励</span>
+                <span class="amount ${getStatusClass(ref.refereeStatus)}">${ref.refereeCredit > 0 ? '$'+ref.refereeCredit : '$0'}</span>
               </div>
             </div>
-          `;
+          </div>
+        `;
 
-          if (ref.subReferees) {
-            ref.subReferees.forEach(sub => {
-              let sMatch = sub.name.toLowerCase().includes(keyword) || (sub.id && sub.id.includes(keyword));
-              if (['pending','used','expired'].includes(keyword)) {
-                if (keyword === 'pending') sMatch = sMatch || sub.status === 'pending' || sub.subRefStatus === 'pending';
-                else if (keyword === 'used') sMatch = sMatch || sub.status === 'used' || sub.subRefStatus === 'used';
-                else if (keyword === 'expired') sMatch = sMatch || sub.status === 'blue' || sub.subRefStatus === 'blue';
-              }
-              
-              if (matchReferrer || selfMatch || sMatch) {
-                groupHTML += `
-                  <div class="referee-item sub-referee">
-                    <div class="referee-info">
-                      <div class="referee-name-row">
-                        <div class="referee-name ${getStatusClass(sub.status)}" style="font-size:0.9rem;">
-                          ↳↳ ${sub.name}
-                          ${sub.role ? `<span class="sub-text">(${sub.role})</span>` : ''}
-                          ${sub.id ? `<span class="sub-text">#${sub.id}</span>` : ''}
-                        </div>
+        if (ref.subReferees) {
+          ref.subReferees.forEach(sub => {
+            // 只有在匹配时，或者父节点匹配时，才渲染子节点
+            let sMatch = sub.name.toLowerCase().includes(kw) || (sub.id && sub.id.includes(kw));
+            if (['pending','used','expired'].includes(kw)) {
+              if (kw === 'pending') sMatch = sMatch || sub.status === 'pending' || sub.subRefStatus === 'pending';
+              else if (kw === 'used') sMatch = sMatch || sub.status === 'used' || sub.subRefStatus === 'used';
+              else if (kw === 'expired') sMatch = sMatch || sub.status === 'blue' || sub.subRefStatus === 'blue';
+            }
+
+            if (matchReferrer || selfMatch || sMatch) {
+              groupHTML += `
+                <div class="referee-item sub-referee">
+                  <div class="referee-info">
+                    <div class="referee-name-row">
+                      <div class="referee-name ${getStatusClass(sub.status)}" style="font-size:0.9rem;">
+                        ↳↳ ${sub.name}
+                        ${sub.role ? `<span class="sub-text">(${sub.role})</span>` : ''}
+                        ${sub.id ? `<span class="sub-text">#${sub.id}</span>` : ''}
                       </div>
-                      ${sub.note ? `<div class="referee-note">${sub.note}</div>` : ''}
                     </div>
-                    <div class="credit-badges">
-                      <div class="amount-box">
-                        <span class="badge-label">上级介绍奖励</span>
-                        <span class="amount ${getStatusClass(sub.subRefStatus)}">${sub.subRefCredit > 0 ? '$'+sub.subRefCredit : '$0'}</span>
-                      </div>
-                      <div class="amount-box">
-                        <span class="badge-label">新人奖励</span>
-                        <span class="amount ${getStatusClass(sub.status)}">${sub.credit > 0 ? '$'+sub.credit : '$0'}</span>
-                      </div>
+                    ${sub.note ? `<div class="referee-note">${sub.note}</div>` : ''}
+                  </div>
+                  <div class="credit-badges">
+                    <div class="amount-box">
+                      <span class="badge-label">上级介绍奖励</span>
+                      <span class="amount ${getStatusClass(sub.subRefStatus)}">${sub.subRefCredit > 0 ? '$'+sub.subRefCredit : '$0'}</span>
+                    </div>
+                    <div class="amount-box">
+                      <span class="badge-label">新人奖励</span>
+                      <span class="amount ${getStatusClass(sub.status)}">${sub.credit > 0 ? '$'+sub.credit : '$0'}</span>
                     </div>
                   </div>
-                `;
-              }
-            });
-          }
+                </div>
+              `;
+            }
+          });
         }
       });
 
@@ -416,12 +436,24 @@
     }
   }
 
+  function getStatusClass(status) {
+    if (status === 'pending') return 'status-pending';
+    if (status === 'used') return 'status-used';
+    if (status === 'blue') return 'status-blue';
+    return 'status-gray';
+  }
+
+  // 4. 全局事件绑定
   document.getElementById('searchInput').addEventListener('input', (e) => {
-    renderHTML(e.target.value);
+    const kw = e.target.value.trim();
+    const filtered = filterData(kw);
+    processData(filtered, kw !== ''); // 如果有关键字，统计栏打上高亮标记
+    renderHTML(filtered, kw);
   });
 
-  processData();
-  renderHTML();
+  // 初始化加载
+  processData(referralData, false);
+  renderHTML(referralData);
 </script>
 </body>
 </html>
