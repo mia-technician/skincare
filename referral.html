@@ -24,6 +24,7 @@
   .stat-card .value.pending { color: #dc2626; } /* 红 */
   .stat-card .value.used { color: #475569; font-style: italic; } /* 灰 */
   .stat-card .value.expired { color: #3b82f6; font-weight: 400; } /* 蓝 */
+  
   .stat-card .filter-note { font-size: 0.75rem; color: #dc2626; margin-top: 4px; display: none; font-weight: 600; }
   .stat-card.filtered { border-color: #fca5a5; background: #fff5f5; }
   .stat-card.filtered .filter-note { display: block; }
@@ -241,7 +242,6 @@
   // ⚙️ 核心逻辑与动态渲染
   // ==========================================
   
-  // 1. 极其严谨的过滤与统计逻辑
   function updateStatsAndRender(keyword) {
     const kw = keyword.toLowerCase().trim();
     const isFiltered = kw !== '';
@@ -256,15 +256,12 @@
       else if (status === 'blue') { totalExpired += credit; countExpired++; } 
     }
 
-    // 准备渲染的容器
     const container = document.getElementById('app');
     container.innerHTML = '';
 
-    // 遍历原始数据
     referralData.forEach(group => {
       const matchReferrer = group.referrer.toLowerCase().includes(kw) || (group.id && group.id.includes(kw));
       
-      // 判断这个组里有没有人匹配
       const filteredReferees = group.referees.filter(ref => {
         let match = ref.name.toLowerCase().includes(kw) || (ref.id && ref.id.includes(kw));
         if (['pending','used','expired'].includes(kw)) {
@@ -288,20 +285,12 @@
         return match || subMatch;
       });
 
-      // 如果这个组完全没有匹配（包括第一层、第二层、第三层都没对上），跳过。
       if (!matchReferrer && filteredReferees.length === 0) return;
 
-      // ====== 核心修复：只统计属于该搜索人物的钱 ======
-      if (matchReferrer) {
-        // 如果是搜大老板（比如 Ariel），只把她作为介绍人拿的钱算给她。
-        // 她下属拿的钱、下下级拿的钱，统统不算给 Ariel！
+      // ====== 核心统计重构 ======
+      if (!isFiltered) {
+        // 1. 全局统计：把所有人都算上，不管三七二十一，全部加进来！
         group.referees.forEach(ref => {
-          if (ref.name) totalPeople++; // 人头算上
-          addToStats(ref.referrerStatus, ref.referrerCredit); // 算 Ariel 的介绍费
-        });
-      } else {
-        // 如果是搜下属（比如 Jennifer），既算她拿的介绍费，也算她拿的新人费
-        filteredReferees.forEach(ref => {
           if (ref.name) totalPeople++;
           addToStats(ref.referrerStatus, ref.referrerCredit);
           addToStats(ref.refereeStatus, ref.refereeCredit);
@@ -309,19 +298,40 @@
           if (ref.subReferees) {
             ref.subReferees.forEach(sub => {
               if (sub.name) totalPeople++;
-              // 如果只搜 Jennifer，且子节点也被带出来了，要不要算子节点的钱？
-              // 严谨起见，如果搜具体名字，子节点的钱也不算在 Jennifer 头上。
-              // 但如果搜的是状态（如 pending），子节点的钱要全算上。
-              if (['pending','used','expired'].includes(kw) || kw === '') {
-                addToStats(sub.subRefStatus, sub.subRefCredit);
-                addToStats(sub.status, sub.credit);
-              }
+              addToStats(sub.subRefStatus, sub.subRefCredit);
+              addToStats(sub.status, sub.credit);
             });
           }
         });
+      } else {
+        // 2. 搜索统计：仅计算当前搜索关键词相关的“独立个体”的资产
+        if (matchReferrer) {
+          // 如果搜的是大老板，计算大老板自己的钱（他作为介绍人的钱）
+          group.referees.forEach(ref => {
+            if (ref.referrerCredit > 0) {
+              totalPeople++; // 算个人头
+              addToStats(ref.referrerStatus, ref.referrerCredit);
+            }
+          });
+        } else {
+          // 如果搜的是下属，或者状态，把匹配到的人的资产算进去
+          filteredReferees.forEach(ref => {
+            if (ref.name) totalPeople++;
+            addToStats(ref.referrerStatus, ref.referrerCredit);
+            addToStats(ref.refereeStatus, ref.refereeCredit);
+            
+            // 子节点属于下属的资产，只有当搜索的是下属本人时，才不把子节点的钱算给下属
+            if (ref.subReferees && ['pending','used','expired'].includes(kw)) {
+              ref.subReferees.forEach(sub => {
+                addToStats(sub.subRefStatus, sub.subRefCredit);
+                addToStats(sub.status, sub.credit);
+              });
+            }
+          });
+        }
       }
 
-      // ====== 渲染 HTML ======
+      // ====== 渲染 ======
       let groupHTML = `
         <div class="group-card">
           <div class="referrer-block">
@@ -411,13 +421,12 @@
       container.innerHTML += groupHTML;
     });
 
-    // 更新顶部面板
+    // 更新 UI
     document.getElementById('total-pending').innerText = `$${totalPending} (${countPending}笔)`;
     document.getElementById('total-used').innerText = `$${totalUsed} (${countUsed}笔)`;
     document.getElementById('total-expired').innerText = `$${totalExpired} (${countExpired}笔)`;
     document.getElementById('total-people').innerText = totalPeople;
 
-    // 更新 UI 状态
     const cards = document.querySelectorAll('.stat-card');
     cards.forEach(card => {
       if (isFiltered) card.classList.add('filtered');
@@ -436,11 +445,11 @@
     return 'status-gray';
   }
 
-  // 初始化与事件
   document.getElementById('searchInput').addEventListener('input', (e) => {
     updateStatsAndRender(e.target.value);
   });
 
+  // 初始化
   updateStatsAndRender('');
 </script>
 </body>
