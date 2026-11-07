@@ -100,7 +100,6 @@
 
 <div class="container">
   
-  <!-- 顶部数据统计 -->
   <div class="dashboard">
     <div class="stat-card" id="card-pending">
       <h3>⏳ 待使用总额 (笔数)</h3>
@@ -146,7 +145,7 @@
 
 <script>
   // ==========================================
-  // 📊 数据源 (精准无误，无需改动)
+  // 📊 数据源 
   // ==========================================
   const referralData = [
     {
@@ -242,26 +241,38 @@
   // ⚙️ 核心逻辑与动态渲染
   // ==========================================
   
-  // 1. 筛选逻辑
-  function filterData(keyword) {
+  // 1. 极其严谨的过滤与统计逻辑
+  function updateStatsAndRender(keyword) {
     const kw = keyword.toLowerCase().trim();
-    if (!kw) return referralData; // 如果是空，返回所有
+    const isFiltered = kw !== '';
+    
+    let totalPending = 0, totalUsed = 0, totalExpired = 0, totalPeople = 0;
+    let countPending = 0, countUsed = 0, countExpired = 0;
 
-    return referralData.map(group => {
+    function addToStats(status, credit) {
+      if (credit <= 0) return;
+      if (status === 'pending') { totalPending += credit; countPending++; }
+      else if (status === 'used') { totalUsed += credit; countUsed++; }
+      else if (status === 'blue') { totalExpired += credit; countExpired++; } 
+    }
+
+    // 准备渲染的容器
+    const container = document.getElementById('app');
+    container.innerHTML = '';
+
+    // 遍历原始数据
+    referralData.forEach(group => {
       const matchReferrer = group.referrer.toLowerCase().includes(kw) || (group.id && group.id.includes(kw));
       
+      // 判断这个组里有没有人匹配
       const filteredReferees = group.referees.filter(ref => {
-        // 名字或编号匹配
         let match = ref.name.toLowerCase().includes(kw) || (ref.id && ref.id.includes(kw));
-        
-        // 状态词匹配
         if (['pending','used','expired'].includes(kw)) {
            if (kw === 'pending') match = match || ref.referrerStatus === 'pending' || ref.refereeStatus === 'pending';
            else if (kw === 'used') match = match || ref.referrerStatus === 'used' || ref.refereeStatus === 'used';
            else if (kw === 'expired') match = match || ref.referrerStatus === 'blue' || ref.refereeStatus === 'blue';
         }
 
-        // 检查下级子节点是否匹配
         let subMatch = false;
         if (ref.subReferees) {
           ref.subReferees.forEach(sub => {
@@ -274,72 +285,43 @@
             if (sMatch) subMatch = true;
           });
         }
-
         return match || subMatch;
       });
 
-      // 如果第一层匹配，或者下面有匹配的人，就保留这组
-      if (matchReferrer || filteredReferees.length > 0) {
-        return {
-          ...group,
-          // 如果大老板直接匹配，就全显示；否则只显示匹配的子集
-          referees: matchReferrer ? group.referees : filteredReferees
-        };
+      // 如果这个组完全没有匹配（包括第一层、第二层、第三层都没对上），跳过。
+      if (!matchReferrer && filteredReferees.length === 0) return;
+
+      // ====== 核心修复：只统计属于该搜索人物的钱 ======
+      if (matchReferrer) {
+        // 如果是搜大老板（比如 Ariel），只把她作为介绍人拿的钱算给她。
+        // 她下属拿的钱、下下级拿的钱，统统不算给 Ariel！
+        group.referees.forEach(ref => {
+          if (ref.name) totalPeople++; // 人头算上
+          addToStats(ref.referrerStatus, ref.referrerCredit); // 算 Ariel 的介绍费
+        });
+      } else {
+        // 如果是搜下属（比如 Jennifer），既算她拿的介绍费，也算她拿的新人费
+        filteredReferees.forEach(ref => {
+          if (ref.name) totalPeople++;
+          addToStats(ref.referrerStatus, ref.referrerCredit);
+          addToStats(ref.refereeStatus, ref.refereeCredit);
+
+          if (ref.subReferees) {
+            ref.subReferees.forEach(sub => {
+              if (sub.name) totalPeople++;
+              // 如果只搜 Jennifer，且子节点也被带出来了，要不要算子节点的钱？
+              // 严谨起见，如果搜具体名字，子节点的钱也不算在 Jennifer 头上。
+              // 但如果搜的是状态（如 pending），子节点的钱要全算上。
+              if (['pending','used','expired'].includes(kw) || kw === '') {
+                addToStats(sub.subRefStatus, sub.subRefCredit);
+                addToStats(sub.status, sub.credit);
+              }
+            });
+          }
+        });
       }
-      return null;
-    }).filter(Boolean);
-  }
 
-  // 2. 统计逻辑（基于筛选后的数据）
-  function processData(filteredGroups, isFiltered) {
-    let totalPending = 0, totalUsed = 0, totalExpired = 0, totalPeople = 0;
-    let countPending = 0, countUsed = 0, countExpired = 0;
-
-    function addToStats(status, credit) {
-      if (credit <= 0) return;
-      if (status === 'pending') { totalPending += credit; countPending++; }
-      else if (status === 'used') { totalUsed += credit; countUsed++; }
-      else if (status === 'blue') { totalExpired += credit; countExpired++; } 
-    }
-
-    filteredGroups.forEach(group => {
-      group.referees.forEach(ref => {
-        if (ref.name) totalPeople++;
-        
-        addToStats(ref.referrerStatus, ref.referrerCredit);
-        addToStats(ref.refereeStatus, ref.refereeCredit);
-
-        if (ref.subReferees) {
-          ref.subReferees.forEach(sub => {
-            if (sub.name) totalPeople++;
-            addToStats(sub.subRefStatus, sub.subRefCredit);
-            addToStats(sub.status, sub.credit);
-          });
-        }
-      });
-    });
-
-    // 更新数字
-    document.getElementById('total-pending').innerText = `$${totalPending} (${countPending}笔)`;
-    document.getElementById('total-used').innerText = `$${totalUsed} (${countUsed}笔)`;
-    document.getElementById('total-expired').innerText = `$${totalExpired} (${countExpired}笔)`;
-    document.getElementById('total-people').innerText = totalPeople;
-
-    // 更新卡片样式（高亮表示正在过滤）
-    const cards = document.querySelectorAll('.stat-card');
-    cards.forEach(card => {
-      if (isFiltered) card.classList.add('filtered');
-      else card.classList.remove('filtered');
-    });
-  }
-
-  // 3. 渲染 HTML
-  function renderHTML(groups, keyword = '') {
-    const container = document.getElementById('app');
-    container.innerHTML = '';
-    const kw = keyword.toLowerCase().trim();
-
-    groups.forEach(group => {
+      // ====== 渲染 HTML ======
       let groupHTML = `
         <div class="group-card">
           <div class="referrer-block">
@@ -351,15 +333,15 @@
             <div class="referee-list">
       `;
 
-      group.referees.forEach(ref => {
-        // 确定是否显示当前父节点（如果过滤了）
+      const listToRender = matchReferrer ? group.referees : filteredReferees;
+
+      listToRender.forEach(ref => {
         let selfMatch = ref.name.toLowerCase().includes(kw) || (ref.id && ref.id.includes(kw));
         if (['pending','used','expired'].includes(kw)) {
            if (kw === 'pending') selfMatch = selfMatch || ref.referrerStatus === 'pending' || ref.refereeStatus === 'pending';
            else if (kw === 'used') selfMatch = selfMatch || ref.referrerStatus === 'used' || ref.refereeStatus === 'used';
            else if (kw === 'expired') selfMatch = selfMatch || ref.referrerStatus === 'blue' || ref.refereeStatus === 'blue';
         }
-        let matchReferrer = group.referrer.toLowerCase().includes(kw) || (group.id && group.id.includes(kw));
 
         groupHTML += `
           <div class="referee-item">
@@ -389,7 +371,6 @@
 
         if (ref.subReferees) {
           ref.subReferees.forEach(sub => {
-            // 只有在匹配时，或者父节点匹配时，才渲染子节点
             let sMatch = sub.name.toLowerCase().includes(kw) || (sub.id && sub.id.includes(kw));
             if (['pending','used','expired'].includes(kw)) {
               if (kw === 'pending') sMatch = sMatch || sub.status === 'pending' || sub.subRefStatus === 'pending';
@@ -426,9 +407,21 @@
           });
         }
       });
-
       groupHTML += `</div></div></div>`;
       container.innerHTML += groupHTML;
+    });
+
+    // 更新顶部面板
+    document.getElementById('total-pending').innerText = `$${totalPending} (${countPending}笔)`;
+    document.getElementById('total-used').innerText = `$${totalUsed} (${countUsed}笔)`;
+    document.getElementById('total-expired').innerText = `$${totalExpired} (${countExpired}笔)`;
+    document.getElementById('total-people').innerText = totalPeople;
+
+    // 更新 UI 状态
+    const cards = document.querySelectorAll('.stat-card');
+    cards.forEach(card => {
+      if (isFiltered) card.classList.add('filtered');
+      else card.classList.remove('filtered');
     });
 
     if (container.innerHTML === '') {
@@ -443,17 +436,12 @@
     return 'status-gray';
   }
 
-  // 4. 全局事件绑定
+  // 初始化与事件
   document.getElementById('searchInput').addEventListener('input', (e) => {
-    const kw = e.target.value.trim();
-    const filtered = filterData(kw);
-    processData(filtered, kw !== ''); // 如果有关键字，统计栏打上高亮标记
-    renderHTML(filtered, kw);
+    updateStatsAndRender(e.target.value);
   });
 
-  // 初始化加载
-  processData(referralData, false);
-  renderHTML(referralData);
+  updateStatsAndRender('');
 </script>
 </body>
 </html>
