@@ -146,7 +146,7 @@
 
 <script>
   // ==========================================
-  // 📊 数据源 (完全保留多级结构，双向奖励)
+  // 📊 数据源
   // ==========================================
   const referralData = [
     {
@@ -249,7 +249,6 @@
       group.referees.forEach(ref => {
         if (ref.name) totalPeople++;
         
-        // 主节点双向统计
         if (ref.referrerCredit > 0) {
           if (ref.referrerStatus === 'pending') totalPending += ref.referrerCredit;
           else if (ref.referrerStatus === 'used') totalUsed += ref.referrerCredit;
@@ -261,7 +260,6 @@
           else if (ref.refereeStatus === 'expired') totalExpired += ref.refereeCredit;
         }
 
-        // 孙节点（下级裂变）统计
         if (ref.subReferees) {
           ref.subReferees.forEach(sub => {
             if (sub.name) totalPeople++;
@@ -301,18 +299,36 @@
     const keyword = filterText.toLowerCase().trim();
 
     referralData.forEach(group => {
+      // 1. 检查第一层：大介绍人是否匹配
       const matchReferrer = group.referrer.toLowerCase().includes(keyword) || (group.id && group.id.includes(keyword));
       
-      const filteredReferees = group.referees.filter(ref => {
-        const matchName = ref.name.toLowerCase().includes(keyword) || (ref.id && ref.id.includes(keyword));
-        let matchStatus = true;
+      // 2. 检查第二层和第三层（深层搜索）
+      let hasMatchingReferee = false;
+      
+      group.referees.forEach(ref => {
+        // 自己匹配
+        let selfMatch = ref.name.toLowerCase().includes(keyword) || (ref.id && ref.id.includes(keyword));
         if (['pending','used','expired'].includes(keyword)) {
-          matchStatus = ref.referrerStatus === keyword || ref.refereeStatus === keyword;
+           selfMatch = selfMatch || ref.referrerStatus === keyword || ref.refereeStatus === keyword;
         }
-        return matchName || matchStatus;
+        
+        // 子节点匹配
+        let subMatch = false;
+        if (ref.subReferees) {
+          ref.subReferees.forEach(sub => {
+            let sMatch = sub.name.toLowerCase().includes(keyword) || (sub.id && sub.id.includes(keyword));
+            if (['pending','used','expired'].includes(keyword)) {
+              sMatch = sMatch || sub.status === keyword;
+            }
+            if (sMatch) subMatch = true;
+          });
+        }
+        
+        if (selfMatch || subMatch) hasMatchingReferee = true;
       });
 
-      if (!matchReferrer && filteredReferees.length === 0) return;
+      // 如果这一大组完全没找到，跳过
+      if (!matchReferrer && !hasMatchingReferee) return;
 
       let groupHTML = `
         <div class="group-card">
@@ -325,62 +341,90 @@
             <div class="referee-list">
       `;
 
-      const listToRender = (matchReferrer && !['pending','used','expired'].includes(keyword)) ? group.referees : filteredReferees;
+      // 3. 筛选并渲染第二层
+      group.referees.forEach(ref => {
+        let selfMatch = ref.name.toLowerCase().includes(keyword) || (ref.id && ref.id.includes(keyword));
+        if (['pending','used','expired'].includes(keyword)) {
+           selfMatch = selfMatch || ref.referrerStatus === keyword || ref.refereeStatus === keyword;
+        }
 
-      listToRender.forEach(ref => {
-        groupHTML += `
-          <div class="referee-item ${getBgClass(ref.referrerCredit, ref.referrerStatus, ref.refereeCredit, ref.refereeStatus)}">
-            <div class="referee-info">
-              <div class="referee-name-row">
-                <div class="referee-name ${getStatusClass(ref.refereeStatus)}">
-                  ↳ ${ref.name} 
-                  ${ref.role ? `<span class="sub-text">(${ref.role})</span>` : ''}
-                  ${ref.id ? `<span class="sub-text">#${ref.id}</span>` : ''}
-                </div>
-              </div>
-              ${ref.note ? `<div class="referee-note">${ref.note}</div>` : ''}
-            </div>
-            
-            <div class="credit-badges">
-              <div class="amount-box">
-                <span class="badge-label">介绍人奖励</span>
-                <span class="amount ${getStatusClass(ref.referrerStatus)}">${ref.referrerCredit > 0 ? '$'+ref.referrerCredit : '$0'}</span>
-              </div>
-              <div class="amount-box">
-                <span class="badge-label">新人奖励</span>
-                <span class="amount ${getStatusClass(ref.refereeStatus)}">${ref.refereeCredit > 0 ? '$'+ref.refereeCredit : '$0'}</span>
-              </div>
-            </div>
-          </div>
-        `;
-
-        // 多级裂变渲染
+        let subMatch = false;
         if (ref.subReferees) {
           ref.subReferees.forEach(sub => {
-            groupHTML += `
-              <div class="referee-item sub-referee ${sub.credit > 0 ? 'bg-' + sub.status : 'bg-zero'}">
-                <div class="referee-info">
-                  <div class="referee-name-row">
-                    <div class="referee-name ${getStatusClass(sub.status)}" style="font-size:0.9rem;">
-                      ↳↳ ${sub.name}
-                      ${sub.role ? `<span class="sub-text">(${sub.role})</span>` : ''}
-                    </div>
+            let sMatch = sub.name.toLowerCase().includes(keyword) || (sub.id && sub.id.includes(keyword));
+            if (['pending','used','expired'].includes(keyword)) {
+              sMatch = sMatch || sub.status === keyword;
+            }
+            if (sMatch) subMatch = true;
+          });
+        }
+
+        // 如果第一层匹配，或者自身/子节点匹配，就显示
+        if (matchReferrer || selfMatch || subMatch) {
+          // 渲染第二层
+          groupHTML += `
+            <div class="referee-item ${getBgClass(ref.referrerCredit, ref.referrerStatus, ref.refereeCredit, ref.refereeStatus)}">
+              <div class="referee-info">
+                <div class="referee-name-row">
+                  <div class="referee-name ${getStatusClass(ref.refereeStatus)}">
+                    ↳ ${ref.name} 
+                    ${ref.role ? `<span class="sub-text">(${ref.role})</span>` : ''}
+                    ${ref.id ? `<span class="sub-text">#${ref.id}</span>` : ''}
                   </div>
-                  ${sub.note ? `<div class="referee-note">${sub.note}</div>` : ''}
                 </div>
-                <div class="credit-badges">
-                  <div class="amount-box">
-                    <span class="badge-label">上级介绍奖励</span>
-                    <span class="amount ${getStatusClass(sub.status)}">${sub.credit > 0 ? '$'+sub.credit : '$0'}</span>
-                  </div>
-                  <div class="amount-box">
-                    <span class="badge-label">新人奖励</span>
-                    <span class="amount ${getStatusClass(sub.status)}">${sub.credit > 0 ? '$'+sub.credit : '$0'}</span>
-                  </div>
+                ${ref.note ? `<div class="referee-note">${ref.note}</div>` : ''}
+              </div>
+              
+              <div class="credit-badges">
+                <div class="amount-box">
+                  <span class="badge-label">介绍人奖励</span>
+                  <span class="amount ${getStatusClass(ref.referrerStatus)}">${ref.referrerCredit > 0 ? '$'+ref.referrerCredit : '$0'}</span>
+                </div>
+                <div class="amount-box">
+                  <span class="badge-label">新人奖励</span>
+                  <span class="amount ${getStatusClass(ref.refereeStatus)}">${ref.refereeCredit > 0 ? '$'+ref.refereeCredit : '$0'}</span>
                 </div>
               </div>
-            `;
-          });
+            </div>
+          `;
+
+          // 渲染第三层（如果有）
+          if (ref.subReferees) {
+            ref.subReferees.forEach(sub => {
+              let sMatch = sub.name.toLowerCase().includes(keyword) || (sub.id && sub.id.includes(keyword));
+              if (['pending','used','expired'].includes(keyword)) {
+                sMatch = sMatch || sub.status === keyword;
+              }
+              
+              // 如果第一层匹配、第二层匹配，或者自己匹配，就显示
+              if (matchReferrer || selfMatch || sMatch) {
+                groupHTML += `
+                  <div class="referee-item sub-referee ${sub.credit > 0 ? 'bg-' + sub.status : 'bg-zero'}">
+                    <div class="referee-info">
+                      <div class="referee-name-row">
+                        <div class="referee-name ${getStatusClass(sub.status)}" style="font-size:0.9rem;">
+                          ↳↳ ${sub.name}
+                          ${sub.role ? `<span class="sub-text">(${sub.role})</span>` : ''}
+                          ${sub.id ? `<span class="sub-text">#${sub.id}</span>` : ''}
+                        </div>
+                      </div>
+                      ${sub.note ? `<div class="referee-note">${sub.note}</div>` : ''}
+                    </div>
+                    <div class="credit-badges">
+                      <div class="amount-box">
+                        <span class="badge-label">上级介绍奖励</span>
+                        <span class="amount ${getStatusClass(sub.status)}">${sub.credit > 0 ? '$'+sub.credit : '$0'}</span>
+                      </div>
+                      <div class="amount-box">
+                        <span class="badge-label">新人奖励</span>
+                        <span class="amount ${getStatusClass(sub.status)}">${sub.credit > 0 ? '$'+sub.credit : '$0'}</span>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }
+            });
+          }
         }
       });
 
