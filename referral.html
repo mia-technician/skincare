@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Referral Program Tracker</title>
+<title>Referral Program Tracker - Interactive</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,77 +16,91 @@
   }
   .stat-card {
     background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-    border: 1px solid #e2e8f0; text-align: center;
-    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0; text-align: center; transition: all 0.3s ease;
   }
   .stat-card h3 { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
   .stat-card .value { font-size: 1.6rem; font-weight: 700; color: #1e293b; }
-  .stat-card .value.pending { color: #dc2626; } /* 红 */
-  .stat-card .value.used { color: #475569; font-style: italic; } /* 灰 */
-  .stat-card .value.expired { color: #3b82f6; font-weight: 400; } /* 蓝 */
-  
+  .stat-card .value.pending { color: #dc2626; }
+  .stat-card .value.used { color: #475569; font-style: italic; }
+  .stat-card .value.expired { color: #3b82f6; font-weight: 400; }
   .stat-card .filter-note { font-size: 0.75rem; color: #dc2626; margin-top: 4px; display: none; font-weight: 600; }
   .stat-card.filtered { border-color: #fca5a5; background: #fff5f5; }
   .stat-card.filtered .filter-note { display: block; }
 
-  /* === 图例说明 === */
-  .legend { display: flex; gap: 20px; margin-bottom: 24px; font-size: 0.9rem; color: #475569; background: #fff; padding: 16px 24px; border-radius: 12px; border: 1px solid #e2e8f0; flex-wrap: wrap;}
-  .legend span { display: flex; align-items: center; gap: 8px; }
-  
-  .dot { width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
-  .dot.pending { background: #fee2e2; border: 1px solid #dc2626; }
-  .dot.used { background: #f1f5f9; border: 1px solid #475569; }
-  .dot.expired { background: #eff6ff; border: 1px solid #3b82f6; }
-
-  /* === 搜索框 === */
-  .search-bar { margin-bottom: 24px; }
-  .search-bar input {
-    width: 100%; padding: 16px 20px; border: 1px solid #cbd5e1; border-radius: 12px;
-    font-size: 1rem; font-family: inherit; outline: none; transition: 0.2s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  /* === 操作栏 === */
+  .action-bar { display: flex; gap: 16px; margin-bottom: 24px; align-items: center; flex-wrap: wrap; }
+  .search-input {
+    flex: 1; min-width: 250px; padding: 12px 20px; border: 1px solid #cbd5e1; border-radius: 12px;
+    font-size: 1rem; outline: none; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.02);
   }
-  .search-bar input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-  .search-hint { font-size: 0.85rem; color: #64748b; margin-top: 10px; }
-  .search-hint code { background: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #1e293b; font-weight: 600;}
+  .search-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+  .btn {
+    padding: 12px 20px; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: 0.2s;
+  }
+  .btn-primary { background: #3b82f6; color: white; }
+  .btn-primary:hover { background: #2563eb; }
+  .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+  .btn-secondary:hover { background: #e2e8f0; }
 
   /* === 关系卡片 === */
   .group-card {
     background: #fff; border-radius: 16px; padding: 24px; margin-bottom: 20px;
-    border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.02); position: relative;
   }
-  .referrer-block {
-    border-bottom: 1px dashed #e2e8f0; padding-bottom: 16px; margin-bottom: 16px;
-  }
+  .referrer-block { border-bottom: 1px dashed #e2e8f0; padding-bottom: 16px; margin-bottom: 16px; }
   .referrer-block:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
   
   .name-title { font-weight: 700; font-size: 1.15rem; color: #0f172a; display: flex; align-items: center; gap: 8px; }
   .name-title span { font-size: 0.75rem; font-weight: 400; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 20px; }
   .note-text { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; margin-bottom: 12px; }
 
-  /* 被介绍人列表 */
   .referee-list { margin-left: 12px; padding-left: 20px; border-left: 2px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; }
-  
   .referee-item {
     display: flex; justify-content: space-between; align-items: center;
     padding: 12px 16px; border-radius: 8px; border: 1px solid #f1f5f9; background: #fafafa;
+    position: relative;
   }
-  
   .referee-info { flex: 1; display: flex; flex-direction: column; gap: 4px;}
   
-  /* 🌟 字体状态 */
-  .status-pending { font-weight: 700; color: #dc2626; } /* 红色粗体 待用 */
-  .status-used { font-style: italic; color: #64748b; text-decoration: line-through; } /* 灰色划线 已用 */
-  .status-blue { font-weight: 400; color: #2563eb; } /* 蓝色 过期 */
-  .status-gray { font-weight: 400; color: #cbd5e1; } /* 浅灰 未标色 */
+  .status-pending { font-weight: 700; color: #dc2626; }
+  .status-used { font-style: italic; color: #64748b; text-decoration: line-through; }
+  .status-blue { font-weight: 400; color: #2563eb; }
+  .status-gray { font-weight: 400; color: #cbd5e1; }
 
-  /* 金额区块 */
   .credit-badges { display: flex; gap: 20px; margin-left: 16px; }
   .amount-box { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
   .badge-label { font-size: 0.7rem; color: #64748b; font-weight: 400; }
   .amount { font-size: 1rem; }
-
-  /* 多级缩进 */
   .sub-referee { margin-left: 24px; border-left: 2px solid #cbd5e1; background: #fff; }
+
+  /* === 编辑按钮 === */
+  .edit-btn {
+    position: absolute; right: -10px; top: -10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 50%;
+    width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); opacity: 0; transition: 0.2s;
+  }
+  .referee-item:hover .edit-btn { opacity: 1; }
+  .edit-btn:hover { background: #f8fafc; transform: scale(1.1); }
+
+  /* === 弹窗表单 === */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+    display: none; justify-content: center; align-items: center; z-index: 1000;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-content {
+    background: #fff; padding: 30px; border-radius: 16px; width: 90%; max-width: 500px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  }
+  .modal-content h3 { margin-bottom: 20px; font-size: 1.2rem; color: #1e293b; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
+  .form-group input, .form-group select {
+    width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem;
+    font-family: inherit;
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
 
   @media(max-width: 700px) {
     .dashboard { grid-template-columns: 1fr 1fr; }
@@ -94,6 +108,7 @@
     .credit-badges { margin-left: 0; width: 100%; justify-content: space-between; border-top: 1px dashed #e2e8f0; padding-top: 8px; margin-top: 4px;}
     .amount-box { align-items: flex-start; }
     .sub-referee { margin-left: 10px; }
+    .edit-btn { opacity: 1; top: 10px; right: 10px; }
   }
 </style>
 </head>
@@ -124,31 +139,87 @@
     </div>
   </div>
 
-  <div class="legend">
-    <span><div class="dot pending"></div> 待使用 (红色粗体)</span>
-    <span><div class="dot used"></div> 已使用 (灰色划线)</span>
-    <span><div class="dot expired"></div> 已过期 (蓝色常规)</span>
-  </div>
-
-  <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="搜索名字、编号、备注...">
-    <div class="search-hint">
-      快捷筛选：
-      <code>pending</code> (红色待用) | 
-      <code>used</code> (灰字已用) | 
-      <code>expired</code> (蓝色过期)
-    </div>
+  <div class="action-bar">
+    <input type="text" id="searchInput" class="search-input" placeholder="搜索名字、编号... (输入 pending/used/expired 快捷筛选)">
+    <button class="btn btn-secondary" onclick="exportData()">📥 导出 JSON</button>
+    <button class="btn btn-primary" onclick="openAddModal()">➕ 新增客户</button>
   </div>
 
   <div id="app"></div>
 
 </div>
 
+<!-- === 弹窗表单 === -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-content">
+    <h3 id="modalTitle">新增客户</h3>
+    <form id="editForm" onsubmit="saveData(event)">
+      <input type="hidden" id="editIndex">
+      
+      <div class="form-group">
+        <label>介绍人 (Referrer)</label>
+        <input type="text" id="inputReferrer" required placeholder="例: F - Ariel Fang Zheng">
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>被介绍人名字</label>
+          <input type="text" id="inputRefereeName" required>
+        </div>
+        <div class="form-group">
+          <label>编号 ID (可选)</label>
+          <input type="text" id="inputRefereeId">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>介绍人奖励金额 ($)</label>
+          <input type="number" id="inputReferrerCredit" value="0" required>
+        </div>
+        <div class="form-group">
+          <label>介绍人奖励状态</label>
+          <select id="inputReferrerStatus">
+            <option value="pending">待使用 (红)</option>
+            <option value="used">已使用 (灰)</option>
+            <option value="blue">已过期 (蓝)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>新人奖励金额 ($)</label>
+          <input type="number" id="inputRefereeCredit" value="0" required>
+        </div>
+        <div class="form-group">
+          <label>新人奖励状态</label>
+          <select id="inputRefereeStatus">
+            <option value="pending">待使用 (红)</option>
+            <option value="used">已使用 (灰)</option>
+            <option value="blue">已过期 (蓝)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>备注 (Note)</label>
+        <input type="text" id="inputNote">
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
   // ==========================================
-  // 📊 数据源 (吸管取色，像素级校准)
+  // 📊 初始数据源 (当本地无缓存时加载)
   // ==========================================
-  const referralData = [
+  const INITIAL_DATA = [
     {
       referrer: "F - Ariel Fang Zheng", id: "25023", note: "TMG 4/29, 12/?, 9/10",
       referees: [
@@ -239,9 +310,140 @@
   ];
 
   // ==========================================
-  // ⚙️ 核心逻辑与动态渲染 (纯净版)
+  // ⚙️ 数据状态管理
   // ==========================================
-  
+  let currentData = [];
+  let editMode = 'add'; // 'add' 或 'edit'
+  let editingGroupIndex = -1;
+  let editingRefIndex = -1;
+
+  // 初始化数据 (优先读取本地缓存)
+  function initData() {
+    const localData = localStorage.getItem('referralData');
+    if (localData) {
+      currentData = JSON.parse(localData);
+    } else {
+      currentData = JSON.parse(JSON.stringify(INITIAL_DATA)); // 深拷贝
+      localStorage.setItem('referralData', JSON.stringify(currentData));
+    }
+    updateStatsAndRender('');
+  }
+
+  // 保存数据到本地
+  function saveToLocal() {
+    localStorage.setItem('referralData', JSON.stringify(currentData));
+  }
+
+  // ==========================================
+  // 📝 表单交互 (新增与编辑)
+  // ==========================================
+  function openAddModal() {
+    editMode = 'add';
+    document.getElementById('modalTitle').innerText = '新增客户记录';
+    document.getElementById('editForm').reset();
+    
+    // 如果有现成的组，默认选第一个
+    if(currentData.length > 0) {
+      document.getElementById('inputReferrer').value = currentData[0].referrer;
+    }
+    document.getElementById('modal').classList.add('show');
+  }
+
+  function openEditModal(groupIndex, refIndex) {
+    editMode = 'edit';
+    editingGroupIndex = groupIndex;
+    editingRefIndex = refIndex;
+    
+    const group = currentData[groupIndex];
+    const ref = group.referees[refIndex];
+
+    document.getElementById('modalTitle').innerText = '编辑客户记录';
+    document.getElementById('inputReferrer').value = group.referrer;
+    document.getElementById('inputRefereeName').value = ref.name || '';
+    document.getElementById('inputRefereeId').value = ref.id || '';
+    document.getElementById('inputReferrerCredit').value = ref.referrerCredit || 0;
+    document.getElementById('inputReferrerStatus').value = ref.referrerStatus || 'pending';
+    document.getElementById('inputRefereeCredit').value = ref.refereeCredit || 0;
+    document.getElementById('inputRefereeStatus').value = ref.refereeStatus || 'pending';
+    document.getElementById('inputNote').value = ref.note || '';
+
+    document.getElementById('modal').classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('show');
+  }
+
+  function saveData(e) {
+    e.preventDefault();
+    
+    const referrerName = document.getElementById('inputReferrer').value.trim();
+    const refData = {
+      name: document.getElementById('inputRefereeName').value.trim(),
+      id: document.getElementById('inputRefereeId').value.trim(),
+      referrerCredit: Number(document.getElementById('inputReferrerCredit').value),
+      referrerStatus: document.getElementById('inputReferrerStatus').value,
+      refereeCredit: Number(document.getElementById('inputRefereeCredit').value),
+      refereeStatus: document.getElementById('inputRefereeStatus').value,
+      note: document.getElementById('inputNote').value.trim()
+    };
+
+    if (editMode === 'add') {
+      // 找找有没有这个介绍人的组
+      let groupIndex = currentData.findIndex(g => g.referrer === referrerName);
+      if (groupIndex === -1) {
+        // 如果没有，新建一个组
+        currentData.push({
+          referrer: referrerName,
+          id: '',
+          note: '',
+          referees: [refData]
+        });
+      } else {
+        // 如果有，直接塞进已有的组里
+        currentData[groupIndex].referees.push(refData);
+      }
+    } else {
+      // 编辑模式，直接替换
+      const group = currentData[editingGroupIndex];
+      // 如果改了介绍人名字，需要挪动数据
+      if (group.referrer !== referrerName) {
+         // 把旧数据删掉
+         group.referees.splice(editingRefIndex, 1);
+         // 找新的介绍人组
+         let newGroupIndex = currentData.findIndex(g => g.referrer === referrerName);
+         if (newGroupIndex === -1) {
+            currentData.push({ referrer: referrerName, referees: [refData] });
+         } else {
+            currentData[newGroupIndex].referees.push(refData);
+         }
+      } else {
+         // 介绍人没变，原地更新
+         group.referees[editingRefIndex] = refData;
+      }
+    }
+
+    saveToLocal();
+    closeModal();
+    updateStatsAndRender(document.getElementById('searchInput').value); // 保持当前搜索状态刷新
+  }
+
+  // ==========================================
+  // 📥 导出数据
+  // ==========================================
+  function exportData() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentData, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href",     dataStr);
+    downloadAnchorNode.setAttribute("download", "referral_data.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  }
+
+  // ==========================================
+  // ⚙️ 统计与渲染核心逻辑
+  // ==========================================
   function updateStatsAndRender(keyword) {
     const kw = keyword.toLowerCase().trim();
     const isFiltered = kw !== '';
@@ -259,7 +461,7 @@
     const container = document.getElementById('app');
     container.innerHTML = '';
 
-    referralData.forEach(group => {
+    currentData.forEach((group, gIdx) => {
       const matchReferrer = group.referrer.toLowerCase().includes(kw) || (group.id && group.id.includes(kw));
       
       const filteredReferees = group.referees.filter(ref => {
@@ -287,14 +489,12 @@
 
       if (!matchReferrer && filteredReferees.length === 0) return;
 
-      // ====== 核心统计（只算当前筛选的人自己的钱） ======
+      // 统计
       if (!isFiltered) {
-        // 1. 全局统计：毫无保留，全部相加
         group.referees.forEach(ref => {
           if (ref.name) totalPeople++;
           addToStats(ref.referrerStatus, ref.referrerCredit);
           addToStats(ref.refereeStatus, ref.refereeCredit);
-
           if (ref.subReferees) {
             ref.subReferees.forEach(sub => {
               if (sub.name) totalPeople++;
@@ -304,7 +504,6 @@
           }
         });
       } else {
-        // 2. 搜索统计：只算搜出来的这个人自己的钱，绝不越权算给上级
         if (matchReferrer) {
           group.referees.forEach(ref => {
             if (ref.referrerCredit > 0) {
@@ -317,8 +516,6 @@
             if (ref.name) totalPeople++;
             addToStats(ref.referrerStatus, ref.referrerCredit);
             addToStats(ref.refereeStatus, ref.refereeCredit);
-            
-            // 如果是搜状态，子节点也带上
             if (ref.subReferees && ['pending','used','expired'].includes(kw)) {
               ref.subReferees.forEach(sub => {
                 addToStats(sub.subRefStatus, sub.subRefCredit);
@@ -329,7 +526,7 @@
         }
       }
 
-      // ====== 渲染 ======
+      // 渲染
       let groupHTML = `
         <div class="group-card">
           <div class="referrer-block">
@@ -343,7 +540,10 @@
 
       const listToRender = matchReferrer ? group.referees : filteredReferees;
 
-      listToRender.forEach(ref => {
+      listToRender.forEach((ref) => {
+        // 找到这个 ref 在原始数据中的 index，用于编辑
+        const realRefIndex = group.referees.indexOf(ref);
+        
         let selfMatch = ref.name.toLowerCase().includes(kw) || (ref.id && ref.id.includes(kw));
         if (['pending','used','expired'].includes(kw)) {
            if (kw === 'pending') selfMatch = selfMatch || ref.referrerStatus === 'pending' || ref.refereeStatus === 'pending';
@@ -353,6 +553,7 @@
 
         groupHTML += `
           <div class="referee-item">
+            <button class="edit-btn" onclick="openEditModal(${gIdx}, ${realRefIndex})" title="编辑">✏️</button>
             <div class="referee-info">
               <div class="referee-name-row">
                 <div class="referee-name ${getStatusClass(ref.refereeStatus)}">
@@ -419,7 +620,6 @@
       container.innerHTML += groupHTML;
     });
 
-    // 更新顶部面板
     document.getElementById('total-pending').innerText = `$${totalPending} (${countPending}笔)`;
     document.getElementById('total-used').innerText = `$${totalUsed} (${countUsed}笔)`;
     document.getElementById('total-expired').innerText = `$${totalExpired} (${countExpired}笔)`;
@@ -447,8 +647,8 @@
     updateStatsAndRender(e.target.value);
   });
 
-  // 初始化
-  updateStatsAndRender('');
+  // 启动
+  initData();
 </script>
 </body>
 </html>
