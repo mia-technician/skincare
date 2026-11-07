@@ -146,7 +146,7 @@
 
 <script>
   // ==========================================
-  // 📊 数据源 
+  // 📊 数据源 (吸管取色，像素级校准)
   // ==========================================
   const referralData = [
     {
@@ -239,7 +239,7 @@
   ];
 
   // ==========================================
-  // ⚙️ 核心逻辑与动态渲染
+  // ⚙️ 核心逻辑与动态渲染 (纯净版)
   // ==========================================
   
   function updateStatsAndRender(keyword) {
@@ -287,9 +287,9 @@
 
       if (!matchReferrer && filteredReferees.length === 0) return;
 
-      // ====== 核心统计重构 ======
+      // ====== 核心统计（只算当前筛选的人自己的钱） ======
       if (!isFiltered) {
-        // 1. 全局统计：把所有人都算上，不管三七二十一，全部加进来！
+        // 1. 全局统计：毫无保留，全部相加
         group.referees.forEach(ref => {
           if (ref.name) totalPeople++;
           addToStats(ref.referrerStatus, ref.referrerCredit);
@@ -304,23 +304,21 @@
           }
         });
       } else {
-        // 2. 搜索统计：仅计算当前搜索关键词相关的“独立个体”的资产
+        // 2. 搜索统计：只算搜出来的这个人自己的钱，绝不越权算给上级
         if (matchReferrer) {
-          // 如果搜的是大老板，计算大老板自己的钱（他作为介绍人的钱）
           group.referees.forEach(ref => {
             if (ref.referrerCredit > 0) {
-              totalPeople++; // 算个人头
+              totalPeople++; 
               addToStats(ref.referrerStatus, ref.referrerCredit);
             }
           });
         } else {
-          // 如果搜的是下属，或者状态，把匹配到的人的资产算进去
           filteredReferees.forEach(ref => {
             if (ref.name) totalPeople++;
             addToStats(ref.referrerStatus, ref.referrerCredit);
             addToStats(ref.refereeStatus, ref.refereeCredit);
             
-            // 子节点属于下属的资产，只有当搜索的是下属本人时，才不把子节点的钱算给下属
+            // 如果是搜状态，子节点也带上
             if (ref.subReferees && ['pending','used','expired'].includes(kw)) {
               ref.subReferees.forEach(sub => {
                 addToStats(sub.subRefStatus, sub.subRefCredit);
@@ -421,7 +419,7 @@
       container.innerHTML += groupHTML;
     });
 
-    // 更新 UI
+    // 更新顶部面板
     document.getElementById('total-pending').innerText = `$${totalPending} (${countPending}笔)`;
     document.getElementById('total-used').innerText = `$${totalUsed} (${countUsed}笔)`;
     document.getElementById('total-expired').innerText = `$${totalExpired} (${countExpired}笔)`;
