@@ -20,24 +20,20 @@
 
   .workspace { display: flex; gap: 20px; align-items: flex-start;}
   
-  /* 左侧数据池 */
   .pool {
     flex: 1; background: #e2e8f0; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 16px;
     min-height: 600px; display: flex; flex-direction: column; gap: 10px;
   }
   .pool h3 { font-size: 0.9rem; color: #475569; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
   
-  /* 右侧树状架子 */
   .tree-area { flex: 2; display: flex; flex-direction: column; gap: 20px; }
   .level-1 { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; }
   .level-1-header { font-weight: 700; font-size: 1.1rem; color: #0f172a; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;}
-  
   .level-1-controls { display: flex; gap: 6px; align-items: center; }
   
   .level-2 { margin-left: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 12px; position: relative; }
   .level-3 { margin-left: 20px; background: #fff; border: 1px dashed #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 8px; }
 
-  /* 拖拽方块样式 */
   .draggable-card {
     background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;
     cursor: grab; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s;
@@ -49,13 +45,9 @@
   .card-name { font-weight: 600; font-size: 0.95rem; display: flex; gap: 8px; align-items: center;}
   .card-details { font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; gap: 15px;}
 
-  /* 一级专属拖拽方块 */
-  .draggable-card.level-1-draggable {
-    background: #eff6ff; border-color: #bfdbfe;
-  }
+  .draggable-card.level-1-draggable { background: #eff6ff; border-color: #bfdbfe; }
   .draggable-card.level-1-draggable .card-name { color: #1e3a8a; }
 
-  /* 放置目标区域 */
   .drop-zone {
     min-height: 80px; border: 2px dashed #cbd5e1; border-radius: 6px; margin-top: 8px;
     display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 0.85rem;
@@ -70,7 +62,6 @@
   .btn-move { background: #f1f5f9; color: #475569; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #cbd5e1;}
   .btn-move:hover { background: #e2e8f0; color: #0f172a;}
 
-  /* 状态字 */
   .status-pending { font-weight: 700; color: #dc2626; }
   .status-used { font-style: italic; color: #94a3b8; text-decoration: line-through; } 
   .status-blue { font-weight: 400; color: #2563eb; }
@@ -84,30 +75,15 @@
 <div class="loading-overlay" id="loading">同步云端数据中...</div>
 
 <div class="dashboard">
-  <div class="stat-card">
-    <h3>⏳ 待使用 (Pending)</h3>
-    <div class="value pending" id="total-pending">$0</div>
-  </div>
-  <div class="stat-card">
-    <h3>✅ 已使用 (Used)</h3>
-    <div class="value used" id="total-used">$0</div>
-  </div>
-  <div class="stat-card">
-    <h3>❌ 已过期 (Expired)</h3>
-    <div class="value blue" id="total-expired">$0</div>
-  </div>
-  <div class="stat-card">
-    <h3>👥 已整理人数</h3>
-    <div class="value" id="total-people">0</div>
-  </div>
+  <div class="stat-card"><h3>⏳ 待使用 (Pending)</h3><div class="value pending" id="total-pending">$0</div></div>
+  <div class="stat-card"><h3>✅ 已使用 (Used)</h3><div class="value used" id="total-used">$0</div></div>
+  <div class="stat-card"><h3>❌ 已过期 (Expired)</h3><div class="value blue" id="total-expired">$0</div></div>
+  <div class="stat-card"><h3>👥 已整理人数</h3><div class="value" id="total-people">0</div></div>
 </div>
 
 <div class="workspace">
   <div class="pool">
-    <h3>
-      📦 未分配池 (拖拽至右侧)
-      <button class="btn" style="padding:4px 8px; font-size:0.7rem; background:#64748b;" onclick="fetchDataFromCloud()">刷新数据</button>
-    </h3>
+    <h3>📦 未分配池 (拖拽至右侧) <button class="btn" style="padding:4px 8px; font-size:0.7rem; background:#64748b;" onclick="fetchDataFromCloud()">刷新数据</button></h3>
     <div id="pool-content" style="display: flex; flex-direction: column; gap: 10px;"></div>
   </div>
 
@@ -126,14 +102,12 @@
 
   let allCards = [];
 
-  // 拉取数据
   async function fetchDataFromCloud() {
     showLoading(true);
-    // 🚨 关键：按 sort_order 排序拉取，让云端记住顺序
     const { data, error } = await supabaseClient
       .from('referrals')
       .select('*')
-      .order('sort_order', { ascending: true, nullsFirst: true })
+      .order('group_sort_order', { ascending: true, nullsFirst: true })
       .order('created_at', { ascending: true }); 
 
     if (error) { alert("拉取失败: " + error.message); showLoading(false); return; }
@@ -149,7 +123,7 @@
           refId: row.referrer_id || '',
           level: row.hierarchy_level === 1 ? 1 : null,
           parentId: row.parent_id || null,
-          sortOrder: row.sort_order || 0,
+          groupSortOrder: row.group_sort_order || 0,
           isReferrerBlock: true
         });
       }
@@ -170,7 +144,7 @@
           note: row.referee_note || '',
           level: row.hierarchy_level || null,
           parentId: row.parent_id || null,
-          sortOrder: row.sort_order || 0
+          groupSortOrder: row.group_sort_order || 0
         });
       }
       if (row.sub_referee_name) {
@@ -186,7 +160,7 @@
             note: row.sub_referee_note || '',
             level: 3,
             parentId: row.id,
-            sortOrder: 0
+            groupSortOrder: row.group_sort_order || 0
           });
         }
       }
@@ -196,14 +170,12 @@
     render();
   }
 
-  // 渲染
   function render() {
     const pool = document.getElementById('pool-content');
     const tree = document.getElementById('tree-container');
     pool.innerHTML = '';
     tree.innerHTML = '';
 
-    // 左侧未分配
     const unassigned = allCards.filter(c => !c.level);
     if (unassigned.length === 0) {
       pool.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">全部整理完毕！</div>';
@@ -211,8 +183,8 @@
       unassigned.forEach(card => pool.appendChild(createDraggableCard(card)));
     }
 
-    // 右侧树状图（严格按照 sortOrder 排序）
-    const l1Cards = allCards.filter(c => c.level === 1).sort((a, b) => a.sortOrder - b.sortOrder);
+    // 一级按 groupSortOrder 排序
+    const l1Cards = allCards.filter(c => c.level === 1).sort((a, b) => a.groupSortOrder - b.groupSortOrder);
     
     l1Cards.forEach((l1, idx1) => {
       const l1Div = document.createElement('div');
@@ -235,12 +207,10 @@
       setupDropZone(drop2, l1.id, 2);
       l1Div.appendChild(drop2);
 
-      // 二级也按 sortOrder 排
-      const l2List = allCards.filter(c => c.parentId === l1.id && c.level === 2).sort((a, b) => a.sortOrder - b.sortOrder);
+      const l2List = allCards.filter(c => c.parentId === l1.id && c.level === 2);
       l2List.forEach(l2 => {
         const l2Div = document.createElement('div');
         l2Div.className = 'level-2';
-        
         l2Div.appendChild(createDraggableCard(l2));
         
         const drop3 = document.createElement('div');
@@ -286,7 +256,6 @@
         <span>新人费: <strong class="${rClass}">$${card.refereeCredit}</strong></span>
       </div>
       ` : '<div class="card-details">拖到右侧建立分组</div>'}
-      ${card.note ? `<div style="font-size:0.75rem; color:#94a3b8; margin-top:4px;">📝 ${card.note}</div>` : ''}
     `;
 
     div.addEventListener('dragstart', (e) => {
@@ -315,7 +284,6 @@
       if (card) {
         card.parentId = targetParentId;
         card.level = expectedLevel;
-        card.sortOrder = Date.now(); // 给个时间戳确保在最后
         
         const parentCard = allCards.find(c => c.id === targetParentId);
         if (parentCard && !card.isReferrerBlock) {
@@ -330,8 +298,7 @@
              hierarchy_level: expectedLevel,
              parent_id: targetParentId,
              referrer_name: card.referrerName,
-             referrer_id: card.referrerId,
-             sort_order: card.sortOrder
+             referrer_id: card.referrerId
            }).eq('id', card.id);
         }
       }
@@ -356,38 +323,42 @@
     if (card && card.isReferrerBlock) {
       card.level = 1;
       card.parentId = null;
-      card.sortOrder = Date.now(); // 新拖进来的排在最后
+      
+      // 新拖入的排在最末尾
+      const maxSort = Math.max(...allCards.filter(c => c.level === 1).map(c => c.groupSortOrder || 0), 0);
+      card.groupSortOrder = maxSort + 1000; 
 
       render();
 
+      // 因为一个一级包含了多行数据，必须用 referrer_name 批量更新
       await supabaseClient.from('referrals').update({
         hierarchy_level: 1,
-        sort_order: card.sortOrder
+        group_sort_order: card.groupSortOrder
       }).eq('referrer_name', card.name);
     } else {
       alert("只能把左侧标记为 👑 [待定一级] 的方块拖到这里哦！");
     }
   });
 
-  // 上下移动（更新排序并同步到云端）
+  // 关键：上下移动（永久保存）
   async function moveL1(idx, direction) {
-    const l1Cards = allCards.filter(c => c.level === 1).sort((a, b) => a.sortOrder - b.sortOrder);
+    const l1Cards = allCards.filter(c => c.level === 1).sort((a, b) => a.groupSortOrder - b.groupSortOrder);
     const targetIdx = idx + direction;
     if (targetIdx < 0 || targetIdx >= l1Cards.length) return;
 
     const currentCard = l1Cards[idx];
     const targetCard = l1Cards[targetIdx];
 
-    // 交换它们的排序号
-    const tempOrder = currentCard.sortOrder;
-    currentCard.sortOrder = targetCard.sortOrder;
-    targetCard.sortOrder = tempOrder;
+    // 互换 groupSortOrder
+    const tempOrder = currentCard.groupSortOrder;
+    currentCard.groupSortOrder = targetCard.groupSortOrder;
+    targetCard.groupSortOrder = tempOrder;
 
     render();
 
-    // 立刻同步这两个人到云端
-    await supabaseClient.from('referrals').update({ sort_order: currentCard.sortOrder }).eq('referrer_name', currentCard.name);
-    await supabaseClient.from('referrals').update({ sort_order: targetCard.sortOrder }).eq('referrer_name', targetCard.name);
+    // 写入数据库：批量更新该组下所有人的 group_sort_order
+    await supabaseClient.from('referrals').update({ group_sort_order: currentCard.groupSortOrder }).eq('referrer_name', currentCard.name);
+    await supabaseClient.from('referrals').update({ group_sort_order: targetCard.groupSortOrder }).eq('referrer_name', targetCard.name);
   }
 
   function deleteLevel1(id) {
