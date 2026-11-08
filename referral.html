@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Referral Tracker - 双表版</title>
+<title>Referral Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #f1f5f9; font-family: 'Inter', sans-serif; color: #333; padding: 20px; }
@@ -105,28 +104,28 @@
       <input type="hidden" id="editParentId">
       
       <div class="form-group">
-        <label>姓名 *</label>
+        <label for="inputNodeName">姓名 *</label>
         <input type="text" id="inputNodeName" required placeholder="如: Ti Pu">
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>编号 ID</label>
+          <label for="inputNodeId">编号 ID</label>
           <input type="text" id="inputNodeId" placeholder="如: 38870">
         </div>
         <div class="form-group">
-          <label>备注</label>
+          <label for="inputNote">备注</label>
           <input type="text" id="inputNote" placeholder="如: TMG 5/8">
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>介绍费 ($)</label>
+          <label for="inputRefCredit">介绍费 ($)</label>
           <input type="number" step="0.01" id="inputRefCredit" value="0">
         </div>
         <div class="form-group">
-          <label>介绍费状态</label>
+          <label for="inputRefStatus">介绍费状态</label>
           <select id="inputRefStatus">
             <option value="pending">待使用 (红)</option>
             <option value="used">已使用 (灰划线)</option>
@@ -138,11 +137,11 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label>新人费 ($)</label>
+          <label for="inputRefereeCredit">新人费 ($)</label>
           <input type="number" step="0.01" id="inputRefereeCredit" value="0">
         </div>
         <div class="form-group">
-          <label>新人费状态</label>
+          <label for="inputRefereeStatus">新人费状态</label>
           <select id="inputRefereeStatus">
             <option value="pending">待使用 (红)</option>
             <option value="used">已使用 (灰划线)</option>
@@ -173,10 +172,62 @@
 </div>
 
 <script>
+  // ========== 极简 Supabase REST 客户端（不用 supabase-js） ==========
   const SUPABASE_URL = "https://dmrskyskryrdclknezth.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  const api = {
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json'
+    },
+
+    // 通用请求
+    async request(path, options = {}) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+        ...options,
+        headers: { ...this.headers, ...(options.headers || {}) }
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`HTTP ${res.status}: ${text}`);
+      }
+      // 有些请求（如 DELETE）可能返回空 body
+      const text = await res.text();
+      return text ? JSON.parse(text) : null;
+    },
+
+    // 查询：table, 查询字符串（如 'order=created_at.asc'）
+    async select(table, query = '') {
+      return this.request(`${table}${query ? '?' + query : ''}`);
+    },
+
+    // 插入：返回插入的行
+    async insert(table, row) {
+      return this.request(table, {
+        method: 'POST',
+        headers: { 'Prefer': 'return=representation' },
+        body: JSON.stringify(row)
+      });
+    },
+
+    // 更新：filter 如 'id=eq.xxx'
+    async update(table, filter, patch) {
+      return this.request(`${table}?${filter}`, {
+        method: 'PATCH',
+        headers: { 'Prefer': 'return=representation' },
+        body: JSON.stringify(patch)
+      });
+    },
+
+    // 删除：filter 如 'id=eq.xxx'
+    async delete(table, filter) {
+      return this.request(`${table}?${filter}`, { method: 'DELETE' });
+    }
+  };
+
+  // ========== 状态 ==========
   let allPeople = [];
   let allRelations = [];
   let tree = [];
@@ -189,25 +240,25 @@
     setTimeout(() => { toast.className = 'toast'; }, 3000);
   }
 
+  // ========== 加载 ==========
   async function fetchDataFromCloud() {
     showLoading(true);
-    const [peopleRes, relRes] = await Promise.all([
-      supabaseClient.from('people').select('*').order('created_at', { ascending: true }),
-      supabaseClient.from('referrals').select('*').order('sort_order', { ascending: true, nullsFirst: false })
-    ]);
-
-    if (peopleRes.error || relRes.error) {
-      showToast("拉取失败: " + (peopleRes.error?.message || relRes.error?.message), true);
+    try {
+      const [people, relations] = await Promise.all([
+        api.select('people', 'order=created_at.asc'),
+        api.select('referrals', 'order=sort_order.asc')
+      ]);
+      allPeople = people || [];
+      allRelations = relations || [];
+      render();
+    } catch (err) {
+      showToast("拉取失败: " + err.message, true);
+    } finally {
       showLoading(false);
-      return;
     }
-
-    allPeople = peopleRes.data || [];
-    allRelations = relRes.data || [];
-    showLoading(false);
-    render();
   }
 
+  // ========== 建树 ==========
   function buildTree() {
     const personMap = {};
     allPeople.forEach(p => {
@@ -233,16 +284,13 @@
       }
     });
 
-    // 根节点按 sort_order 排序（根节点没有 relationFromParent，用 0 兜底）
-    roots.sort((a, b) => {
-      const sa = Number(a.relationFromParent?.sort_order ?? 0);
-      const sb = Number(b.relationFromParent?.sort_order ?? 0);
-      return sa - sb;
-    });
+    // 根节点：按 created_at 排序（保持稳定）
+    roots.sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
 
     tree = roots;
   }
 
+  // ========== 渲染 ==========
   function render() {
     buildTree();
     const container = document.getElementById('tree-container');
@@ -287,7 +335,7 @@
           ` : ''}
           <button class="btn btn-add-child" onclick="openAddModal('${node.id}')">➕ 加下级</button>
           <button class="btn btn-move-node" onclick="openMoveModal('${node.id}')">🔀 移动</button>
-          <button class="btn btn-revoke" onclick="revokeNode('${node.id}')" title="退回上一级/变顶级">↩️ 退回</button>
+          <button class="btn btn-revoke" onclick="revokeNode('${node.id}')" title="退回顶级">↩️ 退回</button>
           <span class="edit-icon" onclick="openEditModal('${node.id}')">✏️</span>
         </div>
       </div>
@@ -300,7 +348,6 @@
     wrap.appendChild(box);
 
     if (node.children && node.children.length > 0) {
-      // ✅ 改动 1：按 sort_order 排序
       const sorted = [...node.children].sort((a, b) => {
         const sa = Number(a.relationFromParent?.sort_order ?? 0);
         const sb = Number(b.relationFromParent?.sort_order ?? 0);
@@ -326,7 +373,7 @@
     return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
 
-  // ========== 编辑/新增 ==========
+  // ========== 新增/编辑 ==========
   function openAddModal(parentPersonId) {
     document.getElementById('modalTitle').innerText = parentPersonId ? '新增下级客户' : '新增第一级客户';
     document.getElementById('editForm').reset();
@@ -374,76 +421,68 @@
 
     if (!name) { alert("请填写名字！"); return; }
 
-    if (personId) {
-      // 编辑
-      const { error: pErr } = await supabaseClient.from('people').update({
-        name, ref_id: refId, note
-      }).eq('id', personId);
-      if (pErr) { showToast("更新 people 失败: " + pErr.message, true); return; }
+    try {
+      if (personId) {
+        // 编辑
+        await api.update('people', `id=eq.${personId}`, {
+          name, ref_id: refId, note
+        });
 
-      const rel = allRelations.find(r => r.referee_id === personId);
-      if (rel) {
-        const { error: rErr } = await supabaseClient.from('referrals').update({
-          referrer_credit: refCredit,
-          referrer_status: refStatus,
-          referee_credit: reeCredit,
-          referee_status: reeStatus
-        }).eq('id', rel.id);
-        if (rErr) { showToast("更新金额失败: " + rErr.message, true); return; }
-      }
-
-      closeModal();
-      showToast("保存成功，正在刷新...");
-      setTimeout(fetchDataFromCloud, 400);
-
-    } else {
-      // 新增
-      const { data: newPeople, error: pErr } = await supabaseClient.from('people').insert([{
-        name, ref_id: refId, note
-      }]).select().single();
-      if (pErr) { showToast("新建人失败: " + pErr.message, true); return; }
-
-      if (parentId) {
-        // 新加的下级排到末尾：先查当前父级下最大 sort_order
-        const siblings = allRelations.filter(r => r.referrer_id === parentId);
-        const maxOrder = siblings.reduce((m, r) => Math.max(m, Number(r.sort_order ?? 0)), 0);
-
-        const { error: rErr } = await supabaseClient.from('referrals').insert([{
-          referrer_id: parentId,
-          referee_id: newPeople.id,
-          referrer_credit: refCredit,
-          referrer_status: refStatus,
-          referee_credit: reeCredit,
-          referee_status: reeStatus,
-          sort_order: maxOrder + 1
-        }]);
-        if (rErr) {
-          showToast("建关系失败: " + rErr.message, true);
-          await supabaseClient.from('people').delete().eq('id', newPeople.id);
-          return;
+        const rel = allRelations.find(r => r.referee_id === personId);
+        if (rel) {
+          await api.update('referrals', `id=eq.${rel.id}`, {
+            referrer_credit: refCredit,
+            referrer_status: refStatus,
+            referee_credit: reeCredit,
+            referee_status: reeStatus
+          });
         }
-      }
 
-      closeModal();
-      showToast("新增成功，正在刷新...");
-      setTimeout(fetchDataFromCloud, 400);
+        closeModal();
+        showToast("保存成功");
+        fetchDataFromCloud();
+      } else {
+        // 新增
+        const [newPerson] = await api.insert('people', { name, ref_id: refId, note });
+        if (!newPerson || !newPerson.id) throw new Error("插入 people 后未返回 id");
+
+        if (parentId) {
+          const siblings = allRelations.filter(r => r.referrer_id === parentId);
+          const maxOrder = siblings.reduce((m, r) => Math.max(m, Number(r.sort_order ?? 0)), 0);
+
+          await api.insert('referrals', {
+            referrer_id: parentId,
+            referee_id: newPerson.id,
+            referrer_credit: refCredit,
+            referrer_status: refStatus,
+            referee_credit: reeCredit,
+            referee_status: reeStatus,
+            sort_order: maxOrder + 1
+          });
+        }
+
+        closeModal();
+        showToast("新增成功");
+        fetchDataFromCloud();
+      }
+    } catch (err) {
+      showToast("保存失败: " + err.message, true);
     }
   }
 
   // ========== 退回 ==========
   async function revokeNode(personId) {
     const rel = allRelations.find(r => r.referee_id === personId);
-    if (!rel) {
-      showToast("此人已经是顶级，无需退回", true);
-      return;
+    if (!rel) { showToast("此人已经是顶级", true); return; }
+    if (!confirm("把这个人退回到顶级？他的下级会继续挂在他下面。")) return;
+
+    try {
+      await api.delete('referrals', `id=eq.${rel.id}`);
+      showToast("已退回顶级");
+      fetchDataFromCloud();
+    } catch (err) {
+      showToast("退回失败: " + err.message, true);
     }
-    if (!confirm("把这个人退回到顶级（一级）？他的下级会继续挂在他下面。")) return;
-
-    const { error } = await supabaseClient.from('referrals').delete().eq('id', rel.id);
-    if (error) { showToast("退回失败: " + error.message, true); return; }
-
-    showToast("已退回顶级");
-    fetchDataFromCloud();
   }
 
   // ========== 移动 ==========
@@ -464,7 +503,6 @@
     const list = document.getElementById('moveList');
     list.innerHTML = '';
 
-    // 移到顶级
     const topItem = document.createElement('div');
     topItem.className = 'move-item';
     topItem.innerHTML = `<span>⬆️ 移到顶级（成为一级）</span>`;
@@ -510,43 +548,40 @@
 
     const rel = allRelations.find(r => r.referee_id === personId);
 
-    if (newParentId === null) {
-      // 移到顶级：referrer_id 置 null，保留关系记录和钱
-      if (rel) {
-        const { error } = await supabaseClient.from('referrals').update({ referrer_id: null }).eq('id', rel.id);
-        if (error) { showToast("移动失败: " + error.message, true); return; }
-      }
-    } else {
-      // 新父级下的最大 sort_order
-      const siblings = allRelations.filter(r => r.referrer_id === newParentId);
-      const maxOrder = siblings.reduce((m, r) => Math.max(m, Number(r.sort_order ?? 0)), 0);
-
-      if (rel) {
-        // 已有关系，改 referrer_id + sort_order（排到末尾）
-        const { error } = await supabaseClient.from('referrals').update({
-          referrer_id: newParentId,
-          sort_order: maxOrder + 1
-        }).eq('id', rel.id);
-        if (error) { showToast("移动失败: " + error.message, true); return; }
+    try {
+      if (newParentId === null) {
+        if (rel) {
+          await api.delete('referrals', `id=eq.${rel.id}`);
+        }
       } else {
-        // 原本是顶级，新建关系挂到新父级
-        const { error } = await supabaseClient.from('referrals').insert([{
-          referrer_id: newParentId,
-          referee_id: personId,
-          referrer_credit: 0, referrer_status: 'gray',
-          referee_credit: 0, referee_status: 'gray',
-          sort_order: maxOrder + 1
-        }]);
-        if (error) { showToast("移动失败: " + error.message, true); return; }
-      }
-    }
+        const siblings = allRelations.filter(r => r.referrer_id === newParentId);
+        const maxOrder = siblings.reduce((m, r) => Math.max(m, Number(r.sort_order ?? 0)), 0);
 
-    closeMoveModal();
-    showToast("移动成功");
-    fetchDataFromCloud();
+        if (rel) {
+          await api.update('referrals', `id=eq.${rel.id}`, {
+            referrer_id: newParentId,
+            sort_order: maxOrder + 1
+          });
+        } else {
+          await api.insert('referrals', {
+            referrer_id: newParentId,
+            referee_id: personId,
+            referrer_credit: 0, referrer_status: 'gray',
+            referee_credit: 0, referee_status: 'gray',
+            sort_order: maxOrder + 1
+          });
+        }
+      }
+
+      closeMoveModal();
+      showToast("移动成功");
+      fetchDataFromCloud();
+    } catch (err) {
+      showToast("移动失败: " + err.message, true);
+    }
   }
 
-  // ========== 同级排序（用 sort_order） ==========
+  // ========== 同级排序 ==========
   async function moveSibling(personId, direction) {
     const myRel = allRelations.find(r => r.referee_id === personId);
     if (!myRel) return;
@@ -563,17 +598,18 @@
     const myOrder = Number(myRel.sort_order ?? 0);
     const targetOrder = Number(target.sort_order ?? 0);
 
-    // 如果 sort_order 相同（历史脏数据兜底），用一个临时值错开
-    if (myOrder === targetOrder) {
-      await supabaseClient.from('referrals').update({ sort_order: targetOrder + direction * 0.5 }).eq('id', myRel.id);
-    } else {
-      const { error: e1 } = await supabaseClient.from('referrals').update({ sort_order: targetOrder }).eq('id', myRel.id);
-      const { error: e2 } = await supabaseClient.from('referrals').update({ sort_order: myOrder }).eq('id', target.id);
-      if (e1 || e2) { showToast("排序保存失败", true); return; }
+    try {
+      if (myOrder === targetOrder) {
+        await api.update('referrals', `id=eq.${myRel.id}`, { sort_order: targetOrder + direction * 0.5 });
+      } else {
+        await api.update('referrals', `id=eq.${myRel.id}`, { sort_order: targetOrder });
+        await api.update('referrals', `id=eq.${target.id}`, { sort_order: myOrder });
+      }
+      showToast("顺序已保存");
+      fetchDataFromCloud();
+    } catch (err) {
+      showToast("排序保存失败: " + err.message, true);
     }
-
-    showToast("顺序已保存");
-    fetchDataFromCloud();
   }
 
   // ========== 统计 ==========
