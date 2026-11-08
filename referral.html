@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>拖拽式 Referral Tracker - 干干净净版</title>
+<title>Referral Tracker - 排序锁死版</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -42,6 +42,9 @@
   .level-2 { margin-left: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 12px; position: relative; }
   .level-3 { margin-left: 20px; background: #fff; border: 1px dashed #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 8px; }
 
+  .level-2-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;}
+  .level-2-controls { display: flex; gap: 4px; }
+
   .draggable-card {
     background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;
     cursor: grab; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s; position: relative; user-select: none;
@@ -63,6 +66,7 @@
   .btn { padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem;}
   .btn:hover { background: #2563eb; }
   .btn-danger { background: #ef4444; padding: 4px 8px; font-size: 0.75rem;}
+  .btn-move { background: #f1f5f9; color: #475569; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #cbd5e1;}
   .btn-revoke { background: #fff1f2; color: #e11d48; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #fecdd3;}
 
   .status-pending { font-weight: 700; color: #dc2626; }
@@ -198,17 +202,16 @@
 
   async function fetchDataFromCloud() {
     showLoading(true);
-    // 重新拉取数据
     const { data, error } = await supabaseClient
       .from('referrals')
       .select('*')
+      .order('sort_order', { ascending: true, nullsFirst: true })
       .order('created_at', { ascending: true }); 
 
     if (error) { showToast("拉取失败: " + error.message, true); showLoading(false); return; }
 
     allCards = [];
 
-    // 纯真逻辑：每条数据都是一个独立的人
     data.forEach(row => {
       if (row.referee_name && row.referee_name.trim() !== '') {
         allCards.push({
@@ -222,6 +225,7 @@
           note: row.referee_note || '',
           level: row.hierarchy_level || null,
           parentId: row.parent_id || null, 
+          sortOrder: row.sort_order || 0,
           dbId: row.id
         });
       }
@@ -253,7 +257,7 @@
       unassigned.forEach(card => pool.appendChild(createDraggableCard(card)));
     }
 
-    const l1Cards = allCards.filter(c => c.level === 1);
+    const l1Cards = allCards.filter(c => c.level === 1).sort((a, b) => a.sortOrder - b.sortOrder);
     
     l1Cards.forEach((l1, idx1) => {
       renderedCards.push(l1); 
@@ -276,9 +280,10 @@
       setupDropZone(drop2, l1.id, 2);
       l1Div.appendChild(drop2);
 
-      const l2List = allCards.filter(c => c.level === 2 && c.parentId === l1.id);
+      // 按 sortOrder 排序
+      const l2List = allCards.filter(c => c.level === 2 && c.parentId === l1.id).sort((a, b) => a.sortOrder - b.sortOrder);
       
-      l2List.forEach((l2) => {
+      l2List.forEach((l2, idx2) => {
         renderedCards.push(l2);
 
         const l2Div = document.createElement('div');
@@ -288,7 +293,9 @@
           <div class="level-2-header">
             <span style="font-size:0.75rem; color:#64748b; font-weight:600;">二级客人</span>
             <div class="level-2-controls">
-              <button class="btn btn-revoke" onclick="revokeNode('${l2.id}')" title="退回左侧未分配池">↩️ 退回</button>
+              <button class="btn btn-move" onclick="moveL2('${l1.id}', ${idx2}, -1)" title="上移">↑</button>
+              <button class="btn btn-move" onclick="moveL2('${l1.id}', ${idx2}, 1)" title="下移">↓</button>
+              <button class="btn btn-revoke" onclick="revokeNode('${l2.id}')" title="退回左侧">↩️ 退回</button>
             </div>
           </div>
         `;
@@ -327,6 +334,31 @@
     calculateStats(renderedCards);
   }
 
+  async function moveL2(l1Id, idx, direction) {
+    const l2Cards = allCards.filter(c => c.level === 2 && c.parentId === l1Id).sort((a, b) => a.sortOrder - b.sortOrder);
+    const targetIdx = idx + direction;
+    if (targetIdx < 0 || targetIdx >= l2Cards.length) return;
+
+    const currentCard = l2Cards[idx];
+    const targetCard = l2Cards[targetIdx];
+
+    // 交换本地排序
+    const tempOrder = currentCard.sortOrder;
+    currentCard.sortOrder = targetCard.sortOrder;
+    targetCard.sortOrder = targetCard.sortOrder === tempOrder ? tempOrder + 1 : tempOrder;
+
+    render();
+
+    // 写入数据库
+    if (currentCard.dbId) {
+      await supabaseClient.from('referrals').update({ sort_order: currentCard.sortOrder }).eq('id', currentCard.dbId);
+    }
+    if (targetCard.dbId) {
+      await supabaseClient.from('referrals').update({ sort_order: targetCard.sortOrder }).eq('id', targetCard.dbId);
+    }
+    showToast("顺序已保存");
+  }
+
   async function revokeNode(id) {
     const card = allCards.find(c => c.id === id);
     if (!card) return;
@@ -344,12 +376,11 @@
     render();
 
     if (card.dbId) {
-       const { error } = await supabaseClient.from('referrals').update({
+       await supabaseClient.from('referrals').update({
          hierarchy_level: null,
          parent_id: null
        }).eq('id', card.dbId);
-       if (error) showToast("退回失败: " + error.message, true);
-       else showToast("已退回未分配池");
+       showToast("已退回未分配池");
     }
   }
 
@@ -397,20 +428,19 @@
       if (card) {
         card.parentId = targetParentId;
         card.level = expectedLevel;
+        card.sortOrder = Date.now(); // 🚨 拖拽放入时，给一个巨大的时间戳排到最后
 
         render();
         
         if (card.dbId) {
            const { error } = await supabaseClient.from('referrals').update({
              hierarchy_level: expectedLevel,
-             parent_id: targetParentId
+             parent_id: targetParentId,
+             sort_order: card.sortOrder
            }).eq('id', card.dbId);
            
-           if (error) {
-             showToast("保存失败: " + error.message, true);
-           } else {
-             showToast("保存成功，已写入数据库");
-           }
+           if (error) showToast("保存失败: " + error.message, true);
+           else showToast("保存成功，已写入数据库");
         }
       }
     });
@@ -429,11 +459,13 @@
     if (card && card.dbId) {
       card.level = 1;
       card.parentId = null;
+      card.sortOrder = Date.now();
       render();
 
       const { error } = await supabaseClient.from('referrals').update({
         hierarchy_level: 1,
-        parent_id: null
+        parent_id: null,
+        sort_order: card.sortOrder
       }).eq('id', card.dbId);
 
       if (error) showToast("保存失败: " + error.message, true);
