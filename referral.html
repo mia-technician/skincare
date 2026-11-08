@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Referral Tracker - 纯净新增版</title>
+<title>Referral Tracker - 双表版</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #f1f5f9; font-family: 'Inter', sans-serif; color: #333; padding: 20px; }
   
-  .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+  .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; max-width: 1100px; margin-left: auto; margin-right: auto;}
   .stat-card { background: #fff; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
   .stat-card h3 { font-size: 0.8rem; color: #64748b; margin-bottom: 8px; }
   .stat-card .value { font-size: 1.5rem; font-weight: 700; }
@@ -18,56 +18,36 @@
   .value.used { color: #64748b; font-style: italic; }
   .value.blue { color: #3b82f6; }
 
-  .workspace { display: flex; gap: 20px; align-items: flex-start;}
+  .workspace { max-width: 1100px; margin: 0 auto; }
+  .tree-area { display: flex; flex-direction: column; gap: 20px; }
   
-  .pool {
-    flex: 1; background: #e2e8f0; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 16px;
-    max-height: calc(100vh - 120px); display: flex; flex-direction: column;
-  }
-  .pool-header { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;}
-  .pool h3 { font-size: 0.9rem; color: #475569; display: flex; justify-content: space-between; align-items: center; margin: 0;}
-  
-  .pool-search { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; }
-  .pool-search:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
+  .top-add-bar { text-align: center; margin-bottom: 4px; }
+  .btn-add-l1 { padding: 12px 28px; background: #3b82f6; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(59,130,246,0.3); transition: 0.2s; }
+  .btn-add-l1:hover { background: #2563eb; transform: translateY(-1px); }
 
-  .pool-scroll-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; }
-  .pool-scroll-area::-webkit-scrollbar { width: 6px; }
-  .pool-scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  .node-box { background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 12px; border-left: 4px solid #3b82f6; }
+  .node-box.depth-1 { border-left-color: #3b82f6; background: #fff; }
+  .node-box.depth-2 { border-left-color: #10b981; background: #f8fafc; margin-left: 20px; }
+  .node-box.depth-3 { border-left-color: #f59e0b; background: #fffbeb; margin-left: 20px; }
+  .node-box.depth-4 { border-left-color: #8b5cf6; background: #faf5ff; margin-left: 20px; }
+  .node-box.depth-5 { border-left-color: #ec4899; background: #fdf2f8; margin-left: 20px; }
 
-  .tree-area { flex: 2; display: flex; flex-direction: column; gap: 20px; }
-  .level-1 { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; }
-  .level-1-header { font-weight: 700; font-size: 1.1rem; color: #0f172a; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;}
-  .level-1-controls { display: flex; gap: 6px; align-items: center; }
-  
-  .level-2 { margin-left: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 12px; position: relative; }
-  .level-3 { margin-left: 20px; background: #fff; border: 1px dashed #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .node-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;}
+  .node-title { font-weight: 700; font-size: 0.95rem; color: #0f172a; }
+  .node-controls { display: flex; gap: 4px; flex-wrap: wrap; align-items: center;}
 
-  .level-2-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;}
-  .level-2-controls { display: flex; gap: 4px; }
-
-  .draggable-card {
-    background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;
-    cursor: grab; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s; position: relative; user-select: none;
-  }
-  .draggable-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-color: #cbd5e1; }
+  .card-details { font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; gap: 15px; flex-wrap: wrap;}
   
-  .card-name { font-weight: 600; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;}
-  .card-details { font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; gap: 15px;}
-  
-  .edit-icon { font-size: 0.8rem; cursor: pointer; color: #94a3b8; padding: 2px; border-radius: 4px; transition: 0.2s; }
+  .edit-icon { font-size: 0.8rem; cursor: pointer; color: #94a3b8; padding: 2px 4px; border-radius: 4px; transition: 0.2s; }
   .edit-icon:hover { background: #f1f5f9; color: #0f172a; }
 
-  .drop-zone {
-    min-height: 40px; border: 2px dashed #cbd5e1; border-radius: 6px; margin-top: 6px; padding: 8px;
-    display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 0.75rem; transition: 0.2s;
-  }
-  .drop-zone.drag-over { background: #e0f2fe; border-color: #3b82f6; color: #3b82f6; }
-  
   .btn { padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem;}
   .btn:hover { background: #2563eb; }
   .btn-danger { background: #ef4444; padding: 4px 8px; font-size: 0.75rem;}
   .btn-move { background: #f1f5f9; color: #475569; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #cbd5e1;}
   .btn-revoke { background: #fff1f2; color: #e11d48; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #fecdd3;}
+  .btn-add-child { background: #ecfdf5; color: #059669; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #a7f3d0; }
+  .btn-move-node { background: #eef2ff; color: #4f46e5; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #c7d2fe; }
 
   .status-pending { font-weight: 700; color: #dc2626; }
   .status-used { font-style: italic; color: #94a3b8; text-decoration: line-through; } 
@@ -76,11 +56,16 @@
 
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000;}
   .modal-overlay.show { display: flex; }
-  .modal-content { background: #fff; padding: 24px; border-radius: 12px; width: 90%; max-width: 450px; }
+  .modal-content { background: #fff; padding: 24px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;}
   .form-group { margin-bottom: 12px; }
   .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 4px; }
   .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .move-list { max-height: 400px; overflow-y: auto; }
+  .move-item { padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.15s; display: flex; justify-content: space-between; align-items: center;}
+  .move-item:hover { background: #eff6ff; border-color: #3b82f6; }
+  .move-item-depth { font-size: 0.7rem; color: #94a3b8; }
 
   .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; font-weight: bold; color: #3b82f6;}
   .loading-overlay.show { display: flex; }
@@ -103,31 +88,21 @@
 </div>
 
 <div class="workspace">
-  <div class="pool">
-    <div class="pool-header">
-      <h3>
-        📦 未分配池 
-        <button class="btn" style="padding:4px 8px; font-size:0.7rem; background:#64748b;" onclick="fetchDataFromCloud()">刷新</button>
-        <button class="btn" style="padding:4px 8px; font-size:0.7rem; background:#10b981;" onclick="openAddModal()">➕ 新增卡片</button>
-      </h3>
-      <input type="text" id="pool-search" class="pool-search" placeholder="🔍 搜索名字..." oninput="render()">
-    </div>
-    <div class="pool-scroll-area" id="pool-content"></div>
-  </div>
-
   <div class="tree-area">
-    <div class="drop-zone" id="drop-level-1" style="border-color: #3b82f6; background: #eff6ff;">
-      <span style="color:#3b82f6; font-weight:600;">⬇️ 将左侧的任意人拖拽到这里，建立一级 ⬇️</span>
+    <div class="top-add-bar">
+      <button class="btn-add-l1" onclick="openAddModal(null)">➕ 添加第一级客户</button>
     </div>
     <div id="tree-container"></div>
   </div>
 </div>
 
+<!-- 新增/编辑弹窗 -->
 <div class="modal-overlay" id="modal">
   <div class="modal-content">
-    <h3 id="modalTitle" style="margin-bottom: 16px; font-size: 1.1rem;">新增/编辑卡片</h3>
+    <h3 id="modalTitle" style="margin-bottom: 16px; font-size: 1.1rem;">新增卡片</h3>
     <form id="editForm" onsubmit="saveData(event)">
-      <input type="hidden" id="editId">
+      <input type="hidden" id="editPersonId">
+      <input type="hidden" id="editParentId">
       
       <div class="form-group">
         <label>姓名 *</label>
@@ -185,13 +160,27 @@
   </div>
 </div>
 
+<!-- 移动目标选择弹窗 -->
+<div class="modal-overlay" id="moveModal">
+  <div class="modal-content">
+    <h3 style="margin-bottom: 8px; font-size: 1.1rem;">移动到...</h3>
+    <p style="font-size: 0.8rem; color:#64748b; margin-bottom: 16px;">选择新的上级，或选择"移到顶级"。</p>
+    <div class="move-list" id="moveList"></div>
+    <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+      <button type="button" class="btn" style="background:#e2e8f0; color:#333;" onclick="closeMoveModal()">取消</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const SUPABASE_URL = "https://dmrskyskryrdclknezth.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let allCards = [];
-  let renderedCards = []; 
+  let allPeople = [];
+  let allRelations = [];
+  let tree = [];
+  let movingPersonId = null;
 
   function showToast(msg, isError = false) {
     const toast = document.getElementById('toast');
@@ -202,313 +191,167 @@
 
   async function fetchDataFromCloud() {
     showLoading(true);
-    const { data, error } = await supabaseClient
-      .from('referrals')
-      .select('*')
-      .order('sort_order', { ascending: true, nullsFirst: true })
-      .order('created_at', { ascending: true }); 
+    const [peopleRes, relRes] = await Promise.all([
+      supabaseClient.from('people').select('*').order('created_at', { ascending: true }),
+      supabaseClient.from('referrals').select('*').order('sort_order', { ascending: true, nullsFirst: false })
+    ]);
 
-    if (error) { showToast("拉取失败: " + error.message, true); showLoading(false); return; }
+    if (peopleRes.error || relRes.error) {
+      showToast("拉取失败: " + (peopleRes.error?.message || relRes.error?.message), true);
+      showLoading(false);
+      return;
+    }
 
-    allCards = [];
-
-    data.forEach(row => {
-      if (row.referee_name && row.referee_name.trim() !== '') {
-        allCards.push({
-          id: row.id,
-          name: row.referee_name,
-          refId: row.referee_id || '',
-          referrerCredit: row.referrer_credit || 0,
-          referrerStatus: row.referrer_status || 'gray',
-          refereeCredit: row.referee_credit || 0,
-          refereeStatus: row.referee_status || 'gray',
-          note: row.referee_note || '',
-          level: row.hierarchy_level || null,
-          parentId: row.parent_id || null, 
-          sortOrder: row.sort_order || 0,
-          dbId: row.id
-        });
-      }
-    });
-
+    allPeople = peopleRes.data || [];
+    allRelations = relRes.data || [];
     showLoading(false);
     render();
   }
 
-  function render() {
-    const pool = document.getElementById('pool-content');
-    const tree = document.getElementById('tree-container');
-    pool.innerHTML = '';
-    tree.innerHTML = '';
-    
-    renderedCards = []; 
-
-    const searchKw = (document.getElementById('pool-search').value || '').toLowerCase().trim();
-    
-    let unassigned = allCards.filter(c => !c.level);
-    
-    if (searchKw) {
-      unassigned = unassigned.filter(c => c.name.toLowerCase().includes(searchKw) || (c.refId && c.refId.toLowerCase().includes(searchKw)));
-    }
-
-    if (unassigned.length === 0) {
-      pool.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">空空如也</div>';
-    } else {
-      unassigned.forEach(card => pool.appendChild(createDraggableCard(card)));
-    }
-
-    const l1Cards = allCards.filter(c => c.level === 1).sort((a, b) => a.sortOrder - b.sortOrder);
-    
-    l1Cards.forEach((l1, idx1) => {
-      renderedCards.push(l1); 
-
-      const l1Div = document.createElement('div');
-      l1Div.className = 'level-1';
-      
-      l1Div.innerHTML = `
-        <div class="level-1-header">
-          <span>👤 一级: ${l1.name} ${l1.refId ? '#'+l1.refId : ''}</span>
-          <div class="level-1-controls">
-            <button class="btn btn-danger" onclick="deleteLevel1('${l1.id}')">解散</button>
-          </div>
-        </div>
-      `;
-
-      const drop2 = document.createElement('div');
-      drop2.className = 'drop-zone';
-      drop2.innerText = '将二级客户拖拽至此';
-      setupDropZone(drop2, l1.id, 2);
-      l1Div.appendChild(drop2);
-
-      const l2List = allCards.filter(c => c.level === 2 && c.parentId === l1.id).sort((a, b) => a.sortOrder - b.sortOrder);
-      
-      l2List.forEach((l2, idx2) => {
-        renderedCards.push(l2);
-
-        const l2Div = document.createElement('div');
-        l2Div.className = 'level-2';
-        
-        l2Div.innerHTML = `
-          <div class="level-2-header">
-            <span style="font-size:0.75rem; color:#64748b; font-weight:600;">二级客人</span>
-            <div class="level-2-controls">
-              <button class="btn btn-move" onclick="moveL2('${l1.id}', ${idx2}, -1)" title="上移">↑</button>
-              <button class="btn btn-move" onclick="moveL2('${l1.id}', ${idx2}, 1)" title="下移">↓</button>
-              <button class="btn btn-revoke" onclick="revokeNode('${l2.id}')" title="退回左侧">↩️ 退回</button>
-            </div>
-          </div>
-        `;
-
-        l2Div.appendChild(createDraggableCard(l2));
-        
-        const drop3 = document.createElement('div');
-        drop3.className = 'drop-zone';
-        drop3.innerText = '将三级客户拖拽至此';
-        setupDropZone(drop3, l2.id, 3);
-        l2Div.appendChild(drop3);
-
-        const l3List = allCards.filter(c => c.level === 3 && c.parentId === l2.id);
-        
-        l3List.forEach(l3 => {
-          renderedCards.push(l3);
-
-          const l3Div = document.createElement('div');
-          l3Div.className = 'level-3';
-          
-          l3Div.innerHTML = `
-            <div style="display:flex; justify-content:flex-end; margin-bottom:4px;">
-               <button class="btn btn-revoke" onclick="revokeNode('${l3.id}')" title="退回左侧未分配池">↩️ 退回</button>
-            </div>
-          `;
-          l3Div.appendChild(createDraggableCard(l3));
-          l2Div.appendChild(l3Div);
-        });
-
-        l1Div.appendChild(l2Div);
-      });
-
-      tree.appendChild(l1Div);
+  function buildTree() {
+    const personMap = {};
+    allPeople.forEach(p => {
+      personMap[p.id] = { ...p, children: [], relationFromParent: null, parentId: null };
     });
 
-    calculateStats(renderedCards);
-  }
-
-  async function moveL2(l1Id, idx, direction) {
-    const l2Cards = allCards.filter(c => c.level === 2 && c.parentId === l1Id).sort((a, b) => a.sortOrder - b.sortOrder);
-    const targetIdx = idx + direction;
-    if (targetIdx < 0 || targetIdx >= l2Cards.length) return;
-
-    const currentCard = l2Cards[idx];
-    const targetCard = l2Cards[targetIdx];
-
-    const tempOrder = currentCard.sortOrder;
-    currentCard.sortOrder = targetCard.sortOrder;
-    targetCard.sortOrder = targetCard.sortOrder === tempOrder ? tempOrder + 1 : tempOrder;
-
-    render();
-
-    if (currentCard.dbId) {
-      await supabaseClient.from('referrals').update({ sort_order: currentCard.sortOrder }).eq('id', currentCard.dbId);
-    }
-    if (targetCard.dbId) {
-      await supabaseClient.from('referrals').update({ sort_order: targetCard.sortOrder }).eq('id', targetCard.dbId);
-    }
-    showToast("顺序已保存");
-  }
-
-  async function revokeNode(id) {
-    const card = allCards.find(c => c.id === id);
-    if (!card) return;
-    
-    card.parentId = null;
-    card.level = null;
-    
-    allCards.forEach(c => {
-      if (c.parentId === card.id) {
-        c.parentId = null;
-        c.level = null;
+    allRelations.forEach(r => {
+      if (personMap[r.referee_id] && personMap[r.referrer_id]) {
+        personMap[r.referee_id].relationFromParent = r;
+        personMap[r.referee_id].parentId = r.referrer_id;
       }
     });
 
-    render();
+    const roots = [];
+    allPeople.forEach(p => {
+      const node = personMap[p.id];
+      if (node.parentId) {
+        if (personMap[node.parentId]) {
+          personMap[node.parentId].children.push(node);
+        }
+      } else {
+        roots.push(node);
+      }
+    });
 
-    if (card.dbId) {
-       await supabaseClient.from('referrals').update({
-         hierarchy_level: null,
-         parent_id: null
-       }).eq('id', card.dbId);
-       showToast("已退回未分配池");
-    }
+    // 根节点按 sort_order 排序（根节点没有 relationFromParent，用 0 兜底）
+    roots.sort((a, b) => {
+      const sa = Number(a.relationFromParent?.sort_order ?? 0);
+      const sb = Number(b.relationFromParent?.sort_order ?? 0);
+      return sa - sb;
+    });
+
+    tree = roots;
   }
 
-  function createDraggableCard(card) {
-    const div = document.createElement('div');
-    div.className = 'draggable-card';
-    div.draggable = true;
-    div.id = card.id;
-    
-    const pClass = card.referrerStatus === 'pending' ? 'status-pending' : (card.referrerStatus === 'used' ? 'status-used' : (card.referrerStatus === 'blue' ? 'status-blue' : 'status-gray'));
-    const rClass = card.refereeStatus === 'pending' ? 'status-pending' : (card.refereeStatus === 'used' ? 'status-used' : (card.refereeStatus === 'blue' ? 'status-blue' : 'status-gray'));
+  function render() {
+    buildTree();
+    const container = document.getElementById('tree-container');
+    container.innerHTML = '';
 
-    const editBtn = `<span class="edit-icon" onclick="event.stopPropagation(); openEditModal('${card.id}')">✏️</span>`;
+    if (tree.length === 0) {
+      container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:40px;">还没有任何客户，点击上方按钮添加第一级客户</div>';
+      calculateStats();
+      return;
+    }
 
-    div.innerHTML = `
-      <div class="card-name">
-        <span>${card.name}</span>
-        ${editBtn}
+    tree.forEach(root => {
+      container.appendChild(renderNode(root, 1));
+    });
+
+    calculateStats();
+  }
+
+  function renderNode(node, depth) {
+    const wrap = document.createElement('div');
+
+    const box = document.createElement('div');
+    box.className = 'node-box depth-' + Math.min(depth, 5);
+
+    const rel = node.relationFromParent;
+    const refCredit = rel ? Number(rel.referrer_credit || 0) : 0;
+    const refStatus = rel ? (rel.referrer_status || 'gray') : 'gray';
+    const reeCredit = rel ? Number(rel.referee_credit || 0) : 0;
+    const reeStatus = rel ? (rel.referee_status || 'gray') : 'gray';
+
+    const pClass = statusClass(refStatus);
+    const rClass = statusClass(reeStatus);
+    const depthLabel = depth === 1 ? '一级' : (depth === 2 ? '二级' : (depth === 3 ? '三级' : depth + '级'));
+
+    box.innerHTML = `
+      <div class="node-header">
+        <span class="node-title">${depthLabel} · ${escapeHtml(node.name)} ${node.ref_id ? '<span style="color:#94a3b8; font-weight:400;">#'+escapeHtml(node.ref_id)+'</span>' : ''}</span>
+        <div class="node-controls">
+          ${node.parentId ? `
+            <button class="btn btn-move" onclick="moveSibling('${node.id}', -1)" title="上移">↑</button>
+            <button class="btn btn-move" onclick="moveSibling('${node.id}', 1)" title="下移">↓</button>
+          ` : ''}
+          <button class="btn btn-add-child" onclick="openAddModal('${node.id}')">➕ 加下级</button>
+          <button class="btn btn-move-node" onclick="openMoveModal('${node.id}')">🔀 移动</button>
+          <button class="btn btn-revoke" onclick="revokeNode('${node.id}')" title="退回上一级/变顶级">↩️ 退回</button>
+          <span class="edit-icon" onclick="openEditModal('${node.id}')">✏️</span>
+        </div>
       </div>
       <div class="card-details">
-        <span>介绍费: <strong class="${pClass}">$${card.referrerCredit}</strong></span>
-        <span>新人费: <strong class="${rClass}">$${card.refereeCredit}</strong></span>
+        <span>介绍费: <strong class="${pClass}">$${refCredit}</strong></span>
+        <span>新人费: <strong class="${rClass}">$${reeCredit}</strong></span>
+        ${node.note ? `<span style="color:#94a3b8;">📝 ${escapeHtml(node.note)}</span>` : ''}
       </div>
-      ${card.note ? `<div style="font-size:0.75rem; color:#94a3b8; margin-top:4px;">📝 ${card.note}</div>` : ''}
     `;
+    wrap.appendChild(box);
 
-    div.addEventListener('dragstart', (e) => {
-      e.dataTransfer.setData('text/plain', card.id);
-      e.dataTransfer.effectAllowed = 'move';
-    });
-
-    return div;
-  }
-
-  function setupDropZone(zone, targetParentId, expectedLevel) {
-    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
-    zone.addEventListener('dragleave', (e) => { zone.classList.remove('drag-over'); });
-    zone.addEventListener('drop', async (e) => {
-      e.preventDefault();
-      zone.classList.remove('drag-over');
-      
-      const draggedId = e.dataTransfer.getData('text/plain');
-      const card = allCards.find(c => c.id === draggedId);
-      
-      if (card) {
-        card.parentId = targetParentId;
-        card.level = expectedLevel;
-        card.sortOrder = Date.now();
-
-        render();
-        
-        if (card.dbId) {
-           const { error } = await supabaseClient.from('referrals').update({
-             hierarchy_level: expectedLevel,
-             parent_id: targetParentId,
-             sort_order: card.sortOrder
-           }).eq('id', card.dbId);
-           
-           if (error) showToast("保存失败: " + error.message, true);
-           else showToast("保存成功，已写入数据库");
-        }
-      }
-    });
-  }
-
-  const l1DropZone = document.getElementById('drop-level-1');
-  l1DropZone.addEventListener('dragover', (e) => { e.preventDefault(); l1DropZone.style.background = '#dbeafe'; });
-  l1DropZone.addEventListener('dragleave', (e) => { l1DropZone.style.background = '#eff6ff'; });
-  l1DropZone.addEventListener('drop', async (e) => {
-    e.preventDefault();
-    l1DropZone.style.background = '#eff6ff';
-    
-    const draggedId = e.dataTransfer.getData('text/plain');
-    const card = allCards.find(c => c.id === draggedId);
-
-    if (card && card.dbId) {
-      card.level = 1;
-      card.parentId = null;
-      card.sortOrder = Date.now();
-      render();
-
-      const { error } = await supabaseClient.from('referrals').update({
-        hierarchy_level: 1,
-        parent_id: null,
-        sort_order: card.sortOrder
-      }).eq('id', card.dbId);
-
-      if (error) showToast("保存失败: " + error.message, true);
-      else showToast("已写入数据库");
-    }
-  });
-
-  function deleteLevel1(id) {
-    if(confirm("删除该介绍人会让所有下属回到左侧数据池，确认吗？")) {
-      allCards.forEach(c => {
-        if (c.parentId === id) {
-           c.parentId = null; c.level = null;
-           allCards.forEach(c3 => { if (c3.parentId === c.id) { c3.parentId = null; c3.level = null;} });
-        }
+    if (node.children && node.children.length > 0) {
+      // ✅ 改动 1：按 sort_order 排序
+      const sorted = [...node.children].sort((a, b) => {
+        const sa = Number(a.relationFromParent?.sort_order ?? 0);
+        const sb = Number(b.relationFromParent?.sort_order ?? 0);
+        return sa - sb;
       });
-      allCards = allCards.filter(c => c.id !== id);
-      render();
+      sorted.forEach(child => {
+        wrap.appendChild(renderNode(child, depth + 1));
+      });
     }
+
+    return wrap;
   }
 
-  // ==========================================
-  // ➕ 纯新建卡片（不预设任何层级）
-  // ==========================================
-  function openAddModal() {
-    document.getElementById('modalTitle').innerText = '新增卡片';
+  function statusClass(s) {
+    if (s === 'pending') return 'status-pending';
+    if (s === 'used') return 'status-used';
+    if (s === 'blue') return 'status-blue';
+    return 'status-gray';
+  }
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  // ========== 编辑/新增 ==========
+  function openAddModal(parentPersonId) {
+    document.getElementById('modalTitle').innerText = parentPersonId ? '新增下级客户' : '新增第一级客户';
     document.getElementById('editForm').reset();
-    document.getElementById('editId').value = '';
+    document.getElementById('editPersonId').value = '';
+    document.getElementById('editParentId').value = parentPersonId || '';
     document.getElementById('modal').classList.add('show');
   }
 
-  function openEditModal(id) {
-    const card = allCards.find(c => c.id === id);
-    if(!card) return;
+  function openEditModal(personId) {
+    const person = allPeople.find(p => p.id === personId);
+    if (!person) return;
+    const rel = allRelations.find(r => r.referee_id === personId);
 
-    document.getElementById('modalTitle').innerText = '编辑卡片: ' + card.name;
+    document.getElementById('modalTitle').innerText = '编辑卡片: ' + person.name;
     document.getElementById('editForm').reset();
-    
-    document.getElementById('editId').value = card.id;
+    document.getElementById('editPersonId').value = person.id;
+    document.getElementById('editParentId').value = rel ? rel.referrer_id : '';
 
-    document.getElementById('inputNodeName').value = card.name || '';
-    document.getElementById('inputNodeId').value = card.refId || '';
-    document.getElementById('inputNote').value = card.note || '';
-    document.getElementById('inputRefCredit').value = card.referrerCredit || 0;
-    document.getElementById('inputRefStatus').value = card.referrerStatus || 'gray';
-    document.getElementById('inputRefereeCredit').value = card.refereeCredit || 0;
-    document.getElementById('inputRefereeStatus').value = card.refereeStatus || 'gray';
+    document.getElementById('inputNodeName').value = person.name || '';
+    document.getElementById('inputNodeId').value = person.ref_id || '';
+    document.getElementById('inputNote').value = person.note || '';
+    document.getElementById('inputRefCredit').value = rel ? Number(rel.referrer_credit || 0) : 0;
+    document.getElementById('inputRefStatus').value = rel ? (rel.referrer_status || 'gray') : 'gray';
+    document.getElementById('inputRefereeCredit').value = rel ? Number(rel.referee_credit || 0) : 0;
+    document.getElementById('inputRefereeStatus').value = rel ? (rel.referee_status || 'gray') : 'gray';
 
     document.getElementById('modal').classList.add('show');
   }
@@ -519,69 +362,240 @@
 
   async function saveData(e) {
     e.preventDefault();
-    const id = document.getElementById('editId').value;
+    const personId = document.getElementById('editPersonId').value;
+    const parentId = document.getElementById('editParentId').value || null;
     const name = document.getElementById('inputNodeName').value.trim();
-    const refId = document.getElementById('inputNodeId').value.trim();
-    const note = document.getElementById('inputNote').value.trim();
-    const refCredit = Number(document.getElementById('inputRefCredit').value);
+    const refId = document.getElementById('inputNodeId').value.trim() || null;
+    const note = document.getElementById('inputNote').value.trim() || null;
+    const refCredit = Number(document.getElementById('inputRefCredit').value) || 0;
     const refStatus = document.getElementById('inputRefStatus').value;
-    const refereeCredit = Number(document.getElementById('inputRefereeCredit').value);
-    const refereeStatus = document.getElementById('inputRefereeStatus').value;
+    const reeCredit = Number(document.getElementById('inputRefereeCredit').value) || 0;
+    const reeStatus = document.getElementById('inputRefereeStatus').value;
 
-    if (!name) {
-      alert("请填写名字！");
-      return;
-    }
+    if (!name) { alert("请填写名字！"); return; }
 
-    if (id) {
-      // 编辑模式：直接更新数据库对应行
-      await supabaseClient.from('referrals').update({
-        referee_name: name,
-        referee_id: refId,
-        referee_note: note,
-        referrer_credit: refCredit,
-        referrer_status: refStatus,
-        referee_credit: refereeCredit,
-        referee_status: refereeStatus
-      }).eq('id', id);
+    if (personId) {
+      // 编辑
+      const { error: pErr } = await supabaseClient.from('people').update({
+        name, ref_id: refId, note
+      }).eq('id', personId);
+      if (pErr) { showToast("更新 people 失败: " + pErr.message, true); return; }
+
+      const rel = allRelations.find(r => r.referee_id === personId);
+      if (rel) {
+        const { error: rErr } = await supabaseClient.from('referrals').update({
+          referrer_credit: refCredit,
+          referrer_status: refStatus,
+          referee_credit: reeCredit,
+          referee_status: reeStatus
+        }).eq('id', rel.id);
+        if (rErr) { showToast("更新金额失败: " + rErr.message, true); return; }
+      }
+
+      closeModal();
+      showToast("保存成功，正在刷新...");
+      setTimeout(fetchDataFromCloud, 400);
+
     } else {
-      // 新增模式：单独插入一条独立记录（默认没有任何层级）
-      await supabaseClient.from('referrals').insert([{
-        referee_name: name,
-        referee_id: refId,
-        referee_note: note,
-        referrer_credit: refCredit,
-        referrer_status: refStatus,
-        referee_credit: refereeCredit,
-        referee_status: refereeStatus,
-        hierarchy_level: null,
-        parent_id: null,
-        sort_order: 0
-      }]);
-    }
+      // 新增
+      const { data: newPeople, error: pErr } = await supabaseClient.from('people').insert([{
+        name, ref_id: refId, note
+      }]).select().single();
+      if (pErr) { showToast("新建人失败: " + pErr.message, true); return; }
 
-    closeModal();
-    showToast("保存成功，正在刷新...");
-    setTimeout(() => fetchDataFromCloud(), 500);
+      if (parentId) {
+        // 新加的下级排到末尾：先查当前父级下最大 sort_order
+        const siblings = allRelations.filter(r => r.referrer_id === parentId);
+        const maxOrder = siblings.reduce((m, r) => Math.max(m, Number(r.sort_order ?? 0)), 0);
+
+        const { error: rErr } = await supabaseClient.from('referrals').insert([{
+          referrer_id: parentId,
+          referee_id: newPeople.id,
+          referrer_credit: refCredit,
+          referrer_status: refStatus,
+          referee_credit: reeCredit,
+          referee_status: reeStatus,
+          sort_order: maxOrder + 1
+        }]);
+        if (rErr) {
+          showToast("建关系失败: " + rErr.message, true);
+          await supabaseClient.from('people').delete().eq('id', newPeople.id);
+          return;
+        }
+      }
+
+      closeModal();
+      showToast("新增成功，正在刷新...");
+      setTimeout(fetchDataFromCloud, 400);
+    }
   }
 
-  function calculateStats(cardsToCount) {
-    let pending = 0, used = 0, expired = 0;
-    
-    cardsToCount.forEach(c => {
-      if (c.referrerStatus === 'pending') pending += c.referrerCredit;
-      else if (c.referrerStatus === 'used') used += c.referrerCredit;
-      else if (c.referrerStatus === 'blue') expired += c.referrerCredit;
+  // ========== 退回 ==========
+  async function revokeNode(personId) {
+    const rel = allRelations.find(r => r.referee_id === personId);
+    if (!rel) {
+      showToast("此人已经是顶级，无需退回", true);
+      return;
+    }
+    if (!confirm("把这个人退回到顶级（一级）？他的下级会继续挂在他下面。")) return;
 
-      if (c.refereeStatus === 'pending') pending += c.refereeCredit;
-      else if (c.refereeStatus === 'used') used += c.refereeCredit;
-      else if (c.refereeStatus === 'blue') expired += c.refereeCredit;
+    const { error } = await supabaseClient.from('referrals').delete().eq('id', rel.id);
+    if (error) { showToast("退回失败: " + error.message, true); return; }
+
+    showToast("已退回顶级");
+    fetchDataFromCloud();
+  }
+
+  // ========== 移动 ==========
+  function openMoveModal(personId) {
+    movingPersonId = personId;
+    const person = allPeople.find(p => p.id === personId);
+    if (!person) return;
+
+    const descendants = new Set();
+    function collectDescendants(pid) {
+      allRelations.filter(r => r.referrer_id === pid).forEach(r => {
+        descendants.add(r.referee_id);
+        collectDescendants(r.referee_id);
+      });
+    }
+    collectDescendants(personId);
+
+    const list = document.getElementById('moveList');
+    list.innerHTML = '';
+
+    // 移到顶级
+    const topItem = document.createElement('div');
+    topItem.className = 'move-item';
+    topItem.innerHTML = `<span>⬆️ 移到顶级（成为一级）</span>`;
+    topItem.onclick = () => doMove(null);
+    list.appendChild(topItem);
+
+    const currentRel = allRelations.find(r => r.referee_id === personId);
+    const currentParentId = currentRel ? currentRel.referrer_id : null;
+
+    const flat = [];
+    function flatten(node, depth) {
+      flat.push({ node, depth });
+      (node.children || []).forEach(c => flatten(c, depth + 1));
+    }
+    tree.forEach(r => flatten(r, 1));
+
+    flat.forEach(({ node, depth }) => {
+      if (node.id === personId) return;
+      if (descendants.has(node.id)) return;
+      if (node.id === currentParentId) return;
+
+      const item = document.createElement('div');
+      item.className = 'move-item';
+      item.innerHTML = `
+        <span>${escapeHtml(node.name)} ${node.ref_id ? '<span style="color:#94a3b8;">#'+escapeHtml(node.ref_id)+'</span>' : ''}</span>
+        <span class="move-item-depth">${depth}级</span>
+      `;
+      item.onclick = () => doMove(node.id);
+      list.appendChild(item);
+    });
+
+    document.getElementById('moveModal').classList.add('show');
+  }
+
+  function closeMoveModal() {
+    document.getElementById('moveModal').classList.remove('show');
+    movingPersonId = null;
+  }
+
+  async function doMove(newParentId) {
+    const personId = movingPersonId;
+    if (!personId) return;
+
+    const rel = allRelations.find(r => r.referee_id === personId);
+
+    if (newParentId === null) {
+      // 移到顶级：referrer_id 置 null，保留关系记录和钱
+      if (rel) {
+        const { error } = await supabaseClient.from('referrals').update({ referrer_id: null }).eq('id', rel.id);
+        if (error) { showToast("移动失败: " + error.message, true); return; }
+      }
+    } else {
+      // 新父级下的最大 sort_order
+      const siblings = allRelations.filter(r => r.referrer_id === newParentId);
+      const maxOrder = siblings.reduce((m, r) => Math.max(m, Number(r.sort_order ?? 0)), 0);
+
+      if (rel) {
+        // 已有关系，改 referrer_id + sort_order（排到末尾）
+        const { error } = await supabaseClient.from('referrals').update({
+          referrer_id: newParentId,
+          sort_order: maxOrder + 1
+        }).eq('id', rel.id);
+        if (error) { showToast("移动失败: " + error.message, true); return; }
+      } else {
+        // 原本是顶级，新建关系挂到新父级
+        const { error } = await supabaseClient.from('referrals').insert([{
+          referrer_id: newParentId,
+          referee_id: personId,
+          referrer_credit: 0, referrer_status: 'gray',
+          referee_credit: 0, referee_status: 'gray',
+          sort_order: maxOrder + 1
+        }]);
+        if (error) { showToast("移动失败: " + error.message, true); return; }
+      }
+    }
+
+    closeMoveModal();
+    showToast("移动成功");
+    fetchDataFromCloud();
+  }
+
+  // ========== 同级排序（用 sort_order） ==========
+  async function moveSibling(personId, direction) {
+    const myRel = allRelations.find(r => r.referee_id === personId);
+    if (!myRel) return;
+
+    const siblings = allRelations
+      .filter(r => r.referrer_id === myRel.referrer_id)
+      .sort((a, b) => Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0));
+
+    const idx = siblings.findIndex(r => r.id === myRel.id);
+    const targetIdx = idx + direction;
+    if (targetIdx < 0 || targetIdx >= siblings.length) return;
+
+    const target = siblings[targetIdx];
+    const myOrder = Number(myRel.sort_order ?? 0);
+    const targetOrder = Number(target.sort_order ?? 0);
+
+    // 如果 sort_order 相同（历史脏数据兜底），用一个临时值错开
+    if (myOrder === targetOrder) {
+      await supabaseClient.from('referrals').update({ sort_order: targetOrder + direction * 0.5 }).eq('id', myRel.id);
+    } else {
+      const { error: e1 } = await supabaseClient.from('referrals').update({ sort_order: targetOrder }).eq('id', myRel.id);
+      const { error: e2 } = await supabaseClient.from('referrals').update({ sort_order: myOrder }).eq('id', target.id);
+      if (e1 || e2) { showToast("排序保存失败", true); return; }
+    }
+
+    showToast("顺序已保存");
+    fetchDataFromCloud();
+  }
+
+  // ========== 统计 ==========
+  function calculateStats() {
+    let pending = 0, used = 0, expired = 0;
+
+    allRelations.forEach(r => {
+      const rc = Number(r.referrer_credit || 0);
+      const ec = Number(r.referee_credit || 0);
+      if (r.referrer_status === 'pending') pending += rc;
+      else if (r.referrer_status === 'used') used += rc;
+      else if (r.referrer_status === 'blue') expired += rc;
+
+      if (r.referee_status === 'pending') pending += ec;
+      else if (r.referee_status === 'used') used += ec;
+      else if (r.referee_status === 'blue') expired += ec;
     });
 
     document.getElementById('total-pending').innerText = '$' + pending;
     document.getElementById('total-used').innerText = '$' + used;
     document.getElementById('total-expired').innerText = '$' + expired;
-    document.getElementById('total-people').innerText = cardsToCount.length;
+    document.getElementById('total-people').innerText = allPeople.length;
   }
 
   function showLoading(show) {
