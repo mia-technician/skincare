@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Referral Tracker - 排序锁死版</title>
+<title>Referral Tracker - 纯净新增版</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -108,7 +108,7 @@
       <h3>
         📦 未分配池 
         <button class="btn" style="padding:4px 8px; font-size:0.7rem; background:#64748b;" onclick="fetchDataFromCloud()">刷新</button>
-        <button class="btn" style="padding:4px 8px; font-size:0.7rem; background:#10b981;" onclick="openAddModal()">➕ 新增</button>
+        <button class="btn" style="padding:4px 8px; font-size:0.7rem; background:#10b981;" onclick="openAddModal()">➕ 新增卡片</button>
       </h3>
       <input type="text" id="pool-search" class="pool-search" placeholder="🔍 搜索名字..." oninput="render()">
     </div>
@@ -125,23 +125,23 @@
 
 <div class="modal-overlay" id="modal">
   <div class="modal-content">
-    <h3 id="modalTitle" style="margin-bottom: 16px; font-size: 1.1rem;">编辑客户</h3>
+    <h3 id="modalTitle" style="margin-bottom: 16px; font-size: 1.1rem;">新增/编辑卡片</h3>
     <form id="editForm" onsubmit="saveData(event)">
       <input type="hidden" id="editId">
       
       <div class="form-group">
-        <label>名字</label>
-        <input type="text" id="inputNodeName" disabled>
+        <label>姓名 *</label>
+        <input type="text" id="inputNodeName" required placeholder="如: Ti Pu">
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>客人 ID / 编号</label>
-          <input type="text" id="inputNodeId">
+          <label>编号 ID</label>
+          <input type="text" id="inputNodeId" placeholder="如: 38870">
         </div>
         <div class="form-group">
           <label>备注</label>
-          <input type="text" id="inputNote">
+          <input type="text" id="inputNote" placeholder="如: TMG 5/8">
         </div>
       </div>
 
@@ -153,10 +153,10 @@
         <div class="form-group">
           <label>介绍费状态</label>
           <select id="inputRefStatus">
-            <option value="pending">待使用</option>
-            <option value="used">已使用</option>
-            <option value="blue">已过期</option>
-            <option value="gray">待定</option>
+            <option value="pending">待使用 (红)</option>
+            <option value="used">已使用 (灰划线)</option>
+            <option value="blue">已过期 (蓝)</option>
+            <option value="gray">待定 (浅灰)</option>
           </select>
         </div>
       </div>
@@ -169,10 +169,10 @@
         <div class="form-group">
           <label>新人费状态</label>
           <select id="inputRefereeStatus">
-            <option value="pending">待使用</option>
-            <option value="used">已使用</option>
-            <option value="blue">已过期</option>
-            <option value="gray">待定</option>
+            <option value="pending">待使用 (红)</option>
+            <option value="used">已使用 (灰划线)</option>
+            <option value="blue">已过期 (蓝)</option>
+            <option value="gray">待定 (浅灰)</option>
           </select>
         </div>
       </div>
@@ -280,7 +280,6 @@
       setupDropZone(drop2, l1.id, 2);
       l1Div.appendChild(drop2);
 
-      // 按 sortOrder 排序
       const l2List = allCards.filter(c => c.level === 2 && c.parentId === l1.id).sort((a, b) => a.sortOrder - b.sortOrder);
       
       l2List.forEach((l2, idx2) => {
@@ -342,14 +341,12 @@
     const currentCard = l2Cards[idx];
     const targetCard = l2Cards[targetIdx];
 
-    // 交换本地排序
     const tempOrder = currentCard.sortOrder;
     currentCard.sortOrder = targetCard.sortOrder;
     targetCard.sortOrder = targetCard.sortOrder === tempOrder ? tempOrder + 1 : tempOrder;
 
     render();
 
-    // 写入数据库
     if (currentCard.dbId) {
       await supabaseClient.from('referrals').update({ sort_order: currentCard.sortOrder }).eq('id', currentCard.dbId);
     }
@@ -428,7 +425,7 @@
       if (card) {
         card.parentId = targetParentId;
         card.level = expectedLevel;
-        card.sortOrder = Date.now(); // 🚨 拖拽放入时，给一个巨大的时间戳排到最后
+        card.sortOrder = Date.now();
 
         render();
         
@@ -486,15 +483,25 @@
     }
   }
 
+  // ==========================================
+  // ➕ 纯新建卡片（不预设任何层级）
+  // ==========================================
   function openAddModal() {
-    alert("如需新增，请在数据库直接插入，或告诉我帮你写 SQL。");
+    document.getElementById('modalTitle').innerText = '新增卡片';
+    document.getElementById('editForm').reset();
+    document.getElementById('editId').value = '';
+    document.getElementById('modal').classList.add('show');
   }
 
   function openEditModal(id) {
     const card = allCards.find(c => c.id === id);
     if(!card) return;
 
+    document.getElementById('modalTitle').innerText = '编辑卡片: ' + card.name;
+    document.getElementById('editForm').reset();
+    
     document.getElementById('editId').value = card.id;
+
     document.getElementById('inputNodeName').value = card.name || '';
     document.getElementById('inputNodeId').value = card.refId || '';
     document.getElementById('inputNote').value = card.note || '';
@@ -513,18 +520,44 @@
   async function saveData(e) {
     e.preventDefault();
     const id = document.getElementById('editId').value;
-    const card = allCards.find(c => c.id === id);
+    const name = document.getElementById('inputNodeName').value.trim();
+    const refId = document.getElementById('inputNodeId').value.trim();
+    const note = document.getElementById('inputNote').value.trim();
+    const refCredit = Number(document.getElementById('inputRefCredit').value);
+    const refStatus = document.getElementById('inputRefStatus').value;
+    const refereeCredit = Number(document.getElementById('inputRefereeCredit').value);
+    const refereeStatus = document.getElementById('inputRefereeStatus').value;
 
-    if (card && card.dbId) {
+    if (!name) {
+      alert("请填写名字！");
+      return;
+    }
+
+    if (id) {
+      // 编辑模式：直接更新数据库对应行
       await supabaseClient.from('referrals').update({
-        referee_name: document.getElementById('inputNodeName').value.trim(),
-        referee_id: document.getElementById('inputNodeId').value,
-        referee_note: document.getElementById('inputNote').value,
-        referrer_credit: Number(document.getElementById('inputRefCredit').value),
-        referrer_status: document.getElementById('inputRefStatus').value,
-        referee_credit: Number(document.getElementById('inputRefereeCredit').value),
-        referee_status: document.getElementById('inputRefereeStatus').value
-      }).eq('id', card.dbId);
+        referee_name: name,
+        referee_id: refId,
+        referee_note: note,
+        referrer_credit: refCredit,
+        referrer_status: refStatus,
+        referee_credit: refereeCredit,
+        referee_status: refereeStatus
+      }).eq('id', id);
+    } else {
+      // 新增模式：单独插入一条独立记录（默认没有任何层级）
+      await supabaseClient.from('referrals').insert([{
+        referee_name: name,
+        referee_id: refId,
+        referee_note: note,
+        referrer_credit: refCredit,
+        referrer_status: refStatus,
+        referee_credit: refereeCredit,
+        referee_status: refereeStatus,
+        hierarchy_level: null,
+        parent_id: null,
+        sort_order: 0
+      }]);
     }
 
     closeModal();
