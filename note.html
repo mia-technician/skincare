@@ -37,7 +37,7 @@
         .main-panel { flex: 1; background: white; border-radius: 28px; border: 1px solid #eedfcb; overflow: hidden; display: flex; flex-direction: column; }
         .panel-header { background: #fef7f2; padding: 1rem 1.8rem; border-bottom: 1px solid #f0e2d8; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         .panel-header h2 { font-size: 1.2rem; font-weight: 600; color: #4f3527; }
-        .edit-mode-btn, .save-note-btn { background: #f7ede7; border: none; font-size: 0.8rem; cursor: pointer; padding: 6px 18px; border-radius: 40px; color: #b47c56; font-weight: 500; }
+        .edit-mode-btn, .save-note-btn { background: #f7ede7; border: none; font-size: 0.8rem; cursor: pointer; padding: 6px 18px; border-radius: 40px; color: #b47c56; font-weight: 500; margin-left: 8px;}
         .save-note-btn { background: #b47c56; color: white; }
         .panel-body { flex: 1; padding: 1.8rem; overflow-y: auto; }
         .card-section { background: white; border-radius: 20px; border: 1px solid #f0e2d8; overflow: hidden; margin-bottom: 1.5rem; }
@@ -105,11 +105,13 @@
         if (error) { console.error(error); return []; }
         return data || [];
     }
+
     async function addNoteToSupabase(note) {
         const { data, error } = await supabaseClient.from('treatment_notes').insert([{ title: note.title, description: note.desc || '', note_text: note.noteText || '' }]).select();
         if (error) { console.error(error); return null; }
         return data?.[0] || null;
     }
+
     async function updateNoteInSupabase(id, updates) {
         if (!id || id === 'null') { console.error('Invalid id'); return null; }
         try {
@@ -118,12 +120,25 @@
             return data?.[0] || null;
         } catch (err) { console.error(err); return null; }
     }
+
+    // 新增：删除笔记功能
+    async function deleteNoteFromSupabase(id) {
+        if (!id || id === 'null') return false;
+        try {
+            const { error } = await supabaseClient.from('treatment_notes').delete().eq('id', id);
+            if (error) { console.error('Delete error:', error); return false; }
+            return true;
+        } catch (err) { console.error(err); return false; }
+    }
+
     async function adminLogin(email, password) {
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (!error) currentUser = data.user;
         return { data, error };
     }
+
     async function adminLogout() { await supabaseClient.auth.signOut(); currentUser = null; }
+
     async function checkExistingSession() {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
@@ -137,42 +152,78 @@
         }
         return false;
     }
-        async function loadDataFromSupabase() {
+
+    async function loadDataFromSupabase() {
         if (!currentUser) return;
         let data = await fetchAllNotes();
         
-        // 删除了自动生成 Welcome Note 的逻辑
+        // 已经移除了自动生成 Welcome Note 的代码
         
         projectsData = data.map(item => ({ id: item.id, title: item.title || 'Untitled', desc: item.description || '', noteText: item.note_text || '' }));
         renderNotesList();
-        // 如果列表里有数据，才默认打开第一个
-        if (projectsData.length > 0 && !currentProject) openProject(projectsData[0].id);
+        
+        // 如果当前选中的项目已被删除，或者没有选中项目，则默认选中第一个或显示空状态
+        if (projectsData.length > 0) {
+            if (!currentProject || !projectsData.find(p => p.id === currentProject.id)) {
+                openProject(projectsData[0].id);
+            }
+        } else {
+            currentProject = null;
+            document.getElementById('panelTitle').innerHTML = `Aesthetic Workspace`;
+            document.getElementById('headerActions').innerHTML = '';
+            document.getElementById('panelBody').innerHTML = '<div class="empty-state">✨ No notes yet. Create one!</div>';
+        }
     }
+
     function renderNotesList() {
         const container = document.getElementById('notesListContainer');
         if (!container) return;
         let filtered = [...projectsData];
-        if (currentFilter.trim()) { const q = currentFilter.toLowerCase(); filtered = filtered.filter(p => p.title.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)); }
+        if (currentFilter.trim()) { 
+            const q = currentFilter.toLowerCase(); 
+            filtered = filtered.filter(p => p.title.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)); 
+        }
         filtered.sort((a, b) => a.title.localeCompare(b.title));
         if (filtered.length === 0) { container.innerHTML = '<div style="padding:2rem;text-align:center;color:#b38b6e;">No notes found.</div>'; return; }
         container.innerHTML = filtered.map(note => `<div class="note-item ${currentProject?.id === note.id ? 'active' : ''}" data-id="${note.id}"><div class="note-item-title">${escapeHtml(note.title)}</div><div class="note-item-desc">${escapeHtml(note.desc?.substring(0,60)||'')}</div></div>`).join('');
         document.querySelectorAll('.note-item').forEach(el => { el.addEventListener('click', () => openProject(el.dataset.id)); });
     }
+
     function openProject(id) {
         currentProject = projectsData.find(p => p.id == id);
         if (currentProject) renderViewMode();
         renderNotesList();
     }
+
     function renderViewMode() {
         document.getElementById('panelTitle').innerHTML = `<i class="fas fa-clinic-medical"></i> ${escapeHtml(currentProject.title)}`;
-        document.getElementById('headerActions').innerHTML = `<button id="enterEditBtn" class="edit-mode-btn"><i class="fas fa-pen"></i> Edit Note</button>`;
+        // 加了删除按钮
+        document.getElementById('headerActions').innerHTML = `
+            <button id="enterEditBtn" class="edit-mode-btn"><i class="fas fa-pen"></i> Edit Note</button>
+            <button id="deleteNoteBtn" class="edit-mode-btn" style="color: #d9534f; border: 1px solid #f5c6cb;"><i class="fas fa-trash"></i> Delete</button>
+        `;
         const body = document.getElementById('panelBody');
         body.innerHTML = '';
         const textDiv = document.createElement('div'); textDiv.className = 'card-section';
         textDiv.innerHTML = `<div class="section-label">📝 Content</div><div class="readonly-text">${currentProject.noteText || '<em>No content</em>'}</div>`;
         body.appendChild(textDiv);
+        
         document.getElementById('enterEditBtn')?.addEventListener('click', () => enterEditMode());
+        
+        // 绑定删除按钮事件
+        document.getElementById('deleteNoteBtn')?.addEventListener('click', async () => {
+            if (!confirm('确定要永久删除这篇笔记吗？此操作不可恢复。')) return;
+            const success = await deleteNoteFromSupabase(currentProject.id);
+            if (success) {
+                alert('✓ 删除成功');
+                currentProject = null;
+                await loadDataFromSupabase(); // 刷新列表
+            } else {
+                alert('删除失败，请检查网络或权限。');
+            }
+        });
     }
+
     function enterEditMode() {
         document.getElementById('panelTitle').innerHTML = `<i class="fas fa-pen-fancy"></i> Editing · ${escapeHtml(currentProject.title)}`;
         document.getElementById('headerActions').innerHTML = `<button id="cancelEditBtn" class="edit-mode-btn">Cancel</button><button id="saveEditBtn" class="save-note-btn">Save to Cloud</button>`;
@@ -191,36 +242,30 @@
         quillEditor.setText('');
         quillEditor.clipboard.dangerouslyPasteHTML(currentProject.noteText || '');
 
-        // 自定义图片上传：自动生成缩略图，点击查看原图
-// 自定义图片上传：不压缩，只限制显示尺寸，点击查看原图
-const toolbar = quillEditor.getModule('toolbar');
-if (toolbar) {
-    toolbar.addHandler('image', () => {
-        const input = document.createElement('input');
-        input.setAttribute('type', 'file');
-        input.setAttribute('accept', 'image/*');
-        input.onchange = () => {
-            const file = input.files[0];
-            if (file) {
-                const range = quillEditor.getSelection(true);
-                quillEditor.insertText(range.index, '⏳ Uploading...', 'user');
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const originalDataUrl = e.target.result;
-                    
-                    // 删除占位文字
-                    quillEditor.deleteText(range.index, '⏳ Uploading...'.length);
-                    
-                    // 直接使用原图，不压缩，通过 CSS 限制显示宽度
-                    const imgHtml = `<a href="${originalDataUrl}" target="_blank" style="display: inline-block; cursor: pointer;" title="Click to view full size"><img src="${originalDataUrl}" style="max-width: 300px; height: auto; border-radius: 8px;" class="clickable-image"></a>`;
-                    quillEditor.clipboard.dangerouslyPasteHTML(range.index, imgHtml);
+        const toolbar = quillEditor.getModule('toolbar');
+        if (toolbar) {
+            toolbar.addHandler('image', () => {
+                const input = document.createElement('input');
+                input.setAttribute('type', 'file');
+                input.setAttribute('accept', 'image/*');
+                input.onchange = () => {
+                    const file = input.files[0];
+                    if (file) {
+                        const range = quillEditor.getSelection(true);
+                        quillEditor.insertText(range.index, '⏳ Uploading...', 'user');
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const originalDataUrl = e.target.result;
+                            quillEditor.deleteText(range.index, '⏳ Uploading...'.length);
+                            const imgHtml = `<a href="${originalDataUrl}" target="_blank" style="display: inline-block; cursor: pointer;" title="Click to view full size"><img src="${originalDataUrl}" style="max-width: 300px; height: auto; border-radius: 8px;" class="clickable-image"></a>`;
+                            quillEditor.clipboard.dangerouslyPasteHTML(range.index, imgHtml);
+                        };
+                        reader.readAsDataURL(file);
+                    }
                 };
-                reader.readAsDataURL(file);
-            }
-        };
-        input.click();
-    });
-}
+                input.click();
+            });
+        }
 
         document.getElementById('cancelEditBtn').onclick = () => renderViewMode();
         document.getElementById('saveEditBtn').onclick = async () => {
@@ -247,17 +292,39 @@ if (toolbar) {
             }
         };
     }
+
     function openCreateMode() { currentProject = { id: null, title: 'New Note', desc: '', noteText: '' }; enterEditMode(); }
     function escapeHtml(str) { return str?.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}) || ''; }
+    
     document.getElementById('loginBtn').onclick = async () => {
         const { error } = await adminLogin(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
         if (error) alert('Login failed: ' + error.message);
-        else { document.getElementById('loginPanel').style.display = 'none'; document.getElementById('userPanel').style.display = 'flex'; document.getElementById('userEmailDisplay').innerText = currentUser.email; document.getElementById('workspaceLayout').style.display = 'flex'; await loadDataFromSupabase(); }
+        else { 
+            document.getElementById('loginPanel').style.display = 'none'; 
+            document.getElementById('userPanel').style.display = 'flex'; 
+            document.getElementById('userEmailDisplay').innerText = currentUser.email; 
+            document.getElementById('workspaceLayout').style.display = 'flex'; 
+            await loadDataFromSupabase(); 
+        }
     };
-    document.getElementById('logoutBtn').onclick = async () => { await adminLogout(); document.getElementById('loginPanel').style.display = 'flex'; document.getElementById('userPanel').style.display = 'none'; document.getElementById('workspaceLayout').style.display = 'none'; document.getElementById('panelBody').innerHTML = '<div class="empty-state">✨ Please login to access your notes.</div>'; };
+    
+    document.getElementById('logoutBtn').onclick = async () => { 
+        await adminLogout(); 
+        document.getElementById('loginPanel').style.display = 'flex'; 
+        document.getElementById('userPanel').style.display = 'none'; 
+        document.getElementById('workspaceLayout').style.display = 'none'; 
+        document.getElementById('panelBody').innerHTML = '<div class="empty-state">✨ Please login to access your notes.</div>'; 
+    };
+    
     document.getElementById('noteSearchInput')?.addEventListener('input', (e) => { currentFilter = e.target.value; renderNotesList(); });
     document.getElementById('addNewNoteBtn')?.addEventListener('click', openCreateMode);
-    checkExistingSession().then(has => { if(!has) { document.getElementById('workspaceLayout').style.display = 'none'; document.getElementById('panelBody').innerHTML = '<div class="empty-state">✨ Please login to access your notes.</div>'; } });
+    
+    checkExistingSession().then(has => { 
+        if(!has) { 
+            document.getElementById('workspaceLayout').style.display = 'none'; 
+            document.getElementById('panelBody').innerHTML = '<div class="empty-state">✨ Please login to access your notes.</div>'; 
+        } 
+    });
 </script>
 </body>
 </html>
