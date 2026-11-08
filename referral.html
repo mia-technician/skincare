@@ -22,7 +22,8 @@
   
   .pool {
     flex: 1; background: #e2e8f0; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 16px;
-    max-height: calc(100vh - 120px); display: flex; flex-direction: column;
+    max-height: calc(100vh - 120px);
+    display: flex; flex-direction: column;
   }
   .pool-header { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;}
   .pool h3 { font-size: 0.9rem; color: #475569; display: flex; justify-content: space-between; align-items: center; margin: 0;}
@@ -53,9 +54,7 @@
   
   .card-name { font-weight: 600; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;}
   .card-details { font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; gap: 15px;}
-  .draggable-card.level-1-draggable { background: #eff6ff; border-color: #bfdbfe; }
-  .draggable-card.level-1-draggable .card-name { color: #1e3a8a; }
-
+  
   .edit-icon { font-size: 0.8rem; cursor: pointer; color: #94a3b8; padding: 2px; border-radius: 4px; transition: 0.2s; }
   .edit-icon:hover { background: #f1f5f9; color: #0f172a; }
 
@@ -119,7 +118,7 @@
 
   <div class="tree-area">
     <div class="drop-zone" id="drop-level-1" style="min-height: 100px; border-color: #3b82f6; background: #eff6ff;">
-      <span style="color:#3b82f6; font-weight:600;">⬇️ 将左侧的“一级介绍人”拖拽到这里 ⬇️</span>
+      <span style="color:#3b82f6; font-weight:600;">⬇️ 将左侧的任意人拖拽到这里，建立一级 ⬇️</span>
     </div>
     <div id="tree-container"></div>
   </div>
@@ -218,46 +217,56 @@
     if (error) { showToast("拉取失败: " + error.message, true); showLoading(false); return; }
 
     allCards = [];
-    const referrersMap = new Map();
+    const seenNames = new Set();
 
-    // 收集所有介绍人（看是否有层级归属，没有就全在池子）
+    // 1. 暴力扫描所有出现过的名字
     data.forEach(row => {
-      if (row.referrer_name && !referrersMap.has(row.referrer_name)) {
-        referrersMap.set(row.referrer_name, {
-          id: 'l1_' + row.referrer_name, 
-          name: row.referrer_name,
-          refId: row.referrer_id || '',
-          level: row.hierarchy_level === 1 ? 1 : null,
-          parentId: row.parent_id || null,
-          groupSortOrder: row.group_sort_order || 0,
-          isReferrerBlock: true
-        });
+      // 找介绍人
+      if (row.referrer_name && row.referrer_name.trim() !== '') {
+        const cleanName = row.referrer_name.trim();
+        if (!seenNames.has(cleanName)) {
+          seenNames.add(cleanName);
+          allCards.push({
+            id: 'l1_' + cleanName, 
+            name: cleanName,
+            refId: row.referrer_id || '',
+            level: row.hierarchy_level === 1 ? 1 : null,
+            parentId: row.parent_id || null,
+            groupSortOrder: row.group_sort_order || 0,
+            isReferrerBlock: true
+          });
+        }
       }
-    });
-
-    referrersMap.forEach(card => allCards.push(card));
-
-    data.forEach(row => {
-      if (row.referee_name) {
-        allCards.push({
-          id: row.id,
-          name: row.referee_name,
-          refId: row.referee_id || '',
-          referrerCredit: row.referrer_credit || 0,
-          referrerStatus: row.referrer_status || 'gray',
-          refereeCredit: row.referee_credit || 0,
-          refereeStatus: row.referee_status || 'gray',
-          note: row.referee_note || '',
-          level: row.hierarchy_level || null,
-          parentId: row.parent_id || null,
-          groupSortOrder: row.group_sort_order || 0
-        });
+      
+      // 找被介绍人
+      if (row.referee_name && row.referee_name.trim() !== '') {
+        const cleanName = row.referee_name.trim();
+        if (!seenNames.has(cleanName)) {
+          seenNames.add(cleanName);
+          allCards.push({
+            id: row.id,
+            name: cleanName,
+            refId: row.referee_id || '',
+            referrerCredit: row.referrer_credit || 0,
+            referrerStatus: row.referrer_status || 'gray',
+            refereeCredit: row.referee_credit || 0,
+            refereeStatus: row.referee_status || 'gray',
+            note: row.referee_note || '',
+            level: row.hierarchy_level || null,
+            parentId: row.parent_id || null,
+            groupSortOrder: row.group_sort_order || 0
+          });
+        }
       }
-      if (row.sub_referee_name) {
-        if (!allCards.find(c => c.name === row.sub_referee_name && c.parentId === row.id)) {
+
+      // 找三级
+      if (row.sub_referee_name && row.sub_referee_name.trim() !== '') {
+        const cleanName = row.sub_referee_name.trim();
+        if (!seenNames.has(cleanName)) {
+          seenNames.add(cleanName);
           allCards.push({
             id: row.id + '_sub',
-            name: row.sub_referee_name,
+            name: cleanName,
             refId: row.sub_referee_id || '',
             referrerCredit: row.sub_ref_credit || 0,
             referrerStatus: row.sub_ref_status || 'gray',
@@ -269,6 +278,23 @@
             groupSortOrder: row.group_sort_order || 0
           });
         }
+      }
+    });
+
+    // 🚨 强制兜底（如果数据库真的把这俩人删干净了）
+    const forceNames = ['F - Ariel Fang Zheng', 'F - LinLing'];
+    forceNames.forEach(name => {
+      if (!seenNames.has(name)) {
+        seenNames.add(name);
+        allCards.push({
+          id: 'l1_' + name, 
+          name: name,
+          refId: '',
+          level: null,
+          parentId: null,
+          groupSortOrder: 0,
+          isReferrerBlock: true
+        });
       }
     });
 
@@ -391,7 +417,7 @@
 
   function createDraggableCard(card) {
     const div = document.createElement('div');
-    div.className = `draggable-card ${card.isReferrerBlock ? 'level-1-draggable' : ''}`;
+    div.className = 'draggable-card';
     div.draggable = true;
     div.id = card.id;
     
@@ -404,7 +430,7 @@
 
     div.innerHTML = `
       <div class="card-name">
-        <span>${card.isReferrerBlock ? '👑 [待定一级] ' : ''}${card.name}</span>
+        <span>${card.name}</span>
         ${editBtn}
       </div>
       ${!card.isReferrerBlock ? `
@@ -412,7 +438,7 @@
         <span>介绍费: <strong class="${pClass}">$${card.referrerCredit}</strong></span>
         <span>新人费: <strong class="${rClass}">$${card.refereeCredit}</strong></span>
       </div>
-      ` : '<div class="card-details">拖到右侧建立分组</div>'}
+      ` : '<div class="card-details">（介绍人）</div>'}
       ${card.note ? `<div style="font-size:0.75rem; color:#94a3b8; margin-top:4px;">📝 ${card.note}</div>` : ''}
     `;
 
@@ -471,7 +497,7 @@
     const draggedId = e.dataTransfer.getData('text/plain');
     const card = allCards.find(c => c.id === draggedId);
 
-    if (card && card.isReferrerBlock) {
+    if (card) {
       card.level = 1;
       card.parentId = null;
       const maxSort = Math.max(...allCards.filter(c => c.level === 1).map(c => c.groupSortOrder || 0), 0);
@@ -485,8 +511,6 @@
 
       if (error) showToast("保存失败: " + error.message, true);
       else showToast("建立分组成功，已永久记住");
-    } else {
-      showToast("只能把左侧标记为 👑 [待定一级] 的方块拖到这里哦！", true);
     }
   });
 
