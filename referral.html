@@ -162,7 +162,7 @@
   </div>
 
   <div class="action-bar">
-    <input type="text" id="searchInput" class="search-input" placeholder="搜索名字/编号... (输入 pending/used/expired/friend/client 快捷筛选)">
+    <input type="text" id="searchInput" class="search-input" placeholder="搜索名字/编号/备注... (输入 pending/used/expired/friend/client 快捷筛选)">
     <button class="btn btn-primary" onclick="openAddModal()">➕ 新增客户/介绍人</button>
   </div>
 
@@ -176,9 +176,8 @@
     <h3 id="modalTitle">新增/编辑记录</h3>
     <form id="editForm" onsubmit="saveData(event)">
       <input type="hidden" id="editId">
-      <input type="hidden" id="editModeType"> <!-- 'group', 'referee', 'sub' -->
+      <input type="hidden" id="editModeType">
       
-      <!-- 大老板信息 (新增或编辑一级/二级时展示) -->
       <div id="section-referrer">
         <div class="form-row">
           <div class="form-group">
@@ -200,7 +199,6 @@
         </div>
       </div>
 
-      <!-- 被介绍人信息 (新增或编辑二级时展示) -->
       <div id="section-referee">
         <div class="form-row">
           <div class="form-group">
@@ -248,7 +246,7 @@
 
       <div class="form-group">
         <label>备注 (Note)</label>
-        <input type="text" id="inputNote">
+        <input type="text" id="inputNote" placeholder="例如: TMG 9/25, Botox">
       </div>
 
       <div class="modal-actions">
@@ -273,11 +271,9 @@
   let currentData = [];
   let currentSearchKw = '';
   
-  // 用于记录当前是在编辑：'group' (一级), 'referee' (二级), 'sub' (三级)
   let editMode = 'referee'; 
   let editingGroupIndex = -1;
   let editingRefIndex = -1;
-  let editingSubIndex = -1;
 
   // ==========================================
   // 📥 从云端拉取数据
@@ -369,7 +365,6 @@
     document.getElementById('editId').value = '';
     document.getElementById('editModeType').value = 'referee';
     
-    // UI 还原
     document.getElementById('section-referrer').style.display = 'block';
     document.getElementById('section-referee').style.display = 'block';
     document.getElementById('inputReferrerName').readOnly = false;
@@ -381,7 +376,6 @@
     document.getElementById('modal').classList.add('show');
   }
 
-  // 编辑大老板 (第一级)
   function openEditGroupModal(groupIndex) {
     editMode = 'group';
     editingGroupIndex = groupIndex;
@@ -391,9 +385,8 @@
     document.getElementById('editId').value = ''; 
     document.getElementById('editModeType').value = 'group';
     
-    // UI 调整
     document.getElementById('section-referrer').style.display = 'block';
-    document.getElementById('section-referee').style.display = 'none'; // 隐藏被介绍人区域
+    document.getElementById('section-referee').style.display = 'none';
     document.getElementById('inputReferrerName').value = group.referrer;
     document.getElementById('inputReferrerName').readOnly = false;
     document.getElementById('inputReferrerId').value = group.id || '';
@@ -403,7 +396,6 @@
     document.getElementById('modal').classList.add('show');
   }
 
-  // 编辑二级 (直接挂在大老板名下的)
   function openEditRefModal(dbId, groupIndex, refIndex) {
     editMode = 'referee';
     editingGroupIndex = groupIndex;
@@ -434,12 +426,10 @@
     document.getElementById('modal').classList.add('show');
   }
 
-  // 编辑三级 (孙辈)
   function openEditSubModal(dbId, groupIndex, refIndex, subIndex) {
     editMode = 'sub';
     editingGroupIndex = groupIndex;
     editingRefIndex = refIndex;
-    editingSubIndex = subIndex;
     
     const group = currentData[groupIndex];
     const ref = group.referees[refIndex];
@@ -449,11 +439,9 @@
     document.getElementById('editId').value = dbId || ''; 
     document.getElementById('editModeType').value = 'sub';
 
-    // 隐藏第一级介绍人区，只展示孙辈信息
     document.getElementById('section-referrer').style.display = 'none';
     document.getElementById('section-referee').style.display = 'block';
     
-    // 改变 label 名称，防止误导
     document.getElementById('label-referee-name').innerText = '三级人员名字 *';
     document.getElementById('label-referrer-credit').innerText = '上级介绍奖励 ($)';
     document.getElementById('label-referee-credit').innerText = '新人奖励 ($)';
@@ -471,7 +459,6 @@
 
   function closeModal() {
     document.getElementById('modal').classList.remove('show');
-    // 恢复 label 初始状态
     document.getElementById('label-referee-name').innerText = '被介绍人名字 *';
     document.getElementById('label-referrer-credit').innerText = '介绍人奖励 ($)';
     document.getElementById('label-referee-credit').innerText = '新人奖励 ($)';
@@ -488,7 +475,6 @@
     let payload = {};
     let error;
 
-    // 1. 编辑大老板 (更新该组下所有记录)
     if (currentMode === 'group') {
       const oldGroup = currentData[editingGroupIndex];
       const oldRefName = oldGroup.referrer;
@@ -507,7 +493,6 @@
       const res = await query;
       error = res.error;
     } 
-    // 2. 编辑二级
     else if (currentMode === 'referee') {
       payload = {
         referrer_name: document.getElementById('inputReferrerName').value.trim(),
@@ -530,9 +515,7 @@
         error = res.error;
       }
     } 
-    // 3. 编辑三级 (孙辈，更新对应的 sub_ 字段)
     else if (currentMode === 'sub') {
-      // 这里有个细节：如果原来这一行既包含二级信息，又包含三级信息。我们更新三级字段即可。
       payload = {
         sub_referee_name: document.getElementById('inputRefereeName').value.trim(),
         sub_referee_id: document.getElementById('inputRefereeId').value.trim(),
@@ -543,8 +526,6 @@
         sub_referee_note: document.getElementById('inputNote').value.trim()
       };
 
-      // 由于三级数据在数据库中是混在二级行里的，我们需要知道是哪个 dbId 包含了这个 sub。
-      // 所以这里需要依靠传进来的 dbId（即父级的 dbId）。
       const res = await supabaseClient.from('referrals').update(payload).eq('id', dbId);
       error = res.error;
     }
@@ -560,7 +541,7 @@
   }
 
   // ==========================================
-  // 📊 统计与渲染核心逻辑
+  // 📊 统计与渲染核心逻辑 (包含 Note 深度搜索)
   // ==========================================
   function updateStatsAndRender(keyword) {
     currentSearchKw = keyword;
@@ -581,19 +562,32 @@
     container.innerHTML = '';
 
     currentData.forEach((group, gIdx) => {
-      const matchReferrer = group.referrer.toLowerCase().includes(kw) || (group.id && group.id.includes(kw));
+      // 1. 检查第一级（大老板）的名字、ID、备注
+      const matchReferrer = group.referrer.toLowerCase().includes(kw) || 
+                            (group.id && group.id.toLowerCase().includes(kw)) ||
+                            (group.note && group.note.toLowerCase().includes(kw));
       
+      // 2. 检查第二级（直接被介绍人）的名字、ID、备注，以及深层备注
       const filteredReferees = group.referees.filter(ref => {
-        let match = ref.name.toLowerCase().includes(kw) || (ref.id && ref.id.includes(kw));
+        let match = ref.name.toLowerCase().includes(kw) || 
+                    (ref.id && ref.id.toLowerCase().includes(kw)) || 
+                    (ref.note && ref.note.toLowerCase().includes(kw));
+        
+        // 快捷状态筛选
         if (['pending','used','expired'].includes(kw)) {
            if (kw === 'pending') match = match || ref.referrerStatus === 'pending' || ref.refereeStatus === 'pending';
            else if (kw === 'used') match = match || ref.referrerStatus === 'used' || ref.refereeStatus === 'used';
            else if (kw === 'expired') match = match || ref.referrerStatus === 'blue' || ref.refereeStatus === 'blue';
         }
+
+        // 3. 检查第三级（孙辈）的名字、ID、备注
         let subMatch = false;
         if (ref.subReferees) {
           ref.subReferees.forEach(sub => {
-            let sMatch = sub.name.toLowerCase().includes(kw) || (sub.id && sub.id.includes(kw));
+            let sMatch = sub.name.toLowerCase().includes(kw) || 
+                         (sub.id && sub.id.toLowerCase().includes(kw)) || 
+                         (sub.note && sub.note.toLowerCase().includes(kw));
+            
             if (['pending','used','expired'].includes(kw)) {
               if (kw === 'pending') sMatch = sMatch || sub.status === 'pending' || sub.subRefStatus === 'pending';
               else if (kw === 'used') sMatch = sMatch || sub.status === 'used' || sub.subRefStatus === 'used';
@@ -605,6 +599,7 @@
         return match || subMatch;
       });
 
+      // 4. 检查身份筛选
       const identityType = group.identity || 'client';
       let matchIdentity = true;
       if (kw === 'friend' || kw === '朋友') {
@@ -613,6 +608,7 @@
         matchIdentity = (identityType === 'client');
       }
 
+      // 如果整个组都没匹配上，直接跳过渲染
       if ((!matchReferrer && filteredReferees.length === 0) || !matchIdentity) return;
 
       // 统计
@@ -654,7 +650,10 @@
       listToRender.forEach((ref) => {
         const realRefIndex = group.referees.indexOf(ref);
         
-        let selfMatch = ref.name.toLowerCase().includes(kw) || (ref.id && ref.id.includes(kw));
+        let selfMatch = ref.name.toLowerCase().includes(kw) || 
+                        (ref.id && ref.id.toLowerCase().includes(kw)) || 
+                        (ref.note && ref.note.toLowerCase().includes(kw));
+        
         if (['pending','used','expired'].includes(kw)) {
            if (kw === 'pending') selfMatch = selfMatch || ref.referrerStatus === 'pending' || ref.refereeStatus === 'pending';
            else if (kw === 'used') selfMatch = selfMatch || ref.referrerStatus === 'used' || ref.refereeStatus === 'used';
@@ -690,7 +689,11 @@
 
         if (ref.subReferees) {
           ref.subReferees.forEach((sub, subIdx) => {
-            let sMatch = sub.name.toLowerCase().includes(kw) || (sub.id && sub.id.includes(kw));
+            // 深度匹配孙辈的 Note
+            let sMatch = sub.name.toLowerCase().includes(kw) || 
+                         (sub.id && sub.id.toLowerCase().includes(kw)) || 
+                         (sub.note && sub.note.toLowerCase().includes(kw));
+
             if (['pending','used','expired'].includes(kw)) {
               if (kw === 'pending') sMatch = sMatch || sub.status === 'pending' || sub.subRefStatus === 'pending';
               else if (kw === 'used') sMatch = sMatch || sub.status === 'used' || sub.subRefStatus === 'used';
@@ -700,7 +703,6 @@
             if (matchReferrer || selfMatch || sMatch) {
               groupHTML += `
                 <div class="referee-item sub-referee">
-                  <!-- 新增：三级人员的编辑按钮 -->
                   <button class="edit-btn" onclick="openEditSubModal('${ref.dbId}', ${gIdx}, ${realRefIndex}, ${subIdx})" title="编辑三级">✏️</button>
                   <div class="referee-info">
                     <div class="referee-name-row">
