@@ -69,16 +69,15 @@
   }
   .referee-info { flex: 1; display: flex; flex-direction: column; gap: 4px;}
   
-  /* === 字体状态 (人名不划掉，只有金额划掉) === */
+  /* === 字体状态 === */
   .status-pending { font-weight: 700; color: #dc2626; }
-  .status-used { font-style: italic; color: #94a3b8; } /* 人名只变浅，不划掉 */
+  .status-used { font-style: italic; color: #94a3b8; } 
   .status-blue { font-weight: 400; color: #2563eb; }
-  .status-tbd { font-weight: 400; color: #8b5cf6; } /* 待定：浅紫色 */
+  .status-tbd { font-weight: 400; color: #8b5cf6; } 
 
-  /* 仅对金额的划掉效果 */
+  /* 仅对金额划掉 */
   .amount.status-used { text-decoration: line-through; }
 
-  /* 新增：待定小标签 */
   .badge-tbd { font-size: 0.65rem; padding: 1px 6px; border-radius: 4px; background: #ede9fe; color: #6d28d9; margin-left: 6px; border: 1px solid #ddd6fe;}
 
   .credit-badges { display: flex; gap: 20px; margin-left: 16px; }
@@ -282,16 +281,16 @@
   let editingRefIndex = -1;
 
   // ==========================================
-  // 📥 从云端拉取数据（包含强制排序逻辑，解决分两组的 Bug）
+  // 📥 从云端拉取数据（严格按时间顺序）
   // ==========================================
   async function fetchDataFromCloud() {
     showLoading(true);
     
-    // 按 ID 排序拉取，防止更新导致碎片化
+    // 按 created_at 升序拉取，确保先录入的在前面
     const { data, error } = await supabaseClient
       .from('referrals')
       .select('*')
-      .order('id', { ascending: true }); 
+      .order('created_at', { ascending: true }); 
 
     if (error) {
       alert("拉取云端数据失败: " + error.message);
@@ -300,8 +299,10 @@
     }
 
     const groupedData = {};
+    const groupOrder = []; // 专门记录第一级出现的顺序
+
     data.forEach(row => {
-      // 关键：强制 Trim 去除首尾空格，避免因为多一个空格导致 Ariel 被分成两组！
+      // 强制清理首尾空格
       const cleanReferrerName = row.referrer_name.trim();
       const refKey = `${cleanReferrerName}|${row.referrer_id}`;
 
@@ -316,6 +317,7 @@
           identity: idType,
           referees: []
         };
+        groupOrder.push(refKey); // 记录出现顺序
       }
 
       let existingRef = groupedData[refKey].referees.find(r => r.dbId === row.id || (r.name === row.referee_name && r.id === row.referee_id));
@@ -350,8 +352,8 @@
       }
     });
 
-    // 强制将分好组的数据按介绍人名字字母顺序排序，永远保持整洁！
-    currentData = Object.values(groupedData).sort((a, b) => a.referrer.localeCompare(b.referrer));
+    // 按照记录的出现顺序重新组装数据，不再按字母排序！
+    currentData = groupOrder.map(key => groupedData[key]);
     
     showLoading(false);
     updateStatsAndRender(currentSearchKw);
@@ -667,7 +669,6 @@
            else if (kw === 'expired') selfMatch = selfMatch || ref.referrerStatus === 'blue' || ref.refereeStatus === 'blue';
         }
 
-        // 检查是否含有待定意向
         const hasTBD = ref.refereeStatus === 'gray' || ref.referrerStatus === 'gray';
 
         groupHTML += `
@@ -766,7 +767,7 @@
     if (status === 'pending') return 'status-pending';
     if (status === 'used') return 'status-used';
     if (status === 'blue') return 'status-blue';
-    return 'status-tbd'; // gray 现在对应待定，使用浅紫色
+    return 'status-tbd'; 
   }
 
   function showLoading(show) {
