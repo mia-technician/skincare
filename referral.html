@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Referral Program Tracker - Cloud</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
-<!-- 引入 Supabase 客户端 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -53,9 +52,14 @@
   .referrer-block { border-bottom: 1px dashed #e2e8f0; padding-bottom: 16px; margin-bottom: 16px; }
   .referrer-block:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
   
-  .name-title { font-weight: 700; font-size: 1.15rem; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+  .name-title { font-weight: 700; font-size: 1.15rem; color: #0f172a; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;}
   .name-title span { font-size: 0.75rem; font-weight: 400; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 20px; }
   .note-text { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; margin-bottom: 12px; }
+
+  /* === 身份标签 === */
+  .badge-identity { font-size: 0.7rem; padding: 2px 8px; border-radius: 6px; font-weight: 600; margin-left: 6px; display: inline-block; vertical-align: middle;}
+  .badge-friend { background: #fce7f3; color: #be185d; border: 1px solid #fbcfe8; }
+  .badge-client { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
   .referee-list { margin-left: 12px; padding-left: 20px; border-left: 2px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; }
   .referee-item {
@@ -150,13 +154,11 @@
   </div>
 
   <div class="action-bar">
-    <input type="text" id="searchInput" class="search-input" placeholder="搜索名字、编号... (输入 pending/used/expired 快捷筛选)">
+    <input type="text" id="searchInput" class="search-input" placeholder="搜索名字/编号... (输入 pending/used/expired/friend/client 快捷筛选)">
     <button class="btn btn-primary" onclick="openAddModal()">➕ 新增客户</button>
   </div>
 
-  <div id="app">
-    <!-- 数据渲染区 -->
-  </div>
+  <div id="app"></div>
 
 </div>
 
@@ -170,11 +172,14 @@
       <div class="form-row">
         <div class="form-group">
           <label>介绍人名字 *</label>
-          <input type="text" id="inputReferrerName" required placeholder="例: F - Ariel Fang Zheng">
+          <input type="text" id="inputReferrerName" required placeholder="例: Ariel Fang Zheng">
         </div>
         <div class="form-group">
-          <label>介绍人 ID</label>
-          <input type="text" id="inputReferrerId" placeholder="例: 25023">
+          <label>身份自动判定</label>
+          <select id="inputIdentity" style="background:#f8fafc; color:#64748b;">
+            <option value="client">👤 客人 (无 F- 前缀)</option>
+            <option value="friend">👥 朋友 (有 F- 前缀)</option>
+          </select>
         </div>
       </div>
 
@@ -200,7 +205,7 @@
             <option value="pending">待使用 (红)</option>
             <option value="used">已使用 (灰划线)</option>
             <option value="blue">已过期 (蓝)</option>
-            <option value="gray">未标色/无 (浅灰)</option>
+            <option value="gray">未标色 (浅灰)</option>
           </select>
         </div>
       </div>
@@ -216,7 +221,7 @@
             <option value="pending">待使用 (红)</option>
             <option value="used">已使用 (灰划线)</option>
             <option value="blue">已过期 (蓝)</option>
-            <option value="gray">未标色/无 (浅灰)</option>
+            <option value="gray">未标色 (浅灰)</option>
           </select>
         </div>
       </div>
@@ -264,25 +269,28 @@
       return;
     }
 
-    // 将扁平化的数据库数据结构，还原成前端所需的树状结构
     const groupedData = {};
     data.forEach(row => {
       const refKey = `${row.referrer_name}|${row.referrer_id}|${row.referrer_note}`;
       if (!groupedData[refKey]) {
+        // 判断身份：如果名字里有 F-，或者数据库中已经存了 friend，则判定为 friend
+        let idType = row.identity_type || 'client';
+        if (row.referrer_name.startsWith('F-') || row.referrer_name.startsWith('F -')) idType = 'friend';
+
         groupedData[refKey] = {
           referrer: row.referrer_name,
           id: row.referrer_id,
           note: row.referrer_note,
+          identity: idType,
           referees: []
         };
       }
 
-      // 防止同一个新人被重复推入（因为多级裂变会产生多条记录）
       let existingRef = groupedData[refKey].referees.find(r => r.dbId === row.id || (r.name === row.referee_name && r.id === row.referee_id && r.note === row.referee_note));
       
       if (!existingRef) {
         existingRef = {
-          dbId: row.id, // 核心主键ID，用于更新
+          dbId: row.id,
           name: row.referee_name,
           id: row.referee_id,
           role: row.referee_role,
@@ -296,7 +304,6 @@
         groupedData[refKey].referees.push(existingRef);
       }
 
-      // 处理孙辈（多级裂变）
       if (row.sub_referee_name) {
         existingRef.subReferees.push({
           name: row.sub_referee_name,
@@ -319,27 +326,39 @@
   // ==========================================
   // 📝 表单交互 (新增 / 编辑)
   // ==========================================
+  
+  // 输入名字时，自动判定身份下拉框
+  document.getElementById('inputReferrerName').addEventListener('input', (e) => {
+    const val = e.target.value.trim();
+    const identitySelect = document.getElementById('inputIdentity');
+    if (val.startsWith('F-') || val.startsWith('F -')) {
+      identitySelect.value = 'friend';
+    } else {
+      identitySelect.value = 'client';
+    }
+  });
+
   function openAddModal() {
     document.getElementById('modalTitle').innerText = '新增客户记录';
     document.getElementById('editForm').reset();
     document.getElementById('editId').value = '';
+    document.getElementById('inputIdentity').value = 'client';
     
     if(currentData.length > 0) {
       document.getElementById('inputReferrerName').value = currentData[0].referrer;
-      document.getElementById('inputReferrerId').value = currentData[0].id || '';
+      document.getElementById('inputIdentity').value = currentData[0].identity;
     }
     document.getElementById('modal').classList.add('show');
   }
 
   function openEditModal(dbId, groupIndex, refIndex) {
-    // 如果是新增还没存数据库的，dbId 可能为空，但通常我们会给每个记录生成主键
     const group = currentData[groupIndex];
     const ref = group.referees[refIndex];
 
     document.getElementById('modalTitle').innerText = '编辑客户记录';
     document.getElementById('editId').value = dbId || ''; 
     document.getElementById('inputReferrerName').value = group.referrer;
-    document.getElementById('inputReferrerId').value = group.id || '';
+    document.getElementById('inputIdentity').value = group.identity || 'client';
     document.getElementById('inputRefereeName').value = ref.name || '';
     document.getElementById('inputRefereeId').value = ref.id || '';
     document.getElementById('inputReferrerCredit').value = ref.referrerCredit || 0;
@@ -362,11 +381,9 @@
 
     const dbId = document.getElementById('editId').value;
     
-    // 如果是对已有记录进行更新，且存在子级（孙辈），为了简单起见，这里只更新主字段。
-    // 注意：如果修改了被介绍人，会导致原有的孙辈数据孤立，因此编辑模式下通常只建议修改状态和金额。
     const payload = {
       referrer_name: document.getElementById('inputReferrerName').value.trim(),
-      referrer_id: document.getElementById('inputReferrerId').value.trim(),
+      identity_type: document.getElementById('inputIdentity').value,
       referee_name: document.getElementById('inputRefereeName').value.trim(),
       referee_id: document.getElementById('inputRefereeId').value.trim(),
       referrer_credit: Number(document.getElementById('inputReferrerCredit').value),
@@ -378,11 +395,9 @@
 
     let error;
     if (dbId) {
-      // 更新
       const res = await supabaseClient.from('referrals').update(payload).eq('id', dbId);
       error = res.error;
     } else {
-      // 新增
       const res = await supabaseClient.from('referrals').insert([payload]);
       error = res.error;
     }
@@ -393,7 +408,7 @@
       alert('保存失败: ' + error.message);
     } else {
       closeModal();
-      fetchDataFromCloud(); // 重新拉取云端数据刷新页面
+      fetchDataFromCloud();
     }
   }
 
@@ -443,37 +458,27 @@
         return match || subMatch;
       });
 
-      if (!matchReferrer && filteredReferees.length === 0) return;
+      // 处理身份搜索关键词 (friend/client)
+      const identityType = group.identity || 'client';
+      let matchIdentity = true;
+      if (kw === 'friend' || kw === '朋友') {
+        matchIdentity = (identityType === 'friend');
+      } else if (kw === 'client' || kw === '客人') {
+        matchIdentity = (identityType === 'client');
+      }
+
+      if ((!matchReferrer && filteredReferees.length === 0) || !matchIdentity) return;
 
       // 统计
-      if (!isFiltered) {
-        group.referees.forEach(ref => {
-          if (ref.name) totalPeople++;
-          addToStats(ref.referrerStatus, ref.referrerCredit);
-          addToStats(ref.refereeStatus, ref.refereeCredit);
-          if (ref.subReferees) {
-            ref.subReferees.forEach(sub => {
-              if (sub.name) totalPeople++;
-              addToStats(sub.subRefStatus, sub.subRefCredit);
-              addToStats(sub.status, sub.credit);
-            });
-          }
-        });
-      } else {
-        if (matchReferrer) {
+      if (!isFiltered || matchIdentity) {
+        if (!isFiltered || matchIdentity) {
           group.referees.forEach(ref => {
-            if (ref.referrerCredit > 0) {
-              totalPeople++; 
-              addToStats(ref.referrerStatus, ref.referrerCredit);
-            }
-          });
-        } else {
-          filteredReferees.forEach(ref => {
             if (ref.name) totalPeople++;
             addToStats(ref.referrerStatus, ref.referrerCredit);
             addToStats(ref.refereeStatus, ref.refereeCredit);
-            if (ref.subReferees && ['pending','used','expired'].includes(kw)) {
+            if (ref.subReferees) {
               ref.subReferees.forEach(sub => {
+                if (sub.name) totalPeople++;
                 addToStats(sub.subRefStatus, sub.subRefCredit);
                 addToStats(sub.status, sub.credit);
               });
@@ -483,11 +488,16 @@
       }
 
       // 渲染
+      const isFriend = identityType === 'friend';
+      const identityBadge = isFriend 
+        ? `<span class="badge-identity badge-friend">👥 朋友</span>` 
+        : `<span class="badge-identity badge-client">👤 客人</span>`;
+
       let groupHTML = `
         <div class="group-card">
           <div class="referrer-block">
             <div class="name-title">
-              👤 ${group.referrer} 
+              👤 ${group.referrer} ${identityBadge}
               ${group.id ? `<span>#${group.id}</span>` : ''}
             </div>
             ${group.note ? `<div class="note-text">📝 ${group.note}</div>` : ''}
