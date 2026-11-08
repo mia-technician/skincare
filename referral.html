@@ -75,7 +75,6 @@
   .status-blue { font-weight: 400; color: #2563eb; }
   .status-tbd { font-weight: 400; color: #8b5cf6; } 
 
-  /* 仅对金额划掉 */
   .amount.status-used { text-decoration: line-through; }
 
   .badge-tbd { font-size: 0.65rem; padding: 1px 6px; border-radius: 4px; background: #ede9fe; color: #6d28d9; margin-left: 6px; border: 1px solid #ddd6fe;}
@@ -280,13 +279,15 @@
   let editingGroupIndex = -1;
   let editingRefIndex = -1;
 
+  // 缓存当前编辑的上级真实 ID 和名字，防止编辑下级时丢失导致分裂
+  let cachedReferrerId = '';
+  let cachedReferrerName = '';
+
   // ==========================================
-  // 📥 从云端拉取数据（严格按时间顺序）
+  // 📥 从云端拉取数据（完全遵照录入时间顺序）
   // ==========================================
   async function fetchDataFromCloud() {
     showLoading(true);
-    
-    // 按 created_at 升序拉取，确保先录入的在前面
     const { data, error } = await supabaseClient
       .from('referrals')
       .select('*')
@@ -299,12 +300,11 @@
     }
 
     const groupedData = {};
-    const groupOrder = []; // 专门记录第一级出现的顺序
+    const groupOrder = []; // 记录出现顺序
 
     data.forEach(row => {
-      // 强制清理首尾空格
-      const cleanReferrerName = row.referrer_name.trim();
-      const refKey = `${cleanReferrerName}|${row.referrer_id}`;
+      const cleanReferrerName = (row.referrer_name || '').trim();
+      const refKey = `${cleanReferrerName}|${row.referrer_id || ''}`;
 
       if (!groupedData[refKey]) {
         let idType = row.identity_type || 'client';
@@ -312,49 +312,51 @@
 
         groupedData[refKey] = {
           referrer: cleanReferrerName,
-          id: row.referrer_id,
-          note: row.referrer_note,
+          id: row.referrer_id || '',
+          note: row.referrer_note || '',
           identity: idType,
           referees: []
         };
-        groupOrder.push(refKey); // 记录出现顺序
+        groupOrder.push(refKey);
       }
 
-      let existingRef = groupedData[refKey].referees.find(r => r.dbId === row.id || (r.name === row.referee_name && r.id === row.referee_id));
+      let existingRef = groupedData[refKey].referees.find(r => r.dbId === row.id);
       
       if (!existingRef) {
         existingRef = {
           dbId: row.id,
-          name: row.referee_name,
-          id: row.referee_id,
-          role: row.referee_role,
-          referrerCredit: row.referrer_credit,
-          referrerStatus: row.referrer_status,
-          refereeCredit: row.referee_credit,
-          refereeStatus: row.referee_status,
-          note: row.referee_note,
+          name: row.referee_name || '',
+          id: row.referee_id || '',
+          role: row.referee_role || '',
+          referrerCredit: row.referrer_credit || 0,
+          referrerStatus: row.referrer_status || 'gray',
+          refereeCredit: row.referee_credit || 0,
+          refereeStatus: row.referee_status || 'gray',
+          note: row.referee_note || '',
           subReferees: []
         };
         groupedData[refKey].referees.push(existingRef);
       }
 
       if (row.sub_referee_name) {
-        existingRef.subReferees.push({
-          name: row.sub_referee_name,
-          id: row.sub_referee_id,
-          role: row.sub_referee_role,
-          subRefCredit: row.sub_ref_credit,
-          subRefStatus: row.sub_ref_status,
-          credit: row.sub_referee_credit,
-          status: row.sub_referee_status,
-          note: row.sub_referee_note
-        });
+        let existingSub = existingRef.subReferees.find(s => s.name === row.sub_referee_name);
+        if(!existingSub) {
+          existingRef.subReferees.push({
+            name: row.sub_referee_name,
+            id: row.sub_referee_id || '',
+            role: row.sub_referee_role || '',
+            subRefCredit: row.sub_ref_credit || 0,
+            subRefStatus: row.sub_ref_status || 'gray',
+            credit: row.sub_referee_credit || 0,
+            status: row.sub_referee_status || 'gray',
+            note: row.sub_referee_note || ''
+          });
+        }
       }
     });
 
-    // 按照记录的出现顺序重新组装数据，不再按字母排序！
+    // 按原本的先后顺序呈现
     currentData = groupOrder.map(key => groupedData[key]);
-    
     showLoading(false);
     updateStatsAndRender(currentSearchKw);
   }
@@ -383,9 +385,11 @@
     document.getElementById('section-referrer').style.display = 'block';
     document.getElementById('section-referee').style.display = 'block';
     document.getElementById('inputReferrerName').readOnly = false;
+    document.getElementById('inputReferrerId').readOnly = false;
     
     if(currentData.length > 0) {
       document.getElementById('inputReferrerName').value = currentData[0].referrer;
+      document.getElementById('inputReferrerId').value = currentData[0].id || '';
       document.getElementById('inputIdentity').value = currentData[0].identity;
     }
     document.getElementById('modal').classList.add('show');
@@ -402,9 +406,11 @@
     
     document.getElementById('section-referrer').style.display = 'block';
     document.getElementById('section-referee').style.display = 'none';
+    
     document.getElementById('inputReferrerName').value = group.referrer;
     document.getElementById('inputReferrerName').readOnly = false;
     document.getElementById('inputReferrerId').value = group.id || '';
+    document.getElementById('inputReferrerId').readOnly = false;
     document.getElementById('inputIdentity').value = group.identity || 'client';
     document.getElementById('inputNote').value = group.note || '';
 
@@ -419,6 +425,9 @@
     const group = currentData[groupIndex];
     const ref = group.referees[refIndex];
 
+    cachedReferrerName = group.referrer;
+    cachedReferrerId = group.id;
+
     document.getElementById('modalTitle').innerText = '编辑客户记录';
     document.getElementById('editId').value = dbId || ''; 
     document.getElementById('editModeType').value = 'referee';
@@ -426,8 +435,10 @@
     document.getElementById('section-referrer').style.display = 'block';
     document.getElementById('section-referee').style.display = 'block';
     
-    document.getElementById('inputReferrerName').value = group.referrer;
+    document.getElementById('inputReferrerName').value = cachedReferrerName;
+    document.getElementById('inputReferrerId').value = cachedReferrerId;
     document.getElementById('inputReferrerName').readOnly = true; 
+    document.getElementById('inputReferrerId').readOnly = true; 
     document.getElementById('inputIdentity').value = group.identity || 'client';
     
     document.getElementById('inputRefereeName').value = ref.name || '';
@@ -449,6 +460,9 @@
     const group = currentData[groupIndex];
     const ref = group.referees[refIndex];
     const sub = ref.subReferees[subIndex];
+
+    cachedReferrerName = group.referrer;
+    cachedReferrerId = group.id;
 
     document.getElementById('modalTitle').innerText = '编辑三级人员记录';
     document.getElementById('editId').value = dbId || ''; 
@@ -510,8 +524,8 @@
     } 
     else if (currentMode === 'referee') {
       payload = {
-        referrer_name: document.getElementById('inputReferrerName').value.trim(),
-        referrer_id: document.getElementById('inputReferrerId').value.trim(),
+        referrer_name: cachedReferrerName,
+        referrer_id: cachedReferrerId,
         identity_type: document.getElementById('inputIdentity').value,
         referee_name: document.getElementById('inputRefereeName').value.trim(),
         referee_id: document.getElementById('inputRefereeId').value.trim(),
@@ -556,7 +570,7 @@
   }
 
   // ==========================================
-  // 📊 统计与渲染核心逻辑 (包含 Note 深度搜索)
+  // 📊 统计与渲染核心逻辑
   // ==========================================
   function updateStatsAndRender(keyword) {
     currentSearchKw = keyword;
