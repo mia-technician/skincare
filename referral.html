@@ -564,7 +564,7 @@
     let candidates = allPeople;
     if (hasText) {
       candidates = candidates.filter(p => {
-        const hay = [p.name, p.ref_id, p.note].filter(Boolean).join(' ').toLowerCase();
+        const hay = [p.name, p.ref_id, p.note, p.role].filter(Boolean).join(' ').toLowerCase();
         return hay.includes(kw);
       });
     }
