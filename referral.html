@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>拖拽式 Referral Tracker</title>
+<title>拖拽式 Referral Tracker - Cloud</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #f1f5f9; font-family: 'Inter', sans-serif; color: #333; padding: 20px; }
@@ -13,51 +15,70 @@
   .stat-card h3 { font-size: 0.8rem; color: #64748b; margin-bottom: 8px; }
   .stat-card .value { font-size: 1.5rem; font-weight: 700; }
   .value.pending { color: #dc2626; }
-  .value.used { color: #64748b; font-style: italic; text-decoration: line-through; }
+  .value.used { color: #64748b; font-style: italic; }
   .value.blue { color: #3b82f6; }
 
-  .workspace { display: flex; gap: 20px; }
+  .workspace { display: flex; gap: 20px; align-items: flex-start;}
   
   /* 左侧数据池 */
   .pool {
     flex: 1; background: #e2e8f0; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 16px;
-    min-height: 500px; display: flex; flex-direction: column; gap: 10px;
+    min-height: 600px; display: flex; flex-direction: column; gap: 10px;
   }
-  .pool h3 { font-size: 0.9rem; color: #475569; margin-bottom: 10px; }
+  .pool h3 { font-size: 0.9rem; color: #475569; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
   
   /* 右侧树状架子 */
   .tree-area { flex: 2; display: flex; flex-direction: column; gap: 20px; }
-  .level-1 { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-  .level-1-header { font-weight: 700; font-size: 1.1rem; color: #0f172a; margin-bottom: 12px; display: flex; justify-content: space-between; }
-  .level-2 { margin-left: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+  .level-1 { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; }
+  .level-1-header { font-weight: 700; font-size: 1.1rem; color: #0f172a; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;}
+  .level-2 { margin-left: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 12px; position: relative; }
   .level-3 { margin-left: 20px; background: #fff; border: 1px dashed #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 8px; }
 
   /* 拖拽方块样式 */
   .draggable-card {
     background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;
     cursor: grab; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s;
+    position: relative; user-select: none;
   }
   .draggable-card:active { cursor: grabbing; }
-  .draggable-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); transform: translateY(-1px); }
+  .draggable-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-color: #cbd5e1; }
   
-  .card-name { font-weight: 600; font-size: 0.95rem; }
-  .card-details { font-size: 0.8rem; color: #64748b; margin-top: 4px; }
+  .card-name { font-weight: 600; font-size: 0.95rem; display: flex; gap: 8px; align-items: center;}
+  .card-details { font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; gap: 15px;}
+
+  /* 一级专属拖拽方块 */
+  .draggable-card.level-1-draggable {
+    background: #eff6ff; border-color: #bfdbfe;
+  }
+  .draggable-card.level-1-draggable .card-name { color: #1e3a8a; }
 
   /* 放置目标区域 */
   .drop-zone {
-    min-height: 50px; border: 2px dashed #cbd5e1; border-radius: 6px; margin-top: 8px;
+    min-height: 80px; border: 2px dashed #cbd5e1; border-radius: 6px; margin-top: 8px;
     display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 0.85rem;
+    transition: 0.2s;
   }
-  .drop-zone.drag-over { background: #e0f2fe; border-color: #3b82f6; }
+  .drop-zone.drag-over { background: #e0f2fe; border-color: #3b82f6; color: #3b82f6; }
   
-  .btn { padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;}
+  .btn { padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem;}
   .btn:hover { background: #2563eb; }
+  .btn-danger { background: #ef4444; padding: 4px 8px; font-size: 0.75rem;}
+  .btn-danger:hover { background: #dc2626; }
 
-  .flex-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  /* 状态字 */
+  .status-pending { font-weight: 700; color: #dc2626; }
+  .status-used { font-style: italic; color: #94a3b8; text-decoration: line-through; } 
+  .status-blue { font-weight: 400; color: #2563eb; }
+
+  .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; font-weight: bold; color: #3b82f6;}
+  .loading-overlay.show { display: flex; }
 </style>
 </head>
 <body>
 
+<div class="loading-overlay" id="loading">同步云端数据中...</div>
+
+<!-- 顶部统计 -->
 <div class="dashboard">
   <div class="stat-card">
     <h3>⏳ 待使用 (Pending)</h3>
@@ -72,39 +93,117 @@
     <div class="value blue" id="total-expired">$0</div>
   </div>
   <div class="stat-card">
-    <h3>👥 总人数</h3>
+    <h3>👥 已整理人数</h3>
     <div class="value" id="total-people">0</div>
   </div>
 </div>
 
 <div class="workspace">
   <!-- 左侧未分配数据池 -->
-  <div class="pool" id="unassigned-pool">
-    <h3>📦 未分配数据 (拖拽至右侧)</h3>
+  <div class="pool">
+    <h3>
+      📦 未分配池 (拖拽至右侧)
+      <button class="btn" style="padding:4px 8px; font-size:0.7rem; background:#64748b;" onclick="fetchDataFromCloud()">刷新数据</button>
+    </h3>
     <div id="pool-content" style="display: flex; flex-direction: column; gap: 10px;"></div>
   </div>
 
   <!-- 右侧树状结构 -->
   <div class="tree-area">
-    <button class="btn" onclick="addNewLevel1()" style="width: 150px;">➕ 新增一级介绍人</button>
+    <!-- 一级的放置区 -->
+    <div class="drop-zone" id="drop-level-1" style="min-height: 100px; border-color: #3b82f6; background: #eff6ff;">
+      <span style="color:#3b82f6; font-weight:600;">⬇️ 将左侧的“一级介绍人”拖拽到这里 ⬇️</span>
+    </div>
     <div id="tree-container"></div>
   </div>
 </div>
 
 <script>
   // ==========================================
-  // 📊 模拟初始数据（来自于你原本的表格）
+  // 🔗 Supabase 配置
   // ==========================================
-  let allCards = [
-    { id: 'c1', name: 'John Liu', level: 2, parentId: null, referrerCredit: 100, referrerStatus: 'used', refereeCredit: 100, refereeStatus: 'used' },
-    { id: 'c2', name: 'XiaoQi Zhang', level: 2, parentId: null, referrerCredit: 100, referrerStatus: 'blue', refereeCredit: 100, refereeStatus: 'blue' },
-    { id: 'c3', name: 'Siwei Li', level: 3, parentId: null, referrerCredit: 100, referrerStatus: 'blue', refereeCredit: 100, refereeStatus: 'blue' },
-    { id: 'c4', name: 'Yan Yan (自拿)', level: 2, parentId: null, referrerCredit: 50, referrerStatus: 'pending', refereeCredit: 50, refereeStatus: 'used' },
-    { id: 'c5', name: 'XiaoMing', level: 2, parentId: null, referrerCredit: 50, referrerStatus: 'pending', refereeCredit: 50, refereeStatus: 'used' },
-    { id: 'c6', name: 'Winnie Gong', level: 2, parentId: null, referrerCredit: 50, referrerStatus: 'pending', refereeCredit: 50, refereeStatus: 'used' }
-  ];
+  const SUPABASE_URL = "https://dmrskyskryrdclknezth.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let treeData = [];
+  let allCards = [];
+
+  // ==========================================
+  // 📥 拉取数据
+  // ==========================================
+  async function fetchDataFromCloud() {
+    showLoading(true);
+    const { data, error } = await supabaseClient
+      .from('referrals')
+      .select('*')
+      .order('created_at', { ascending: true }); 
+
+    if (error) {
+      alert("拉取失败: " + error.message);
+      showLoading(false);
+      return;
+    }
+
+    allCards = [];
+
+    // 1. 扫描所有的“介绍人”，提取出他们作为一级方块（去重）
+    const referrersMap = new Map();
+    data.forEach(row => {
+      if (row.referrer_name && !referrersMap.has(row.referrer_name)) {
+        referrersMap.set(row.referrer_name, {
+          id: 'l1_' + row.referrer_name, // 用名字做临时主键
+          name: row.referrer_name,
+          refId: row.referrer_id || '',
+          level: row.hierarchy_level === 1 ? 1 : null, // 如果数据库已保存为一级，就放右边
+          parentId: row.parent_id || null,
+          isReferrerBlock: true
+        });
+      }
+    });
+
+    // 将所有一级方块加入池子或架子
+    referrersMap.forEach(card => allCards.push(card));
+
+    // 2. 扫描所有的“被介绍人”（二级/三级）
+    data.forEach(row => {
+      if (row.referee_name) {
+        allCards.push({
+          id: row.id,
+          name: row.referee_name,
+          refId: row.referee_id || '',
+          referrerCredit: row.referrer_credit || 0,
+          referrerStatus: row.referrer_status || 'gray',
+          refereeCredit: row.referee_credit || 0,
+          refereeStatus: row.referee_status || 'gray',
+          note: row.referee_note || '',
+          level: row.hierarchy_level || null,
+          parentId: row.parent_id || null
+        });
+      }
+
+      // 3. 拆包三级（孙辈）
+      if (row.sub_referee_name) {
+        // 判断是否已经加过
+        if (!allCards.find(c => c.name === row.sub_referee_name && c.parentId === row.id)) {
+          allCards.push({
+            id: row.id + '_sub',
+            name: row.sub_referee_name,
+            refId: row.sub_referee_id || '',
+            referrerCredit: row.sub_ref_credit || 0,
+            referrerStatus: row.sub_ref_status || 'gray',
+            refereeCredit: row.sub_referee_credit || 0,
+            refereeStatus: row.sub_referee_status || 'gray',
+            note: row.sub_referee_note || '',
+            level: 3,
+            parentId: row.id
+          });
+        }
+      }
+    });
+
+    showLoading(false);
+    render();
+  }
 
   // ==========================================
   // 🎨 渲染逻辑
@@ -116,53 +215,49 @@
     pool.innerHTML = '';
     tree.innerHTML = '';
 
-    // 1. 渲染左侧数据池（找出所有 parentId 为空的卡片）
-    const unassigned = allCards.filter(c => !c.parentId);
+    // 1. 渲染左侧（没有 level 的都是未分配）
+    const unassigned = allCards.filter(c => !c.level);
     if (unassigned.length === 0) {
-      pool.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">空空如也</div>';
+      pool.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">全部整理完毕！</div>';
     } else {
       unassigned.forEach(card => {
         pool.appendChild(createDraggableCard(card));
       });
     }
 
-    // 2. 渲染右侧树状图
-    treeData.forEach((l1, idx1) => {
+    // 2. 渲染右侧
+    const l1Cards = allCards.filter(c => c.level === 1);
+    l1Cards.forEach(l1 => {
       const l1Div = document.createElement('div');
       l1Div.className = 'level-1';
       
-      // 一级卡片头部
       l1Div.innerHTML = `
         <div class="level-1-header">
-          <span>👤 一级: ${l1.name}</span>
-          <button class="btn" style="padding:4px 8px; font-size:0.75rem; background:#ef4444;" onclick="deleteLevel1(${idx1})">删除</button>
+          <span>👤 一级: ${l1.name} ${l1.refId ? '#'+l1.refId : ''}</span>
+          <button class="btn btn-danger" onclick="deleteLevel1('${l1.id}')">解散</button>
         </div>
       `;
 
-      // 一级的放置区（用于放二级）
+      // 二级放置区
       const drop2 = document.createElement('div');
       drop2.className = 'drop-zone';
       drop2.innerText = '将二级客户拖拽至此';
       setupDropZone(drop2, l1.id, 2);
       l1Div.appendChild(drop2);
 
-      // 遍历所有的二级
       const l2List = allCards.filter(c => c.parentId === l1.id && c.level === 2);
-      l2List.forEach((l2, idx2) => {
+      l2List.forEach(l2 => {
         const l2Div = document.createElement('div');
         l2Div.className = 'level-2';
         
-        // 二级卡片
         l2Div.appendChild(createDraggableCard(l2));
         
-        // 二级的放置区（用于放三级）
         const drop3 = document.createElement('div');
         drop3.className = 'drop-zone';
         drop3.innerText = '将三级客户拖拽至此';
         setupDropZone(drop3, l2.id, 3);
         l2Div.appendChild(drop3);
 
-        // 遍历所有的三级
         const l3List = allCards.filter(c => c.parentId === l2.id && c.level === 3);
         l3List.forEach(l3 => {
           const l3Div = document.createElement('div');
@@ -180,23 +275,28 @@
     calculateStats();
   }
 
-  // 创建可拖拽的方块
+  // 创建可拖拽块
   function createDraggableCard(card) {
     const div = document.createElement('div');
-    div.className = 'draggable-card';
+    div.className = `draggable-card ${card.isReferrerBlock ? 'level-1-draggable' : ''}`;
     div.draggable = true;
     div.id = card.id;
     
-    // 状态颜色类
     const pClass = card.referrerStatus === 'pending' ? 'status-pending' : (card.referrerStatus === 'used' ? 'status-used' : 'status-blue');
     const rClass = card.refereeStatus === 'pending' ? 'status-pending' : (card.refereeStatus === 'used' ? 'status-used' : 'status-blue');
 
     div.innerHTML = `
-      <div class="card-name">${card.name}</div>
-      <div class="card-details flex-row" style="gap: 15px;">
+      <div class="card-name">
+        ${card.isReferrerBlock ? '👑 [待定一级] ' : ''}${card.name} 
+        ${card.refId ? `<span style="font-size:0.7rem; color:#94a3b8; background:#f1f5f9; padding:2px 4px; border-radius:4px;">#${card.refId}</span>` : ''}
+      </div>
+      ${!card.isReferrerBlock ? `
+      <div class="card-details">
         <span>介绍费: <strong class="${pClass}">$${card.referrerCredit}</strong></span>
         <span>新人费: <strong class="${rClass}">$${card.refereeCredit}</strong></span>
       </div>
+      ` : '<div class="card-details">拖到右侧建立分组</div>'}
+      ${card.note ? `<div style="font-size:0.75rem; color:#94a3b8; margin-top:4px;">📝 ${card.note}</div>` : ''}
     `;
 
     div.addEventListener('dragstart', (e) => {
@@ -207,18 +307,16 @@
     return div;
   }
 
-  // 设置放置区逻辑
+  // 放置区逻辑
   function setupDropZone(zone, targetParentId, expectedLevel) {
     zone.addEventListener('dragover', (e) => {
       e.preventDefault();
       zone.classList.add('drag-over');
     });
-
     zone.addEventListener('dragleave', (e) => {
       zone.classList.remove('drag-over');
     });
-
-    zone.addEventListener('drop', (e) => {
+    zone.addEventListener('drop', async (e) => {
       e.preventDefault();
       zone.classList.remove('drag-over');
       
@@ -226,55 +324,115 @@
       const card = allCards.find(c => c.id === draggedId);
       
       if (card) {
-        // 绑定关系并改变层级
         card.parentId = targetParentId;
         card.level = expectedLevel;
-        render(); // 重新渲染
+        
+        // 如果拖的是被介绍人，需要同步上级信息
+        const parentCard = allCards.find(c => c.id === targetParentId);
+        if (parentCard && !card.isReferrerBlock) {
+           card.referrerName = parentCard.name;
+           card.referrerId = parentCard.refId;
+        }
+
+        render();
+        
+        // 同步到数据库
+        if (!card.isReferrerBlock && !card.id.includes('_sub')) {
+           await supabaseClient.from('referrals').update({
+             hierarchy_level: expectedLevel,
+             parent_id: targetParentId,
+             referrer_name: card.referrerName,
+             referrer_id: card.referrerId
+           }).eq('id', card.id);
+        }
       }
     });
   }
 
-  function addNewLevel1() {
-    const name = prompt("请输入一级介绍人名字 (例如: F - Ariel Fang Zheng)");
-    if (name) {
-      treeData.push({ id: 'l1_' + Date.now(), name: name });
+  // ==========================================
+  // 👑 顶部的“一级放置区”逻辑
+  // ==========================================
+  const l1DropZone = document.getElementById('drop-level-1');
+  l1DropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    l1DropZone.style.background = '#dbeafe';
+  });
+  l1DropZone.addEventListener('dragleave', (e) => {
+    l1DropZone.style.background = '#eff6ff';
+  });
+  l1DropZone.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    l1DropZone.style.background = '#eff6ff';
+    
+    const draggedId = e.dataTransfer.getData('text/plain');
+    const card = allCards.find(c => c.id === draggedId);
+
+    if (card && card.isReferrerBlock) {
+      card.level = 1;
+      card.parentId = null;
       render();
+
+      // 去数据库里把属于这个名字的所有行，hierarchy_level 更新为 1
+      await supabaseClient.from('referrals').update({
+        hierarchy_level: 1
+      }).eq('referrer_name', card.name);
+    } else {
+      alert("只能把左侧标记为 👑 [待定一级] 的方块拖到这里哦！");
+    }
+  });
+
+  // ==========================================
+  // ➕ 新建一级 (手动)
+  // ==========================================
+  async function addNewLevel1() {
+    const name = prompt("请输入全新的一级介绍人名字");
+    if (name) {
+      const id = 'l1_' + Date.now();
+      allCards.push({
+        id: id,
+        name: name,
+        refId: '',
+        isReferrerBlock: true,
+        level: 1,
+        parentId: null
+      });
+      render();
+
+      await supabaseClient.from('referrals').insert([{
+        referrer_name: name,
+        referee_name: '',
+        hierarchy_level: 1
+      }]);
     }
   }
 
-  function deleteLevel1(idx) {
+  function deleteLevel1(id) {
     if(confirm("删除该介绍人会让所有下属回到左侧数据池，确认吗？")) {
-      const l1Id = treeData[idx].id;
-      // 释放所有二级
       allCards.forEach(c => {
-        if (c.parentId === l1Id) {
+        if (c.parentId === id) {
            c.parentId = null;
-           // 释放挂在上面的三级
+           c.level = null;
            allCards.forEach(c3 => {
-             if (c3.parentId === c.id) { c3.parentId = null; }
+             if (c3.parentId === c.id) { c3.parentId = null; c3.level = null;}
            });
         }
       });
-      treeData.splice(idx, 1);
+      allCards = allCards.filter(c => c.id !== id);
       render();
     }
   }
 
-  // 计算统计信息
+  // 统计
   function calculateStats() {
     let pending = 0, used = 0, expired = 0, people = 0;
-
-    // 这里只统计已经被放入树中的人 (parentId 非空)
-    const activeCards = allCards.filter(c => c.parentId !== null);
+    const activeCards = allCards.filter(c => c.level !== null && !c.isReferrerBlock);
     
     activeCards.forEach(c => {
       people++;
-      // 介绍费
       if (c.referrerStatus === 'pending') pending += c.referrerCredit;
       else if (c.referrerStatus === 'used') used += c.referrerCredit;
       else if (c.referrerStatus === 'blue') expired += c.referrerCredit;
 
-      // 新人费
       if (c.refereeStatus === 'pending') pending += c.refereeCredit;
       else if (c.refereeStatus === 'used') used += c.refereeCredit;
       else if (c.refereeStatus === 'blue') expired += c.refereeCredit;
@@ -286,8 +444,13 @@
     document.getElementById('total-people').innerText = people;
   }
 
-  // 初始渲染
-  render();
+  function showLoading(show) {
+    if (show) document.getElementById('loading').classList.add('show');
+    else document.getElementById('loading').classList.remove('show');
+  }
+
+  // 启动
+  fetchDataFromCloud();
 </script>
 </body>
 </html>
