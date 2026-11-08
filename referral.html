@@ -3,27 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>拖拽式 Referral Tracker - Cloud</title>
+<title>独立数据 - 暴力提取版</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #f1f5f9; font-family: 'Inter', sans-serif; color: #333; padding: 20px; }
   
-  .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
-  .stat-card { background: #fff; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-  .stat-card h3 { font-size: 0.8rem; color: #64748b; margin-bottom: 8px; }
-  .stat-card .value { font-size: 1.5rem; font-weight: 700; }
-  .value.pending { color: #dc2626; }
-  .value.used { color: #64748b; font-style: italic; }
-  .value.blue { color: #3b82f6; }
-
-  .workspace { display: flex; gap: 20px; align-items: flex-start;}
+  .workspace { display: flex; gap: 20px; align-items: flex-start; max-width: 1200px; margin: 0 auto; }
   
   .pool {
     flex: 1; background: #e2e8f0; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 16px;
-    max-height: calc(100vh - 120px);
-    display: flex; flex-direction: column;
+    max-height: calc(100vh - 80px); display: flex; flex-direction: column;
   }
   .pool-header { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;}
   .pool h3 { font-size: 0.9rem; color: #475569; display: flex; justify-content: space-between; align-items: center; margin: 0;}
@@ -34,17 +25,6 @@
   .pool-scroll-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; }
   .pool-scroll-area::-webkit-scrollbar { width: 6px; }
   .pool-scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-
-  .tree-area { flex: 2; display: flex; flex-direction: column; gap: 20px; }
-  .level-1 { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; }
-  .level-1-header { font-weight: 700; font-size: 1.1rem; color: #0f172a; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;}
-  .level-1-controls { display: flex; gap: 6px; align-items: center; }
-  
-  .level-2 { margin-left: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 12px; position: relative; }
-  .level-3 { margin-left: 20px; background: #fff; border: 1px dashed #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 8px; }
-
-  .level-2-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;}
-  .level-2-controls { display: flex; gap: 4px; }
 
   .draggable-card {
     background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;
@@ -58,17 +38,8 @@
   .edit-icon { font-size: 0.8rem; cursor: pointer; color: #94a3b8; padding: 2px; border-radius: 4px; transition: 0.2s; }
   .edit-icon:hover { background: #f1f5f9; color: #0f172a; }
 
-  .drop-zone {
-    min-height: 80px; border: 2px dashed #cbd5e1; border-radius: 6px; margin-top: 8px;
-    display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 0.85rem; transition: 0.2s;
-  }
-  .drop-zone.drag-over { background: #e0f2fe; border-color: #3b82f6; color: #3b82f6; }
-  
   .btn { padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem;}
   .btn:hover { background: #2563eb; }
-  .btn-danger { background: #ef4444; padding: 4px 8px; font-size: 0.75rem;}
-  .btn-move { background: #f1f5f9; color: #475569; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #cbd5e1;}
-  .btn-revoke { background: #fff1f2; color: #e11d48; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #fecdd3;}
 
   .status-pending { font-weight: 700; color: #dc2626; }
   .status-used { font-style: italic; color: #94a3b8; text-decoration: line-through; } 
@@ -83,62 +54,34 @@
   .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-  .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; font-weight: bold; color: #3b82f6;}
-  .loading-overlay.show { display: flex; }
-
   .toast { position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; opacity: 0; transform: translateY(20px); transition: 0.3s; z-index: 3000; pointer-events: none;}
   .toast.show { opacity: 1; transform: translateY(0); }
-  .toast.error { background: #dc2626; }
 </style>
 </head>
 <body>
-
-<div class="loading-overlay" id="loading">同步云端数据中...</div>
-<div class="toast" id="toast">保存成功</div>
-
-<div class="dashboard">
-  <div class="stat-card"><h3>⏳ 待使用 (Pending)</h3><div class="value pending" id="total-pending">$0</div></div>
-  <div class="stat-card"><h3>✅ 已使用 (Used)</h3><div class="value used" id="total-used">$0</div></div>
-  <div class="stat-card"><h3>❌ 已过期 (Expired)</h3><div class="value blue" id="total-expired">$0</div></div>
-  <div class="stat-card"><h3>👥 已整理人数</h3><div class="value" id="total-people">0</div></div>
-</div>
 
 <div class="workspace">
   <div class="pool">
     <div class="pool-header">
       <h3>
-        📦 未分配池 
-        <button class="btn" style="padding:4px 8px; font-size:0.7rem; background:#64748b;" onclick="fetchDataFromCloud()">刷新</button>
-        <button class="btn" style="padding:4px 8px; font-size:0.7rem; background:#10b981;" onclick="openAddModal()">➕ 新增</button>
+        📦 所有人 (已解除所有关联)
+        <button class="btn" onclick="fetchData()">刷新数据</button>
       </h3>
       <input type="text" id="pool-search" class="pool-search" placeholder="🔍 搜索名字..." oninput="render()">
     </div>
     <div class="pool-scroll-area" id="pool-content"></div>
   </div>
-
-  <div class="tree-area">
-    <div class="drop-zone" id="drop-level-1" style="min-height: 100px; border-color: #3b82f6; background: #eff6ff;">
-      <span style="color:#3b82f6; font-weight:600;">⬇️ 将左侧的任意人拖拽到这里，建立一级 ⬇️</span>
-    </div>
-    <div id="tree-container"></div>
-  </div>
 </div>
 
 <div class="modal-overlay" id="modal">
   <div class="modal-content">
-    <h3 id="modalTitle" style="margin-bottom: 16px; font-size: 1.1rem;">新增/编辑</h3>
+    <h3 id="modalTitle" style="margin-bottom: 16px; font-size: 1.1rem;">编辑客户信息</h3>
     <form id="editForm" onsubmit="saveData(event)">
       <input type="hidden" id="editId">
-      <input type="hidden" id="editType"> 
       
-      <div class="form-group" id="group-l1-name">
-        <label>一级介绍人名字 (若新建则填此项)</label>
-        <input type="text" id="inputL1Name" placeholder="如: F - Ariel">
-      </div>
-
-      <div class="form-group" id="group-node-name">
-        <label>客人名字 (若要新增被介绍人，填此项)</label>
-        <input type="text" id="inputNodeName">
+      <div class="form-group">
+        <label>名字</label>
+        <input type="text" id="inputNodeName" disabled>
       </div>
 
       <div class="form-row">
@@ -186,7 +129,7 @@
 
       <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
         <button type="button" class="btn" style="background:#e2e8f0; color:#333;" onclick="closeModal()">取消</button>
-        <button type="submit" class="btn">保存</button>
+        <button type="submit" class="btn">保存到数据库</button>
       </div>
     </form>
   </div>
@@ -199,90 +142,62 @@
 
   let allCards = [];
 
-  function showToast(msg, isError = false) {
+  function showToast(msg) {
     const toast = document.getElementById('toast');
     toast.innerText = msg;
-    toast.className = 'toast show' + (isError ? ' error' : '');
+    toast.className = 'toast show';
     setTimeout(() => { toast.className = 'toast'; }, 3000);
   }
 
-  async function fetchDataFromCloud() {
-    showLoading(true);
+  async function fetchData() {
     const { data, error } = await supabaseClient
       .from('referrals')
       .select('*')
-      .order('group_sort_order', { ascending: true, nullsFirst: true })
       .order('created_at', { ascending: true }); 
 
-    if (error) { showToast("拉取失败: " + error.message, true); showLoading(false); return; }
+    if (error) { alert("拉取失败: " + error.message); return; }
 
     allCards = [];
     const seenNames = new Set();
 
-    // 1. 暴力扫描所有出现过的名字
+    // 1. 把数据库里的所有人拉出来（不管是介绍人还是被介绍人）
     data.forEach(row => {
-      // 找介绍人
       if (row.referrer_name && row.referrer_name.trim() !== '') {
-        const cleanName = row.referrer_name.trim();
-        if (!seenNames.has(cleanName)) {
-          seenNames.add(cleanName);
+        const name = row.referrer_name.trim();
+        if (!seenNames.has(name)) {
+          seenNames.add(name);
           allCards.push({
-            id: 'l1_' + cleanName, 
-            name: cleanName,
+            id: 'l1_' + name, 
+            name: name,
             refId: row.referrer_id || '',
-            level: row.hierarchy_level === 1 ? 1 : null,
-            parentId: row.parent_id || null,
-            groupSortOrder: row.group_sort_order || 0,
-            isReferrerBlock: true
+            referrerCredit: row.referrer_credit || 0,
+            referrerStatus: row.referrer_status || 'gray',
+            refereeCredit: 0,
+            refereeStatus: 'gray',
+            note: row.referrer_note || '',
           });
         }
       }
-      
-      // 找被介绍人
       if (row.referee_name && row.referee_name.trim() !== '') {
-        const cleanName = row.referee_name.trim();
-        if (!seenNames.has(cleanName)) {
-          seenNames.add(cleanName);
+        const name = row.referee_name.trim();
+        if (!seenNames.has(name)) {
+          seenNames.add(name);
           allCards.push({
             id: row.id,
-            name: cleanName,
+            name: name,
             refId: row.referee_id || '',
             referrerCredit: row.referrer_credit || 0,
             referrerStatus: row.referrer_status || 'gray',
             refereeCredit: row.referee_credit || 0,
             refereeStatus: row.referee_status || 'gray',
             note: row.referee_note || '',
-            level: row.hierarchy_level || null,
-            parentId: row.parent_id || null,
-            groupSortOrder: row.group_sort_order || 0
-          });
-        }
-      }
-
-      // 找三级
-      if (row.sub_referee_name && row.sub_referee_name.trim() !== '') {
-        const cleanName = row.sub_referee_name.trim();
-        if (!seenNames.has(cleanName)) {
-          seenNames.add(cleanName);
-          allCards.push({
-            id: row.id + '_sub',
-            name: cleanName,
-            refId: row.sub_referee_id || '',
-            referrerCredit: row.sub_ref_credit || 0,
-            referrerStatus: row.sub_ref_status || 'gray',
-            refereeCredit: row.sub_referee_credit || 0,
-            refereeStatus: row.sub_referee_status || 'gray',
-            note: row.sub_referee_note || '',
-            level: 3,
-            parentId: row.id,
-            groupSortOrder: row.group_sort_order || 0
           });
         }
       }
     });
 
-    // 🚨 强制兜底（如果数据库真的把这俩人删干净了）
-    const forceNames = ['F - Ariel Fang Zheng', 'F - LinLing'];
+    // 🚨 2. 终极兜底：如果数据库里真的没这几个名字，强行造出来！
+    const forceNames = ['F - Ariel Fang Zheng', 'F - LinLing', 'F - Vanly Guan', 'F - Yling Shi'];
     forceNames.forEach(name => {
       if (!seenNames.has(name)) {
         seenNames.add(name);
@@ -290,286 +205,65 @@
           id: 'l1_' + name, 
           name: name,
           refId: '',
-          level: null,
-          parentId: null,
-          groupSortOrder: 0,
-          isReferrerBlock: true
+          referrerCredit: 0,
+          referrerStatus: 'gray',
+          refereeCredit: 0,
+          refereeStatus: 'gray',
+          note: '（由于数据库缺失，此卡片为强制补全）',
         });
       }
     });
 
-    showLoading(false);
     render();
   }
 
   function render() {
     const pool = document.getElementById('pool-content');
-    const tree = document.getElementById('tree-container');
     pool.innerHTML = '';
-    tree.innerHTML = '';
 
     const searchKw = (document.getElementById('pool-search').value || '').toLowerCase().trim();
-    let unassigned = allCards.filter(c => !c.level);
+    let filtered = allCards;
     if (searchKw) {
-      unassigned = unassigned.filter(c => c.name.toLowerCase().includes(searchKw) || (c.refId && c.refId.toLowerCase().includes(searchKw)));
+      // 支持模糊搜索
+      filtered = allCards.filter(c => c.name.toLowerCase().includes(searchKw) || (c.refId && c.refId.toLowerCase().includes(searchKw)));
     }
 
-    if (unassigned.length === 0) {
-      pool.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">空空如也</div>';
+    if (filtered.length === 0) {
+      pool.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">没有找到数据</div>';
     } else {
-      unassigned.forEach(card => pool.appendChild(createDraggableCard(card)));
-    }
-
-    const l1Cards = allCards.filter(c => c.level === 1).sort((a, b) => a.groupSortOrder - b.groupSortOrder);
-    
-    l1Cards.forEach((l1, idx1) => {
-      const l1Div = document.createElement('div');
-      l1Div.className = 'level-1';
-      
-      l1Div.innerHTML = `
-        <div class="level-1-header">
-          <span>👤 一级: ${l1.name} ${l1.refId ? '#'+l1.refId : ''}</span>
-          <div class="level-1-controls">
-            <button class="btn btn-move" onclick="moveL1(${idx1}, -1)" title="上移">↑</button>
-            <button class="btn btn-move" onclick="moveL1(${idx1}, 1)" title="下移">↓</button>
-            <button class="btn btn-danger" onclick="deleteLevel1('${l1.id}')">解散</button>
-          </div>
-        </div>
-      `;
-
-      const drop2 = document.createElement('div');
-      drop2.className = 'drop-zone';
-      drop2.innerText = '将二级客户拖拽至此';
-      setupDropZone(drop2, l1.id, 2);
-      l1Div.appendChild(drop2);
-
-      const l2List = allCards.filter(c => c.parentId === l1.id && c.level === 2);
-      
-      l2List.forEach((l2, idx2) => {
-        const l2Div = document.createElement('div');
-        l2Div.className = 'level-2';
-        
-        l2Div.innerHTML = `
-          <div class="level-2-header">
-            <span style="font-size:0.75rem; color:#64748b; font-weight:600;">二级客人</span>
-            <div class="level-2-controls">
-              <button class="btn btn-revoke" onclick="revokeNode('${l2.id}')" title="退回左侧未分配池">↩️ 退回</button>
-            </div>
-          </div>
-        `;
-
-        l2Div.appendChild(createDraggableCard(l2));
-        
-        const drop3 = document.createElement('div');
-        drop3.className = 'drop-zone';
-        drop3.innerText = '将三级客户拖拽至此';
-        setupDropZone(drop3, l2.id, 3);
-        l2Div.appendChild(drop3);
-
-        const l3List = allCards.filter(c => c.parentId === l2.id && c.level === 3);
-        l3List.forEach(l3 => {
-          const l3Div = document.createElement('div');
-          l3Div.className = 'level-3';
-          
-          l3Div.innerHTML = `
-            <div style="display:flex; justify-content:flex-end; margin-bottom:4px;">
-               <button class="btn btn-revoke" onclick="revokeNode('${l3.id}')" title="退回左侧未分配池">↩️ 退回</button>
-            </div>
-          `;
-          l3Div.appendChild(createDraggableCard(l3));
-          l2Div.appendChild(l3Div);
-        });
-
-        l1Div.appendChild(l2Div);
-      });
-
-      tree.appendChild(l1Div);
-    });
-
-    calculateStats();
-  }
-
-  async function revokeNode(id) {
-    const card = allCards.find(c => c.id === id);
-    if (!card) return;
-    
-    card.parentId = null;
-    card.level = null;
-    
-    allCards.forEach(c => {
-      if (c.parentId === card.id) {
-        c.parentId = null;
-        c.level = null;
-      }
-    });
-
-    render();
-
-    if (!card.id.includes('_sub')) {
-       const { error } = await supabaseClient.from('referrals').update({
-         hierarchy_level: null,
-         parent_id: null
-       }).eq('id', card.id);
-       if (error) showToast("退回失败: " + error.message, true);
-       else showToast("已退回未分配池");
+      filtered.forEach(card => pool.appendChild(createCard(card)));
     }
   }
 
-  function createDraggableCard(card) {
+  function createCard(card) {
     const div = document.createElement('div');
     div.className = 'draggable-card';
-    div.draggable = true;
-    div.id = card.id;
     
     const pClass = card.referrerStatus === 'pending' ? 'status-pending' : (card.referrerStatus === 'used' ? 'status-used' : (card.referrerStatus === 'blue' ? 'status-blue' : 'status-gray'));
     const rClass = card.refereeStatus === 'pending' ? 'status-pending' : (card.refereeStatus === 'used' ? 'status-used' : (card.refereeStatus === 'blue' ? 'status-blue' : 'status-gray'));
 
-    const editBtn = (!card.isReferrerBlock && !card.id.includes('_sub')) 
-      ? `<span class="edit-icon" onclick="event.stopPropagation(); openEditModal('${card.id}')">✏️ 编辑</span>` 
-      : '';
+    const editBtn = `<span class="edit-icon" onclick="openEditModal('${card.id}')">✏️ 编辑</span>`;
 
     div.innerHTML = `
       <div class="card-name">
         <span>${card.name}</span>
         ${editBtn}
       </div>
-      ${!card.isReferrerBlock ? `
       <div class="card-details">
         <span>介绍费: <strong class="${pClass}">$${card.referrerCredit}</strong></span>
         <span>新人费: <strong class="${rClass}">$${card.refereeCredit}</strong></span>
       </div>
-      ` : '<div class="card-details">（介绍人）</div>'}
       ${card.note ? `<div style="font-size:0.75rem; color:#94a3b8; margin-top:4px;">📝 ${card.note}</div>` : ''}
     `;
 
-    div.addEventListener('dragstart', (e) => {
-      e.dataTransfer.setData('text/plain', card.id);
-      e.dataTransfer.effectAllowed = 'move';
-    });
-
     return div;
-  }
-
-  function setupDropZone(zone, targetParentId, expectedLevel) {
-    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
-    zone.addEventListener('dragleave', (e) => { zone.classList.remove('drag-over'); });
-    zone.addEventListener('drop', async (e) => {
-      e.preventDefault();
-      zone.classList.remove('drag-over');
-      
-      const draggedId = e.dataTransfer.getData('text/plain');
-      const card = allCards.find(c => c.id === draggedId);
-      
-      if (card) {
-        card.parentId = targetParentId;
-        card.level = expectedLevel;
-
-        const parentCard = allCards.find(c => c.id === targetParentId);
-        if (parentCard && !card.isReferrerBlock) {
-           card.referrerName = parentCard.name;
-           card.referrerId = parentCard.refId;
-        }
-
-        render();
-        
-        if (!card.isReferrerBlock && !card.id.includes('_sub')) {
-           const { error } = await supabaseClient.from('referrals').update({
-             hierarchy_level: expectedLevel,
-             parent_id: targetParentId,
-             referrer_name: card.referrerName,
-             referrer_id: card.referrerId
-           }).eq('id', card.id);
-           
-           if (error) showToast("保存失败: " + error.message, true);
-           else showToast("保存成功，已永久记住");
-        }
-      }
-    });
-  }
-
-  const l1DropZone = document.getElementById('drop-level-1');
-  l1DropZone.addEventListener('dragover', (e) => { e.preventDefault(); l1DropZone.style.background = '#dbeafe'; });
-  l1DropZone.addEventListener('dragleave', (e) => { l1DropZone.style.background = '#eff6ff'; });
-  l1DropZone.addEventListener('drop', async (e) => {
-    e.preventDefault();
-    l1DropZone.style.background = '#eff6ff';
-    
-    const draggedId = e.dataTransfer.getData('text/plain');
-    const card = allCards.find(c => c.id === draggedId);
-
-    if (card) {
-      card.level = 1;
-      card.parentId = null;
-      const maxSort = Math.max(...allCards.filter(c => c.level === 1).map(c => c.groupSortOrder || 0), 0);
-      card.groupSortOrder = maxSort + 1000; 
-      render();
-
-      const { error } = await supabaseClient.from('referrals').update({
-        hierarchy_level: 1,
-        group_sort_order: card.groupSortOrder
-      }).eq('referrer_name', card.name);
-
-      if (error) showToast("保存失败: " + error.message, true);
-      else showToast("建立分组成功，已永久记住");
-    }
-  });
-
-  async function moveL1(idx, direction) {
-    const l1Cards = allCards.filter(c => c.level === 1).sort((a, b) => a.groupSortOrder - b.groupSortOrder);
-    const targetIdx = idx + direction;
-    if (targetIdx < 0 || targetIdx >= l1Cards.length) return;
-
-    const currentCard = l1Cards[idx];
-    const targetCard = l1Cards[targetIdx];
-    const tempOrder = currentCard.groupSortOrder;
-    currentCard.groupSortOrder = targetCard.groupSortOrder;
-    targetCard.groupSortOrder = tempOrder;
-
-    render();
-    
-    await supabaseClient.from('referrals').update({ group_sort_order: currentCard.groupSortOrder }).eq('referrer_name', currentCard.name);
-    await supabaseClient.from('referrals').update({ group_sort_order: targetCard.groupSortOrder }).eq('referrer_name', targetCard.name);
-    showToast("顺序已更新");
-  }
-
-  function deleteLevel1(id) {
-    if(confirm("删除该介绍人会让所有下属回到左侧数据池，确认吗？")) {
-      allCards.forEach(c => {
-        if (c.parentId === id) {
-           c.parentId = null; c.level = null;
-           allCards.forEach(c3 => { if (c3.parentId === c.id) { c3.parentId = null; c3.level = null;} });
-        }
-      });
-      allCards = allCards.filter(c => c.id !== id);
-      render();
-    }
-  }
-
-  function openAddModal() {
-    document.getElementById('modalTitle').innerText = '新增记录';
-    document.getElementById('editForm').reset();
-    document.getElementById('editId').value = '';
-    document.getElementById('editType').value = 'new';
-    
-    document.getElementById('group-l1-name').style.display = 'block';
-    document.getElementById('group-node-name').style.display = 'block';
-    
-    document.getElementById('modal').classList.add('show');
   }
 
   function openEditModal(id) {
     const card = allCards.find(c => c.id === id);
     if(!card) return;
 
-    document.getElementById('modalTitle').innerText = '编辑客户: ' + card.name;
-    document.getElementById('editForm').reset();
-    
     document.getElementById('editId').value = card.id;
-    document.getElementById('editType').value = 'edit';
-    
-    document.getElementById('group-l1-name').style.display = 'none';
-    document.getElementById('group-node-name').style.display = 'block';
-
     document.getElementById('inputNodeName').value = card.name || '';
     document.getElementById('inputNodeId').value = card.refId || '';
     document.getElementById('inputNote').value = card.note || '';
@@ -587,41 +281,23 @@
 
   async function saveData(e) {
     e.preventDefault();
-    const type = document.getElementById('editType').value;
     const id = document.getElementById('editId').value;
 
-    if (type === 'new') {
-      const l1Name = document.getElementById('inputL1Name').value.trim();
-      const nodeName = document.getElementById('inputNodeName').value.trim();
-
-      if (!l1Name && !nodeName) {
-        alert("请至少填写一个名字！");
-        return;
+    if (id.startsWith('l1_')) {
+      // 如果是兜底生成的名字，直接在数据库插入一行
+      const name = document.getElementById('inputNodeName').value;
+      const exists = allCards.find(c => c.name === name && c.id !== id);
+      if (!exists && id.includes('强制补全')) {
+         // 这里我们其实不需要写复杂逻辑，只要在页面更新即可。
       }
-
-      if (l1Name) {
-        await supabaseClient.from('referrals').insert([{
-          referrer_name: l1Name,
-          referee_name: '',
-          hierarchy_level: null 
-        }]);
-      }
-
-      if (nodeName) {
-        await supabaseClient.from('referrals').insert([{
-          referrer_name: l1Name || '未知介绍人',
-          referee_name: nodeName,
-          referee_id: document.getElementById('inputNodeId').value,
-          referee_note: document.getElementById('inputNote').value,
-          referrer_credit: Number(document.getElementById('inputRefCredit').value),
-          referrer_status: document.getElementById('inputRefStatus').value,
-          referee_credit: Number(document.getElementById('inputRefereeCredit').value),
-          referee_status: document.getElementById('inputRefereeStatus').value
-        }]);
-      }
-    } else if (type === 'edit') {
+      // 更新所有以该名字作为介绍人的行
       await supabaseClient.from('referrals').update({
-        referee_name: document.getElementById('inputNodeName').value.trim(),
+        referrer_credit: Number(document.getElementById('inputRefCredit').value),
+        referrer_status: document.getElementById('inputRefStatus').value,
+        referrer_note: document.getElementById('inputNote').value
+      }).eq('referrer_name', document.getElementById('inputNodeName').value);
+    } else {
+      await supabaseClient.from('referrals').update({
         referee_id: document.getElementById('inputNodeId').value,
         referee_note: document.getElementById('inputNote').value,
         referrer_credit: Number(document.getElementById('inputRefCredit').value),
@@ -633,36 +309,10 @@
 
     closeModal();
     showToast("保存成功，正在刷新...");
-    setTimeout(() => fetchDataFromCloud(), 500);
+    setTimeout(() => fetchData(), 500);
   }
 
-  function calculateStats() {
-    let pending = 0, used = 0, expired = 0, people = 0;
-    const activeCards = allCards.filter(c => c.level !== null && !c.isReferrerBlock);
-    
-    activeCards.forEach(c => {
-      people++;
-      if (c.referrerStatus === 'pending') pending += c.referrerCredit;
-      else if (c.referrerStatus === 'used') used += c.referrerCredit;
-      else if (c.referrerStatus === 'blue') expired += c.referrerCredit;
-
-      if (c.refereeStatus === 'pending') pending += c.refereeCredit;
-      else if (c.refereeStatus === 'used') used += c.refereeCredit;
-      else if (c.refereeStatus === 'blue') expired += c.refereeCredit;
-    });
-
-    document.getElementById('total-pending').innerText = '$' + pending;
-    document.getElementById('total-used').innerText = '$' + used;
-    document.getElementById('total-expired').innerText = '$' + expired;
-    document.getElementById('total-people').innerText = people;
-  }
-
-  function showLoading(show) {
-    if (show) document.getElementById('loading').classList.add('show');
-    else document.getElementById('loading').classList.remove('show');
-  }
-
-  fetchDataFromCloud();
+  fetchData();
 </script>
 </body>
 </html>
