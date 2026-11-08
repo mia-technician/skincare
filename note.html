@@ -137,16 +137,15 @@
         }
         return false;
     }
-    async function loadDataFromSupabase() {
+        async function loadDataFromSupabase() {
         if (!currentUser) return;
         let data = await fetchAllNotes();
-        if (data.length === 0) {
-            const defaultNote = { title: "Welcome Note", desc: "Getting started", noteText: "<h2>Welcome!</h2><ul><li>Write formatted text</li><li>Add images</li></ul>" };
-            const inserted = await addNoteToSupabase(defaultNote);
-            if (inserted) data = [inserted];
-        }
+        
+        // 删除了自动生成 Welcome Note 的逻辑
+        
         projectsData = data.map(item => ({ id: item.id, title: item.title || 'Untitled', desc: item.description || '', noteText: item.note_text || '' }));
         renderNotesList();
+        // 如果列表里有数据，才默认打开第一个
         if (projectsData.length > 0 && !currentProject) openProject(projectsData[0].id);
     }
     function renderNotesList() {
