@@ -88,6 +88,14 @@
   .referee-item:hover .edit-btn { opacity: 1; }
   .edit-btn:hover { background: #f8fafc; transform: scale(1.1); }
 
+  /* === 大卡片编辑按钮 === */
+  .edit-group-btn {
+    margin-left: auto;
+    background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px;
+    padding: 4px 10px; font-size: 0.75rem; color: #475569; cursor: pointer; transition: 0.2s;
+  }
+  .edit-group-btn:hover { background: #e2e8f0; color: #0f172a; }
+
   /* === 弹窗表单 === */
   .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);
@@ -155,7 +163,7 @@
 
   <div class="action-bar">
     <input type="text" id="searchInput" class="search-input" placeholder="搜索名字/编号... (输入 pending/used/expired/friend/client 快捷筛选)">
-    <button class="btn btn-primary" onclick="openAddModal()">➕ 新增客户</button>
+    <button class="btn btn-primary" onclick="openAddModal()">➕ 新增客户/介绍人</button>
   </div>
 
   <div id="app"></div>
@@ -165,22 +173,27 @@
 <!-- === 弹窗表单 === -->
 <div class="modal-overlay" id="modal">
   <div class="modal-content">
-    <h3 id="modalTitle">新增客户</h3>
+    <h3 id="modalTitle">新增/编辑记录</h3>
     <form id="editForm" onsubmit="saveData(event)">
       <input type="hidden" id="editId">
       
       <div class="form-row">
         <div class="form-group">
           <label>介绍人名字 *</label>
-          <input type="text" id="inputReferrerName" required placeholder="例: Ariel Fang Zheng">
+          <input type="text" id="inputReferrerName" required placeholder="例: Ariel Fang Zheng / 新介绍人">
         </div>
         <div class="form-group">
-          <label>身份自动判定</label>
-          <select id="inputIdentity" style="background:#f8fafc; color:#64748b;">
-            <option value="client">👤 客人 (无 F- 前缀)</option>
-            <option value="friend">👥 朋友 (有 F- 前缀)</option>
-          </select>
+          <label>介绍人 ID</label>
+          <input type="text" id="inputReferrerId" placeholder="例: 25023">
         </div>
+      </div>
+
+      <div class="form-group">
+        <label>身份自动判定 (仅针对介绍人)</label>
+        <select id="inputIdentity" style="background:#f8fafc; color:#64748b;">
+          <option value="client">👤 客人 (无 F- 前缀)</option>
+          <option value="friend">👥 朋友 (有 F- 前缀)</option>
+        </select>
       </div>
 
       <div class="form-row">
@@ -252,6 +265,11 @@
   // ==========================================
   let currentData = [];
   let currentSearchKw = '';
+  
+  // 用于记录当前是在编辑“介绍人组”还是“被介绍人”
+  let editMode = 'referee'; // 'referee' (二级) 或 'group' (一级)
+  let editingGroupIndex = -1;
+  let editingRefIndex = -1;
 
   // ==========================================
   // 📥 从云端拉取数据
@@ -273,7 +291,6 @@
     data.forEach(row => {
       const refKey = `${row.referrer_name}|${row.referrer_id}|${row.referrer_note}`;
       if (!groupedData[refKey]) {
-        // 判断身份：如果名字里有 F-，或者数据库中已经存了 friend，则判定为 friend
         let idType = row.identity_type || 'client';
         if (row.referrer_name.startsWith('F-') || row.referrer_name.startsWith('F -')) idType = 'friend';
 
@@ -327,7 +344,6 @@
   // 📝 表单交互 (新增 / 编辑)
   // ==========================================
   
-  // 输入名字时，自动判定身份下拉框
   document.getElementById('inputReferrerName').addEventListener('input', (e) => {
     const val = e.target.value.trim();
     const identitySelect = document.getElementById('inputIdentity');
@@ -339,10 +355,12 @@
   });
 
   function openAddModal() {
+    editMode = 'referee';
     document.getElementById('modalTitle').innerText = '新增客户记录';
     document.getElementById('editForm').reset();
     document.getElementById('editId').value = '';
     document.getElementById('inputIdentity').value = 'client';
+    document.getElementById('inputReferrerName').readOnly = false;
     
     if(currentData.length > 0) {
       document.getElementById('inputReferrerName').value = currentData[0].referrer;
@@ -351,13 +369,18 @@
     document.getElementById('modal').classList.add('show');
   }
 
-  function openEditModal(dbId, groupIndex, refIndex) {
+  function openEditRefModal(dbId, groupIndex, refIndex) {
+    editMode = 'referee';
+    editingGroupIndex = groupIndex;
+    editingRefIndex = refIndex;
+    
     const group = currentData[groupIndex];
     const ref = group.referees[refIndex];
 
     document.getElementById('modalTitle').innerText = '编辑客户记录';
     document.getElementById('editId').value = dbId || ''; 
     document.getElementById('inputReferrerName').value = group.referrer;
+    document.getElementById('inputReferrerName').readOnly = true; // 修改具体客户时不允许改上级名字，避免乱套
     document.getElementById('inputIdentity').value = group.identity || 'client';
     document.getElementById('inputRefereeName').value = ref.name || '';
     document.getElementById('inputRefereeId').value = ref.id || '';
@@ -370,8 +393,33 @@
     document.getElementById('modal').classList.add('show');
   }
 
+  // 新增：修改第一级介绍人
+  function openEditGroupModal(groupIndex) {
+    editMode = 'group';
+    editingGroupIndex = groupIndex;
+    
+    const group = currentData[groupIndex];
+    document.getElementById('modalTitle').innerText = '编辑介绍人信息';
+    document.getElementById('editId').value = ''; 
+    document.getElementById('inputReferrerName').value = group.referrer;
+    document.getElementById('inputReferrerName').readOnly = false;
+    document.getElementById('inputReferrerId').value = group.id || '';
+    document.getElementById('inputIdentity').value = group.identity || 'client';
+    
+    // 清空下级信息（因为只是改上级）
+    document.getElementById('inputRefereeName').value = '【仅修改介绍人信息请忽略此处】';
+    document.getElementById('inputRefereeName').required = false; 
+    document.getElementById('inputRefereeId').value = '';
+    document.getElementById('inputReferrerCredit').value = 0;
+    document.getElementById('inputRefereeCredit').value = 0;
+    document.getElementById('inputNote').value = group.note || '';
+
+    document.getElementById('modal').classList.add('show');
+  }
+
   function closeModal() {
     document.getElementById('modal').classList.remove('show');
+    document.getElementById('inputRefereeName').required = true; // 恢复必填
   }
 
   async function saveData(e) {
@@ -381,25 +429,53 @@
 
     const dbId = document.getElementById('editId').value;
     
-    const payload = {
+    let payload = {
       referrer_name: document.getElementById('inputReferrerName').value.trim(),
+      referrer_id: document.getElementById('inputReferrerId').value.trim(),
       identity_type: document.getElementById('inputIdentity').value,
-      referee_name: document.getElementById('inputRefereeName').value.trim(),
-      referee_id: document.getElementById('inputRefereeId').value.trim(),
-      referrer_credit: Number(document.getElementById('inputReferrerCredit').value),
-      referrer_status: document.getElementById('inputReferrerStatus').value,
-      referee_credit: Number(document.getElementById('inputRefereeCredit').value),
-      referee_status: document.getElementById('inputRefereeStatus').value,
-      referee_note: document.getElementById('inputNote').value.trim()
+      referrer_note: document.getElementById('inputNote').value.trim(), // 这里借用被介绍人的 note 给大老板做备注
     };
 
     let error;
-    if (dbId) {
-      const res = await supabaseClient.from('referrals').update(payload).eq('id', dbId);
+
+    if (editMode === 'group') {
+      // 如果是修改上级，我们需要批量更新所有绑定了这个上级的底层记录
+      const oldGroup = currentData[editingGroupIndex];
+      const oldRefName = oldGroup.referrer;
+      const oldRefId = oldGroup.id;
+      
+      // 注意：Supabase 批量更新，我们通过 oldRefName 去匹配更新 referrer_name 和 referrer_note
+      let query = supabaseClient.from('referrals').update({
+        referrer_name: payload.referrer_name,
+        referrer_id: payload.referrer_id,
+        identity_type: payload.identity_type,
+        referrer_note: payload.referrer_note
+      });
+      
+      // 加上条件（如果不加，会全表更新！）
+      query = query.eq('referrer_name', oldRefName);
+      if (oldRefId) query = query.eq('referrer_id', oldRefId);
+      
+      const res = await query;
       error = res.error;
+
     } else {
-      const res = await supabaseClient.from('referrals').insert([payload]);
-      error = res.error;
+      // 修改/新增 单个被介绍人
+      payload.referee_name = document.getElementById('inputRefereeName').value.trim();
+      payload.referee_id = document.getElementById('inputRefereeId').value.trim();
+      payload.referrer_credit = Number(document.getElementById('inputReferrerCredit').value);
+      payload.referrer_status = document.getElementById('inputReferrerStatus').value;
+      payload.referee_credit = Number(document.getElementById('inputRefereeCredit').value);
+      payload.referee_status = document.getElementById('inputRefereeStatus').value;
+      payload.referee_note = document.getElementById('inputNote').value.trim(); // 借用表单的备注
+
+      if (dbId) {
+        const res = await supabaseClient.from('referrals').update(payload).eq('id', dbId);
+        error = res.error;
+      } else {
+        const res = await supabaseClient.from('referrals').insert([payload]);
+        error = res.error;
+      }
     }
 
     btn.disabled = false; btn.innerText = '保存到云端';
@@ -458,7 +534,6 @@
         return match || subMatch;
       });
 
-      // 处理身份搜索关键词 (friend/client)
       const identityType = group.identity || 'client';
       let matchIdentity = true;
       if (kw === 'friend' || kw === '朋友') {
@@ -471,20 +546,18 @@
 
       // 统计
       if (!isFiltered || matchIdentity) {
-        if (!isFiltered || matchIdentity) {
-          group.referees.forEach(ref => {
-            if (ref.name) totalPeople++;
-            addToStats(ref.referrerStatus, ref.referrerCredit);
-            addToStats(ref.refereeStatus, ref.refereeCredit);
-            if (ref.subReferees) {
-              ref.subReferees.forEach(sub => {
-                if (sub.name) totalPeople++;
-                addToStats(sub.subRefStatus, sub.subRefCredit);
-                addToStats(sub.status, sub.credit);
-              });
-            }
-          });
-        }
+        group.referees.forEach(ref => {
+          if (ref.name) totalPeople++;
+          addToStats(ref.referrerStatus, ref.referrerCredit);
+          addToStats(ref.refereeStatus, ref.refereeCredit);
+          if (ref.subReferees) {
+            ref.subReferees.forEach(sub => {
+              if (sub.name) totalPeople++;
+              addToStats(sub.subRefStatus, sub.subRefCredit);
+              addToStats(sub.status, sub.credit);
+            });
+          }
+        });
       }
 
       // 渲染
@@ -499,6 +572,8 @@
             <div class="name-title">
               👤 ${group.referrer} ${identityBadge}
               ${group.id ? `<span>#${group.id}</span>` : ''}
+              <!-- 新增：一级介绍人的编辑按钮 -->
+              <button class="edit-group-btn" onclick="openEditGroupModal(${gIdx})">✏️ 编辑介绍人</button>
             </div>
             ${group.note ? `<div class="note-text">📝 ${group.note}</div>` : ''}
             <div class="referee-list">
@@ -518,7 +593,7 @@
 
         groupHTML += `
           <div class="referee-item">
-            <button class="edit-btn" onclick="openEditModal('${ref.dbId}', ${gIdx}, ${realRefIndex})" title="编辑">✏️</button>
+            <button class="edit-btn" onclick="openEditRefModal('${ref.dbId}', ${gIdx}, ${realRefIndex})" title="编辑">✏️</button>
             <div class="referee-info">
               <div class="referee-name-row">
                 <div class="referee-name ${getStatusClass(ref.refereeStatus)}">
