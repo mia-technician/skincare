@@ -151,7 +151,7 @@
     <h3 id="modalTitle" style="margin-bottom: 16px; font-size: 1.1rem;">新增/编辑</h3>
     <form id="editForm" onsubmit="saveData(event)">
       <input type="hidden" id="editId">
-      <input type="hidden" id="editType"> <!-- 'l1' 或 'node' -->
+      <input type="hidden" id="editType"> 
       
       <div class="form-group" id="group-l1-name">
         <label>一级介绍人名字 (若新建则填此项)</label>
@@ -223,11 +223,11 @@
 
   async function fetchDataFromCloud() {
     showLoading(true);
+    // 🚨 核心修复：删除了对不存在的 level2_sort_order 的排序依赖
     const { data, error } = await supabaseClient
       .from('referrals')
       .select('*')
       .order('group_sort_order', { ascending: true, nullsFirst: true })
-      .order('level2_sort_order', { ascending: true, nullsFirst: true })
       .order('created_at', { ascending: true }); 
 
     if (error) { alert("拉取失败: " + error.message); showLoading(false); return; }
@@ -244,7 +244,6 @@
           level: row.hierarchy_level === 1 ? 1 : null,
           parentId: row.parent_id || null,
           groupSortOrder: row.group_sort_order || 0,
-          level2SortOrder: 0,
           isReferrerBlock: true
         });
       }
@@ -265,8 +264,7 @@
           note: row.referee_note || '',
           level: row.hierarchy_level || null,
           parentId: row.parent_id || null,
-          groupSortOrder: row.group_sort_order || 0,
-          level2SortOrder: row.level2_sort_order || 0
+          groupSortOrder: row.group_sort_order || 0
         });
       }
       if (row.sub_referee_name) {
@@ -282,8 +280,7 @@
             note: row.sub_referee_note || '',
             level: 3,
             parentId: row.id,
-            groupSortOrder: row.group_sort_order || 0,
-            level2SortOrder: 0
+            groupSortOrder: row.group_sort_order || 0
           });
         }
       }
@@ -334,7 +331,8 @@
       setupDropZone(drop2, l1.id, 2);
       l1Div.appendChild(drop2);
 
-      const l2List = allCards.filter(c => c.parentId === l1.id && c.level === 2).sort((a, b) => a.level2SortOrder - b.level2SortOrder);
+      // 二级目前只按数据库拉取的顺序排，不支持上下移动（因为字段不存在）
+      const l2List = allCards.filter(c => c.parentId === l1.id && c.level === 2);
       
       l2List.forEach((l2, idx2) => {
         const l2Div = document.createElement('div');
@@ -344,8 +342,6 @@
           <div class="level-2-header">
             <span style="font-size:0.75rem; color:#64748b; font-weight:600;">二级客人</span>
             <div class="level-2-controls">
-              <button class="btn btn-move" onclick="moveL2('${l1.id}', ${idx2}, -1)" title="上移">↑</button>
-              <button class="btn btn-move" onclick="moveL2('${l1.id}', ${idx2}, 1)" title="下移">↓</button>
               <button class="btn btn-revoke" onclick="revokeNode('${l2.id}')" title="退回左侧未分配池">↩️ 退回</button>
             </div>
           </div>
@@ -415,7 +411,6 @@
     const pClass = card.referrerStatus === 'pending' ? 'status-pending' : (card.referrerStatus === 'used' ? 'status-used' : (card.referrerStatus === 'blue' ? 'status-blue' : 'status-gray'));
     const rClass = card.refereeStatus === 'pending' ? 'status-pending' : (card.refereeStatus === 'used' ? 'status-used' : (card.refereeStatus === 'blue' ? 'status-blue' : 'status-gray'));
 
-    // 如果是已经存在数据库里的真实方块（非一级虚框），加上编辑按钮
     const editBtn = (!card.isReferrerBlock && !card.id.includes('_sub')) 
       ? `<span class="edit-icon" onclick="event.stopPropagation(); openEditModal('${card.id}')">✏️ 编辑</span>` 
       : '';
@@ -455,8 +450,6 @@
       if (card) {
         card.parentId = targetParentId;
         card.level = expectedLevel;
-        
-        if (expectedLevel === 2) card.level2SortOrder = Date.now();
 
         const parentCard = allCards.find(c => c.id === targetParentId);
         if (parentCard && !card.isReferrerBlock) {
@@ -471,8 +464,7 @@
              hierarchy_level: expectedLevel,
              parent_id: targetParentId,
              referrer_name: card.referrerName,
-             referrer_id: card.referrerId,
-             level2_sort_order: card.level2SortOrder || 0
+             referrer_id: card.referrerId
            }).eq('id', card.id);
         }
       }
@@ -521,22 +513,6 @@
     await supabaseClient.from('referrals').update({ group_sort_order: targetCard.groupSortOrder }).eq('referrer_name', targetCard.name);
   }
 
-  async function moveL2(l1Id, idx, direction) {
-    const l2Cards = allCards.filter(c => c.parentId === l1Id && c.level === 2).sort((a, b) => a.level2SortOrder - b.level2SortOrder);
-    const targetIdx = idx + direction;
-    if (targetIdx < 0 || targetIdx >= l2Cards.length) return;
-
-    const currentCard = l2Cards[idx];
-    const targetCard = l2Cards[targetIdx];
-    const tempOrder = currentCard.level2SortOrder;
-    currentCard.level2SortOrder = targetCard.level2SortOrder;
-    targetCard.level2SortOrder = tempOrder;
-
-    render();
-    if (!currentCard.id.includes('_sub')) await supabaseClient.from('referrals').update({ level2_sort_order: currentCard.level2SortOrder }).eq('id', currentCard.id);
-    if (!targetCard.id.includes('_sub')) await supabaseClient.from('referrals').update({ level2_sort_order: targetCard.level2SortOrder }).eq('id', targetCard.id);
-  }
-
   function deleteLevel1(id) {
     if(confirm("删除该介绍人会让所有下属回到左侧数据池，确认吗？")) {
       allCards.forEach(c => {
@@ -575,7 +551,6 @@
     document.getElementById('editId').value = card.id;
     document.getElementById('editType').value = 'edit';
     
-    // 隐藏一级输入框，只显示当前客人的信息
     document.getElementById('group-l1-name').style.display = 'none';
     document.getElementById('group-node-name').style.display = 'block';
 
@@ -608,16 +583,14 @@
         return;
       }
 
-      // 1. 如果填了一级名字，新建一级
       if (l1Name) {
         await supabaseClient.from('referrals').insert([{
           referrer_name: l1Name,
           referee_name: '',
-          hierarchy_level: null // 进池子等待分配
+          hierarchy_level: null 
         }]);
       }
 
-      // 2. 如果填了客人名字，新建二级
       if (nodeName) {
         await supabaseClient.from('referrals').insert([{
           referrer_name: l1Name || '未知介绍人',
@@ -631,7 +604,6 @@
         }]);
       }
     } else if (type === 'edit') {
-      // 更新数据
       await supabaseClient.from('referrals').update({
         referee_name: document.getElementById('inputNodeName').value.trim(),
         referee_id: document.getElementById('inputNodeId').value,
