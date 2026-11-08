@@ -31,6 +31,9 @@
   .tree-area { flex: 2; display: flex; flex-direction: column; gap: 20px; }
   .level-1 { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; }
   .level-1-header { font-weight: 700; font-size: 1.1rem; color: #0f172a; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;}
+  
+  .level-1-controls { display: flex; gap: 6px; align-items: center; }
+  
   .level-2 { margin-left: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 12px; position: relative; }
   .level-3 { margin-left: 20px; background: #fff; border: 1px dashed #e2e8f0; border-radius: 8px; padding: 12px; margin-top: 8px; }
 
@@ -64,6 +67,8 @@
   .btn:hover { background: #2563eb; }
   .btn-danger { background: #ef4444; padding: 4px 8px; font-size: 0.75rem;}
   .btn-danger:hover { background: #dc2626; }
+  .btn-move { background: #f1f5f9; color: #475569; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #cbd5e1;}
+  .btn-move:hover { background: #e2e8f0; color: #0f172a;}
 
   /* 状态字 */
   .status-pending { font-weight: 700; color: #dc2626; }
@@ -110,7 +115,6 @@
 
   <!-- 右侧树状结构 -->
   <div class="tree-area">
-    <!-- 一级的放置区 -->
     <div class="drop-zone" id="drop-level-1" style="min-height: 100px; border-color: #3b82f6; background: #eff6ff;">
       <span style="color:#3b82f6; font-weight:600;">⬇️ 将左侧的“一级介绍人”拖拽到这里 ⬇️</span>
     </div>
@@ -119,18 +123,13 @@
 </div>
 
 <script>
-  // ==========================================
-  // 🔗 Supabase 配置
-  // ==========================================
   const SUPABASE_URL = "https://dmrskyskryrdclknezth.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   let allCards = [];
 
-  // ==========================================
-  // 📥 拉取数据
-  // ==========================================
+  // 拉取数据
   async function fetchDataFromCloud() {
     showLoading(true);
     const { data, error } = await supabaseClient
@@ -138,33 +137,26 @@
       .select('*')
       .order('created_at', { ascending: true }); 
 
-    if (error) {
-      alert("拉取失败: " + error.message);
-      showLoading(false);
-      return;
-    }
+    if (error) { alert("拉取失败: " + error.message); showLoading(false); return; }
 
     allCards = [];
-
-    // 1. 扫描所有的“介绍人”，提取出他们作为一级方块（去重）
     const referrersMap = new Map();
+
     data.forEach(row => {
       if (row.referrer_name && !referrersMap.has(row.referrer_name)) {
         referrersMap.set(row.referrer_name, {
-          id: 'l1_' + row.referrer_name, // 用名字做临时主键
+          id: 'l1_' + row.referrer_name, 
           name: row.referrer_name,
           refId: row.referrer_id || '',
-          level: row.hierarchy_level === 1 ? 1 : null, // 如果数据库已保存为一级，就放右边
+          level: row.hierarchy_level === 1 ? 1 : null,
           parentId: row.parent_id || null,
           isReferrerBlock: true
         });
       }
     });
 
-    // 将所有一级方块加入池子或架子
     referrersMap.forEach(card => allCards.push(card));
 
-    // 2. 扫描所有的“被介绍人”（二级/三级）
     data.forEach(row => {
       if (row.referee_name) {
         allCards.push({
@@ -180,10 +172,7 @@
           parentId: row.parent_id || null
         });
       }
-
-      // 3. 拆包三级（孙辈）
       if (row.sub_referee_name) {
-        // 判断是否已经加过
         if (!allCards.find(c => c.name === row.sub_referee_name && c.parentId === row.id)) {
           allCards.push({
             id: row.id + '_sub',
@@ -205,36 +194,38 @@
     render();
   }
 
-  // ==========================================
-  // 🎨 渲染逻辑
-  // ==========================================
+  // 渲染
   function render() {
     const pool = document.getElementById('pool-content');
     const tree = document.getElementById('tree-container');
-    
     pool.innerHTML = '';
     tree.innerHTML = '';
 
-    // 1. 渲染左侧（没有 level 的都是未分配）
+    // 左侧未分配
     const unassigned = allCards.filter(c => !c.level);
     if (unassigned.length === 0) {
       pool.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">全部整理完毕！</div>';
     } else {
-      unassigned.forEach(card => {
-        pool.appendChild(createDraggableCard(card));
-      });
+      unassigned.forEach(card => pool.appendChild(createDraggableCard(card)));
     }
 
-    // 2. 渲染右侧
+    // 右侧树状图
+    // 🚨 关键修复：先把所有一级取出来，然后按照它们在 allCards 里的顺序排序
     const l1Cards = allCards.filter(c => c.level === 1);
-    l1Cards.forEach(l1 => {
+    
+    // 为了支持上下移动，我们在这里使用已有的数组顺序
+    l1Cards.forEach((l1, idx1) => {
       const l1Div = document.createElement('div');
       l1Div.className = 'level-1';
       
       l1Div.innerHTML = `
         <div class="level-1-header">
           <span>👤 一级: ${l1.name} ${l1.refId ? '#'+l1.refId : ''}</span>
-          <button class="btn btn-danger" onclick="deleteLevel1('${l1.id}')">解散</button>
+          <div class="level-1-controls">
+            <button class="btn btn-move" onclick="moveL1(${idx1}, -1)" title="上移">↑</button>
+            <button class="btn btn-move" onclick="moveL1(${idx1}, 1)" title="下移">↓</button>
+            <button class="btn btn-danger" onclick="deleteLevel1('${l1.id}')">解散</button>
+          </div>
         </div>
       `;
 
@@ -275,7 +266,7 @@
     calculateStats();
   }
 
-  // 创建可拖拽块
+  // 创建卡片
   function createDraggableCard(card) {
     const div = document.createElement('div');
     div.className = `draggable-card ${card.isReferrerBlock ? 'level-1-draggable' : ''}`;
@@ -307,7 +298,7 @@
     return div;
   }
 
-  // 放置区逻辑
+  // 放置逻辑
   function setupDropZone(zone, targetParentId, expectedLevel) {
     zone.addEventListener('dragover', (e) => {
       e.preventDefault();
@@ -327,7 +318,6 @@
         card.parentId = targetParentId;
         card.level = expectedLevel;
         
-        // 如果拖的是被介绍人，需要同步上级信息
         const parentCard = allCards.find(c => c.id === targetParentId);
         if (parentCard && !card.isReferrerBlock) {
            card.referrerName = parentCard.name;
@@ -336,7 +326,6 @@
 
         render();
         
-        // 同步到数据库
         if (!card.isReferrerBlock && !card.id.includes('_sub')) {
            await supabaseClient.from('referrals').update({
              hierarchy_level: expectedLevel,
@@ -349,9 +338,7 @@
     });
   }
 
-  // ==========================================
-  // 👑 顶部的“一级放置区”逻辑
-  // ==========================================
+  // 一级放置区
   const l1DropZone = document.getElementById('drop-level-1');
   l1DropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
@@ -370,9 +357,13 @@
     if (card && card.isReferrerBlock) {
       card.level = 1;
       card.parentId = null;
+
+      // 为了让它排到最后，我们把它从原位置删掉，重新 push 到末尾
+      allCards = allCards.filter(c => c.id !== card.id);
+      allCards.push(card);
+
       render();
 
-      // 去数据库里把属于这个名字的所有行，hierarchy_level 更新为 1
       await supabaseClient.from('referrals').update({
         hierarchy_level: 1
       }).eq('referrer_name', card.name);
@@ -381,31 +372,25 @@
     }
   });
 
-  // ==========================================
-  // ➕ 新建一级 (手动)
-  // ==========================================
-  async function addNewLevel1() {
-    const name = prompt("请输入全新的一级介绍人名字");
-    if (name) {
-      const id = 'l1_' + Date.now();
-      allCards.push({
-        id: id,
-        name: name,
-        refId: '',
-        isReferrerBlock: true,
-        level: 1,
-        parentId: null
-      });
-      render();
+  // 上下移动一级
+  function moveL1(idx, direction) {
+    const l1Cards = allCards.filter(c => c.level === 1);
+    const targetIdx = idx + direction;
+    if (targetIdx < 0 || targetIdx >= l1Cards.length) return;
 
-      await supabaseClient.from('referrals').insert([{
-        referrer_name: name,
-        referee_name: '',
-        hierarchy_level: 1
-      }]);
-    }
+    // 找到这两个对象在 allCards 里的真实索引
+    const a = allCards.indexOf(l1Cards[idx]);
+    const b = allCards.indexOf(l1Cards[targetIdx]);
+
+    // 交换它们在底层数组里的位置
+    const temp = allCards[a];
+    allCards[a] = allCards[b];
+    allCards[b] = temp;
+
+    render();
   }
 
+  // 解散一级
   function deleteLevel1(id) {
     if(confirm("删除该介绍人会让所有下属回到左侧数据池，确认吗？")) {
       allCards.forEach(c => {
