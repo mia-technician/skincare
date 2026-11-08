@@ -170,72 +170,79 @@
 
 </div>
 
-<!-- === 弹窗表单 === -->
+<!-- === 弹窗表单 (通用) === -->
 <div class="modal-overlay" id="modal">
   <div class="modal-content">
     <h3 id="modalTitle">新增/编辑记录</h3>
     <form id="editForm" onsubmit="saveData(event)">
       <input type="hidden" id="editId">
+      <input type="hidden" id="editModeType"> <!-- 'group', 'referee', 'sub' -->
       
-      <div class="form-row">
-        <div class="form-group">
-          <label>介绍人名字 *</label>
-          <input type="text" id="inputReferrerName" required placeholder="例: Ariel Fang Zheng / 新介绍人">
+      <!-- 大老板信息 (新增或编辑一级/二级时展示) -->
+      <div id="section-referrer">
+        <div class="form-row">
+          <div class="form-group">
+            <label>介绍人名字 *</label>
+            <input type="text" id="inputReferrerName" required placeholder="例: Ariel Fang Zheng / 新介绍人">
+          </div>
+          <div class="form-group">
+            <label>介绍人 ID</label>
+            <input type="text" id="inputReferrerId" placeholder="例: 25023">
+          </div>
         </div>
-        <div class="form-group">
-          <label>介绍人 ID</label>
-          <input type="text" id="inputReferrerId" placeholder="例: 25023">
-        </div>
-      </div>
 
-      <div class="form-group">
-        <label>身份自动判定 (仅针对介绍人)</label>
-        <select id="inputIdentity" style="background:#f8fafc; color:#64748b;">
-          <option value="client">👤 客人 (无 F- 前缀)</option>
-          <option value="friend">👥 朋友 (有 F- 前缀)</option>
-        </select>
-      </div>
-
-      <div class="form-row">
         <div class="form-group">
-          <label>被介绍人名字 *</label>
-          <input type="text" id="inputRefereeName" required>
-        </div>
-        <div class="form-group">
-          <label>被介绍人 ID</label>
-          <input type="text" id="inputRefereeId">
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>介绍人奖励 ($)</label>
-          <input type="number" step="0.01" id="inputReferrerCredit" value="0" required>
-        </div>
-        <div class="form-group">
-          <label>介绍人奖励状态</label>
-          <select id="inputReferrerStatus">
-            <option value="pending">待使用 (红)</option>
-            <option value="used">已使用 (灰划线)</option>
-            <option value="blue">已过期 (蓝)</option>
-            <option value="gray">未标色 (浅灰)</option>
+          <label>身份自动判定 (仅针对介绍人)</label>
+          <select id="inputIdentity" style="background:#f8fafc; color:#64748b;">
+            <option value="client">👤 客人 (无 F- 前缀)</option>
+            <option value="friend">👥 朋友 (有 F- 前缀)</option>
           </select>
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label>新人奖励 ($)</label>
-          <input type="number" step="0.01" id="inputRefereeCredit" value="0" required>
+      <!-- 被介绍人信息 (新增或编辑二级时展示) -->
+      <div id="section-referee">
+        <div class="form-row">
+          <div class="form-group">
+            <label id="label-referee-name">被介绍人名字 *</label>
+            <input type="text" id="inputRefereeName" required>
+          </div>
+          <div class="form-group">
+            <label>被介绍人 ID</label>
+            <input type="text" id="inputRefereeId">
+          </div>
         </div>
-        <div class="form-group">
-          <label>新人奖励状态</label>
-          <select id="inputRefereeStatus">
-            <option value="pending">待使用 (红)</option>
-            <option value="used">已使用 (灰划线)</option>
-            <option value="blue">已过期 (蓝)</option>
-            <option value="gray">未标色 (浅灰)</option>
-          </select>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label id="label-referrer-credit">介绍人奖励 ($)</label>
+            <input type="number" step="0.01" id="inputReferrerCredit" value="0" required>
+          </div>
+          <div class="form-group">
+            <label>介绍人奖励状态</label>
+            <select id="inputReferrerStatus">
+              <option value="pending">待使用 (红)</option>
+              <option value="used">已使用 (灰划线)</option>
+              <option value="blue">已过期 (蓝)</option>
+              <option value="gray">未标色 (浅灰)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label id="label-referee-credit">新人奖励 ($)</label>
+            <input type="number" step="0.01" id="inputRefereeCredit" value="0" required>
+          </div>
+          <div class="form-group">
+            <label>新人奖励状态</label>
+            <select id="inputRefereeStatus">
+              <option value="pending">待使用 (红)</option>
+              <option value="used">已使用 (灰划线)</option>
+              <option value="blue">已过期 (蓝)</option>
+              <option value="gray">未标色 (浅灰)</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -266,10 +273,11 @@
   let currentData = [];
   let currentSearchKw = '';
   
-  // 用于记录当前是在编辑“介绍人组”还是“被介绍人”
-  let editMode = 'referee'; // 'referee' (二级) 或 'group' (一级)
+  // 用于记录当前是在编辑：'group' (一级), 'referee' (二级), 'sub' (三级)
+  let editMode = 'referee'; 
   let editingGroupIndex = -1;
   let editingRefIndex = -1;
+  let editingSubIndex = -1;
 
   // ==========================================
   // 📥 从云端拉取数据
@@ -341,7 +349,7 @@
   }
 
   // ==========================================
-  // 📝 表单交互 (新增 / 编辑)
+  // 📝 表单交互
   // ==========================================
   
   document.getElementById('inputReferrerName').addEventListener('input', (e) => {
@@ -359,7 +367,11 @@
     document.getElementById('modalTitle').innerText = '新增客户记录';
     document.getElementById('editForm').reset();
     document.getElementById('editId').value = '';
-    document.getElementById('inputIdentity').value = 'client';
+    document.getElementById('editModeType').value = 'referee';
+    
+    // UI 还原
+    document.getElementById('section-referrer').style.display = 'block';
+    document.getElementById('section-referee').style.display = 'block';
     document.getElementById('inputReferrerName').readOnly = false;
     
     if(currentData.length > 0) {
@@ -369,6 +381,29 @@
     document.getElementById('modal').classList.add('show');
   }
 
+  // 编辑大老板 (第一级)
+  function openEditGroupModal(groupIndex) {
+    editMode = 'group';
+    editingGroupIndex = groupIndex;
+    
+    const group = currentData[groupIndex];
+    document.getElementById('modalTitle').innerText = '编辑介绍人信息';
+    document.getElementById('editId').value = ''; 
+    document.getElementById('editModeType').value = 'group';
+    
+    // UI 调整
+    document.getElementById('section-referrer').style.display = 'block';
+    document.getElementById('section-referee').style.display = 'none'; // 隐藏被介绍人区域
+    document.getElementById('inputReferrerName').value = group.referrer;
+    document.getElementById('inputReferrerName').readOnly = false;
+    document.getElementById('inputReferrerId').value = group.id || '';
+    document.getElementById('inputIdentity').value = group.identity || 'client';
+    document.getElementById('inputNote').value = group.note || '';
+
+    document.getElementById('modal').classList.add('show');
+  }
+
+  // 编辑二级 (直接挂在大老板名下的)
   function openEditRefModal(dbId, groupIndex, refIndex) {
     editMode = 'referee';
     editingGroupIndex = groupIndex;
@@ -379,9 +414,15 @@
 
     document.getElementById('modalTitle').innerText = '编辑客户记录';
     document.getElementById('editId').value = dbId || ''; 
+    document.getElementById('editModeType').value = 'referee';
+
+    document.getElementById('section-referrer').style.display = 'block';
+    document.getElementById('section-referee').style.display = 'block';
+    
     document.getElementById('inputReferrerName').value = group.referrer;
-    document.getElementById('inputReferrerName').readOnly = true; // 修改具体客户时不允许改上级名字，避免乱套
+    document.getElementById('inputReferrerName').readOnly = true; 
     document.getElementById('inputIdentity').value = group.identity || 'client';
+    
     document.getElementById('inputRefereeName').value = ref.name || '';
     document.getElementById('inputRefereeId').value = ref.id || '';
     document.getElementById('inputReferrerCredit').value = ref.referrerCredit || 0;
@@ -393,33 +434,47 @@
     document.getElementById('modal').classList.add('show');
   }
 
-  // 新增：修改第一级介绍人
-  function openEditGroupModal(groupIndex) {
-    editMode = 'group';
+  // 编辑三级 (孙辈)
+  function openEditSubModal(dbId, groupIndex, refIndex, subIndex) {
+    editMode = 'sub';
     editingGroupIndex = groupIndex;
+    editingRefIndex = refIndex;
+    editingSubIndex = subIndex;
     
     const group = currentData[groupIndex];
-    document.getElementById('modalTitle').innerText = '编辑介绍人信息';
-    document.getElementById('editId').value = ''; 
-    document.getElementById('inputReferrerName').value = group.referrer;
-    document.getElementById('inputReferrerName').readOnly = false;
-    document.getElementById('inputReferrerId').value = group.id || '';
-    document.getElementById('inputIdentity').value = group.identity || 'client';
+    const ref = group.referees[refIndex];
+    const sub = ref.subReferees[subIndex];
+
+    document.getElementById('modalTitle').innerText = '编辑三级人员记录';
+    document.getElementById('editId').value = dbId || ''; 
+    document.getElementById('editModeType').value = 'sub';
+
+    // 隐藏第一级介绍人区，只展示孙辈信息
+    document.getElementById('section-referrer').style.display = 'none';
+    document.getElementById('section-referee').style.display = 'block';
     
-    // 清空下级信息（因为只是改上级）
-    document.getElementById('inputRefereeName').value = '【仅修改介绍人信息请忽略此处】';
-    document.getElementById('inputRefereeName').required = false; 
-    document.getElementById('inputRefereeId').value = '';
-    document.getElementById('inputReferrerCredit').value = 0;
-    document.getElementById('inputRefereeCredit').value = 0;
-    document.getElementById('inputNote').value = group.note || '';
+    // 改变 label 名称，防止误导
+    document.getElementById('label-referee-name').innerText = '三级人员名字 *';
+    document.getElementById('label-referrer-credit').innerText = '上级介绍奖励 ($)';
+    document.getElementById('label-referee-credit').innerText = '新人奖励 ($)';
+
+    document.getElementById('inputRefereeName').value = sub.name || '';
+    document.getElementById('inputRefereeId').value = sub.id || '';
+    document.getElementById('inputReferrerCredit').value = sub.subRefCredit || 0;
+    document.getElementById('inputReferrerStatus').value = sub.subRefStatus || 'gray';
+    document.getElementById('inputRefereeCredit').value = sub.credit || 0;
+    document.getElementById('inputRefereeStatus').value = sub.status || 'gray';
+    document.getElementById('inputNote').value = sub.note || '';
 
     document.getElementById('modal').classList.add('show');
   }
 
   function closeModal() {
     document.getElementById('modal').classList.remove('show');
-    document.getElementById('inputRefereeName').required = true; // 恢复必填
+    // 恢复 label 初始状态
+    document.getElementById('label-referee-name').innerText = '被介绍人名字 *';
+    document.getElementById('label-referrer-credit').innerText = '介绍人奖励 ($)';
+    document.getElementById('label-referee-credit').innerText = '新人奖励 ($)';
   }
 
   async function saveData(e) {
@@ -428,46 +483,44 @@
     btn.disabled = true; btn.innerText = '保存中...';
 
     const dbId = document.getElementById('editId').value;
+    const currentMode = document.getElementById('editModeType').value;
     
-    let payload = {
-      referrer_name: document.getElementById('inputReferrerName').value.trim(),
-      referrer_id: document.getElementById('inputReferrerId').value.trim(),
-      identity_type: document.getElementById('inputIdentity').value,
-      referrer_note: document.getElementById('inputNote').value.trim(), // 这里借用被介绍人的 note 给大老板做备注
-    };
-
+    let payload = {};
     let error;
 
-    if (editMode === 'group') {
-      // 如果是修改上级，我们需要批量更新所有绑定了这个上级的底层记录
+    // 1. 编辑大老板 (更新该组下所有记录)
+    if (currentMode === 'group') {
       const oldGroup = currentData[editingGroupIndex];
       const oldRefName = oldGroup.referrer;
       const oldRefId = oldGroup.id;
       
-      // 注意：Supabase 批量更新，我们通过 oldRefName 去匹配更新 referrer_name 和 referrer_note
       let query = supabaseClient.from('referrals').update({
-        referrer_name: payload.referrer_name,
-        referrer_id: payload.referrer_id,
-        identity_type: payload.identity_type,
-        referrer_note: payload.referrer_note
+        referrer_name: document.getElementById('inputReferrerName').value.trim(),
+        referrer_id: document.getElementById('inputReferrerId').value.trim(),
+        identity_type: document.getElementById('inputIdentity').value,
+        referrer_note: document.getElementById('inputNote').value.trim()
       });
       
-      // 加上条件（如果不加，会全表更新！）
       query = query.eq('referrer_name', oldRefName);
       if (oldRefId) query = query.eq('referrer_id', oldRefId);
       
       const res = await query;
       error = res.error;
-
-    } else {
-      // 修改/新增 单个被介绍人
-      payload.referee_name = document.getElementById('inputRefereeName').value.trim();
-      payload.referee_id = document.getElementById('inputRefereeId').value.trim();
-      payload.referrer_credit = Number(document.getElementById('inputReferrerCredit').value);
-      payload.referrer_status = document.getElementById('inputReferrerStatus').value;
-      payload.referee_credit = Number(document.getElementById('inputRefereeCredit').value);
-      payload.referee_status = document.getElementById('inputRefereeStatus').value;
-      payload.referee_note = document.getElementById('inputNote').value.trim(); // 借用表单的备注
+    } 
+    // 2. 编辑二级
+    else if (currentMode === 'referee') {
+      payload = {
+        referrer_name: document.getElementById('inputReferrerName').value.trim(),
+        referrer_id: document.getElementById('inputReferrerId').value.trim(),
+        identity_type: document.getElementById('inputIdentity').value,
+        referee_name: document.getElementById('inputRefereeName').value.trim(),
+        referee_id: document.getElementById('inputRefereeId').value.trim(),
+        referrer_credit: Number(document.getElementById('inputReferrerCredit').value),
+        referrer_status: document.getElementById('inputReferrerStatus').value,
+        referee_credit: Number(document.getElementById('inputRefereeCredit').value),
+        referee_status: document.getElementById('inputRefereeStatus').value,
+        referee_note: document.getElementById('inputNote').value.trim()
+      };
 
       if (dbId) {
         const res = await supabaseClient.from('referrals').update(payload).eq('id', dbId);
@@ -476,6 +529,24 @@
         const res = await supabaseClient.from('referrals').insert([payload]);
         error = res.error;
       }
+    } 
+    // 3. 编辑三级 (孙辈，更新对应的 sub_ 字段)
+    else if (currentMode === 'sub') {
+      // 这里有个细节：如果原来这一行既包含二级信息，又包含三级信息。我们更新三级字段即可。
+      payload = {
+        sub_referee_name: document.getElementById('inputRefereeName').value.trim(),
+        sub_referee_id: document.getElementById('inputRefereeId').value.trim(),
+        sub_ref_credit: Number(document.getElementById('inputReferrerCredit').value),
+        sub_ref_status: document.getElementById('inputReferrerStatus').value,
+        sub_referee_credit: Number(document.getElementById('inputRefereeCredit').value),
+        sub_referee_status: document.getElementById('inputRefereeStatus').value,
+        sub_referee_note: document.getElementById('inputNote').value.trim()
+      };
+
+      // 由于三级数据在数据库中是混在二级行里的，我们需要知道是哪个 dbId 包含了这个 sub。
+      // 所以这里需要依靠传进来的 dbId（即父级的 dbId）。
+      const res = await supabaseClient.from('referrals').update(payload).eq('id', dbId);
+      error = res.error;
     }
 
     btn.disabled = false; btn.innerText = '保存到云端';
@@ -572,7 +643,6 @@
             <div class="name-title">
               👤 ${group.referrer} ${identityBadge}
               ${group.id ? `<span>#${group.id}</span>` : ''}
-              <!-- 新增：一级介绍人的编辑按钮 -->
               <button class="edit-group-btn" onclick="openEditGroupModal(${gIdx})">✏️ 编辑介绍人</button>
             </div>
             ${group.note ? `<div class="note-text">📝 ${group.note}</div>` : ''}
@@ -593,7 +663,7 @@
 
         groupHTML += `
           <div class="referee-item">
-            <button class="edit-btn" onclick="openEditRefModal('${ref.dbId}', ${gIdx}, ${realRefIndex})" title="编辑">✏️</button>
+            <button class="edit-btn" onclick="openEditRefModal('${ref.dbId}', ${gIdx}, ${realRefIndex})" title="编辑二级">✏️</button>
             <div class="referee-info">
               <div class="referee-name-row">
                 <div class="referee-name ${getStatusClass(ref.refereeStatus)}">
@@ -619,7 +689,7 @@
         `;
 
         if (ref.subReferees) {
-          ref.subReferees.forEach(sub => {
+          ref.subReferees.forEach((sub, subIdx) => {
             let sMatch = sub.name.toLowerCase().includes(kw) || (sub.id && sub.id.includes(kw));
             if (['pending','used','expired'].includes(kw)) {
               if (kw === 'pending') sMatch = sMatch || sub.status === 'pending' || sub.subRefStatus === 'pending';
@@ -630,6 +700,8 @@
             if (matchReferrer || selfMatch || sMatch) {
               groupHTML += `
                 <div class="referee-item sub-referee">
+                  <!-- 新增：三级人员的编辑按钮 -->
+                  <button class="edit-btn" onclick="openEditSubModal('${ref.dbId}', ${gIdx}, ${realRefIndex}, ${subIdx})" title="编辑三级">✏️</button>
                   <div class="referee-info">
                     <div class="referee-name-row">
                       <div class="referee-name ${getStatusClass(sub.status)}" style="font-size:0.9rem;">
