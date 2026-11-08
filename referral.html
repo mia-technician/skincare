@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>拖拽式 Referral Tracker - 终极拖拽版</title>
+<title>拖拽式 Referral Tracker - 终极稳定版</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -218,6 +218,7 @@
     allCards = [];
     const seenNames = new Set();
 
+    // 1. 提取所有人
     data.forEach(row => {
       if (row.referrer_name && row.referrer_name.trim() !== '') {
         const cleanName = row.referrer_name.trim();
@@ -325,7 +326,7 @@
       const drop2 = document.createElement('div');
       drop2.className = 'drop-zone';
       drop2.innerText = '将二级客户拖拽至此';
-      setupDropZone(drop2, l1.id, 2);
+      setupDropZone(drop2, l1.id, 2, l1.name);
       l1Div.appendChild(drop2);
 
       const l2List = allCards.filter(c => c.parentId === l1.id && c.level === 2);
@@ -348,7 +349,7 @@
         const drop3 = document.createElement('div');
         drop3.className = 'drop-zone';
         drop3.innerText = '将三级客户拖拽至此';
-        setupDropZone(drop3, l2.id, 3);
+        setupDropZone(drop3, l2.id, 3, l2.name);
         l2Div.appendChild(drop3);
 
         const l3List = allCards.filter(c => c.parentId === l2.id && c.level === 3);
@@ -435,7 +436,7 @@
     return div;
   }
 
-  function setupDropZone(zone, targetParentId, expectedLevel) {
+  function setupDropZone(zone, targetParentId, expectedLevel, targetParentName) {
     zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
     zone.addEventListener('dragleave', (e) => { zone.classList.remove('drag-over'); });
     zone.addEventListener('drop', async (e) => {
@@ -448,21 +449,15 @@
       if (card) {
         card.parentId = targetParentId;
         card.level = expectedLevel;
-
-        const parentCard = allCards.find(c => c.id === targetParentId);
-        if (parentCard) {
-           card.referrerName = parentCard.name;
-           card.referrerId = parentCard.refId;
-        }
+        card.referrerName = targetParentName;
 
         render();
         
         if (!card.id.includes('_sub')) {
+           // 🚨 核心：不存 parent_id 了，只存名字和层级！
            const { error } = await supabaseClient.from('referrals').update({
              hierarchy_level: expectedLevel,
-             parent_id: targetParentId,
-             referrer_name: card.referrerName,
-             referrer_id: card.referrerId
+             referrer_name: targetParentName
            }).eq('id', card.id);
            
            if (error) showToast("保存失败: " + error.message, true);
