@@ -9,13 +9,49 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #f1f5f9; font-family: 'Inter', sans-serif; color: #333; padding: 20px; }
   
-  .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; max-width: 1100px; margin-left: auto; margin-right: auto;}
-  .stat-card { background: #fff; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; max-width: 1100px; margin-left: auto; margin-right: auto;}
+  .stat-card { background: #fff; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.2s; }
+  .stat-card.searching { background: #eff6ff; border: 1px solid #bfdbfe; }
   .stat-card h3 { font-size: 0.8rem; color: #64748b; margin-bottom: 8px; }
   .stat-card .value { font-size: 1.5rem; font-weight: 700; }
   .value.pending { color: #dc2626; }
   .value.used { color: #64748b; font-style: italic; }
   .value.blue { color: #3b82f6; }
+
+  .search-bar { max-width: 1100px; margin: 0 auto 20px auto; }
+  .search-input {
+    width: 100%; padding: 12px 16px; border: 2px solid #cbd5e1; border-radius: 10px;
+    font-size: 0.95rem; background: #fff; transition: 0.2s;
+  }
+  .search-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+
+  .search-results { margin-top: 16px; display: flex; flex-direction: column; gap: 16px; }
+  .search-result-card {
+    background: #fff; border-radius: 12px; padding: 16px 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06); border-left: 4px solid #3b82f6;
+    cursor: pointer; transition: 0.15s;
+  }
+  .search-result-card:hover { box-shadow: 0 4px 16px rgba(59,130,246,0.2); border-left-color: #2563eb; }
+  .sr-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+  .sr-name { font-size: 1.1rem; font-weight: 700; color: #0f172a; }
+  .sr-id { color: #94a3b8; font-weight: 400; font-size: 0.9rem; margin-left: 6px; }
+  .sr-hint { font-size: 0.72rem; color: #94a3b8; }
+
+  .sr-chain { font-size: 0.85rem; color: #334155; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; }
+  .sr-chain-node { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 2px 8px; font-weight: 600; }
+  .sr-chain-arrow { color: #94a3b8; }
+
+  .sr-stats-line {
+    display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px;
+    font-size: 0.8rem; color: #64748b; align-items: center;
+  }
+  .sr-stats-line .p { color: #dc2626; font-weight: 700; }
+  .sr-stats-line .u { color: #94a3b8; font-style: italic; text-decoration: line-through; }
+  .sr-stats-line .e { color: #2563eb; }
+  .sr-stats-line .cnt { color: #0f172a; font-weight: 700; }
+  .sr-stats-line .sep { color: #cbd5e1; }
+
+  .sr-empty { text-align: center; color: #94a3b8; padding: 30px; font-size: 0.9rem; }
 
   .workspace { max-width: 1100px; margin: 0 auto; }
   .tree-area { display: flex; flex-direction: column; gap: 20px; }
@@ -24,19 +60,36 @@
   .btn-add-l1 { padding: 12px 28px; background: #3b82f6; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(59,130,246,0.3); transition: 0.2s; }
   .btn-add-l1:hover { background: #2563eb; transform: translateY(-1px); }
 
-  .node-box { background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 12px; border-left: 4px solid #3b82f6; }
+  .node-box { background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 12px; border-left: 4px solid #3b82f6; transition: box-shadow 0.4s, background 0.4s; }
   .node-box.depth-1 { border-left-color: #3b82f6; background: #fff; }
   .node-box.depth-2 { border-left-color: #10b981; background: #f8fafc; margin-left: 20px; }
   .node-box.depth-3 { border-left-color: #f59e0b; background: #fffbeb; margin-left: 20px; }
   .node-box.depth-4 { border-left-color: #8b5cf6; background: #faf5ff; margin-left: 20px; }
   .node-box.depth-5 { border-left-color: #ec4899; background: #fdf2f8; margin-left: 20px; }
 
-  .node-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;}
+  .node-box.highlight-flash { animation: flashHighlight 1.6s ease; }
+  @keyframes flashHighlight {
+    0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.7); background: #dbeafe; }
+    50% { box-shadow: 0 0 0 6px rgba(59,130,246,0.3); background: #dbeafe; }
+    100% { box-shadow: 0 2px 8px rgba(0,0,0,0.05); background: inherit; }
+  }
+
+  .node-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;}
   .node-title { font-weight: 700; font-size: 0.95rem; color: #0f172a; }
   .node-controls { display: flex; gap: 4px; flex-wrap: wrap; align-items: center;}
 
-  .card-details { font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; gap: 15px; flex-wrap: wrap;}
+  .card-details { font-size: 0.8rem; color: #64748b; margin-top: 2px; display: flex; gap: 15px; flex-wrap: wrap;}
   
+  .node-stats-line {
+    margin-top: 6px; padding-top: 6px; border-top: 1px dashed #e2e8f0;
+    display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.75rem; color: #64748b; align-items: center;
+  }
+  .node-stats-line .p { color: #dc2626; font-weight: 700; }
+  .node-stats-line .u { color: #94a3b8; font-style: italic; text-decoration: line-through; }
+  .node-stats-line .e { color: #2563eb; }
+  .node-stats-line .cnt { color: #0f172a; font-weight: 700; }
+  .node-stats-line .sep { color: #cbd5e1; }
+
   .edit-icon { font-size: 0.8rem; cursor: pointer; color: #94a3b8; padding: 2px 4px; border-radius: 4px; transition: 0.2s; }
   .edit-icon:hover { background: #f1f5f9; color: #0f172a; }
 
@@ -80,10 +133,15 @@
 <div class="toast" id="toast">保存成功</div>
 
 <div class="dashboard">
-  <div class="stat-card"><h3>⏳ 待使用 (Pending)</h3><div class="value pending" id="total-pending">$0</div></div>
-  <div class="stat-card"><h3>✅ 已使用 (Used)</h3><div class="value used" id="total-used">$0</div></div>
-  <div class="stat-card"><h3>❌ 已过期 (Expired)</h3><div class="value blue" id="total-expired">$0</div></div>
-  <div class="stat-card"><h3>👥 已整理人数</h3><div class="value" id="total-people">0</div></div>
+  <div class="stat-card" id="stat-pending-card"><h3>⏳ 待使用 (Pending)</h3><div class="value pending" id="total-pending">$0</div></div>
+  <div class="stat-card" id="stat-used-card"><h3>✅ 已使用 (Used)</h3><div class="value used" id="total-used">$0</div></div>
+  <div class="stat-card" id="stat-expired-card"><h3>❌ 已过期 (Expired)</h3><div class="value blue" id="total-expired">$0</div></div>
+  <div class="stat-card" id="stat-people-card"><h3>👥 已整理人数</h3><div class="value" id="total-people">0</div></div>
+</div>
+
+<div class="search-bar">
+  <input type="text" id="search-input" class="search-input" placeholder="🔍 搜索姓名 / 编号 / 备注（如 TMG），点击结果卡片可定位到树中" oninput="onSearchInput()">
+  <div id="search-results" class="search-results"></div>
 </div>
 
 <div class="workspace">
@@ -172,7 +230,6 @@
 </div>
 
 <script>
-  // ========== 极简 Supabase REST 客户端（不用 supabase-js） ==========
   const SUPABASE_URL = "https://dmrskyskryrdclknezth.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
 
@@ -182,28 +239,16 @@
       'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
       'Content-Type': 'application/json'
     },
-
-    // 通用请求
     async request(path, options = {}) {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
         ...options,
         headers: { ...this.headers, ...(options.headers || {}) }
       });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`HTTP ${res.status}: ${text}`);
-      }
-      // 有些请求（如 DELETE）可能返回空 body
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
       const text = await res.text();
       return text ? JSON.parse(text) : null;
     },
-
-    // 查询：table, 查询字符串（如 'order=created_at.asc'）
-    async select(table, query = '') {
-      return this.request(`${table}${query ? '?' + query : ''}`);
-    },
-
-    // 插入：返回插入的行
+    async select(table, query = '') { return this.request(`${table}${query ? '?' + query : ''}`); },
     async insert(table, row) {
       return this.request(table, {
         method: 'POST',
@@ -211,8 +256,6 @@
         body: JSON.stringify(row)
       });
     },
-
-    // 更新：filter 如 'id=eq.xxx'
     async update(table, filter, patch) {
       return this.request(`${table}?${filter}`, {
         method: 'PATCH',
@@ -220,18 +263,16 @@
         body: JSON.stringify(patch)
       });
     },
-
-    // 删除：filter 如 'id=eq.xxx'
     async delete(table, filter) {
       return this.request(`${table}?${filter}`, { method: 'DELETE' });
     }
   };
 
-  // ========== 状态 ==========
   let allPeople = [];
   let allRelations = [];
   let tree = [];
   let movingPersonId = null;
+  let personMap = {};
 
   function showToast(msg, isError = false) {
     const toast = document.getElementById('toast');
@@ -240,7 +281,76 @@
     setTimeout(() => { toast.className = 'toast'; }, 3000);
   }
 
-  // ========== 加载 ==========
+  // ==========================================================
+  // ========== 核心：某人的直接金额 + 下级人数 ==============
+  // ==========================================================
+  // 金额口径：
+  //   线1 = 所有 referrer_id = 本人 的 relation.referrer_credit（按 referrer_status）
+  //   线2 = referee_id = 本人 的那条 relation.referee_credit（按 referee_status）
+  //   合计 = 线1 + 线2，按状态分别加
+  function calcPersonOwnStats(personId) {
+    let pending = 0, used = 0, expired = 0;
+
+    // 线1：作为 referrer
+    allRelations.forEach(r => {
+      if (r.referrer_id === personId) {
+        const c = Number(r.referrer_credit || 0);
+        if (r.referrer_status === 'pending') pending += c;
+        else if (r.referrer_status === 'used') used += c;
+        else if (r.referrer_status === 'blue') expired += c;
+      }
+    });
+
+    // 线2：作为 referee（只有一条）
+    allRelations.forEach(r => {
+      if (r.referee_id === personId) {
+        const c = Number(r.referee_credit || 0);
+        if (r.referee_status === 'pending') pending += c;
+        else if (r.referee_status === 'used') used += c;
+        else if (r.referee_status === 'blue') expired += c;
+      }
+    });
+
+    // 直接下级
+    const node = personMap[personId];
+    const directCount = node ? (node.children || []).length : 0;
+
+    // 所有后代（BFS）
+    const descendantIds = new Set();
+    if (node) {
+      const queue = [...(node.children || [])];
+      while (queue.length > 0) {
+        const cur = queue.shift();
+        if (descendantIds.has(cur.id)) continue;
+        descendantIds.add(cur.id);
+        (cur.children || []).forEach(c => queue.push(c));
+      }
+    }
+
+    const totalDescendants = descendantIds.size;
+    const indirectCount = Math.max(0, totalDescendants - directCount);
+
+    return { pending, used, expired, directCount, indirectCount };
+  }
+
+  // 格式化金额行（树和搜索结果卡共用）
+  function renderStatsLineHTML(stats) {
+    return `
+      <span>待 <span class="p">$${stats.pending}</span></span>
+      <span class="sep">·</span>
+      <span>已用 <span class="u">$${stats.used}</span></span>
+      <span class="sep">·</span>
+      <span>过期 <span class="e">$${stats.expired}</span></span>
+      <span class="sep">·</span>
+      <span>直下 <span class="cnt">${stats.directCount}</span></span>
+      <span class="sep">·</span>
+      <span>间下 <span class="cnt">${stats.indirectCount}</span></span>
+    `;
+  }
+
+  // ==========================================================
+  // ========== 加载 ==========================================
+  // ==========================================================
   async function fetchDataFromCloud() {
     showLoading(true);
     try {
@@ -251,6 +361,11 @@
       allPeople = people || [];
       allRelations = relations || [];
       render();
+      if (document.getElementById('search-input').value.trim()) {
+        runSearch();  // 保留关键词，重跑搜索
+      } else {
+        updateStatsForTree();
+      }
     } catch (err) {
       showToast("拉取失败: " + err.message, true);
     } finally {
@@ -258,9 +373,11 @@
     }
   }
 
-  // ========== 建树 ==========
+  // ==========================================================
+  // ========== 建树 ==========================================
+  // ==========================================================
   function buildTree() {
-    const personMap = {};
+    personMap = {};
     allPeople.forEach(p => {
       personMap[p.id] = { ...p, children: [], relationFromParent: null, parentId: null };
     });
@@ -276,21 +393,16 @@
     allPeople.forEach(p => {
       const node = personMap[p.id];
       if (node.parentId) {
-        if (personMap[node.parentId]) {
-          personMap[node.parentId].children.push(node);
-        }
+        if (personMap[node.parentId]) personMap[node.parentId].children.push(node);
       } else {
         roots.push(node);
       }
     });
 
-    // 根节点：按 created_at 排序（保持稳定）
     roots.sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
-
     tree = roots;
   }
 
-  // ========== 渲染 ==========
   function render() {
     buildTree();
     const container = document.getElementById('tree-container');
@@ -298,15 +410,10 @@
 
     if (tree.length === 0) {
       container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:40px;">还没有任何客户，点击上方按钮添加第一级客户</div>';
-      calculateStats();
       return;
     }
 
-    tree.forEach(root => {
-      container.appendChild(renderNode(root, 1));
-    });
-
-    calculateStats();
+    tree.forEach(root => container.appendChild(renderNode(root, 1)));
   }
 
   function renderNode(node, depth) {
@@ -314,6 +421,7 @@
 
     const box = document.createElement('div');
     box.className = 'node-box depth-' + Math.min(depth, 5);
+    box.id = 'node-' + node.id;
 
     const rel = node.relationFromParent;
     const refCredit = rel ? Number(rel.referrer_credit || 0) : 0;
@@ -324,6 +432,9 @@
     const pClass = statusClass(refStatus);
     const rClass = statusClass(reeStatus);
     const depthLabel = depth === 1 ? '一级' : (depth === 2 ? '二级' : (depth === 3 ? '三级' : depth + '级'));
+
+    // ✅ 每个人的统计（金额 = 线1+线2；人数 = 直下/间下）
+    const stats = calcPersonOwnStats(node.id);
 
     box.innerHTML = `
       <div class="node-header">
@@ -344,6 +455,7 @@
         <span>新人费: <strong class="${rClass}">$${reeCredit}</strong></span>
         ${node.note ? `<span style="color:#94a3b8;">📝 ${escapeHtml(node.note)}</span>` : ''}
       </div>
+      <div class="node-stats-line">${renderStatsLineHTML(stats)}</div>
     `;
     wrap.appendChild(box);
 
@@ -353,9 +465,7 @@
         const sb = Number(b.relationFromParent?.sort_order ?? 0);
         return sa - sb;
       });
-      sorted.forEach(child => {
-        wrap.appendChild(renderNode(child, depth + 1));
-      });
+      sorted.forEach(child => wrap.appendChild(renderNode(child, depth + 1)));
     }
 
     return wrap;
@@ -373,7 +483,148 @@
     return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
 
-  // ========== 新增/编辑 ==========
+  // ==========================================================
+  // ========== 搜索 ==========================================
+  // ==========================================================
+  let searchTimer = null;
+
+  function onSearchInput() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(runSearch, 200);
+  }
+
+  function runSearch() {
+    const kw = document.getElementById('search-input').value.trim().toLowerCase();
+    const container = document.getElementById('search-results');
+
+    if (!kw) {
+      container.innerHTML = '';
+      updateStatsForTree();
+      return;
+    }
+
+    const matched = allPeople.filter(p => {
+      const hay = [p.name, p.ref_id, p.note].filter(Boolean).join(' ').toLowerCase();
+      return hay.includes(kw);
+    });
+
+    if (matched.length === 0) {
+      container.innerHTML = `<div class="sr-empty">没有匹配 "${escapeHtml(kw)}" 的人</div>`;
+      updateStatsForSearch([]);
+      return;
+    }
+
+    container.innerHTML = '';
+    matched.forEach(person => container.appendChild(buildResultCard(person)));
+
+    updateStatsForSearch(matched);
+  }
+
+  function buildResultCard(person) {
+    const card = document.createElement('div');
+    card.className = 'search-result-card';
+    card.onclick = () => jumpToNode(person.id);
+
+    const chain = getAncestorChain(person.id);
+    const stats = calcPersonOwnStats(person.id);
+
+    const chainHtml = chain.map(n =>
+      `<span class="sr-chain-node">${escapeHtml(n.name)}${n.ref_id ? ' #'+escapeHtml(n.ref_id) : ''}</span>`
+    ).join('<span class="sr-chain-arrow">←</span>');
+
+    card.innerHTML = `
+      <div class="sr-header">
+        <div>
+          <span class="sr-name">${escapeHtml(person.name)}</span>
+          ${person.ref_id ? `<span class="sr-id">#${escapeHtml(person.ref_id)}</span>` : ''}
+        </div>
+        <span class="sr-hint">点击卡片跳到树中位置 →</span>
+      </div>
+      ${person.note ? `<div style="font-size:0.8rem; color:#64748b; margin-bottom:6px;">📝 ${escapeHtml(person.note)}</div>` : ''}
+      <div class="sr-chain">${chainHtml}</div>
+      <div class="sr-stats-line">${renderStatsLineHTML(stats)}</div>
+    `;
+
+    return card;
+  }
+
+  function getAncestorChain(personId) {
+    const chain = [];
+    let currentId = personId;
+    const visited = new Set();
+    while (currentId && personMap[currentId] && !visited.has(currentId)) {
+      visited.add(currentId);
+      const node = personMap[currentId];
+      chain.unshift({ name: node.name, ref_id: node.ref_id });
+      currentId = node.parentId;
+    }
+    return chain;
+  }
+
+  function jumpToNode(personId) {
+    const el = document.getElementById('node-' + personId);
+    if (!el) { showToast("该节点不在当前树视图中", true); return; }
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.remove('highlight-flash');
+    void el.offsetWidth;
+    el.classList.add('highlight-flash');
+    setTimeout(() => el.classList.remove('highlight-flash'), 1800);
+  }
+
+  // ==========================================================
+  // ========== 统计卡 =========================================
+  // ==========================================================
+  function setStatsDisplay(pending, used, expired, peopleCount) {
+    document.getElementById('total-pending').innerText = '$' + pending;
+    document.getElementById('total-used').innerText = '$' + used;
+    document.getElementById('total-expired').innerText = '$' + expired;
+    document.getElementById('total-people').innerText = peopleCount;
+  }
+
+  function updateStatsForTree() {
+    let pending = 0, used = 0, expired = 0;
+
+    allRelations.forEach(r => {
+      const rc = Number(r.referrer_credit || 0);
+      const ec = Number(r.referee_credit || 0);
+      if (r.referrer_status === 'pending') pending += rc;
+      else if (r.referrer_status === 'used') used += rc;
+      else if (r.referrer_status === 'blue') expired += rc;
+
+      if (r.referee_status === 'pending') pending += ec;
+      else if (r.referee_status === 'used') used += ec;
+      else if (r.referee_status === 'blue') expired += ec;
+    });
+
+    setStatsDisplay(pending, used, expired, allPeople.length);
+    setStatCardStyle(false);
+  }
+
+  function updateStatsForSearch(matchedPeople) {
+    let pending = 0, used = 0, expired = 0;
+
+    matchedPeople.forEach(person => {
+      const s = calcPersonOwnStats(person.id);
+      pending += s.pending;
+      used += s.used;
+      expired += s.expired;
+    });
+
+    setStatsDisplay(pending, used, expired, matchedPeople.length);
+    setStatCardStyle(true);
+  }
+
+  function setStatCardStyle(isSearching) {
+    ['stat-pending-card','stat-used-card','stat-expired-card','stat-people-card'].forEach(id => {
+      const el = document.getElementById(id);
+      if (isSearching) el.classList.add('searching');
+      else el.classList.remove('searching');
+    });
+  }
+
+  // ==========================================================
+  // ========== 新增/编辑 ======================================
+  // ==========================================================
   function openAddModal(parentPersonId) {
     document.getElementById('modalTitle').innerText = parentPersonId ? '新增下级客户' : '新增第一级客户';
     document.getElementById('editForm').reset();
@@ -423,11 +674,7 @@
 
     try {
       if (personId) {
-        // 编辑
-        await api.update('people', `id=eq.${personId}`, {
-          name, ref_id: refId, note
-        });
-
+        await api.update('people', `id=eq.${personId}`, { name, ref_id: refId, note });
         const rel = allRelations.find(r => r.referee_id === personId);
         if (rel) {
           await api.update('referrals', `id=eq.${rel.id}`, {
@@ -437,19 +684,16 @@
             referee_status: reeStatus
           });
         }
-
         closeModal();
         showToast("保存成功");
         fetchDataFromCloud();
       } else {
-        // 新增
         const [newPerson] = await api.insert('people', { name, ref_id: refId, note });
         if (!newPerson || !newPerson.id) throw new Error("插入 people 后未返回 id");
 
         if (parentId) {
           const siblings = allRelations.filter(r => r.referrer_id === parentId);
           const maxOrder = siblings.reduce((m, r) => Math.max(m, Number(r.sort_order ?? 0)), 0);
-
           await api.insert('referrals', {
             referrer_id: parentId,
             referee_id: newPerson.id,
@@ -470,7 +714,6 @@
     }
   }
 
-  // ========== 退回 ==========
   async function revokeNode(personId) {
     const rel = allRelations.find(r => r.referee_id === personId);
     if (!rel) { showToast("此人已经是顶级", true); return; }
@@ -485,7 +728,6 @@
     }
   }
 
-  // ========== 移动 ==========
   function openMoveModal(personId) {
     movingPersonId = personId;
     const person = allPeople.find(p => p.id === personId);
@@ -550,9 +792,7 @@
 
     try {
       if (newParentId === null) {
-        if (rel) {
-          await api.delete('referrals', `id=eq.${rel.id}`);
-        }
+        if (rel) await api.delete('referrals', `id=eq.${rel.id}`);
       } else {
         const siblings = allRelations.filter(r => r.referrer_id === newParentId);
         const maxOrder = siblings.reduce((m, r) => Math.max(m, Number(r.sort_order ?? 0)), 0);
@@ -581,7 +821,6 @@
     }
   }
 
-  // ========== 同级排序 ==========
   async function moveSibling(personId, direction) {
     const myRel = allRelations.find(r => r.referee_id === personId);
     if (!myRel) return;
@@ -610,28 +849,6 @@
     } catch (err) {
       showToast("排序保存失败: " + err.message, true);
     }
-  }
-
-  // ========== 统计 ==========
-  function calculateStats() {
-    let pending = 0, used = 0, expired = 0;
-
-    allRelations.forEach(r => {
-      const rc = Number(r.referrer_credit || 0);
-      const ec = Number(r.referee_credit || 0);
-      if (r.referrer_status === 'pending') pending += rc;
-      else if (r.referrer_status === 'used') used += rc;
-      else if (r.referrer_status === 'blue') expired += rc;
-
-      if (r.referee_status === 'pending') pending += ec;
-      else if (r.referee_status === 'used') used += ec;
-      else if (r.referee_status === 'blue') expired += ec;
-    });
-
-    document.getElementById('total-pending').innerText = '$' + pending;
-    document.getElementById('total-used').innerText = '$' + used;
-    document.getElementById('total-expired').innerText = '$' + expired;
-    document.getElementById('total-people').innerText = allPeople.length;
   }
 
   function showLoading(show) {
