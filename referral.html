@@ -3,8 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Referral Program Tracker - Interactive</title>
+<title>Referral Program Tracker - Cloud</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+<!-- 引入 Supabase 客户端 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #f8fafc; font-family: 'Inter', sans-serif; color: #333; padding: 24px; }
@@ -41,6 +43,7 @@
   .btn-primary:hover { background: #2563eb; }
   .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
   .btn-secondary:hover { background: #e2e8f0; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
   /* === 关系卡片 === */
   .group-card {
@@ -73,11 +76,10 @@
   .amount { font-size: 1rem; }
   .sub-referee { margin-left: 24px; border-left: 2px solid #cbd5e1; background: #fff; }
 
-  /* === 编辑按钮 === */
   .edit-btn {
     position: absolute; right: -10px; top: -10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 50%;
     width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); opacity: 0; transition: 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); opacity: 0; transition: 0.2s; z-index: 10;
   }
   .referee-item:hover .edit-btn { opacity: 1; }
   .edit-btn:hover { background: #f8fafc; transform: scale(1.1); }
@@ -90,17 +92,23 @@
   .modal-overlay.show { display: flex; }
   .modal-content {
     background: #fff; padding: 30px; border-radius: 16px; width: 90%; max-width: 500px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;
   }
   .modal-content h3 { margin-bottom: 20px; font-size: 1.2rem; color: #1e293b; }
   .form-group { margin-bottom: 16px; }
   .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
   .form-group input, .form-group select {
     width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem;
-    font-family: inherit;
+    font-family: inherit; background: #fff;
   }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+
+  .loading-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8);
+    display: none; justify-content: center; align-items: center; z-index: 2000; font-weight: bold; color: #3b82f6; font-size: 1.2rem;
+  }
+  .loading-overlay.show { display: flex; }
 
   @media(max-width: 700px) {
     .dashboard { grid-template-columns: 1fr 1fr; }
@@ -113,6 +121,8 @@
 </style>
 </head>
 <body>
+
+<div class="loading-overlay" id="loading">同步云端数据中...</div>
 
 <div class="container">
   
@@ -141,11 +151,12 @@
 
   <div class="action-bar">
     <input type="text" id="searchInput" class="search-input" placeholder="搜索名字、编号... (输入 pending/used/expired 快捷筛选)">
-    <button class="btn btn-secondary" onclick="exportData()">📥 导出 JSON</button>
     <button class="btn btn-primary" onclick="openAddModal()">➕ 新增客户</button>
   </div>
 
-  <div id="app"></div>
+  <div id="app">
+    <!-- 数据渲染区 -->
+  </div>
 
 </div>
 
@@ -154,50 +165,58 @@
   <div class="modal-content">
     <h3 id="modalTitle">新增客户</h3>
     <form id="editForm" onsubmit="saveData(event)">
-      <input type="hidden" id="editIndex">
-      
-      <div class="form-group">
-        <label>介绍人 (Referrer)</label>
-        <input type="text" id="inputReferrer" required placeholder="例: F - Ariel Fang Zheng">
-      </div>
+      <input type="hidden" id="editId">
       
       <div class="form-row">
         <div class="form-group">
-          <label>被介绍人名字</label>
+          <label>介绍人名字 *</label>
+          <input type="text" id="inputReferrerName" required placeholder="例: F - Ariel Fang Zheng">
+        </div>
+        <div class="form-group">
+          <label>介绍人 ID</label>
+          <input type="text" id="inputReferrerId" placeholder="例: 25023">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>被介绍人名字 *</label>
           <input type="text" id="inputRefereeName" required>
         </div>
         <div class="form-group">
-          <label>编号 ID (可选)</label>
+          <label>被介绍人 ID</label>
           <input type="text" id="inputRefereeId">
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>介绍人奖励金额 ($)</label>
-          <input type="number" id="inputReferrerCredit" value="0" required>
+          <label>介绍人奖励 ($)</label>
+          <input type="number" step="0.01" id="inputReferrerCredit" value="0" required>
         </div>
         <div class="form-group">
           <label>介绍人奖励状态</label>
           <select id="inputReferrerStatus">
             <option value="pending">待使用 (红)</option>
-            <option value="used">已使用 (灰)</option>
+            <option value="used">已使用 (灰划线)</option>
             <option value="blue">已过期 (蓝)</option>
+            <option value="gray">未标色/无 (浅灰)</option>
           </select>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>新人奖励金额 ($)</label>
-          <input type="number" id="inputRefereeCredit" value="0" required>
+          <label>新人奖励 ($)</label>
+          <input type="number" step="0.01" id="inputRefereeCredit" value="0" required>
         </div>
         <div class="form-group">
           <label>新人奖励状态</label>
           <select id="inputRefereeStatus">
             <option value="pending">待使用 (红)</option>
-            <option value="used">已使用 (灰)</option>
+            <option value="used">已使用 (灰划线)</option>
             <option value="blue">已过期 (蓝)</option>
+            <option value="gray">未标色/无 (浅灰)</option>
           </select>
         </div>
       </div>
@@ -209,7 +228,7 @@
 
       <div class="modal-actions">
         <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
-        <button type="submit" class="btn btn-primary">保存</button>
+        <button type="submit" class="btn btn-primary" id="btnSave">保存到云端</button>
       </div>
     </form>
   </div>
@@ -217,154 +236,116 @@
 
 <script>
   // ==========================================
-  // 📊 初始数据源 (当本地无缓存时加载)
+  // 🔗 Supabase 配置与初始化
   // ==========================================
-  const INITIAL_DATA = [
-    {
-      referrer: "F - Ariel Fang Zheng", id: "25023", note: "TMG 4/29, 12/?, 9/10",
-      referees: [
-        { name: "Ti Pu", id: "38870", referrerCredit: 0, refereeCredit: 0, note: "", referrerStatus: "gray", refereeStatus: "gray" },
-        { name: "F - Fei Wang", id: "38424", referrerCredit: 0, refereeCredit: 0, note: "TMG 6/18, 12/17", referrerStatus: "gray", refereeStatus: "gray" },
-        { name: "John Liu", id: "39202", role: "husband", referrerCredit: 100, refereeCredit: 100, note: "", referrerStatus: "used", refereeStatus: "used" },
-        { name: "Leon", id: "39244", role: "Neighbor", referrerCredit: 100, refereeCredit: 100, note: "", referrerStatus: "used", refereeStatus: "used" },
-        { name: "Panny Pam Feng", id: "39330", referrerCredit: 100, refereeCredit: 100, note: "", referrerStatus: "used", refereeStatus: "used" },
-        { name: "Ivy Shum", id: "40014", role: "Redbook", referrerCredit: 125, refereeCredit: 125, note: "2/5 inject to laser", referrerStatus: "used", refereeStatus: "used" },
-        { name: "Mia Liu", id: "40438", role: "Redbook", referrerCredit: 125, refereeCredit: 125, note: "TMG 5/8", referrerStatus: "blue", refereeStatus: "blue" },
-        { name: "Ellie Hu", id: "40565", role: "Redbook", referrerCredit: 125, refereeCredit: 125, note: "Botox 5/9", referrerStatus: "blue", refereeStatus: "blue" },
-        { name: "Grace Fan", id: "40590", role: "Redbook", referrerCredit: 125, refereeCredit: 125, note: "TMG 5/16", referrerStatus: "blue", refereeStatus: "blue" },
-        { 
-          name: "XiaoQi Zhang", role: "Redbook", referrerCredit: 100, refereeCredit: 100, note: "Sculptra 7/30", referrerStatus: "blue", refereeStatus: "blue",
-          subReferees: [
-            { name: "Siwei Li", role: "daughter", subRefCredit: 100, credit: 100, note: "TMG 8/15, laser to inject Skinvivw, 9/10", subRefStatus: "blue", status: "blue" } 
-          ]
-        },
-        { name: "AiXiao Bai (Coco)", id: "SURB39860", referrerCredit: 50, refereeCredit: 50, note: "V-Lift 6/6", referrerStatus: "used", refereeStatus: "used" }, 
-        { 
-          name: "Yan Yan", id: "SURB39930", referrerCredit: 50, refereeCredit: 50, note: "PRP, Botox 6/17", referrerStatus: "used", refereeStatus: "used", 
-          subReferees: [
-            { name: "XiaoMing Zhang", subRefCredit: 50, credit: 50, note: "", subRefStatus: "pending", status: "used" }, 
-            { name: "Winnie Gong", id: "40073", subRefCredit: 50, credit: 50, note: "HarmonyCa 9/26", subRefStatus: "pending", status: "used" } 
-          ]
-        },
-        { name: "Helen Wang", id: "SURB4000", referrerCredit: 50, refereeCredit: 50, note: "Skinvive 7/8", referrerStatus: "gray", refereeStatus: "gray" }, 
-        { name: "Jennifer Wen", id: "SURB40045", referrerCredit: 50, refereeCredit: 50, note: "HarmonyCa 7/16", referrerStatus: "used", refereeStatus: "used" }, 
-        { name: "Ping Grace Zhang", id: "SURB40188", referrerCredit: 50, refereeCredit: 50, note: "TMG 9/3", referrerStatus: "gray", refereeStatus: "gray" }, 
-        { name: "GuoHong Wang", id: "SURB40207", referrerCredit: 50, refereeCredit: 50, note: "TMG 9/25, Botox", referrerStatus: "pending", refereeStatus: "used" }, 
-        { name: "Lydia Guo", referrerCredit: 50, refereeCredit: 50, note: "9/18 Vlift", referrerStatus: "pending", refereeStatus: "pending" }, 
-        { name: "Angela Xie", id: "SURB40215", referrerCredit: 50, refereeCredit: 50, note: "Botox 10/7", referrerStatus: "gray", refereeStatus: "gray" }, 
-        { name: "Aleesha Rubinstein", referrerCredit: 0, refereeCredit: 0, note: "book SkinTightening?", referrerStatus: "gray", refereeStatus: "gray" },
-        { name: "Pheobe Peng", referrerCredit: 0, refereeCredit: 0, note: "TMG?", referrerStatus: "gray", refereeStatus: "gray" }
-      ]
-    },
-    {
-      referrer: "F - LinLing", id: "37675", note: "TMG 12/19",
-      referees: [
-        { name: "Wang Guo Dong", referrerCredit: 0, refereeCredit: 0, note: "", referrerStatus: "gray", refereeStatus: "gray" },
-        { name: "F - Jessie Wang", id: "39301", referrerCredit: 100, refereeCredit: 100, note: "TMG 12/30", referrerStatus: "gray", refereeStatus: "gray" }, 
-        { 
-          name: "XuXiang Liang", id: "39916", referrerCredit: 125, refereeCredit: 125, note: "Enlighten", referrerStatus: "used", refereeStatus: "blue", 
-          subReferees: [
-            { name: "Jan Feng Lin", subRefCredit: 50, credit: 50, note: "erbium 7/15/2026", subRefStatus: "pending", status: "used" } 
-          ]
-        },
-        { name: "Jenny Zhuang", role: "daughter", id: "39041", referrerCredit: 125, refereeCredit: 125, note: "", referrerStatus: "blue", refereeStatus: "blue" }, 
-        { name: "Zhuang Zhuang", referrerCredit: 100, refereeCredit: 100, note: "TMG 7/15", referrerStatus: "blue", refereeStatus: "blue" }, 
-        { name: "Zhuang zhuang's mom", referrerCredit: 100, refereeCredit: 100, note: "TMG 7/15", referrerStatus: "blue", refereeStatus: "blue" } 
-      ]
-    },
-    {
-      referrer: "F - Vanly Guan", id: "37697", note: "",
-      referees: [
-        { name: "Rick Teng", referrerCredit: 0, refereeCredit: 0, note: "", referrerStatus: "gray", refereeStatus: "gray" },
-        { name: "Sandy Tam", referrerCredit: 0, refereeCredit: 0, note: "", referrerStatus: "gray", refereeStatus: "gray" },
-        { name: "Ella Wan", referrerCredit: 50, refereeCredit: 50, note: "", referrerStatus: "pending", refereeStatus: "pending" } 
-      ]
-    },
-    {
-      referrer: "F - Yling Shi", id: "38718", note: "",
-      referees: [
-        { name: "Angela", id: "39506", referrerCredit: 100, refereeCredit: 100, note: "", referrerStatus: "blue", refereeStatus: "blue" }, 
-        { name: "Mia Tan", id: "40269", referrerCredit: 125, refereeCredit: 125, note: "TMG 5/14", referrerStatus: "blue", refereeStatus: "blue" }, 
-        { 
-          name: "Lynn Chan", id: "40480", referrerCredit: 125, refereeCredit: 125, note: "", referrerStatus: "blue", refereeStatus: "blue", 
-          subReferees: [
-            { name: "Kit (Icey) Heung", id: "22168", subRefCredit: 0, credit: 0, note: "", subRefStatus: "blue", status: "blue" },
-            { name: "XuanHong ZengSammin", id: "40809", subRefCredit: 100, credit: 100, note: "LHR-brizilian 8/1", subRefStatus: "blue", status: "blue" } 
-          ]
-        },
-        { name: "Iris Wong", id: "SURB40218", referrerCredit: 50, refereeCredit: 50, note: "Botox 9/22", referrerStatus: "pending", refereeStatus: "pending" } 
-      ]
-    },
-    {
-      referrer: "Mona Mo", id: "36401", note: "",
-      referees: [
-        { name: "Cheryl", id: "38778", referrerCredit: 0, refereeCredit: 0, note: "", referrerStatus: "gray", refereeStatus: "gray" }
-      ]
-    },
-    {
-      referrer: "Luna Liang", id: "37598", note: "TMG 6/12, inject to laser",
-      referees: [
-        { name: "Daughter", referrerCredit: 0, refereeCredit: 0, note: "", referrerStatus: "gray", refereeStatus: "gray" }
-      ]
-    }
-  ];
+  const SUPABASE_URL = "https://dmrskyskryrdclknezth.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // ==========================================
-  // ⚙️ 数据状态管理
+  // ⚙️ 全局变量
   // ==========================================
   let currentData = [];
-  let editMode = 'add'; // 'add' 或 'edit'
-  let editingGroupIndex = -1;
-  let editingRefIndex = -1;
+  let currentSearchKw = '';
 
-  // 初始化数据 (优先读取本地缓存)
-  function initData() {
-    const localData = localStorage.getItem('referralData');
-    if (localData) {
-      currentData = JSON.parse(localData);
-    } else {
-      currentData = JSON.parse(JSON.stringify(INITIAL_DATA)); // 深拷贝
-      localStorage.setItem('referralData', JSON.stringify(currentData));
+  // ==========================================
+  // 📥 从云端拉取数据
+  // ==========================================
+  async function fetchDataFromCloud() {
+    showLoading(true);
+    const { data, error } = await supabaseClient
+      .from('referrals')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      alert("拉取云端数据失败: " + error.message);
+      showLoading(false);
+      return;
     }
-    updateStatsAndRender('');
-  }
 
-  // 保存数据到本地
-  function saveToLocal() {
-    localStorage.setItem('referralData', JSON.stringify(currentData));
+    // 将扁平化的数据库数据结构，还原成前端所需的树状结构
+    const groupedData = {};
+    data.forEach(row => {
+      const refKey = `${row.referrer_name}|${row.referrer_id}|${row.referrer_note}`;
+      if (!groupedData[refKey]) {
+        groupedData[refKey] = {
+          referrer: row.referrer_name,
+          id: row.referrer_id,
+          note: row.referrer_note,
+          referees: []
+        };
+      }
+
+      // 防止同一个新人被重复推入（因为多级裂变会产生多条记录）
+      let existingRef = groupedData[refKey].referees.find(r => r.dbId === row.id || (r.name === row.referee_name && r.id === row.referee_id && r.note === row.referee_note));
+      
+      if (!existingRef) {
+        existingRef = {
+          dbId: row.id, // 核心主键ID，用于更新
+          name: row.referee_name,
+          id: row.referee_id,
+          role: row.referee_role,
+          referrerCredit: row.referrer_credit,
+          referrerStatus: row.referrer_status,
+          refereeCredit: row.referee_credit,
+          refereeStatus: row.referee_status,
+          note: row.referee_note,
+          subReferees: []
+        };
+        groupedData[refKey].referees.push(existingRef);
+      }
+
+      // 处理孙辈（多级裂变）
+      if (row.sub_referee_name) {
+        existingRef.subReferees.push({
+          name: row.sub_referee_name,
+          id: row.sub_referee_id,
+          role: row.sub_referee_role,
+          subRefCredit: row.sub_ref_credit,
+          subRefStatus: row.sub_ref_status,
+          credit: row.sub_referee_credit,
+          status: row.sub_referee_status,
+          note: row.sub_referee_note
+        });
+      }
+    });
+
+    currentData = Object.values(groupedData);
+    showLoading(false);
+    updateStatsAndRender(currentSearchKw);
   }
 
   // ==========================================
-  // 📝 表单交互 (新增与编辑)
+  // 📝 表单交互 (新增 / 编辑)
   // ==========================================
   function openAddModal() {
-    editMode = 'add';
     document.getElementById('modalTitle').innerText = '新增客户记录';
     document.getElementById('editForm').reset();
+    document.getElementById('editId').value = '';
     
-    // 如果有现成的组，默认选第一个
     if(currentData.length > 0) {
-      document.getElementById('inputReferrer').value = currentData[0].referrer;
+      document.getElementById('inputReferrerName').value = currentData[0].referrer;
+      document.getElementById('inputReferrerId').value = currentData[0].id || '';
     }
     document.getElementById('modal').classList.add('show');
   }
 
-  function openEditModal(groupIndex, refIndex) {
-    editMode = 'edit';
-    editingGroupIndex = groupIndex;
-    editingRefIndex = refIndex;
-    
+  function openEditModal(dbId, groupIndex, refIndex) {
+    // 如果是新增还没存数据库的，dbId 可能为空，但通常我们会给每个记录生成主键
     const group = currentData[groupIndex];
     const ref = group.referees[refIndex];
 
     document.getElementById('modalTitle').innerText = '编辑客户记录';
-    document.getElementById('inputReferrer').value = group.referrer;
+    document.getElementById('editId').value = dbId || ''; 
+    document.getElementById('inputReferrerName').value = group.referrer;
+    document.getElementById('inputReferrerId').value = group.id || '';
     document.getElementById('inputRefereeName').value = ref.name || '';
     document.getElementById('inputRefereeId').value = ref.id || '';
     document.getElementById('inputReferrerCredit').value = ref.referrerCredit || 0;
-    document.getElementById('inputReferrerStatus').value = ref.referrerStatus || 'pending';
+    document.getElementById('inputReferrerStatus').value = ref.referrerStatus || 'gray';
     document.getElementById('inputRefereeCredit').value = ref.refereeCredit || 0;
-    document.getElementById('inputRefereeStatus').value = ref.refereeStatus || 'pending';
+    document.getElementById('inputRefereeStatus').value = ref.refereeStatus || 'gray';
     document.getElementById('inputNote').value = ref.note || '';
 
     document.getElementById('modal').classList.add('show');
@@ -374,77 +355,53 @@
     document.getElementById('modal').classList.remove('show');
   }
 
-  function saveData(e) {
+  async function saveData(e) {
     e.preventDefault();
+    const btn = document.getElementById('btnSave');
+    btn.disabled = true; btn.innerText = '保存中...';
+
+    const dbId = document.getElementById('editId').value;
     
-    const referrerName = document.getElementById('inputReferrer').value.trim();
-    const refData = {
-      name: document.getElementById('inputRefereeName').value.trim(),
-      id: document.getElementById('inputRefereeId').value.trim(),
-      referrerCredit: Number(document.getElementById('inputReferrerCredit').value),
-      referrerStatus: document.getElementById('inputReferrerStatus').value,
-      refereeCredit: Number(document.getElementById('inputRefereeCredit').value),
-      refereeStatus: document.getElementById('inputRefereeStatus').value,
-      note: document.getElementById('inputNote').value.trim()
+    // 如果是对已有记录进行更新，且存在子级（孙辈），为了简单起见，这里只更新主字段。
+    // 注意：如果修改了被介绍人，会导致原有的孙辈数据孤立，因此编辑模式下通常只建议修改状态和金额。
+    const payload = {
+      referrer_name: document.getElementById('inputReferrerName').value.trim(),
+      referrer_id: document.getElementById('inputReferrerId').value.trim(),
+      referee_name: document.getElementById('inputRefereeName').value.trim(),
+      referee_id: document.getElementById('inputRefereeId').value.trim(),
+      referrer_credit: Number(document.getElementById('inputReferrerCredit').value),
+      referrer_status: document.getElementById('inputReferrerStatus').value,
+      referee_credit: Number(document.getElementById('inputRefereeCredit').value),
+      referee_status: document.getElementById('inputRefereeStatus').value,
+      referee_note: document.getElementById('inputNote').value.trim()
     };
 
-    if (editMode === 'add') {
-      // 找找有没有这个介绍人的组
-      let groupIndex = currentData.findIndex(g => g.referrer === referrerName);
-      if (groupIndex === -1) {
-        // 如果没有，新建一个组
-        currentData.push({
-          referrer: referrerName,
-          id: '',
-          note: '',
-          referees: [refData]
-        });
-      } else {
-        // 如果有，直接塞进已有的组里
-        currentData[groupIndex].referees.push(refData);
-      }
+    let error;
+    if (dbId) {
+      // 更新
+      const res = await supabaseClient.from('referrals').update(payload).eq('id', dbId);
+      error = res.error;
     } else {
-      // 编辑模式，直接替换
-      const group = currentData[editingGroupIndex];
-      // 如果改了介绍人名字，需要挪动数据
-      if (group.referrer !== referrerName) {
-         // 把旧数据删掉
-         group.referees.splice(editingRefIndex, 1);
-         // 找新的介绍人组
-         let newGroupIndex = currentData.findIndex(g => g.referrer === referrerName);
-         if (newGroupIndex === -1) {
-            currentData.push({ referrer: referrerName, referees: [refData] });
-         } else {
-            currentData[newGroupIndex].referees.push(refData);
-         }
-      } else {
-         // 介绍人没变，原地更新
-         group.referees[editingRefIndex] = refData;
-      }
+      // 新增
+      const res = await supabaseClient.from('referrals').insert([payload]);
+      error = res.error;
     }
 
-    saveToLocal();
-    closeModal();
-    updateStatsAndRender(document.getElementById('searchInput').value); // 保持当前搜索状态刷新
+    btn.disabled = false; btn.innerText = '保存到云端';
+
+    if (error) {
+      alert('保存失败: ' + error.message);
+    } else {
+      closeModal();
+      fetchDataFromCloud(); // 重新拉取云端数据刷新页面
+    }
   }
 
   // ==========================================
-  // 📥 导出数据
-  // ==========================================
-  function exportData() {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentData, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href",     dataStr);
-    downloadAnchorNode.setAttribute("download", "referral_data.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-  }
-
-  // ==========================================
-  // ⚙️ 统计与渲染核心逻辑
+  // 📊 统计与渲染核心逻辑
   // ==========================================
   function updateStatsAndRender(keyword) {
+    currentSearchKw = keyword;
     const kw = keyword.toLowerCase().trim();
     const isFiltered = kw !== '';
     
@@ -471,7 +428,6 @@
            else if (kw === 'used') match = match || ref.referrerStatus === 'used' || ref.refereeStatus === 'used';
            else if (kw === 'expired') match = match || ref.referrerStatus === 'blue' || ref.refereeStatus === 'blue';
         }
-
         let subMatch = false;
         if (ref.subReferees) {
           ref.subReferees.forEach(sub => {
@@ -541,7 +497,6 @@
       const listToRender = matchReferrer ? group.referees : filteredReferees;
 
       listToRender.forEach((ref) => {
-        // 找到这个 ref 在原始数据中的 index，用于编辑
         const realRefIndex = group.referees.indexOf(ref);
         
         let selfMatch = ref.name.toLowerCase().includes(kw) || (ref.id && ref.id.includes(kw));
@@ -553,7 +508,7 @@
 
         groupHTML += `
           <div class="referee-item">
-            <button class="edit-btn" onclick="openEditModal(${gIdx}, ${realRefIndex})" title="编辑">✏️</button>
+            <button class="edit-btn" onclick="openEditModal('${ref.dbId}', ${gIdx}, ${realRefIndex})" title="编辑">✏️</button>
             <div class="referee-info">
               <div class="referee-name-row">
                 <div class="referee-name ${getStatusClass(ref.refereeStatus)}">
@@ -643,12 +598,17 @@
     return 'status-gray';
   }
 
+  function showLoading(show) {
+    if (show) document.getElementById('loading').classList.add('show');
+    else document.getElementById('loading').classList.remove('show');
+  }
+
   document.getElementById('searchInput').addEventListener('input', (e) => {
     updateStatsAndRender(e.target.value);
   });
 
-  // 启动
-  initData();
+  // 启动时自动拉取云端数据
+  fetchDataFromCloud();
 </script>
 </body>
 </html>
