@@ -90,7 +90,7 @@
   }
 
   .node-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;}
-  .node-title { font-weight: 700; font-size: 0.95rem; color: #0f172a; }
+  .node-title { font-weight: 700; font-size: 0.95rem; color: #0f172a; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;}
   .node-controls { display: flex; gap: 4px; flex-wrap: wrap; align-items: center;}
 
   .card-details { font-size: 0.8rem; color: #64748b; margin-top: 2px; display: flex; gap: 15px; flex-wrap: wrap;}
@@ -105,6 +105,13 @@
   .node-stats-line .g { color: #cbd5e1; }
   .node-stats-line .cnt { color: #0f172a; font-weight: 700; }
   .node-stats-line .sep { color: #cbd5e1; }
+
+  /* 身份徽章样式 */
+  .role-badge {
+    font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;
+    background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; text-transform: uppercase;
+  }
+  .role-badge.friend { background: #fce7f3; color: #db2777; border-color: #fbcfe8; }
 
   .edit-icon { font-size: 0.8rem; cursor: pointer; color: #94a3b8; padding: 2px 4px; border-radius: 4px; transition: 0.2s; }
   .edit-icon:hover { background: #f1f5f9; color: #0f172a; }
@@ -195,9 +202,19 @@
           <input type="text" id="inputNodeId" placeholder="如: 38870">
         </div>
         <div class="form-group">
-          <label for="inputNote">备注</label>
-          <input type="text" id="inputNote" placeholder="如: TMG 5/8">
+          <label for="inputRole">身份</label>
+          <select id="inputRole">
+            <option value="Customer">Customer (默认)</option>
+            <option value="Friend">Friend</option>
+            <option value="VIP">VIP</option>
+            <option value="Other">Other</option>
+          </select>
         </div>
+      </div>
+
+      <div class="form-group">
+        <label for="inputNote">备注</label>
+        <input type="text" id="inputNote" placeholder="如: TMG 5/8">
       </div>
 
       <div class="form-row">
@@ -377,6 +394,13 @@
     `;
   }
 
+  // 格式化身份徽章
+  function renderRoleBadge(role) {
+    const r = role || 'Customer';
+    const isFriend = r.toLowerCase() === 'friend';
+    return `<span class="role-badge ${isFriend ? 'friend' : ''}">${escapeHtml(r)}</span>`;
+  }
+
   // ==========================================================
   // ========== 加载 ==========================================
   // ==========================================================
@@ -462,7 +486,7 @@
 
     box.innerHTML = `
       <div class="node-header">
-        <span class="node-title">${depthLabel} · ${escapeHtml(node.name)} ${node.ref_id ? '<span style="color:#94a3b8; font-weight:400;">#'+escapeHtml(node.ref_id)+'</span>' : ''}</span>
+        <span class="node-title">${depthLabel} · ${escapeHtml(node.name)} ${renderRoleBadge(node.role)} ${node.ref_id ? '<span style="color:#94a3b8; font-weight:400;">#'+escapeHtml(node.ref_id)+'</span>' : ''}</span>
         <div class="node-controls">
           ${node.parentId ? `
             <button class="btn btn-move" onclick="moveSibling('${node.id}', -1)" title="上移">↑</button>
@@ -593,6 +617,7 @@
       <div class="sr-header">
         <div>
           <span class="sr-name">${escapeHtml(person.name)}</span>
+          ${renderRoleBadge(person.role)}
           ${person.ref_id ? `<span class="sr-id">#${escapeHtml(person.ref_id)}</span>` : ''}
         </div>
         <span class="sr-hint">点击卡片跳到树中位置 →</span>
@@ -687,6 +712,7 @@
     document.getElementById('editForm').reset();
     document.getElementById('editPersonId').value = '';
     document.getElementById('editParentId').value = parentPersonId || '';
+    document.getElementById('inputRole').value = 'Customer'; // 默认身份
     document.getElementById('modal').classList.add('show');
   }
 
@@ -702,6 +728,7 @@
 
     document.getElementById('inputNodeName').value = person.name || '';
     document.getElementById('inputNodeId').value = person.ref_id || '';
+    document.getElementById('inputRole').value = person.role || 'Customer';
     document.getElementById('inputNote').value = person.note || '';
     document.getElementById('inputRefCredit').value = rel ? Number(rel.referrer_credit || 0) : 0;
     document.getElementById('inputRefStatus').value = rel ? (rel.referrer_status || 'gray') : 'gray';
@@ -721,6 +748,7 @@
     const parentId = document.getElementById('editParentId').value || null;
     const name = document.getElementById('inputNodeName').value.trim();
     const refId = document.getElementById('inputNodeId').value.trim() || null;
+    const role = document.getElementById('inputRole').value;
     const note = document.getElementById('inputNote').value.trim() || null;
     const refCredit = Number(document.getElementById('inputRefCredit').value) || 0;
     const refStatus = document.getElementById('inputRefStatus').value;
@@ -731,7 +759,7 @@
 
     try {
       if (personId) {
-        await api.update('people', `id=eq.${personId}`, { name, ref_id: refId, note });
+        await api.update('people', `id=eq.${personId}`, { name, ref_id: refId, role, note });
         const rel = allRelations.find(r => r.referee_id === personId);
         if (rel) {
           await api.update('referrals', `id=eq.${rel.id}`, {
@@ -745,7 +773,7 @@
         showToast("保存成功");
         fetchDataFromCloud();
       } else {
-        const [newPerson] = await api.insert('people', { name, ref_id: refId, note });
+        const [newPerson] = await api.insert('people', { name, ref_id: refId, role, note });
         if (!newPerson || !newPerson.id) throw new Error("插入 people 后未返回 id");
 
         if (parentId) {
@@ -904,7 +932,7 @@
       showToast("顺序已保存");
       fetchDataFromCloud();
     } catch (err) {
-      showToast("排序保存失败: " + err.message, true);
+      showToast("排序失败: " + err.message, true);
     }
   }
 
