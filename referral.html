@@ -25,6 +25,18 @@
   }
   .search-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
 
+  .status-filters { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .status-btn {
+    padding: 6px 14px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff;
+    cursor: pointer; font-size: 0.8rem; font-weight: 600; color: #64748b; transition: 0.15s;
+  }
+  .status-btn:hover { background: #f1f5f9; }
+  .status-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+  .status-btn.active.pending-active { background: #dc2626; border-color: #dc2626; }
+  .status-btn.active.used-active { background: #64748b; border-color: #64748b; }
+  .status-btn.active.blue-active { background: #2563eb; border-color: #2563eb; }
+  .status-btn.active.gray-active { background: #94a3b8; border-color: #94a3b8; }
+
   .search-results { margin-top: 16px; display: flex; flex-direction: column; gap: 16px; }
   .search-result-card {
     background: #fff; border-radius: 12px; padding: 16px 20px;
@@ -48,8 +60,11 @@
   .sr-stats-line .p { color: #dc2626; font-weight: 700; }
   .sr-stats-line .u { color: #94a3b8; font-style: italic; text-decoration: line-through; }
   .sr-stats-line .e { color: #2563eb; }
+  .sr-stats-line .g { color: #cbd5e1; }
   .sr-stats-line .cnt { color: #0f172a; font-weight: 700; }
   .sr-stats-line .sep { color: #cbd5e1; }
+
+  .sr-stats-line .hl { font-size: 1.05rem; text-decoration: none; font-style: normal; }
 
   .sr-empty { text-align: center; color: #94a3b8; padding: 30px; font-size: 0.9rem; }
 
@@ -87,6 +102,7 @@
   .node-stats-line .p { color: #dc2626; font-weight: 700; }
   .node-stats-line .u { color: #94a3b8; font-style: italic; text-decoration: line-through; }
   .node-stats-line .e { color: #2563eb; }
+  .node-stats-line .g { color: #cbd5e1; }
   .node-stats-line .cnt { color: #0f172a; font-weight: 700; }
   .node-stats-line .sep { color: #cbd5e1; }
 
@@ -140,7 +156,14 @@
 </div>
 
 <div class="search-bar">
-  <input type="text" id="search-input" class="search-input" placeholder="🔍 搜索姓名 / 编号 / 备注（如 TMG），点击结果卡片可定位到树中" oninput="onSearchInput()">
+  <input type="text" id="search-input" class="search-input" placeholder="🔍 搜索姓名 / 编号 / 备注（如 TMG），点击结果卡片可定位到树中" oninput="onFilterChange()">
+  <div class="status-filters" id="status-filters">
+    <button class="status-btn active" data-status="all" onclick="setStatusFilter('all')">全部</button>
+    <button class="status-btn pending-active" data-status="pending" onclick="setStatusFilter('pending')">待支付</button>
+    <button class="status-btn used-active" data-status="used" onclick="setStatusFilter('used')">已使用</button>
+    <button class="status-btn blue-active" data-status="blue" onclick="setStatusFilter('blue')">已过期</button>
+    <button class="status-btn gray-active" data-status="gray" onclick="setStatusFilter('gray')">待定</button>
+  </div>
   <div id="search-results" class="search-results"></div>
 </div>
 
@@ -273,6 +296,7 @@
   let tree = [];
   let movingPersonId = null;
   let personMap = {};
+  let currentStatusFilter = 'all';
 
   function showToast(msg, isError = false) {
     const toast = document.getElementById('toast');
@@ -282,40 +306,34 @@
   }
 
   // ==========================================================
-  // ========== 核心：某人的直接金额 + 下级人数 ==============
+  // ========== 某人金额 + 下级人数 ============================
   // ==========================================================
-  // 金额口径：
-  //   线1 = 所有 referrer_id = 本人 的 relation.referrer_credit（按 referrer_status）
-  //   线2 = referee_id = 本人 的那条 relation.referee_credit（按 referee_status）
-  //   合计 = 线1 + 线2，按状态分别加
   function calcPersonOwnStats(personId) {
-    let pending = 0, used = 0, expired = 0;
+    let pending = 0, used = 0, expired = 0, gray = 0;
 
-    // 线1：作为 referrer
     allRelations.forEach(r => {
       if (r.referrer_id === personId) {
         const c = Number(r.referrer_credit || 0);
         if (r.referrer_status === 'pending') pending += c;
         else if (r.referrer_status === 'used') used += c;
         else if (r.referrer_status === 'blue') expired += c;
+        else if (r.referrer_status === 'gray') gray += c;
       }
     });
 
-    // 线2：作为 referee（只有一条）
     allRelations.forEach(r => {
       if (r.referee_id === personId) {
         const c = Number(r.referee_credit || 0);
         if (r.referee_status === 'pending') pending += c;
         else if (r.referee_status === 'used') used += c;
         else if (r.referee_status === 'blue') expired += c;
+        else if (r.referee_status === 'gray') gray += c;
       }
     });
 
-    // 直接下级
     const node = personMap[personId];
     const directCount = node ? (node.children || []).length : 0;
 
-    // 所有后代（BFS）
     const descendantIds = new Set();
     if (node) {
       const queue = [...(node.children || [])];
@@ -330,17 +348,28 @@
     const totalDescendants = descendantIds.size;
     const indirectCount = Math.max(0, totalDescendants - directCount);
 
-    return { pending, used, expired, directCount, indirectCount };
+    return { pending, used, expired, gray, directCount, indirectCount };
   }
 
-  // 格式化金额行（树和搜索结果卡共用）
-  function renderStatsLineHTML(stats) {
+  // 判断某人是否匹配某个状态（作为 referrer 或 referee 任一）
+  function personHasStatus(personId, status) {
+    return allRelations.some(r =>
+      (r.referrer_id === personId && r.referrer_status === status) ||
+      (r.referee_id === personId && r.referee_status === status)
+    );
+  }
+
+  // 格式化统计行（高亮当前筛选的状态）
+  function renderStatsLineHTML(stats, highlightStatus) {
+    const hlClass = s => (highlightStatus === s ? 'hl' : '');
     return `
-      <span>待 <span class="p">$${stats.pending}</span></span>
+      <span>待 <span class="p ${hlClass('pending')}">$${stats.pending}</span></span>
       <span class="sep">·</span>
-      <span>已用 <span class="u">$${stats.used}</span></span>
+      <span>已用 <span class="u ${hlClass('used')}">$${stats.used}</span></span>
       <span class="sep">·</span>
-      <span>过期 <span class="e">$${stats.expired}</span></span>
+      <span>过期 <span class="e ${hlClass('blue')}">$${stats.expired}</span></span>
+      <span class="sep">·</span>
+      <span>待定 <span class="g ${hlClass('gray')}">$${stats.gray}</span></span>
       <span class="sep">·</span>
       <span>直下 <span class="cnt">${stats.directCount}</span></span>
       <span class="sep">·</span>
@@ -361,11 +390,7 @@
       allPeople = people || [];
       allRelations = relations || [];
       render();
-      if (document.getElementById('search-input').value.trim()) {
-        runSearch();  // 保留关键词，重跑搜索
-      } else {
-        updateStatsForTree();
-      }
+      applyFilters();
     } catch (err) {
       showToast("拉取失败: " + err.message, true);
     } finally {
@@ -433,7 +458,6 @@
     const rClass = statusClass(reeStatus);
     const depthLabel = depth === 1 ? '一级' : (depth === 2 ? '二级' : (depth === 3 ? '三级' : depth + '级'));
 
-    // ✅ 每个人的统计（金额 = 线1+线2；人数 = 直下/间下）
     const stats = calcPersonOwnStats(node.id);
 
     box.innerHTML = `
@@ -455,7 +479,7 @@
         <span>新人费: <strong class="${rClass}">$${reeCredit}</strong></span>
         ${node.note ? `<span style="color:#94a3b8;">📝 ${escapeHtml(node.note)}</span>` : ''}
       </div>
-      <div class="node-stats-line">${renderStatsLineHTML(stats)}</div>
+      <div class="node-stats-line">${renderStatsLineHTML(stats, 'all')}</div>
     `;
     wrap.appendChild(box);
 
@@ -484,43 +508,76 @@
   }
 
   // ==========================================================
-  // ========== 搜索 ==========================================
+  // ========== 筛选（状态 + 文本） ============================
   // ==========================================================
-  let searchTimer = null;
+  let filterTimer = null;
 
-  function onSearchInput() {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(runSearch, 200);
+  function onFilterChange() {
+    clearTimeout(filterTimer);
+    filterTimer = setTimeout(applyFilters, 200);
   }
 
-  function runSearch() {
+  function setStatusFilter(status) {
+    currentStatusFilter = status;
+
+    // 更新按钮激活态
+    document.querySelectorAll('.status-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.status === status);
+    });
+
+    applyFilters();
+  }
+
+  function applyFilters() {
     const kw = document.getElementById('search-input').value.trim().toLowerCase();
+    const statusFilter = currentStatusFilter;
     const container = document.getElementById('search-results');
 
-    if (!kw) {
+    const hasText = !!kw;
+    const hasStatus = statusFilter !== 'all';
+
+    // 1. 先按文本过滤
+    let candidates = allPeople;
+    if (hasText) {
+      candidates = candidates.filter(p => {
+        const hay = [p.name, p.ref_id, p.note].filter(Boolean).join(' ').toLowerCase();
+        return hay.includes(kw);
+      });
+    }
+
+    // 2. 再按状态过滤
+    if (hasStatus) {
+      candidates = candidates.filter(p => personHasStatus(p.id, statusFilter));
+    }
+
+    // 3. 无任何筛选 → 清空结果区 + 页顶全树
+    if (!hasText && !hasStatus) {
       container.innerHTML = '';
       updateStatsForTree();
       return;
     }
 
-    const matched = allPeople.filter(p => {
-      const hay = [p.name, p.ref_id, p.note].filter(Boolean).join(' ').toLowerCase();
-      return hay.includes(kw);
-    });
-
-    if (matched.length === 0) {
-      container.innerHTML = `<div class="sr-empty">没有匹配 "${escapeHtml(kw)}" 的人</div>`;
-      updateStatsForSearch([]);
+    // 4. 有筛选但无结果
+    if (candidates.length === 0) {
+      const parts = [];
+      if (hasText) parts.push(`"${escapeHtml(kw)}"`);
+      if (hasStatus) parts.push(`状态 ${statusFilter}`);
+      container.innerHTML = `<div class="sr-empty">没有匹配 ${parts.join(' + ')} 的人</div>`;
+      updateStatsForFiltered([]);
       return;
     }
 
+    // 5. 渲染结果卡
     container.innerHTML = '';
-    matched.forEach(person => container.appendChild(buildResultCard(person)));
+    candidates.forEach(person => {
+      container.appendChild(buildResultCard(person, hasStatus ? statusFilter : null));
+    });
 
-    updateStatsForSearch(matched);
+    // 6. 页顶按筛选结果
+    updateStatsForFiltered(candidates);
   }
 
-  function buildResultCard(person) {
+  function buildResultCard(person, highlightStatus) {
     const card = document.createElement('div');
     card.className = 'search-result-card';
     card.onclick = () => jumpToNode(person.id);
@@ -542,7 +599,7 @@
       </div>
       ${person.note ? `<div style="font-size:0.8rem; color:#64748b; margin-bottom:6px;">📝 ${escapeHtml(person.note)}</div>` : ''}
       <div class="sr-chain">${chainHtml}</div>
-      <div class="sr-stats-line">${renderStatsLineHTML(stats)}</div>
+      <div class="sr-stats-line">${renderStatsLineHTML(stats, highlightStatus || 'all')}</div>
     `;
 
     return card;
@@ -600,17 +657,17 @@
     setStatCardStyle(false);
   }
 
-  function updateStatsForSearch(matchedPeople) {
+  function updateStatsForFiltered(people) {
     let pending = 0, used = 0, expired = 0;
 
-    matchedPeople.forEach(person => {
+    people.forEach(person => {
       const s = calcPersonOwnStats(person.id);
       pending += s.pending;
       used += s.used;
       expired += s.expired;
     });
 
-    setStatsDisplay(pending, used, expired, matchedPeople.length);
+    setStatsDisplay(pending, used, expired, people.length);
     setStatCardStyle(true);
   }
 
