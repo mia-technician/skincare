@@ -83,7 +83,6 @@
 
 <div class="loading-overlay" id="loading">同步云端数据中...</div>
 
-<!-- 顶部统计 -->
 <div class="dashboard">
   <div class="stat-card">
     <h3>⏳ 待使用 (Pending)</h3>
@@ -104,7 +103,6 @@
 </div>
 
 <div class="workspace">
-  <!-- 左侧未分配数据池 -->
   <div class="pool">
     <h3>
       📦 未分配池 (拖拽至右侧)
@@ -113,7 +111,6 @@
     <div id="pool-content" style="display: flex; flex-direction: column; gap: 10px;"></div>
   </div>
 
-  <!-- 右侧树状结构 -->
   <div class="tree-area">
     <div class="drop-zone" id="drop-level-1" style="min-height: 100px; border-color: #3b82f6; background: #eff6ff;">
       <span style="color:#3b82f6; font-weight:600;">⬇️ 将左侧的“一级介绍人”拖拽到这里 ⬇️</span>
@@ -132,9 +129,11 @@
   // 拉取数据
   async function fetchDataFromCloud() {
     showLoading(true);
+    // 🚨 关键：按 sort_order 排序拉取，让云端记住顺序
     const { data, error } = await supabaseClient
       .from('referrals')
       .select('*')
+      .order('sort_order', { ascending: true, nullsFirst: true })
       .order('created_at', { ascending: true }); 
 
     if (error) { alert("拉取失败: " + error.message); showLoading(false); return; }
@@ -150,6 +149,7 @@
           refId: row.referrer_id || '',
           level: row.hierarchy_level === 1 ? 1 : null,
           parentId: row.parent_id || null,
+          sortOrder: row.sort_order || 0,
           isReferrerBlock: true
         });
       }
@@ -169,7 +169,8 @@
           refereeStatus: row.referee_status || 'gray',
           note: row.referee_note || '',
           level: row.hierarchy_level || null,
-          parentId: row.parent_id || null
+          parentId: row.parent_id || null,
+          sortOrder: row.sort_order || 0
         });
       }
       if (row.sub_referee_name) {
@@ -184,7 +185,8 @@
             refereeStatus: row.sub_referee_status || 'gray',
             note: row.sub_referee_note || '',
             level: 3,
-            parentId: row.id
+            parentId: row.id,
+            sortOrder: 0
           });
         }
       }
@@ -209,11 +211,9 @@
       unassigned.forEach(card => pool.appendChild(createDraggableCard(card)));
     }
 
-    // 右侧树状图
-    // 🚨 关键修复：先把所有一级取出来，然后按照它们在 allCards 里的顺序排序
-    const l1Cards = allCards.filter(c => c.level === 1);
+    // 右侧树状图（严格按照 sortOrder 排序）
+    const l1Cards = allCards.filter(c => c.level === 1).sort((a, b) => a.sortOrder - b.sortOrder);
     
-    // 为了支持上下移动，我们在这里使用已有的数组顺序
     l1Cards.forEach((l1, idx1) => {
       const l1Div = document.createElement('div');
       l1Div.className = 'level-1';
@@ -229,14 +229,14 @@
         </div>
       `;
 
-      // 二级放置区
       const drop2 = document.createElement('div');
       drop2.className = 'drop-zone';
       drop2.innerText = '将二级客户拖拽至此';
       setupDropZone(drop2, l1.id, 2);
       l1Div.appendChild(drop2);
 
-      const l2List = allCards.filter(c => c.parentId === l1.id && c.level === 2);
+      // 二级也按 sortOrder 排
+      const l2List = allCards.filter(c => c.parentId === l1.id && c.level === 2).sort((a, b) => a.sortOrder - b.sortOrder);
       l2List.forEach(l2 => {
         const l2Div = document.createElement('div');
         l2Div.className = 'level-2';
@@ -266,7 +266,6 @@
     calculateStats();
   }
 
-  // 创建卡片
   function createDraggableCard(card) {
     const div = document.createElement('div');
     div.className = `draggable-card ${card.isReferrerBlock ? 'level-1-draggable' : ''}`;
@@ -298,7 +297,6 @@
     return div;
   }
 
-  // 放置逻辑
   function setupDropZone(zone, targetParentId, expectedLevel) {
     zone.addEventListener('dragover', (e) => {
       e.preventDefault();
@@ -317,6 +315,7 @@
       if (card) {
         card.parentId = targetParentId;
         card.level = expectedLevel;
+        card.sortOrder = Date.now(); // 给个时间戳确保在最后
         
         const parentCard = allCards.find(c => c.id === targetParentId);
         if (parentCard && !card.isReferrerBlock) {
@@ -331,14 +330,14 @@
              hierarchy_level: expectedLevel,
              parent_id: targetParentId,
              referrer_name: card.referrerName,
-             referrer_id: card.referrerId
+             referrer_id: card.referrerId,
+             sort_order: card.sortOrder
            }).eq('id', card.id);
         }
       }
     });
   }
 
-  // 一级放置区
   const l1DropZone = document.getElementById('drop-level-1');
   l1DropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
@@ -357,40 +356,40 @@
     if (card && card.isReferrerBlock) {
       card.level = 1;
       card.parentId = null;
-
-      // 为了让它排到最后，我们把它从原位置删掉，重新 push 到末尾
-      allCards = allCards.filter(c => c.id !== card.id);
-      allCards.push(card);
+      card.sortOrder = Date.now(); // 新拖进来的排在最后
 
       render();
 
       await supabaseClient.from('referrals').update({
-        hierarchy_level: 1
+        hierarchy_level: 1,
+        sort_order: card.sortOrder
       }).eq('referrer_name', card.name);
     } else {
       alert("只能把左侧标记为 👑 [待定一级] 的方块拖到这里哦！");
     }
   });
 
-  // 上下移动一级
-  function moveL1(idx, direction) {
-    const l1Cards = allCards.filter(c => c.level === 1);
+  // 上下移动（更新排序并同步到云端）
+  async function moveL1(idx, direction) {
+    const l1Cards = allCards.filter(c => c.level === 1).sort((a, b) => a.sortOrder - b.sortOrder);
     const targetIdx = idx + direction;
     if (targetIdx < 0 || targetIdx >= l1Cards.length) return;
 
-    // 找到这两个对象在 allCards 里的真实索引
-    const a = allCards.indexOf(l1Cards[idx]);
-    const b = allCards.indexOf(l1Cards[targetIdx]);
+    const currentCard = l1Cards[idx];
+    const targetCard = l1Cards[targetIdx];
 
-    // 交换它们在底层数组里的位置
-    const temp = allCards[a];
-    allCards[a] = allCards[b];
-    allCards[b] = temp;
+    // 交换它们的排序号
+    const tempOrder = currentCard.sortOrder;
+    currentCard.sortOrder = targetCard.sortOrder;
+    targetCard.sortOrder = tempOrder;
 
     render();
+
+    // 立刻同步这两个人到云端
+    await supabaseClient.from('referrals').update({ sort_order: currentCard.sortOrder }).eq('referrer_name', currentCard.name);
+    await supabaseClient.from('referrals').update({ sort_order: targetCard.sortOrder }).eq('referrer_name', targetCard.name);
   }
 
-  // 解散一级
   function deleteLevel1(id) {
     if(confirm("删除该介绍人会让所有下属回到左侧数据池，确认吗？")) {
       allCards.forEach(c => {
@@ -407,7 +406,6 @@
     }
   }
 
-  // 统计
   function calculateStats() {
     let pending = 0, used = 0, expired = 0, people = 0;
     const activeCards = allCards.filter(c => c.level !== null && !c.isReferrerBlock);
@@ -434,7 +432,6 @@
     else document.getElementById('loading').classList.remove('show');
   }
 
-  // 启动
   fetchDataFromCloud();
 </script>
 </body>
