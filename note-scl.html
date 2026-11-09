@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Sclerotherapy | Clinical Intake & Note</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #eef2f5; font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; padding: 24px 16px; color: #1e2f3a; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 28px; box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.12); overflow: hidden; }
+        
+        .header { background: linear-gradient(105deg, #1a3f4f 0%, #1f5a6b 100%); padding: 18px 28px; color: white; }
+        .header h1 { font-size: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .header h1::before { content: "💉"; font-size: 1.7rem; }
+        .header p { margin-top: 6px; opacity: 0.85; font-size: 0.8rem; }
+
+        .questions-area { padding: 20px 24px 16px 24px; background: #ffffff; }
+        .section-title { font-size: 1.2rem; font-weight: 700; color: #1c5a6e; margin: 1.5rem 0 1rem 0; padding-bottom: 4px; border-bottom: 2px solid #cbe4ed; display: inline-block; }
+        
+        .area-card { background: #fefefe; border-radius: 24px; margin-bottom: 32px; padding: 18px 22px; border: 1px solid #dce9ef; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); }
+        .area-header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 2px dashed #cbe0e8; }
+        .area-title { font-size: 1.25rem; font-weight: 700; color: #1f6d6a; background: #e3f3f0; padding: 4px 18px; border-radius: 40px; }
+        .remove-area-btn { background: #ffe3e0; border: none; color: #bc5a4c; font-weight: 600; font-size: 0.75rem; padding: 6px 14px; border-radius: 50px; cursor: pointer; }
+
+        .subgroup-title { font-size: 0.85rem; font-weight: 700; color: #2b6c7e; margin: 14px 0 8px 0; background: #eef6f9; padding: 3px 14px; border-radius: 40px; display: inline-block; }
+        .question-field { margin-bottom: 14px; }
+        .question-field label { font-size: 0.85rem; font-weight: 600; color: #1f5567; display: block; margin-bottom: 6px; }
+        
+        textarea, input[type="text"] { width: 100%; border-radius: 14px; border: 1px solid #cfdfe7; padding: 8px 12px; font-size: 0.85rem; font-family: inherit; background: #fff; resize: vertical; }
+        
+        .checkbox-group, .radio-group { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-top: 5px; }
+        .checkbox-group label, .radio-group label { display: inline-flex; align-items: center; gap: 5px; font-weight: normal; font-size: 0.8rem; color: #2c5a6e; cursor: pointer; }
+        
+        .inline-note { font-size: 0.7rem; color: #7c9aa8; margin-top: 4px; }
+        .warning-box { background: #fff3f3; border-left: 4px solid #d9534f; padding: 12px; margin-top: 10px; border-radius: 8px; font-size: 0.8rem; color: #a94442; display: none; }
+        
+        .add-area-btn { background: #eef2f5; border: 2px dashed #659eb0; padding: 12px 20px; border-radius: 60px; width: 100%; font-weight: 600; font-size: 0.9rem; color: #226e7a; cursor: pointer; margin: 12px 0 8px 0; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .action-bar { padding: 12px 24px 28px 24px; background: #ffffff; border-top: 1px solid #e2ecf0; display: flex; justify-content: center; }
+        .print-btn { background: #1c6d5e; border: none; padding: 12px 32px; border-radius: 50px; font-size: 1rem; font-weight: 700; color: white; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; }
+        .print-btn:hover { background: #15574b; }
+        footer { background: #f6fafc; padding: 10px 24px; text-align: center; font-size: 0.65rem; color: #6e8b9b; border-top: 1px solid #e0ecf2; }
+        .hidden-export { position: absolute; left: -9999px; top: -9999px; }
+        .conditional-field { margin-top: 8px; display: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Sclerotherapy · Clinical Intake</h1>
+        <p>Spider & Reticular Vein Assessment | Multi-area Management | Clinical Note Export</p>
+    </div>
+
+    <div class="questions-area" id="questionsArea">
+        
+        <div class="section-title">🦵 TREATMENT AREAS</div>
+        <div id="areasContainer"></div>
+        <button id="addAreaBtn" class="add-area-btn">➕ Add a new area (e.g., Left Thigh, Right Calf)</button>
+
+        <div class="section-title">📋 PATIENT CONSULTATION</div>
+        <div class="question-card" style="border:1px solid #e2ecf0; border-radius:20px; padding:20px; margin-top:12px; background:#fafefc;">
+
+            <!-- Main Concerns -->
+            <div class="question-field">
+                <label>1. What would you like to treat? (Main Concerns)</label>
+                <div class="checkbox-group" id="concern_group">
+                    <label><input type="checkbox" name="concern" value="Visible spider veins"> Visible spider veins</label>
+                    <label><input type="checkbox" name="concern" value="Reticular veins"> Reticular veins</label>
+                    <label><input type="checkbox" name="concern" value="Bulging/raised veins"> Bulging/raised veins</label>
+                    <label><input type="checkbox" name="concern" value="Leg heaviness/aching"> Leg heaviness/aching</label>
+                    <label><input type="checkbox" name="concern" value="Leg swelling"> Leg swelling</label>
+                    <label><input type="checkbox" name="concern" value="Cosmetic improvement"> Cosmetic improvement</label>
+                </div>
+            </div>
+
+            <!-- Past Treatment -->
+            <div class="question-field">
+                <label>2. Any treatment in past? How did it work?</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="past_treatment" value="None" checked onchange="document.getElementById('past_treatment_text').style.display='none'"> No previous treatment</label>
+                    <label><input type="radio" name="past_treatment" value="Yes" onchange="document.getElementById('past_treatment_text').style.display='block'"> Yes (Please describe)</label>
+                </div>
+                <textarea id="past_treatment_text" class="conditional-field" rows="2" placeholder="e.g., Sclerotherapy 2 years ago, good reduction initially but some veins returned."></textarea>
+            </div>
+
+            <!-- Family History -->
+            <div class="question-field">
+                <label>3. Family history of veins?</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="family_history" value="No" checked> No</label>
+                    <label><input type="radio" name="family_history" value="Yes"> Yes</label>
+                </div>
+            </div>
+
+            <!-- Reproductive History -->
+            <div class="question-field">
+                <label>4. How many kids? How old is the youngest one, any plan for more kids?</label>
+                <input type="text" id="reproductive_history" placeholder="e.g., 2 kids, youngest is 3 years old. No plans for more." style="margin-top:8px;">
+            </div>
+
+            <!-- Work & Lifestyle -->
+            <div class="question-field">
+                <label>5. Work? Are you on your feet a lot?</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="work_feet" value="Mostly sitting" checked> Mostly sitting</label>
+                    <label><input type="radio" name="work_feet" value="Mostly standing/walking"> Mostly standing/walking</label>
+                    <label><input type="radio" name="work_feet" value="Combination"> Combination</label>
+                </div>
+            </div>
+
+            <!-- Compression Stockings -->
+            <div class="question-field">
+                <label>6. Will you wear compression stocking? (Must wear 8 hours per day for 3 months)</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="compression" value="Yes, committed" checked> Yes, I can commit to this.</label>
+                    <label><input type="radio" name="compression" value="No/Unsure"> No / Unsure</label>
+                </div>
+            </div>
+
+            <!-- Vacation / Travel -->
+            <div class="question-field">
+                <label>7. Any upcoming vacation? (No flights for 2-4 weeks recommended)</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="vacation" value="None" checked onchange="document.getElementById('vacation_text').style.display='none'"> None in the next month</label>
+                    <label><input type="radio" name="vacation" value="Yes" onchange="document.getElementById('vacation_text').style.display='block'"> Yes (Please specify dates)</label>
+                </div>
+                <input type="text" id="vacation_text" class="conditional-field" placeholder="e.g., Flying to Asia in 3 weeks">
+            </div>
+
+            <!-- Event / Bruising -->
+            <div class="question-field">
+                <label>8. Any upcoming events? (Note: Bruising is expected and may last 1-2 weeks)</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="event" value="None" checked onchange="document.getElementById('event_text').style.display='none'"> None</label>
+                    <label><input type="radio" name="event" value="Yes" onchange="document.getElementById('event_text').style.display='block'"> Yes (Please specify)</label>
+                </div>
+                <input type="text" id="event_text" class="conditional-field" placeholder="e.g., Wedding in 10 days">
+            </div>
+
+            <!-- Medical Safety Screening -->
+            <div class="subgroup-title" style="margin-top:24px;">🛑 SAFETY SCREENING (CRITICAL)</div>
+            <div class="question-field">
+                <label>9. Do you have a history of blood clots (DVT/PE), current pregnancy, or active leg infection/ulcers?</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="safety" value="No" checked onchange="document.getElementById('safety_warning').style.display='none'"> No, none of the above.</label>
+                    <label><input type="radio" name="safety" value="Yes" onchange="document.getElementById('safety_warning').style.display='block'"> Yes (Check all that apply or describe)</label>
+                </div>
+                <textarea id="safety_text" class="conditional-field" rows="2" placeholder="Please specify medical history..."></textarea>
+                <div class="warning-box" id="safety_warning">
+                    ⚠️ <strong>CRITICAL:</strong> Do NOT proceed without medical clearance. DVT/PE history, pregnancy, or active infection/ulceration are contraindications for cosmetic sclerotherapy and require further assessment.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button class="print-btn" id="exportNoteBtn">📋 Generate Clinical Note (Copy)</button>
+    </div>
+    <footer>Sclerotherapy Intake | Built based on standard clinical guidelines.</footer>
+</div>
+<div id="exportTextContainer" class="hidden-export"></div>
+
+<script>
+    // --- Area Management Logic ---
+    let areas = [];
+
+    function getAreaLetter(index) {
+        return String.fromCharCode(64 + index);
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function renderAreas() {
+        const container = document.getElementById('areasContainer');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        areas.forEach((area) => {
+            const letter = getAreaLetter(area.index);
+            
+            const card = document.createElement('div');
+            card.className = 'area-card';
+            card.dataset.id = area.id;
+            card.innerHTML = `
+                <div class="area-header">
+                    <span class="area-title">${letter} · ${area.name}</span>
+                    <button class="remove-area-btn" data-id="${area.id}">✖ Remove</button>
+                </div>
+                <div class="question-field">
+                    <label>Specific Locations / Vein Type</label>
+                    <textarea class="area-location" data-id="${area.id}" rows="2" placeholder="e.g., Medial thigh, lateral calf. Spider and small reticular veins.">${escapeHtml(area.location)}</textarea>
+                </div>
+                <div class="question-field">
+                    <label>Skin Condition in this area</label>
+                    <div class="radio-group">
+                        <label><input type="radio" class="area-skin" data-id="${area.id}" name="skin_${area.id}" value="Normal" ${area.skin === 'Normal' ? 'checked' : ''}> Normal</label>
+                        <label><input type="radio" class="area-skin" data-id="${area.id}" name="skin_${area.id}" value="Discoloration" ${area.skin === 'Discoloration' ? 'checked' : ''}> Discoloration</label>
+                        <label><input type="radio" class="area-skin" data-id="${area.id}" name="skin_${area.id}" value="Ulcer/Open Wound" ${area.skin === 'Ulcer/Open Wound' ? 'checked' : ''}> Ulcer/Open Wound</label>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+        attachAreaEvents();
+    }
+
+    function attachAreaEvents() {
+        const container = document.getElementById('areasContainer');
+        
+        // Remove buttons
+        document.querySelectorAll('.remove-area-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseFloat(e.currentTarget.dataset.id);
+                areas = areas.filter(a => a.id !== id);
+                areas.forEach((a, idx) => { a.index = idx + 1; });
+                renderAreas();
+            });
+        });
+
+        // Inputs
+        container.addEventListener('input', (e) => {
+            const target = e.target;
+            const areaId = parseFloat(target.dataset.id);
+            const area = areas.find(a => a.id === areaId);
+            if (!area) return;
+            if (target.classList.contains('area-location')) area.location = target.value;
+        });
+
+        container.addEventListener('change', (e) => {
+            const target = e.target;
+            const areaId = parseFloat(target.dataset.id);
+            const area = areas.find(a => a.id === areaId);
+            if (!area) return;
+            if (target.classList.contains('area-skin')) area.skin = target.value;
+        });
+    }
+
+    function addNewArea() {
+        const newIndex = areas.length + 1;
+        areas.push({
+            id: Date.now() + Math.random(),
+            index: newIndex,
+            name: `Area ${getAreaLetter(newIndex)}`,
+            location: '',
+            skin: 'Normal'
+        });
+        renderAreas();
+    }
+
+    // --- Form Data Extraction & Note Generation ---
+    function generateClinicNote() {
+        const now = new Date();
+        const dateTime = `${now.toLocaleDateString('en-US')} ${now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'})}`;
+        let note = `\nSCLEROTHERAPY – CLINICAL CONSULTATION NOTE\n\nDate: ${dateTime}\nProvider: Laser Clinic\n\n`;
+
+        note += `--- TREATMENT AREAS ---\n`;
+        if (areas.length === 0) note += `No areas specified.\n\n`;
+        for (let a of areas) {
+            const letter = getAreaLetter(a.index);
+            note += `AREA ${letter}:\n`;
+            note += `- Location / Vein Type: ${a.location || 'Not specified'}\n`;
+            note += `- Skin Condition: ${a.skin}\n\n`;
+        }
+
+        note += `--- PATIENT CONSULTATION ---\n`;
+        
+        const concerns = Array.from(document.querySelectorAll('input[name="concern"]:checked')).map(cb => cb.value).join(', ');
+        note += `1. Main Concerns: ${concerns || 'None selected'}\n`;
+
+        const pastRad = document.querySelector('input[name="past_treatment"]:checked')?.value;
+        const pastText = document.getElementById('past_treatment_text').value.trim();
+        note += `2. Past Treatment: ${pastRad === 'Yes' ? (pastText || 'Yes (details missing)') : 'None'}\n`;
+
+        const familyRad = document.querySelector('input[name="family_history"]:checked')?.value;
+        note += `3. Family History of Veins: ${familyRad}\n`;
+
+        const repro = document.getElementById('reproductive_history').value.trim();
+        note += `4. Reproductive History: ${repro || 'Not specified'}\n`;
+
+        const work = document.querySelector('input[name="work_feet"]:checked')?.value;
+        note += `5. Work / On Feet: ${work}\n`;
+
+        const compression = document.querySelector('input[name="compression"]:checked')?.value;
+        note += `6. Compression Stockings: ${compression === 'Yes, committed' ? 'Committed to 8hrs/day for 3 months' : 'No / Unsure (Educated on necessity)'}\n`;
+
+        const vacationRad = document.querySelector('input[name="vacation"]:checked')?.value;
+        const vacationText = document.getElementById('vacation_text').value.trim();
+        note += `7. Upcoming Vacation/Flights: ${vacationRad === 'Yes' ? (vacationText || 'Yes (dates missing)') : 'None reported'}\n`;
+
+        const eventRad = document.querySelector('input[name="event"]:checked')?.value;
+        const eventText = document.getElementById('event_text').value.trim();
+        note += `8. Upcoming Events: ${eventRad === 'Yes' ? (eventText || 'Yes (details missing)') : 'None'}\n`;
+
+        const safetyRad = document.querySelector('input[name="safety"]:checked')?.value;
+        const safetyText = document.getElementById('safety_text').value.trim();
+        note += `\n--- SAFETY SCREENING ---\n`;
+        if (safetyRad === 'Yes') {
+            note += `⚠️ FLAGGED: Patient reports history of DVT/PE, pregnancy, or active ulcers.\n`;
+            note += `Details: ${safetyText || 'None provided'}\n`;
+            note += `ACTION: Do NOT proceed without medical clearance.\n`;
+        } else {
+            note += `Patient denied history of DVT/PE, pregnancy, or active infections.\n`;
+        }
+
+        return note;
+    }
+
+    function showExportModal(noteText) {
+        const modalDiv = document.createElement('div');
+        modalDiv.style.position = 'fixed';
+        modalDiv.style.top = '0'; modalDiv.style.left = '0';
+        modalDiv.style.width = '100%'; modalDiv.style.height = '100%';
+        modalDiv.style.backgroundColor = 'rgba(0,0,0,0.6)';
+        modalDiv.style.display = 'flex'; modalDiv.style.alignItems = 'center'; modalDiv.style.justifyContent = 'center';
+        modalDiv.style.zIndex = '10000';
+        
+        const modalInner = document.createElement('div');
+        modalInner.style.background = '#fff';
+        modalInner.style.borderRadius = '28px';
+        modalInner.style.width = '92%';
+        modalInner.style.maxWidth = '950px';
+        modalInner.style.maxHeight = '85%';
+        modalInner.style.display = 'flex';
+        modalInner.style.flexDirection = 'column';
+        modalInner.style.overflow = 'hidden';
+        
+        modalInner.innerHTML = `
+            <div style="padding:14px 24px; border-bottom:1px solid #e2edf2; display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0; font-weight:700; color:#1d6f6a;">📄 Clinical Note</h3>
+                <button id="closeModalBtn" style="background:none; border:none; font-size:26px; cursor:pointer;">&times;</button>
+            </div>
+            <div style="flex:1; overflow:auto; padding:16px 24px; background:#fefcf5;">
+                <pre style="white-space:pre-wrap; font-family:Consolas, monospace; font-size:13px; background:#faf7ed; padding:14px; border-radius:20px;">${escapeHtml(noteText)}</pre>
+            </div>
+            <div style="padding:12px 24px 20px; border-top:1px solid #e2ecf0; display:flex; gap:12px; justify-content:flex-end;">
+                <button id="copyNoteBtn" style="background:#1c6d5e; color:white; border:none; padding:10px 24px; border-radius:40px; font-weight:bold; cursor:pointer;">📋 Copy Full Note</button>
+                <button id="closeModalFooterBtn" style="background:#e2e8f0; border:none; padding:10px 22px; border-radius:40px; cursor:pointer;">Close</button>
+            </div>
+        `;
+        document.body.appendChild(modalDiv);
+        modalDiv.appendChild(modalInner);
+        
+        const closeModal = () => modalDiv.remove();
+        modalInner.querySelector('#closeModalBtn').addEventListener('click', closeModal);
+        modalInner.querySelector('#closeModalFooterBtn').addEventListener('click', closeModal);
+        
+        modalInner.querySelector('#copyNoteBtn').addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(noteText);
+                alert('✅ Note copied to clipboard!');
+            } catch (err) {
+                alert('❌ Copy failed. Please select and copy manually.');
+            }
+        });
+    }
+
+    // --- Initialization ---
+    function init() {
+        // Form conditional visibility logic
+        document.querySelectorAll('input[name="safety"]').forEach(rad => {
+            rad.addEventListener('change', (e) => {
+                document.getElementById('safety_text').style.display = e.target.value === 'Yes' ? 'block' : 'none';
+                document.getElementById('safety_warning').style.display = e.target.value === 'Yes' ? 'block' : 'none';
+            });
+        });
+
+        // Initialize one default area
+        areas = [{
+            id: Date.now() + 1,
+            index: 1,
+            name: 'Area A',
+            location: 'Bilateral calves - lateral and medial',
+            skin: 'Normal'
+        }];
+        renderAreas();
+        
+        document.getElementById('addAreaBtn').addEventListener('click', addNewArea);
+        document.getElementById('exportNoteBtn').addEventListener('click', () => {
+            showExportModal(generateClinicNote());
+        });
+    }
+
+    init();
+</script>
+</body>
+</html>
