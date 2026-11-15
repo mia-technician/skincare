@@ -140,6 +140,10 @@
 
     <div class="card">
       <div class="section-title">📁 History / Past</div>
+      <div style="margin-bottom: 12px; display: flex; gap: 8px;">
+        <button class="btn btn-sm" style="background:#64748b" onclick="openItemModal('past', 'treatment')">➕ Add Past Treatment</button>
+        <button class="btn btn-sm" style="background:#64748b" onclick="openItemModal('past', 'product')">➕ Add Past Product</button>
+      </div>
       <div id="historySection"></div>
     </div>
   </div>
@@ -198,12 +202,14 @@
       </select>
     </div>
 
-    <div class="form-group"><label>Last Date (上次做/买)</label>
+    <div class="form-group" id="lastDateGroup">
+      <label>Last Date (上次做/买)</label>
       <input type="date" id="itemLastDate">
       <div class="hint-text">If entered, system calculates time elapsed.</div>
     </div>
     
-    <div class="form-group"><label>Next Follow-up Date (下次跟进)</label>
+    <div class="form-group" id="nextDateGroup">
+      <label>Next Follow-up Date (下次跟进)</label>
       <input type="date" id="itemNextDate">
       <div class="hint-text" id="nextDateHint"></div>
     </div>
@@ -214,7 +220,7 @@
     </div>
 
     <!-- 严格期限设定 -->
-    <div class="form-group" style="background:#fef2f2; padding:12px; border-radius:8px; border:1px solid #fecaca;">
+    <div class="form-group" id="strictDateGroup" style="background:#fef2f2; padding:12px; border-radius:8px; border:1px solid #fecaca;">
       <label style="display:flex; align-items:center; gap:8px; color:#991b1b; cursor:pointer;">
         <input type="checkbox" id="itemIsStrict" style="width:auto;" onchange="document.getElementById('itemStrictNote').style.display = this.checked ? 'block' : 'none'"> 🔒 Strict Deadline (不可延期)
       </label>
@@ -611,8 +617,14 @@
     document.getElementById('itemStrictNote').value = '';
     document.getElementById('itemStrictNote').style.display = 'none';
     
-    document.getElementById('itemModalTitle').innerText = `Add ${category === 'treatment' ? 'Treatment' : 'Product'}`;
-    document.getElementById('appointmentDateGroup').style.display = status === 'current' ? 'block' : 'none';
+    document.getElementById('itemModalTitle').innerText = `Add ${status === 'past' ? 'Past ' : ''}${category === 'treatment' ? 'Treatment' : 'Product'}`;
+    
+    // 如果是历史记录，隐藏跟进日期和预约日期
+    const isPast = status === 'past';
+    document.getElementById('lastDateGroup').style.display = 'block';
+    document.getElementById('nextDateGroup').style.display = isPast ? 'none' : 'block';
+    document.getElementById('appointmentDateGroup').style.display = (!isPast && status === 'current') ? 'block' : 'none';
+    document.getElementById('strictDateGroup').style.display = isPast ? 'none' : 'block';
     
     populateNextDateOptions();
     openModal('itemModal');
@@ -648,7 +660,13 @@
     document.getElementById('itemStrictNote').style.display = r.is_strict ? 'block' : 'none';
     
     document.getElementById('itemModalTitle').innerText = `Edit ${r.category === 'treatment' ? 'Treatment' : 'Product'}`;
-    document.getElementById('appointmentDateGroup').style.display = r.status === 'current' ? 'block' : 'none';
+    
+    const isPast = r.status === 'past';
+    document.getElementById('lastDateGroup').style.display = 'block';
+    document.getElementById('nextDateGroup').style.display = isPast ? 'none' : 'block';
+    document.getElementById('appointmentDateGroup').style.display = (!isPast && r.status === 'current') ? 'block' : 'none';
+    document.getElementById('strictDateGroup').style.display = isPast ? 'none' : 'block';
+    
     document.getElementById('nextDateHint').innerText = 'Change this date to update the follow-up.';
     
     openModal('itemModal');
@@ -670,8 +688,11 @@
     
     let data = { 
       name, category, status, tag, 
-      last_date: lastDate, next_date: nextDate, appointment_date: apptDate,
-      is_strict: isStrict, strict_note: strictNote
+      last_date: lastDate, 
+      next_date: status === 'past' ? null : nextDate, 
+      appointment_date: status === 'past' ? null : apptDate,
+      is_strict: status === 'past' ? false : isStrict, 
+      strict_note: status === 'past' ? null : strictNote
     };
 
     try {
@@ -686,7 +707,7 @@
         savedRecord = res[0];
       }
 
-      if (nextDate) {
+      if (nextDate && status !== 'past') {
         await syncFollowUpDateToAll(savedRecord.id, nextDate);
       }
 
