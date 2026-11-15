@@ -18,6 +18,7 @@
   .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
   .btn-outline { background: #fff; color: #475569; border: 1px solid #cbd5e1; }
   .btn-outline:hover { background: #f1f5f9; }
+  .btn-link { background: none; border: none; color: #3b82f6; cursor: pointer; font-size: 0.75rem; text-decoration: underline; margin-left: 8px; }
   
   /* Search & List */
   .search-box { width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem; }
@@ -35,6 +36,12 @@
   .birthday-badge { font-size: 0.8rem; background: #fce7f3; color: #db2777; padding: 4px 10px; border-radius: 20px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
   .profile-details { display: flex; gap: 16px; font-size: 0.85rem; color: #475569; margin-top: 8px; flex-wrap: wrap; }
   
+  /* Linked Profiles */
+  .linked-card { display: inline-flex; align-items: center; background: #eff6ff; border: 1px solid #bfdbfe; padding: 8px 12px; border-radius: 12px; cursor: pointer; transition: 0.2s; margin-right: 8px; margin-bottom: 8px; }
+  .linked-card:hover { background: #dbeafe; }
+  .linked-name { font-weight: 600; font-size: 0.85rem; color: #1e3a8a; }
+  .linked-id { font-size: 0.7rem; color: #64748b; margin-left: 6px; }
+
   /* Sections */
   .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
   .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; font-weight: 600; text-transform: uppercase; }
@@ -89,6 +96,7 @@
         <div>
           <div class="profile-name" id="profileName">-</div>
           <div class="profile-details" id="profileDetails"></div>
+          <div style="margin-top: 12px;" id="linkedProfilesArea"></div>
         </div>
         <div>
           <button class="btn btn-outline btn-sm" onclick="openEditCustomerModal()">Edit Profile</button>
@@ -139,6 +147,19 @@
     <div style="display:flex; justify-content:flex-end; gap:8px;">
       <button class="btn btn-outline" onclick="closeModal('customerModal')">Cancel</button>
       <button class="btn" onclick="saveCustomer()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Link Customer Modal -->
+<div class="modal-overlay" id="linkModal">
+  <div class="modal-content">
+    <h3 style="margin-bottom: 16px;">Link Related Profile</h3>
+    <p style="font-size:0.8rem; color:#64748b; margin-bottom:16px;">Search for a family member or partner to link.</p>
+    <input type="text" id="linkSearch" class="search-box" placeholder="Search name or ID..." oninput="renderLinkOptions()">
+    <div id="linkOptionsList" style="max-height: 200px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:16px;"></div>
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button class="btn btn-outline" onclick="closeModal('linkModal')">Cancel</button>
     </div>
   </div>
 </div>
@@ -260,7 +281,6 @@
     document.getElementById('mainPanel').style.display = 'flex';
   }
 
-  // 计算时间差（月数）
   function calcMonthsAgo(dateStr) {
     if (!dateStr) return null;
     const past = new Date(dateStr);
@@ -278,7 +298,6 @@
     const c = customers.find(x => x.id === id);
     if (!c) return;
     
-    // 生日判断
     const currentMonth = new Date().getMonth() + 1;
     const isBirthday = c.birth_month === currentMonth;
     const birthdayHtml = isBirthday ? `<span class="birthday-badge">🎂 Birthday Month</span>` : '';
@@ -291,10 +310,28 @@
       <span><strong>Concern:</strong> ${c.concern || 'N/A'}</span>
     `;
 
+    // 渲染关联客人
+    const linkedArea = document.getElementById('linkedProfilesArea');
+    let linkedHtml = '';
+    if (c.linked_customer_ids && c.linked_customer_ids.length > 0) {
+      c.linked_customer_ids.forEach(lid => {
+        const lc = customers.find(x => x.id === lid);
+        if (lc) {
+          linkedHtml += `
+            <div class="linked-card" onclick="selectCustomer('${lc.id}')">
+              <span class="linked-name">👨‍👩‍👧 ${lc.name}</span>
+              <span class="linked-id">#${lc.client_id || ''}</span>
+            </div>
+          `;
+        }
+      });
+    }
+    linkedHtml += `<button class="btn btn-outline btn-sm" onclick="openLinkModal()">➕ Link Related Profile</button>`;
+    linkedArea.innerHTML = linkedHtml;
+
     const myRecords = records.filter(r => r.customer_id === id);
     const today = new Date().toISOString().split('T')[0];
 
-    // Active Follow-ups & Appointments
     const active = myRecords.filter(r => 
       r.status !== 'past' && 
       ((r.next_date && r.next_date <= today) || (r.appointment_date && r.appointment_date <= today))
@@ -315,15 +352,12 @@
       </div>
     `).join('') : '<div style="color:#94a3b8; font-size:0.85rem;">No active follow-ups or appointments due.</div>';
 
-    // Recommended
     const recs = myRecords.filter(r => r.status === 'recommended');
     document.getElementById('recommendedSection').innerHTML = recs.length ? recs.map(r => renderItemCard(r, 'recommended')).join('') : '<div style="color:#94a3b8; font-size:0.85rem;">None</div>';
 
-    // Current
     const currents = myRecords.filter(r => r.status === 'current');
     document.getElementById('currentSection').innerHTML = currents.length ? currents.map(r => renderItemCard(r, 'current')).join('') : '<div style="color:#94a3b8; font-size:0.85rem;">None</div>';
 
-    // History
     const history = myRecords.filter(r => r.status === 'past');
     document.getElementById('historySection').innerHTML = history.length ? history.map(r => renderItemCard(r, 'past')).join('') : '<div style="color:#94a3b8; font-size:0.85rem;">None</div>';
   }
@@ -335,7 +369,6 @@
     if (r.tag === 'disliked') tagHtml = '<span class="tag tag-disliked">Disliked</span>';
     if (r.tag === 'not_interested') tagHtml = '<span class="tag tag-not-interested">Not Interested</span>';
 
-    // 计算距离上次的时间
     const timeAgo = r.last_date ? `<span style="color:#f59e0b;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
 
     let buttons = '';
@@ -357,8 +390,6 @@
     }
 
     const apptInfo = r.appointment_date ? `<span style="color:#3b82f6; font-weight:600;">Next Appt: ${r.appointment_date}</span>` : '';
-    
-    // 如果是主跟进项目，高亮显示
     const isMain = r.is_main_followup;
     const cardClass = isMain ? 'item-card main-followup' : 'item-card';
     const pinBtn = status !== 'past' ? `<button class="btn btn-sm ${isMain ? 'btn' : 'btn-outline'}" style="margin-left:4px;" onclick="setMainFollowup('${r.id}')" title="Set as main follow-up">📌</button>` : '';
@@ -379,6 +410,52 @@
         </div>
       </div>
     `;
+  }
+
+  // --- Link Related Profile Logic ---
+  function openLinkModal() {
+    document.getElementById('linkSearch').value = '';
+    renderLinkOptions();
+    openModal('linkModal');
+  }
+
+  function renderLinkOptions() {
+    const kw = document.getElementById('linkSearch').value.toLowerCase();
+    const list = document.getElementById('linkOptionsList');
+    const c = customers.find(x => x.id === currentCustomerId);
+    const alreadyLinked = c.linked_customer_ids || [];
+
+    const options = customers.filter(x => x.id !== currentCustomerId && !alreadyLinked.includes(x.id) && (x.name.toLowerCase().includes(kw) || (x.client_id && x.client_id.toLowerCase().includes(kw))));
+    
+    if (options.length === 0) {
+      list.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">No available customers found.</div>';
+      return;
+    }
+
+    list.innerHTML = options.map(x => `
+      <div class="customer-item" onclick="linkCustomer('${x.id}')">
+        <div class="customer-name">${x.name}</div>
+        <div class="customer-info">ID: ${x.client_id || 'N/A'}</div>
+      </div>
+    `).join('');
+  }
+
+  async function linkCustomer(linkId) {
+    const c = customers.find(x => x.id === currentCustomerId);
+    const lc = customers.find(x => x.id === linkId);
+    if (!c || !lc) return;
+
+    // 建立双向关联
+    const myLinks = [...(c.linked_customer_ids || []), linkId];
+    const theirLinks = [...(lc.linked_customer_ids || []), currentCustomerId];
+
+    try {
+      await api.update('customers', `id=eq.${c.id}`, { linked_customer_ids: myLinks });
+      await api.update('customers', `id=eq.${lc.id}`, { linked_customer_ids: theirLinks });
+      closeModal('linkModal');
+      await loadData();
+      showToast('Profiles linked');
+    } catch (e) { alert(e.message); }
   }
 
   // --- Customer Modals ---
@@ -508,7 +585,6 @@
         savedRecord = res[0];
       }
 
-      // 如果这里设置了跟进日期，询问是否同步到其他项目
       if (nextDate) {
         await syncFollowUpDateToAll(savedRecord.id, nextDate);
       }
@@ -519,7 +595,6 @@
     } catch (e) { alert(e.message); }
   }
 
-  // --- 同步跟进日期逻辑 ---
   async function syncFollowUpDateToAll(sourceId, date) {
     const others = records.filter(r => r.customer_id === currentCustomerId && r.id !== sourceId && r.status !== 'past');
     if (others.length === 0) return;
@@ -529,7 +604,6 @@
       for (let r of others) {
         await api.update('records', `id=eq.${r.id}`, { next_date: date, is_main_followup: false });
       }
-      // 将当前项目设为主跟进项目
       await api.update('records', `id=eq.${sourceId}`, { is_main_followup: true });
       showToast('Follow-up dates synced & main project set.');
     }
@@ -539,14 +613,12 @@
     const r = records.find(x => x.id === id);
     if (!r || !r.next_date) return alert('This item has no follow-up date to set as main.');
 
-    // 把该客人所有其他的 main_followup 设为 false，当前设为 true
     const others = records.filter(x => x.customer_id === currentCustomerId && x.id !== id);
     for (let o of others) {
       if (o.is_main_followup) await api.update('records', `id=eq.${o.id}`, { is_main_followup: false });
     }
     await api.update('records', `id=eq.${id}`, { is_main_followup: true });
     
-    // 顺便问问要不要把所有其他项目的日期也同步过来
     await syncFollowUpDateToAll(id, r.next_date);
     await loadData();
   }
