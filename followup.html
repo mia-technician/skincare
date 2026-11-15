@@ -576,4 +576,45 @@
     } else if (action === 'change_next') {
       const newDate = prompt('Enter new follow-up date (YYYY-MM-DD):');
       if (!newDate) return;
-      updateData = { next
+      updateData = { next_date: newDate };
+    } else if (action === 'not_interested') {
+      updateData = { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null };
+    }
+
+    try {
+      await api.update('records', `id=eq.${r.id}`, updateData);
+      
+      if (action === 'change_next' && updateData.next_date) {
+        await syncFollowUpDateToAll(r.id, updateData.next_date);
+      }
+
+      closeModal('appointmentModal');
+      await loadData();
+      showToast('Updated');
+    } catch (e) { alert(e.message); }
+  }
+
+  // --- Quick Actions ---
+  async function proceedItem(id) {
+    const r = records.find(x => x.id === id);
+    try {
+      await api.update('records', `id=eq.${r.id}`, { status: 'current', tag: '' });
+      await loadData();
+      showToast('Moved to Current');
+    } catch (e) { alert(e.message); }
+  }
+
+  async function cancelItem(id) {
+    if (!confirm('Move to History (Not Interested) and stop follow-ups?')) return;
+    try {
+      await api.update('records', `id=eq.${id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false });
+      await loadData();
+      showToast('Moved to History');
+    } catch (e) { alert(e.message); }
+  }
+
+  // Initialize
+  loadData();
+</script>
+</body>
+</html>
