@@ -139,6 +139,7 @@
   </div>
 </div>
 
+<!-- Unified Item Modal (Add & Edit) -->
 <div class="modal-overlay" id="itemModal">
   <div class="modal-content">
     <h3 style="margin-bottom: 16px;" id="itemModalTitle">Add Item</h3>
@@ -146,16 +147,22 @@
     <input type="hidden" id="itemCategory">
     <input type="hidden" id="itemStatus">
     <div class="form-group"><label>Name of Treatment/Product *</label><input type="text" id="itemName"></div>
-    <div class="form-group"><label>Tag</label>
+    
+    <div class="form-group"><label>Tag (标签)</label>
       <select id="itemTag">
-        <option value="">None</option>
-        <option value="liked">Liked / 喜欢 (已做)</option>
-        <option value="disliked">Disliked / 不喜欢 (已做)</option>
-        <option value="interested">Interested / 有兴趣 (未做)</option>
-        <option value="not_interested">Not Interested / 不感兴趣 (未做)</option>
+        <option value="">无 (None)</option>
+        <option value="liked">喜欢 (Liked)</option>
+        <option value="disliked">不喜欢 (Disliked)</option>
+        <option value="interested">有兴趣 (Interested)</option>
+        <option value="not_interested">不感兴趣 (Not Interested)</option>
       </select>
     </div>
-    <div class="form-group"><label>Last Date (if past/current)</label><input type="date" id="itemLastDate"></div>
+    
+    <div class="form-group"><label>Last Date (上次做/买)</label><input type="date" id="itemLastDate"></div>
+    
+    <!-- 专门用于直接修改跟进时间的输入框 -->
+    <div class="form-group"><label>Next Follow-up Date (下次跟进)</label><input type="date" id="itemNextDate"></div>
+
     <div style="display:flex; justify-content:flex-end; gap:8px;">
       <button class="btn btn-outline" onclick="closeModal('itemModal')">Cancel</button>
       <button class="btn" onclick="saveItem()">Save</button>
@@ -165,12 +172,13 @@
 
 <div class="modal-overlay" id="appointmentModal">
   <div class="modal-content">
-    <h3 style="margin-bottom: 16px;">Appointment Actions</h3>
+    <h3 style="margin-bottom: 16px;">Manage Follow-up</h3>
     <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;">This follow-up is due. What would you like to do?</p>
     <div style="display:flex; flex-direction:column; gap:8px;">
       <button class="btn" style="background:#10b981" onclick="handleAppointmentAction('executed')">✅ Executed (Move to Current)</button>
       <button class="btn" style="background:#f59e0b" onclick="handleAppointmentAction('cancelled')">❌ Cancelled (Follow up in 1 month)</button>
-      <button class="btn btn-outline" onclick="handleAppointmentAction('reschedule')">📅 Change Appointment Date</button>
+      <button class="btn btn-outline" onclick="handleAppointmentAction('reschedule')">📅 Set Appointment Date</button>
+      <button class="btn btn-outline" onclick="handleAppointmentAction('change_next')">⏳ Just Change Follow-up Date</button>
       <button class="btn btn-outline" style="color:#dc2626; border-color:#fca5a5;" onclick="handleAppointmentAction('not_interested')">🚫 Not Interested (To History)</button>
     </div>
   </div>
@@ -286,11 +294,18 @@
     if (status === 'recommended') {
       buttons = `
         <button class="btn btn-sm" style="background:#10b981" onclick="proceedItem('${r.id}')">Proceed</button>
-        <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Cancel / No interest</button>
+        <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Not Interested</button>
+        <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit</button>
       `;
     } else if (status === 'current') {
       buttons = `
         <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Cancel Follow-up</button>
+        <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit</button>
+      `;
+    } else {
+      // Past/History
+      buttons = `
+        <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit / Tag</button>
       `;
     }
 
@@ -362,11 +377,27 @@
     document.getElementById('itemName').value = '';
     document.getElementById('itemTag').value = '';
     document.getElementById('itemLastDate').value = '';
-    document.getElementById('itemModalTitle').innerText = `Add ${category === 'treatment' ? 'Treatment' : 'Product'} (${status})`;
+    document.getElementById('itemNextDate').value = '';
+    document.getElementById('itemModalTitle').innerText = `Add ${category === 'treatment' ? 'Treatment' : 'Product'}`;
+    openModal('itemModal');
+  }
+
+  function openEditItemModal(id) {
+    const r = records.find(x => x.id === id);
+    if (!r) return;
+    document.getElementById('itemId').value = r.id;
+    document.getElementById('itemCategory').value = r.category;
+    document.getElementById('itemStatus').value = r.status;
+    document.getElementById('itemName').value = r.name;
+    document.getElementById('itemTag').value = r.tag || '';
+    document.getElementById('itemLastDate').value = r.last_date || '';
+    document.getElementById('itemNextDate').value = r.next_date || '';
+    document.getElementById('itemModalTitle').innerText = `Edit ${r.category === 'treatment' ? 'Treatment' : 'Product'}`;
     openModal('itemModal');
   }
 
   async function saveItem() {
+    const id = document.getElementById('itemId').value;
     const name = document.getElementById('itemName').value;
     if (!name) return alert('Name required');
     
@@ -374,26 +405,33 @@
     const status = document.getElementById('itemStatus').value;
     const tag = document.getElementById('itemTag').value;
     const lastDate = document.getElementById('itemLastDate').value || null;
+    const nextDate = document.getElementById('itemNextDate').value || null;
     
-    let nextDate = null;
-    let followupStage = 'initial';
-    
-    const today = new Date();
-    if (status === 'recommended') {
-      today.setDate(today.getDate() + 7);
-      nextDate = today.toISOString().split('T')[0];
-    } else if (status === 'current') {
-      today.setMonth(today.getMonth() + 3);
-      nextDate = today.toISOString().split('T')[0];
+    let data = { name, category, status, tag, last_date: lastDate, next_date: nextDate };
+
+    // 如果是新建，且没填下次跟进时间，则按规则自动计算
+    if (!id && !nextDate) {
+      const today = new Date();
+      if (status === 'recommended') {
+        today.setDate(today.getDate() + 7);
+        data.next_date = today.toISOString().split('T')[0];
+      } else if (status === 'current') {
+        today.setMonth(today.getMonth() + 3);
+        data.next_date = today.toISOString().split('T')[0];
+      }
     }
 
     try {
-      await api.insert('records', {
-        customer_id: currentCustomerId, category, name, status, tag, last_date: lastDate, next_date: nextDate, followup_stage: followupStage
-      });
+      if (id) {
+        await api.update('records', `id=eq.${id}`, data);
+      } else {
+        data.customer_id = currentCustomerId;
+        data.followup_stage = 'initial';
+        await api.insert('records', data);
+      }
       closeModal('itemModal');
       await loadData();
-      showToast('Item saved');
+      showToast('Saved successfully');
     } catch (e) { alert(e.message); }
   }
 
@@ -419,8 +457,11 @@
       const newDate = prompt('Enter new appointment date (YYYY-MM-DD):');
       if (!newDate) return;
       updateData = { appointment_date: newDate, next_date: newDate };
+    } else if (action === 'change_next') {
+      const newDate = prompt('Enter new follow-up date (YYYY-MM-DD):');
+      if (!newDate) return;
+      updateData = { next_date: newDate };
     } else if (action === 'not_interested') {
-      // 明确标记为不感兴趣
       updateData = { status: 'past', tag: 'not_interested', next_date: null };
     }
 
@@ -438,7 +479,6 @@
     const today = new Date();
     let nextDate = null;
     
-    // 假设 Proceed 后默认 3 个月后跟进（可自行改为 treatment 的逻辑）
     today.setMonth(today.getMonth() + 3);
     nextDate = today.toISOString().split('T')[0];
     
@@ -450,9 +490,8 @@
   }
 
   async function cancelItem(id) {
-    if (!confirm('Move to history (past) and stop follow-ups?')) return;
+    if (!confirm('Mark as Not Interested and move to History?')) return;
     try {
-      // 取消跟进默认变为“不感兴趣 (not_interested)”
       await api.update('records', `id=eq.${id}`, { status: 'past', tag: 'not_interested', next_date: null });
       await loadData();
       showToast('Moved to History (Not Interested)');
