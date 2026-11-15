@@ -18,7 +18,6 @@
   .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
   .btn-outline { background: #fff; color: #475569; border: 1px solid #cbd5e1; }
   .btn-outline:hover { background: #f1f5f9; }
-  .btn-link { background: none; border: none; color: #3b82f6; cursor: pointer; font-size: 0.75rem; text-decoration: underline; margin-left: 8px; }
   
   /* Search & List */
   .search-box { width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem; }
@@ -56,21 +55,35 @@
   .tag-disliked { background: #fee2e2; color: #991b1b; }
   .tag-not-interested { background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
   
+  /* Items & Highlights */
   .item-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; transition: 0.2s; }
-  .item-card.main-followup { border: 2px solid #3b82f6; background: #eff6ff; box-shadow: 0 4px 12px rgba(59,130,246,0.15); }
   
+  /* 普通到期高亮 */
+  .item-card.due { border-color: #fca5a5; background: #fef2f2; }
+  /* 严格不可延期高亮（逾期/今天） */
+  .item-card.strict-overdue { border: 2px solid #dc2626; background: #fee2e2; box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.15); }
+  
+  /* 📌 主项目高亮 */
+  .item-card.main-followup { border: 2px solid #3b82f6; background: #eff6ff; box-shadow: 0 4px 12px rgba(59,130,246,0.15); }
+  .item-card.main-followup.strict-overdue { border-color: #dc2626; background: #fee2e2; }
+
   .item-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
   .item-dates { font-size: 0.75rem; color: #64748b; margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
   .item-dates span { display: flex; align-items: center; gap: 4px; }
+  .date-overdue { color: #dc2626; font-weight: 700; }
   
   /* Modals */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 1000; }
   .modal-overlay.show { display: flex; }
-  .modal-content { background: #fff; padding: 24px; border-radius: 16px; width: 90%; max-width: 420px; }
+  .modal-content { background: #fff; padding: 24px; border-radius: 16px; width: 90%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
   .form-group { margin-bottom: 12px; }
   .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; }
   .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; }
   .hint-text { font-size: 0.7rem; color: #64748b; margin-top: 4px; }
+
+  /* Search Results List */
+  .search-result-item { padding: 12px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+  .search-result-item:hover { background: #f8fafc; }
 
   /* Toast */
   .toast { position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: #fff; padding: 12px 24px; border-radius: 8px; opacity: 0; transform: translateY(20px); transition: 0.3s; z-index: 9999; pointer-events: none; }
@@ -84,7 +97,8 @@
   <div class="sidebar">
     <div class="card">
       <button class="btn" style="width: 100%; margin-bottom: 12px;" onclick="openCustomerModal()">➕ Add New Customer</button>
-      <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search name or ID..." oninput="renderCustomers()">
+      <button class="btn btn-outline" style="width: 100%; margin-bottom: 12px;" onclick="openSearchModal()">🔍 Advanced Search</button>
+      <input type="text" id="searchInput" class="search-box" placeholder="🔍 Quick search name/ID..." oninput="renderCustomers()">
       <div class="customer-list" id="customerList"></div>
     </div>
   </div>
@@ -102,11 +116,6 @@
           <button class="btn btn-outline btn-sm" onclick="openEditCustomerModal()">Edit Profile</button>
         </div>
       </div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">🔔 Due Follow-ups & Appointments</div>
-      <div id="activeSection"></div>
     </div>
 
     <div class="card">
@@ -199,6 +208,14 @@
       <input type="date" id="itemAppDate">
     </div>
 
+    <!-- 严格期限设定 -->
+    <div class="form-group" style="background:#fef2f2; padding:12px; border-radius:8px; border:1px solid #fecaca;">
+      <label style="display:flex; align-items:center; gap:8px; color:#991b1b; cursor:pointer;">
+        <input type="checkbox" id="itemIsStrict" style="width:auto;"> 🔒 Strict Deadline (不可延期)
+      </label>
+      <input type="text" id="itemStrictNote" placeholder="Reason (e.g. Post-op 24h check)" style="margin-top:8px; display:none;">
+    </div>
+
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 20px;">
       <button class="btn btn-outline" onclick="closeModal('itemModal')">Cancel</button>
       <button class="btn" onclick="saveItem()">Save</button>
@@ -210,13 +227,86 @@
 <div class="modal-overlay" id="appointmentModal">
   <div class="modal-content">
     <h3 style="margin-bottom: 16px;">Manage Follow-up</h3>
-    <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;">This item is due. What would you like to do?</p>
+    <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;" id="manageWarning">This item is due. What would you like to do?</p>
     <div style="display:flex; flex-direction:column; gap:8px;">
       <button class="btn" style="background:#10b981" onclick="handleAppointmentAction('executed')">✅ Executed / Done</button>
-      <button class="btn" style="background:#f59e0b" onclick="handleAppointmentAction('cancelled')">❌ Cancelled (Follow up in 1 month)</button>
-      <button class="btn btn-outline" onclick="handleAppointmentAction('reschedule_appt')">📅 Set Appointment Date</button>
-      <button class="btn btn-outline" onclick="handleAppointmentAction('change_next')">⏳ Change Follow-up Date</button>
-      <button class="btn btn-outline" style="color:#dc2626; border-color:#fca5a5;" onclick="handleAppointmentAction('not_interested')">🚫 Not Interested (To History)</button>
+      
+      <div id="normalActions">
+        <button class="btn" style="background:#f59e0b; width:100%; margin-bottom:8px;" onclick="handleAppointmentAction('cancelled')">❌ Cancelled (Follow up in 1 month)</button>
+        <button class="btn btn-outline" style="width:100%; margin-bottom:8px;" onclick="handleAppointmentAction('reschedule_appt')">📅 Set Appointment Date</button>
+        <button class="btn btn-outline" style="width:100%;" onclick="handleAppointmentAction('change_next')">⏳ Change Follow-up Date</button>
+      </div>
+
+      <button class="btn btn-outline" style="color:#dc2626; border-color:#fca5a5; margin-top:8px;" onclick="handleAppointmentAction('not_interested')">🚫 Not Interested (To History)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Advanced Search Modal -->
+<div class="modal-overlay" id="searchModal">
+  <div class="modal-content" style="max-width: 650px;">
+    <h3 style="margin-bottom: 16px;">🔍 Advanced Search</h3>
+    
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
+      <div class="form-group"><label>Type</label>
+        <select id="searchType">
+          <option value="">Any</option>
+          <option value="treatment">Treatment (项目)</option>
+          <option value="product">Product (产品)</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Status</label>
+        <select id="searchStatus">
+          <option value="">Any</option>
+          <option value="recommended">Recommended</option>
+          <option value="current">Current</option>
+          <option value="past">History</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Tag</label>
+        <select id="searchTag">
+          <option value="">Any</option>
+          <option value="liked">Liked</option>
+          <option value="interested">Interested</option>
+          <option value="disliked">Disliked</option>
+          <option value="not_interested">Not Interested</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Item Keyword</label>
+        <input type="text" id="searchKw" placeholder="e.g. Botox">
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
+      <div class="form-group"><label>Customer Concern (诉求)</label>
+        <input type="text" id="searchConcern" placeholder="e.g. Acne, Pigmentation">
+      </div>
+      <div class="form-group"><label>Customer Name/ID</label>
+        <input type="text" id="searchCustName" placeholder="e.g. Jane">
+      </div>
+    </div>
+
+    <div class="form-group" style="display:flex; gap:16px; margin-bottom:12px;">
+      <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+        <input type="checkbox" id="searchStrict" style="width:auto;"> 🔒 Strict Deadline
+      </label>
+      <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+        <input type="checkbox" id="searchMain" style="width:auto;"> 📌 Main Follow-up
+      </label>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:12px;">
+      <button class="btn btn-outline" onclick="clearSearch()">Clear</button>
+      <button class="btn" onclick="executeAdvancedSearch()">Search</button>
+    </div>
+
+    <!-- Search Results Area -->
+    <div id="searchResultsArea" style="display:none; border-top:1px solid #e2e8f0; padding-top:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h4 style="font-size:0.9rem;" id="searchResultsTitle">Results</h4>
+        <button class="btn btn-sm" style="background:#3b82f6" onclick="copyEmails()">📋 Copy Emails</button>
+      </div>
+      <div id="searchResultsList" style="max-height: 200px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px;"></div>
     </div>
   </div>
 </div>
@@ -242,6 +332,7 @@
   };
 
   let customers = [], records = [], currentCustomerId = null;
+  let currentSearchResults = [];
 
   function showToast(msg) {
     const t = document.getElementById('toast');
@@ -279,6 +370,7 @@
     renderCustomers();
     renderProfile(id);
     document.getElementById('mainPanel').style.display = 'flex';
+    closeModal('searchModal');
   }
 
   function calcMonthsAgo(dateStr) {
@@ -310,7 +402,6 @@
       <span><strong>Concern:</strong> ${c.concern || 'N/A'}</span>
     `;
 
-    // 渲染关联客人
     const linkedArea = document.getElementById('linkedProfilesArea');
     let linkedHtml = '';
     if (c.linked_customer_ids && c.linked_customer_ids.length > 0) {
@@ -330,27 +421,6 @@
     linkedArea.innerHTML = linkedHtml;
 
     const myRecords = records.filter(r => r.customer_id === id);
-    const today = new Date().toISOString().split('T')[0];
-
-    const active = myRecords.filter(r => 
-      r.status !== 'past' && 
-      ((r.next_date && r.next_date <= today) || (r.appointment_date && r.appointment_date <= today))
-    );
-    
-    document.getElementById('activeSection').innerHTML = active.length ? active.map(r => `
-      <div class="item-card" style="border-color: #fca5a5; background: #fef2f2; flex-direction: column; gap: 12px;">
-        <div>
-          <strong>${r.name}</strong> <span class="badge ${r.status}">${r.status}</span>
-          <div class="item-dates" style="color:#dc2626;">
-            ${r.next_date ? `<span>Follow-up due: ${r.next_date}</span>` : ''}
-            ${r.appointment_date ? `<span>Appt today: ${r.appointment_date}</span>` : ''}
-          </div>
-        </div>
-        <div style="display:flex; justify-content:flex-end;">
-          <button class="btn btn-sm" onclick="openAppointmentModal('${r.id}')">Manage Follow-up</button>
-        </div>
-      </div>
-    `).join('') : '<div style="color:#94a3b8; font-size:0.85rem;">No active follow-ups or appointments due.</div>';
 
     const recs = myRecords.filter(r => r.status === 'recommended');
     document.getElementById('recommendedSection').innerHTML = recs.length ? recs.map(r => renderItemCard(r, 'recommended')).join('') : '<div style="color:#94a3b8; font-size:0.85rem;">None</div>';
@@ -389,24 +459,37 @@
       `;
     }
 
+    const today = new Date().toISOString().split('T')[0];
+    const isDue = status !== 'past' && ((r.next_date && r.next_date <= today) || (r.appointment_date && r.appointment_date <= today));
+    
+    let cardClass = 'item-card';
+    if (r.is_main_followup) cardClass += ' main-followup';
+    if (isDue) {
+      if (r.is_strict) cardClass += ' strict-overdue';
+      else cardClass += ' due';
+    }
+
     const apptInfo = r.appointment_date ? `<span style="color:#3b82f6; font-weight:600;">Next Appt: ${r.appointment_date}</span>` : '';
-    const isMain = r.is_main_followup;
-    const cardClass = isMain ? 'item-card main-followup' : 'item-card';
-    const pinBtn = status !== 'past' ? `<button class="btn btn-sm ${isMain ? 'btn' : 'btn-outline'}" style="margin-left:4px;" onclick="setMainFollowup('${r.id}')" title="Set as main follow-up">📌</button>` : '';
+    const pinBtn = status !== 'past' ? `<button class="btn btn-sm ${r.is_main_followup ? 'btn' : 'btn-outline'}" style="margin-left:4px;" onclick="setMainFollowup('${r.id}')" title="Set as main follow-up">📌</button>` : '';
+    const strictLock = r.is_strict ? `<span style="color:#dc2626; font-weight:bold; margin-left:6px;" title="${r.strict_note || 'Strict Deadline'}">🔒 Strict</span>` : '';
+    const manageBtn = isDue ? `<button class="btn btn-sm" style="background:#dc2626; margin-left:8px;" onclick="openAppointmentModal('${r.id}')">⚠️ Manage</button>` : '';
+
+    const dueDateClass = isDue ? 'date-overdue' : '';
 
     return `
       <div class="${cardClass}">
         <div>
-          <strong>${r.name}</strong> <span class="badge ${status}">${status}</span> ${tagHtml}
+          <strong>${r.name}</strong> ${strictLock} <span class="badge ${status}">${status}</span> ${tagHtml}
           <div class="item-dates">
             ${timeAgo}
-            ${r.next_date ? `<span>Next follow-up: ${r.next_date}</span>` : ''}
+            ${r.next_date ? `<span class="${dueDateClass}">Next follow-up: ${r.next_date}</span>` : ''}
             ${apptInfo}
           </div>
         </div>
         <div class="item-actions">
           ${buttons}
           ${pinBtn}
+          ${manageBtn}
         </div>
       </div>
     `;
@@ -445,7 +528,6 @@
     const lc = customers.find(x => x.id === linkId);
     if (!c || !lc) return;
 
-    // 建立双向关联
     const myLinks = [...(c.linked_customer_ids || []), linkId];
     const theirLinks = [...(lc.linked_customer_ids || []), currentCustomerId];
 
@@ -518,6 +600,9 @@
     document.getElementById('itemLastDate').value = '';
     document.getElementById('itemNextDate').value = '';
     document.getElementById('itemAppDate').value = '';
+    document.getElementById('itemIsStrict').checked = false;
+    document.getElementById('itemStrictNote').value = '';
+    document.getElementById('itemStrictNote').style.display = 'none';
     
     document.getElementById('itemModalTitle').innerText = `Add ${category === 'treatment' ? 'Treatment' : 'Product'}`;
     document.getElementById('appointmentDateGroup').style.display = status === 'current' ? 'block' : 'none';
@@ -551,6 +636,9 @@
     document.getElementById('itemLastDate').value = r.last_date || '';
     document.getElementById('itemNextDate').value = r.next_date || '';
     document.getElementById('itemAppDate').value = r.appointment_date || '';
+    document.getElementById('itemIsStrict').checked = r.is_strict || false;
+    document.getElementById('itemStrictNote').value = r.strict_note || '';
+    document.getElementById('itemStrictNote').style.display = r.is_strict ? 'block' : 'none';
     
     document.getElementById('itemModalTitle').innerText = `Edit ${r.category === 'treatment' ? 'Treatment' : 'Product'}`;
     document.getElementById('appointmentDateGroup').style.display = r.status === 'current' ? 'block' : 'none';
@@ -570,8 +658,14 @@
     const lastDate = document.getElementById('itemLastDate').value || null;
     const nextDate = document.getElementById('itemNextDate').value || null;
     const apptDate = document.getElementById('itemAppDate').value || null;
+    const isStrict = document.getElementById('itemIsStrict').checked;
+    const strictNote = isStrict ? document.getElementById('itemStrictNote').value : null;
     
-    let data = { name, category, status, tag, last_date: lastDate, next_date: nextDate, appointment_date: apptDate };
+    let data = { 
+      name, category, status, tag, 
+      last_date: lastDate, next_date: nextDate, appointment_date: apptDate,
+      is_strict: isStrict, strict_note: strictNote
+    };
 
     try {
       let savedRecord;
@@ -626,7 +720,19 @@
   // --- Manage Follow-up ---
   let activeRecordId = null;
   function openAppointmentModal(id) {
+    const r = records.find(x => x.id === id);
+    if (!r) return;
     activeRecordId = id;
+    
+    // 如果是严格不可延期，禁用延期按钮
+    if (r.is_strict) {
+      document.getElementById('normalActions').style.display = 'none';
+      document.getElementById('manageWarning').innerHTML = `<span style="color:#dc2626; font-weight:bold;">⚠️ This is a strict deadline (${r.strict_note || 'No reason provided'}). It cannot be delayed.</span>`;
+    } else {
+      document.getElementById('normalActions').style.display = 'block';
+      document.getElementById('manageWarning').innerText = 'This item is due. What would you like to do?';
+    }
+    
     openModal('appointmentModal');
   }
 
@@ -638,7 +744,7 @@
     let updateData = {};
 
     if (action === 'executed') {
-      updateData = { status: 'current', tag: 'liked', appointment_date: null, next_date: null };
+      updateData = { status: 'current', tag: 'liked', appointment_date: null, next_date: null, is_strict: false, strict_note: null };
     } else if (action === 'cancelled') {
       updateData = { appointment_date: null, next_date: new Date(today.setDate(today.getDate() + 30)).toISOString().split('T')[0] };
     } else if (action === 'reschedule_appt') {
@@ -650,7 +756,7 @@
       if (!newDate) return;
       updateData = { next_date: newDate };
     } else if (action === 'not_interested') {
-      updateData = { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null };
+      updateData = { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false };
     }
 
     try {
@@ -679,10 +785,96 @@
   async function cancelItem(id) {
     if (!confirm('Move to History (Not Interested) and stop follow-ups?')) return;
     try {
-      await api.update('records', `id=eq.${id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false });
+      await api.update('records', `id=eq.${id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false });
       await loadData();
       showToast('Moved to History');
     } catch (e) { alert(e.message); }
+  }
+
+  // --- Advanced Search ---
+  function openSearchModal() {
+    openModal('searchModal');
+  }
+
+  function clearSearch() {
+    document.getElementById('searchType').value = '';
+    document.getElementById('searchStatus').value = '';
+    document.getElementById('searchTag').value = '';
+    document.getElementById('searchKw').value = '';
+    document.getElementById('searchConcern').value = '';
+    document.getElementById('searchCustName').value = '';
+    document.getElementById('searchStrict').checked = false;
+    document.getElementById('searchMain').checked = false;
+    document.getElementById('searchResultsArea').style.display = 'none';
+  }
+
+  function executeAdvancedSearch() {
+    const type = document.getElementById('searchType').value;
+    const status = document.getElementById('searchStatus').value;
+    const tag = document.getElementById('searchTag').value;
+    const kw = document.getElementById('searchKw').value.toLowerCase().trim();
+    const concern = document.getElementById('searchConcern').value.toLowerCase().trim();
+    const custName = document.getElementById('searchCustName').value.toLowerCase().trim();
+    const strict = document.getElementById('searchStrict').checked;
+    const main = document.getElementById('searchMain').checked;
+
+    const matched = records.filter(r => {
+      if (type && r.category !== type) return false;
+      if (status && r.status !== status) return false;
+      if (tag && r.tag !== tag) return false;
+      if (kw && !r.name.toLowerCase().includes(kw)) return false;
+      if (strict && !r.is_strict) return false;
+      if (main && !r.is_main_followup) return false;
+
+      const c = customers.find(x => x.id === r.customer_id);
+      if (!c) return false;
+      if (concern && !(c.concern || '').toLowerCase().includes(concern)) return false;
+      if (custName && !(c.name.toLowerCase().includes(custName) || (c.client_id && c.client_id.toLowerCase().includes(custName)))) return false;
+
+      return true;
+    });
+
+    // 去重客人 (一个客人匹配了多个项目只显示一次)
+    const uniqueCustomers = [];
+    const seenIds = new Set();
+    matched.forEach(r => {
+      if (!seenIds.has(r.customer_id)) {
+        seenIds.add(r.customer_id);
+        uniqueCustomers.push(customers.find(c => c.id === r.customer_id));
+      }
+    });
+
+    currentSearchResults = uniqueCustomers;
+
+    const resultArea = document.getElementById('searchResultsArea');
+    const resultList = document.getElementById('searchResultsList');
+    const resultTitle = document.getElementById('searchResultsTitle');
+
+    resultArea.style.display = 'block';
+    resultTitle.innerText = `Results (${uniqueCustomers.length} customers)`;
+
+    if (uniqueCustomers.length === 0) {
+      resultList.innerHTML = '<div style="padding:12px; color:#94a3b8;">No matches found.</div>';
+      return;
+    }
+
+    resultList.innerHTML = uniqueCustomers.map(c => `
+      <div class="search-result-item" onclick="selectCustomer('${c.id}')">
+        <div>
+          <strong>${c.name}</strong>
+          <span style="font-size:0.75rem; color:#64748b; margin-left:8px;">${c.concern || ''}</span>
+        </div>
+        <span style="font-size:0.75rem; color:#3b82f6;">View →</span>
+      </div>
+    `).join('');
+  }
+
+  function copyEmails() {
+    const emails = currentSearchResults.map(c => c.email).filter(e => e && e.trim() !== '');
+    if (emails.length === 0) return alert('No emails found in the search results.');
+    navigator.clipboard.writeText(emails.join(', ')).then(() => {
+      showToast(`Copied ${emails.length} email(s) to clipboard`);
+    });
   }
 
   // Initialize
