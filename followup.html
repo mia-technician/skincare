@@ -50,14 +50,17 @@
   
   .item-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
   .item-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .item-dates { font-size: 0.75rem; color: #64748b; margin-top: 6px; }
+  .item-dates span { margin-right: 12px; }
   
   /* Modals */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 1000; }
   .modal-overlay.show { display: flex; }
-  .modal-content { background: #fff; padding: 24px; border-radius: 16px; width: 90%; max-width: 400px; }
+  .modal-content { background: #fff; padding: 24px; border-radius: 16px; width: 90%; max-width: 420px; }
   .form-group { margin-bottom: 12px; }
   .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; }
   .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; }
+  .hint-text { font-size: 0.7rem; color: #64748b; margin-top: 4px; }
 
   /* Toast */
   .toast { position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: #fff; padding: 12px 24px; border-radius: 8px; opacity: 0; transform: translateY(20px); transition: 0.3s; z-index: 9999; pointer-events: none; }
@@ -78,7 +81,6 @@
 
   <!-- Right Main Panel -->
   <div class="main-panel" id="mainPanel" style="display: none;">
-    <!-- Customer Profile -->
     <div class="card">
       <div class="profile-header">
         <div>
@@ -91,9 +93,8 @@
       </div>
     </div>
 
-    <!-- Categories -->
     <div class="card">
-      <div class="section-title">🔔 Active Follow-ups (Needs Attention)</div>
+      <div class="section-title">🔔 Active Follow-ups & Appointments (Due)</div>
       <div id="activeSection"></div>
     </div>
 
@@ -109,7 +110,7 @@
     <div class="card">
       <div class="section-title">🔄 In Use / Current</div>
       <div style="margin-bottom: 12px; display: flex; gap: 8px;">
-        <button class="btn btn-sm" style="background:#10b981" onclick="openItemModal('current', 'treatment')">➕ Add Past Treatment</button>
+        <button class="btn btn-sm" style="background:#10b981" onclick="openItemModal('current', 'treatment')">➕ Add Current Treatment</button>
         <button class="btn btn-sm" style="background:#10b981" onclick="openItemModal('current', 'product')">➕ Add Current Product</button>
       </div>
       <div id="currentSection"></div>
@@ -122,7 +123,7 @@
   </div>
 </div>
 
-<!-- Modals -->
+<!-- Customer Modal -->
 <div class="modal-overlay" id="customerModal">
   <div class="modal-content">
     <h3 style="margin-bottom: 16px;" id="customerModalTitle">Add Customer</h3>
@@ -139,13 +140,14 @@
   </div>
 </div>
 
-<!-- Unified Item Modal (Add & Edit) -->
+<!-- Item Modal (Unified) -->
 <div class="modal-overlay" id="itemModal">
   <div class="modal-content">
     <h3 style="margin-bottom: 16px;" id="itemModalTitle">Add Item</h3>
     <input type="hidden" id="itemId">
     <input type="hidden" id="itemCategory">
     <input type="hidden" id="itemStatus">
+    
     <div class="form-group"><label>Name of Treatment/Product *</label><input type="text" id="itemName"></div>
     
     <div class="form-group"><label>Tag (标签)</label>
@@ -158,27 +160,34 @@
       </select>
     </div>
     
-    <div class="form-group"><label>Last Date (上次做/买)</label><input type="date" id="itemLastDate"></div>
-    
-    <!-- 专门用于直接修改跟进时间的输入框 -->
-    <div class="form-group"><label>Next Follow-up Date (下次跟进)</label><input type="date" id="itemNextDate"></div>
+    <div class="form-group"><label>Next Follow-up Date (下次跟进)</label>
+      <input type="date" id="itemNextDate">
+      <div class="hint-text" id="nextDateHint"></div>
+    </div>
 
-    <div style="display:flex; justify-content:flex-end; gap:8px;">
+    <div class="form-group" id="appointmentDateGroup" style="display:none;">
+      <label>Next Appointment Date (下次预约)</label>
+      <input type="date" id="itemAppDate">
+      <div class="hint-text">Optional. If set, system will remind you on this day.</div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 20px;">
       <button class="btn btn-outline" onclick="closeModal('itemModal')">Cancel</button>
       <button class="btn" onclick="saveItem()">Save</button>
     </div>
   </div>
 </div>
 
+<!-- Manage Follow-up Modal -->
 <div class="modal-overlay" id="appointmentModal">
   <div class="modal-content">
     <h3 style="margin-bottom: 16px;">Manage Follow-up</h3>
-    <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;">This follow-up is due. What would you like to do?</p>
+    <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;">This item is due. What would you like to do?</p>
     <div style="display:flex; flex-direction:column; gap:8px;">
-      <button class="btn" style="background:#10b981" onclick="handleAppointmentAction('executed')">✅ Executed (Move to Current)</button>
+      <button class="btn" style="background:#10b981" onclick="handleAppointmentAction('executed')">✅ Executed / Done</button>
       <button class="btn" style="background:#f59e0b" onclick="handleAppointmentAction('cancelled')">❌ Cancelled (Follow up in 1 month)</button>
-      <button class="btn btn-outline" onclick="handleAppointmentAction('reschedule')">📅 Set Appointment Date</button>
-      <button class="btn btn-outline" onclick="handleAppointmentAction('change_next')">⏳ Just Change Follow-up Date</button>
+      <button class="btn btn-outline" onclick="handleAppointmentAction('reschedule_appt')">📅 Set Appointment Date</button>
+      <button class="btn btn-outline" onclick="handleAppointmentAction('change_next')">⏳ Change Follow-up Date</button>
       <button class="btn btn-outline" style="color:#dc2626; border-color:#fca5a5;" onclick="handleAppointmentAction('not_interested')">🚫 Not Interested (To History)</button>
     </div>
   </div>
@@ -258,17 +267,26 @@
     const myRecords = records.filter(r => r.customer_id === id);
     const today = new Date().toISOString().split('T')[0];
 
-    // Active Follow-ups
-    const active = myRecords.filter(r => r.status !== 'past' && r.next_date && r.next_date <= today);
+    // Active Follow-ups & Appointments
+    const active = myRecords.filter(r => 
+      r.status !== 'past' && 
+      ((r.next_date && r.next_date <= today) || (r.appointment_date && r.appointment_date <= today))
+    );
+    
     document.getElementById('activeSection').innerHTML = active.length ? active.map(r => `
-      <div class="item-card" style="border-color: #fca5a5; background: #fef2f2;">
+      <div class="item-card" style="border-color: #fca5a5; background: #fef2f2; flex-direction: column; gap: 12px;">
         <div>
           <strong>${r.name}</strong> <span class="badge ${r.status}">${r.status}</span>
-          <div style="font-size:0.75rem; color:#dc2626; margin-top:4px;">Due: ${r.next_date} (Appointment: ${r.appointment_date || 'Not set'})</div>
+          <div class="item-dates" style="color:#dc2626;">
+            ${r.next_date ? `<span>Follow-up due: ${r.next_date}</span>` : ''}
+            ${r.appointment_date ? `<span>Appt today: ${r.appointment_date}</span>` : ''}
+          </div>
         </div>
-        <button class="btn btn-sm" onclick="openAppointmentModal('${r.id}')">Manage Follow-up</button>
+        <div style="display:flex; justify-content:flex-end;">
+          <button class="btn btn-sm" onclick="openAppointmentModal('${r.id}')">Manage Follow-up</button>
+        </div>
       </div>
-    `).join('') : '<div style="color:#94a3b8; font-size:0.85rem;">No active follow-ups today.</div>';
+    `).join('') : '<div style="color:#94a3b8; font-size:0.85rem;">No active follow-ups or appointments due.</div>';
 
     // Recommended
     const recs = myRecords.filter(r => r.status === 'recommended');
@@ -294,7 +312,7 @@
     if (status === 'recommended') {
       buttons = `
         <button class="btn btn-sm" style="background:#10b981" onclick="proceedItem('${r.id}')">Proceed</button>
-        <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Not Interested</button>
+        <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Move to History</button>
         <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit</button>
       `;
     } else if (status === 'current') {
@@ -303,24 +321,28 @@
         <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit</button>
       `;
     } else {
-      // Past/History
       buttons = `
         <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit / Tag</button>
       `;
     }
 
+    const apptInfo = r.appointment_date ? `<span style="color:#3b82f6; font-weight:600;">Next Appt: ${r.appointment_date}</span>` : '';
+
     return `
       <div class="item-card">
         <div>
           <strong>${r.name}</strong> <span class="badge ${status}">${status}</span> ${tagHtml}
-          ${r.next_date ? `<div style="font-size:0.75rem; color:#64748b; margin-top:4px;">Next follow-up: ${r.next_date}</div>` : ''}
+          <div class="item-dates">
+            ${r.next_date ? `<span>Next follow-up: ${r.next_date}</span>` : ''}
+            ${apptInfo}
+          </div>
         </div>
         <div class="item-actions">${buttons}</div>
       </div>
     `;
   }
 
-  // Modals Logic
+  // --- Customer Modals ---
   function openCustomerModal() {
     document.getElementById('custId').value = '';
     document.getElementById('custName').value = '';
@@ -369,6 +391,7 @@
     } catch (e) { alert(e.message); }
   }
 
+  // --- Item Modals ---
   function openItemModal(status, category) {
     if (!currentCustomerId) return;
     document.getElementById('itemId').value = '';
@@ -376,10 +399,30 @@
     document.getElementById('itemStatus').value = status;
     document.getElementById('itemName').value = '';
     document.getElementById('itemTag').value = '';
-    document.getElementById('itemLastDate').value = '';
     document.getElementById('itemNextDate').value = '';
+    document.getElementById('itemAppDate').value = '';
+    
     document.getElementById('itemModalTitle').innerText = `Add ${category === 'treatment' ? 'Treatment' : 'Product'}`;
+    document.getElementById('appointmentDateGroup').style.display = status === 'current' ? 'block' : 'none';
+    
+    // 提取其他项目已确定的跟进日期供选择
+    populateNextDateOptions();
+    
     openModal('itemModal');
+  }
+
+  function populateNextDateOptions() {
+    const myRecords = records.filter(r => r.customer_id === currentCustomerId && r.next_date && r.status !== 'past');
+    const dates = [...new Set(myRecords.map(r => r.next_date))].sort();
+    
+    const hintEl = document.getElementById('nextDateHint');
+    if (dates.length > 0) {
+      hintEl.innerHTML = `Other items due on: ` + dates.map(d => 
+        `<span style="cursor:pointer; color:#3b82f6; text-decoration:underline; margin-right:6px;" onclick="document.getElementById('itemNextDate').value='${d}'">${d}</span>`
+      ).join('');
+    } else {
+      hintEl.innerText = 'Leave empty to auto-calculate (+7 days for rec, +3 months for current).';
+    }
   }
 
   function openEditItemModal(id) {
@@ -390,9 +433,13 @@
     document.getElementById('itemStatus').value = r.status;
     document.getElementById('itemName').value = r.name;
     document.getElementById('itemTag').value = r.tag || '';
-    document.getElementById('itemLastDate').value = r.last_date || '';
     document.getElementById('itemNextDate').value = r.next_date || '';
+    document.getElementById('itemAppDate').value = r.appointment_date || '';
+    
     document.getElementById('itemModalTitle').innerText = `Edit ${r.category === 'treatment' ? 'Treatment' : 'Product'}`;
+    document.getElementById('appointmentDateGroup').style.display = r.status === 'current' ? 'block' : 'none';
+    document.getElementById('nextDateHint').innerText = '';
+    
     openModal('itemModal');
   }
 
@@ -404,12 +451,19 @@
     const category = document.getElementById('itemCategory').value;
     const status = document.getElementById('itemStatus').value;
     const tag = document.getElementById('itemTag').value;
-    const lastDate = document.getElementById('itemLastDate').value || null;
     const nextDate = document.getElementById('itemNextDate').value || null;
+    const apptDate = document.getElementById('itemAppDate').value || null;
     
-    let data = { name, category, status, tag, last_date: lastDate, next_date: nextDate };
+    let data = { 
+      name, 
+      category, 
+      status, 
+      tag, 
+      next_date: nextDate,
+      appointment_date: apptDate
+    };
 
-    // 如果是新建，且没填下次跟进时间，则按规则自动计算
+    // 如果新建且未填，自动计算默认日期
     if (!id && !nextDate) {
       const today = new Date();
       if (status === 'recommended') {
@@ -435,7 +489,7 @@
     } catch (e) { alert(e.message); }
   }
 
-  // Appointment handling
+  // --- Manage Follow-up ---
   let activeRecordId = null;
   function openAppointmentModal(id) {
     activeRecordId = id;
@@ -450,10 +504,18 @@
     let updateData = {};
 
     if (action === 'executed') {
-      updateData = { status: 'current', tag: 'liked', appointment_date: null, next_date: new Date(today.setMonth(today.getMonth() + 3)).toISOString().split('T')[0] };
+      updateData = { 
+        status: 'current', 
+        tag: 'liked', 
+        appointment_date: null, 
+        next_date: new Date(today.setMonth(today.getMonth() + 3)).toISOString().split('T')[0] 
+      };
     } else if (action === 'cancelled') {
-      updateData = { appointment_date: null, next_date: new Date(today.setDate(today.getDate() + 30)).toISOString().split('T')[0] };
-    } else if (action === 'reschedule') {
+      updateData = { 
+        appointment_date: null, 
+        next_date: new Date(today.setDate(today.getDate() + 30)).toISOString().split('T')[0] 
+      };
+    } else if (action === 'reschedule_appt') {
       const newDate = prompt('Enter new appointment date (YYYY-MM-DD):');
       if (!newDate) return;
       updateData = { appointment_date: newDate, next_date: newDate };
@@ -462,7 +524,7 @@
       if (!newDate) return;
       updateData = { next_date: newDate };
     } else if (action === 'not_interested') {
-      updateData = { status: 'past', tag: 'not_interested', next_date: null };
+      updateData = { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null };
     }
 
     try {
@@ -473,28 +535,26 @@
     } catch (e) { alert(e.message); }
   }
 
-  // Proceed / Cancel actions
+  // --- Quick Actions ---
   async function proceedItem(id) {
     const r = records.find(x => x.id === id);
     const today = new Date();
-    let nextDate = null;
-    
     today.setMonth(today.getMonth() + 3);
-    nextDate = today.toISOString().split('T')[0];
+    const nextDate = today.toISOString().split('T')[0];
     
     try {
-      await api.update('records', `id=eq.${r.id}`, { status: 'current', next_date: nextDate });
+      await api.update('records', `id=eq.${r.id}`, { status: 'current', next_date: nextDate, tag: '' });
       await loadData();
       showToast('Moved to Current');
     } catch (e) { alert(e.message); }
   }
 
   async function cancelItem(id) {
-    if (!confirm('Mark as Not Interested and move to History?')) return;
+    if (!confirm('Move to History (Not Interested) and stop follow-ups?')) return;
     try {
-      await api.update('records', `id=eq.${id}`, { status: 'past', tag: 'not_interested', next_date: null });
+      await api.update('records', `id=eq.${id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null });
       await loadData();
-      showToast('Moved to History (Not Interested)');
+      showToast('Moved to History');
     } catch (e) { alert(e.message); }
   }
 
