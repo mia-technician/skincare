@@ -75,7 +75,9 @@
   /* Modals */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 1000; }
   .modal-overlay.show { display: flex; }
-  .modal-content { background: #fff; padding: 24px; border-radius: 16px; width: 90%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+  .modal-content { background: #fff; padding: 24px; border-radius: 16px; width: 90%; max-width: 480px; max-height: 90vh; overflow-y: auto; position: relative; }
+  .close-btn { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8; }
+  .close-btn:hover { color: #0f172a; }
   .form-group { margin-bottom: 12px; }
   .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; }
   .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; }
@@ -146,6 +148,7 @@
 <!-- Customer Modal -->
 <div class="modal-overlay" id="customerModal">
   <div class="modal-content">
+    <button class="close-btn" onclick="closeModal('customerModal')">✖</button>
     <h3 style="margin-bottom: 16px;" id="customerModalTitle">Add Customer</h3>
     <input type="hidden" id="custId">
     <div class="form-group"><label>Name *</label><input type="text" id="custName"></div>
@@ -163,6 +166,7 @@
 <!-- Link Customer Modal -->
 <div class="modal-overlay" id="linkModal">
   <div class="modal-content">
+    <button class="close-btn" onclick="closeModal('linkModal')">✖</button>
     <h3 style="margin-bottom: 16px;">Link Related Profile</h3>
     <p style="font-size:0.8rem; color:#64748b; margin-bottom:16px;">Search for a family member or partner to link.</p>
     <input type="text" id="linkSearch" class="search-box" placeholder="Search name or ID..." oninput="renderLinkOptions()">
@@ -176,6 +180,7 @@
 <!-- Item Modal (Unified) -->
 <div class="modal-overlay" id="itemModal">
   <div class="modal-content">
+    <button class="close-btn" onclick="closeModal('itemModal')">✖</button>
     <h3 style="margin-bottom: 16px;" id="itemModalTitle">Add Item</h3>
     <input type="hidden" id="itemId">
     <input type="hidden" id="itemCategory">
@@ -211,7 +216,7 @@
     <!-- 严格期限设定 -->
     <div class="form-group" style="background:#fef2f2; padding:12px; border-radius:8px; border:1px solid #fecaca;">
       <label style="display:flex; align-items:center; gap:8px; color:#991b1b; cursor:pointer;">
-        <input type="checkbox" id="itemIsStrict" style="width:auto;"> 🔒 Strict Deadline (不可延期)
+        <input type="checkbox" id="itemIsStrict" style="width:auto;" onchange="document.getElementById('itemStrictNote').style.display = this.checked ? 'block' : 'none'"> 🔒 Strict Deadline (不可延期)
       </label>
       <input type="text" id="itemStrictNote" placeholder="Reason (e.g. Post-op 24h check)" style="margin-top:8px; display:none;">
     </div>
@@ -226,6 +231,7 @@
 <!-- Manage Follow-up Modal -->
 <div class="modal-overlay" id="appointmentModal">
   <div class="modal-content">
+    <button class="close-btn" onclick="closeModal('appointmentModal')">✖</button>
     <h3 style="margin-bottom: 16px;">Manage Follow-up</h3>
     <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;" id="manageWarning">This item is due. What would you like to do?</p>
     <div style="display:flex; flex-direction:column; gap:8px;">
@@ -245,6 +251,7 @@
 <!-- Advanced Search Modal -->
 <div class="modal-overlay" id="searchModal">
   <div class="modal-content" style="max-width: 650px;">
+    <button class="close-btn" onclick="closeModal('searchModal')">✖</button>
     <h3 style="margin-bottom: 16px;">🔍 Advanced Search</h3>
     
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
@@ -724,7 +731,6 @@
     if (!r) return;
     activeRecordId = id;
     
-    // 如果是严格不可延期，禁用延期按钮
     if (r.is_strict) {
       document.getElementById('normalActions').style.display = 'none';
       document.getElementById('manageWarning').innerHTML = `<span style="color:#dc2626; font-weight:bold;">⚠️ This is a strict deadline (${r.strict_note || 'No reason provided'}). It cannot be delayed.</span>`;
@@ -834,7 +840,6 @@
       return true;
     });
 
-    // 去重客人 (一个客人匹配了多个项目只显示一次)
     const uniqueCustomers = [];
     const seenIds = new Set();
     matched.forEach(r => {
@@ -876,6 +881,13 @@
       showToast(`Copied ${emails.length} email(s) to clipboard`);
     });
   }
+
+  // 点击遮罩层关闭弹窗
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal(overlay.id);
+    });
+  });
 
   // Initialize
   loadData();
