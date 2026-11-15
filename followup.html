@@ -31,7 +31,8 @@
   /* Right Main Panel */
   .main-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; }
   .profile-header { display: flex; justify-content: space-between; align-items: flex-start; }
-  .profile-name { font-size: 1.5rem; font-weight: 700; color: #0f172a; }
+  .profile-name { font-size: 1.5rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 10px; }
+  .birthday-badge { font-size: 0.8rem; background: #fce7f3; color: #db2777; padding: 4px 10px; border-radius: 20px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
   .profile-details { display: flex; gap: 16px; font-size: 0.85rem; color: #475569; margin-top: 8px; flex-wrap: wrap; }
   
   /* Sections */
@@ -48,10 +49,12 @@
   .tag-disliked { background: #fee2e2; color: #991b1b; }
   .tag-not-interested { background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
   
-  .item-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .item-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; transition: 0.2s; }
+  .item-card.main-followup { border: 2px solid #3b82f6; background: #eff6ff; box-shadow: 0 4px 12px rgba(59,130,246,0.15); }
+  
   .item-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-  .item-dates { font-size: 0.75rem; color: #64748b; margin-top: 6px; }
-  .item-dates span { margin-right: 12px; }
+  .item-dates { font-size: 0.75rem; color: #64748b; margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+  .item-dates span { display: flex; align-items: center; gap: 4px; }
   
   /* Modals */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 1000; }
@@ -94,7 +97,7 @@
     </div>
 
     <div class="card">
-      <div class="section-title">🔔 Active Follow-ups & Appointments (Due)</div>
+      <div class="section-title">🔔 Due Follow-ups & Appointments</div>
       <div id="activeSection"></div>
     </div>
 
@@ -159,6 +162,11 @@
         <option value="not_interested">不感兴趣 (Not Interested)</option>
       </select>
     </div>
+
+    <div class="form-group"><label>Last Date (上次做/买)</label>
+      <input type="date" id="itemLastDate">
+      <div class="hint-text">If entered, system calculates time elapsed.</div>
+    </div>
     
     <div class="form-group"><label>Next Follow-up Date (下次跟进)</label>
       <input type="date" id="itemNextDate">
@@ -166,9 +174,8 @@
     </div>
 
     <div class="form-group" id="appointmentDateGroup" style="display:none;">
-      <label>Next Appointment Date (下次预约)</label>
+      <label>Next Appointment (下次预约)</label>
       <input type="date" id="itemAppDate">
-      <div class="hint-text">Optional. If set, system will remind you on this day.</div>
     </div>
 
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 20px;">
@@ -253,10 +260,30 @@
     document.getElementById('mainPanel').style.display = 'flex';
   }
 
+  // 计算时间差（月数）
+  function calcMonthsAgo(dateStr) {
+    if (!dateStr) return null;
+    const past = new Date(dateStr);
+    const now = new Date();
+    let months = (now.getFullYear() - past.getFullYear()) * 12 + (now.getMonth() - past.getMonth());
+    if (now.getDate() < past.getDate()) months--;
+    if (months <= 0) {
+      const days = Math.floor((now - past) / (1000 * 60 * 60 * 24));
+      return days > 0 ? `${days} day(s) ago` : 'Today';
+    }
+    return `${months} month(s) ago`;
+  }
+
   function renderProfile(id) {
     const c = customers.find(x => x.id === id);
     if (!c) return;
-    document.getElementById('profileName').innerText = c.name;
+    
+    // 生日判断
+    const currentMonth = new Date().getMonth() + 1;
+    const isBirthday = c.birth_month === currentMonth;
+    const birthdayHtml = isBirthday ? `<span class="birthday-badge">🎂 Birthday Month</span>` : '';
+
+    document.getElementById('profileName').innerHTML = `${c.name} ${birthdayHtml}`;
     document.getElementById('profileDetails').innerHTML = `
       <span><strong>ID:</strong> ${c.client_id || 'N/A'}</span>
       <span><strong>Email:</strong> ${c.email || 'N/A'}</span>
@@ -308,11 +335,14 @@
     if (r.tag === 'disliked') tagHtml = '<span class="tag tag-disliked">Disliked</span>';
     if (r.tag === 'not_interested') tagHtml = '<span class="tag tag-not-interested">Not Interested</span>';
 
+    // 计算距离上次的时间
+    const timeAgo = r.last_date ? `<span style="color:#f59e0b;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
+
     let buttons = '';
     if (status === 'recommended') {
       buttons = `
         <button class="btn btn-sm" style="background:#10b981" onclick="proceedItem('${r.id}')">Proceed</button>
-        <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Move to History</button>
+        <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Not Interested</button>
         <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit</button>
       `;
     } else if (status === 'current') {
@@ -327,17 +357,26 @@
     }
 
     const apptInfo = r.appointment_date ? `<span style="color:#3b82f6; font-weight:600;">Next Appt: ${r.appointment_date}</span>` : '';
+    
+    // 如果是主跟进项目，高亮显示
+    const isMain = r.is_main_followup;
+    const cardClass = isMain ? 'item-card main-followup' : 'item-card';
+    const pinBtn = status !== 'past' ? `<button class="btn btn-sm ${isMain ? 'btn' : 'btn-outline'}" style="margin-left:4px;" onclick="setMainFollowup('${r.id}')" title="Set as main follow-up">📌</button>` : '';
 
     return `
-      <div class="item-card">
+      <div class="${cardClass}">
         <div>
           <strong>${r.name}</strong> <span class="badge ${status}">${status}</span> ${tagHtml}
           <div class="item-dates">
+            ${timeAgo}
             ${r.next_date ? `<span>Next follow-up: ${r.next_date}</span>` : ''}
             ${apptInfo}
           </div>
         </div>
-        <div class="item-actions">${buttons}</div>
+        <div class="item-actions">
+          ${buttons}
+          ${pinBtn}
+        </div>
       </div>
     `;
   }
@@ -399,15 +438,14 @@
     document.getElementById('itemStatus').value = status;
     document.getElementById('itemName').value = '';
     document.getElementById('itemTag').value = '';
+    document.getElementById('itemLastDate').value = '';
     document.getElementById('itemNextDate').value = '';
     document.getElementById('itemAppDate').value = '';
     
     document.getElementById('itemModalTitle').innerText = `Add ${category === 'treatment' ? 'Treatment' : 'Product'}`;
     document.getElementById('appointmentDateGroup').style.display = status === 'current' ? 'block' : 'none';
     
-    // 提取其他项目已确定的跟进日期供选择
     populateNextDateOptions();
-    
     openModal('itemModal');
   }
 
@@ -417,11 +455,11 @@
     
     const hintEl = document.getElementById('nextDateHint');
     if (dates.length > 0) {
-      hintEl.innerHTML = `Other items due on: ` + dates.map(d => 
+      hintEl.innerHTML = `Existing follow-up dates: ` + dates.map(d => 
         `<span style="cursor:pointer; color:#3b82f6; text-decoration:underline; margin-right:6px;" onclick="document.getElementById('itemNextDate').value='${d}'">${d}</span>`
       ).join('');
     } else {
-      hintEl.innerText = 'Leave empty to auto-calculate (+7 days for rec, +3 months for current).';
+      hintEl.innerText = 'Optional. You can manually set a date.';
     }
   }
 
@@ -433,12 +471,13 @@
     document.getElementById('itemStatus').value = r.status;
     document.getElementById('itemName').value = r.name;
     document.getElementById('itemTag').value = r.tag || '';
+    document.getElementById('itemLastDate').value = r.last_date || '';
     document.getElementById('itemNextDate').value = r.next_date || '';
     document.getElementById('itemAppDate').value = r.appointment_date || '';
     
     document.getElementById('itemModalTitle').innerText = `Edit ${r.category === 'treatment' ? 'Treatment' : 'Product'}`;
     document.getElementById('appointmentDateGroup').style.display = r.status === 'current' ? 'block' : 'none';
-    document.getElementById('nextDateHint').innerText = '';
+    document.getElementById('nextDateHint').innerText = 'Change this date to update the follow-up.';
     
     openModal('itemModal');
   }
@@ -451,42 +490,65 @@
     const category = document.getElementById('itemCategory').value;
     const status = document.getElementById('itemStatus').value;
     const tag = document.getElementById('itemTag').value;
+    const lastDate = document.getElementById('itemLastDate').value || null;
     const nextDate = document.getElementById('itemNextDate').value || null;
     const apptDate = document.getElementById('itemAppDate').value || null;
     
-    let data = { 
-      name, 
-      category, 
-      status, 
-      tag, 
-      next_date: nextDate,
-      appointment_date: apptDate
-    };
-
-    // 如果新建且未填，自动计算默认日期
-    if (!id && !nextDate) {
-      const today = new Date();
-      if (status === 'recommended') {
-        today.setDate(today.getDate() + 7);
-        data.next_date = today.toISOString().split('T')[0];
-      } else if (status === 'current') {
-        today.setMonth(today.getMonth() + 3);
-        data.next_date = today.toISOString().split('T')[0];
-      }
-    }
+    let data = { name, category, status, tag, last_date: lastDate, next_date: nextDate, appointment_date: apptDate };
 
     try {
+      let savedRecord;
       if (id) {
-        await api.update('records', `id=eq.${id}`, data);
+        const res = await api.update('records', `id=eq.${id}`, data);
+        savedRecord = res[0];
       } else {
         data.customer_id = currentCustomerId;
         data.followup_stage = 'initial';
-        await api.insert('records', data);
+        const res = await api.insert('records', data);
+        savedRecord = res[0];
       }
+
+      // 如果这里设置了跟进日期，询问是否同步到其他项目
+      if (nextDate) {
+        await syncFollowUpDateToAll(savedRecord.id, nextDate);
+      }
+
       closeModal('itemModal');
       await loadData();
       showToast('Saved successfully');
     } catch (e) { alert(e.message); }
+  }
+
+  // --- 同步跟进日期逻辑 ---
+  async function syncFollowUpDateToAll(sourceId, date) {
+    const others = records.filter(r => r.customer_id === currentCustomerId && r.id !== sourceId && r.status !== 'past');
+    if (others.length === 0) return;
+
+    const confirmSync = confirm(`Do you want to sync this follow-up date (${date}) to all other active items for this customer?`);
+    if (confirmSync) {
+      for (let r of others) {
+        await api.update('records', `id=eq.${r.id}`, { next_date: date, is_main_followup: false });
+      }
+      // 将当前项目设为主跟进项目
+      await api.update('records', `id=eq.${sourceId}`, { is_main_followup: true });
+      showToast('Follow-up dates synced & main project set.');
+    }
+  }
+
+  async function setMainFollowup(id) {
+    const r = records.find(x => x.id === id);
+    if (!r || !r.next_date) return alert('This item has no follow-up date to set as main.');
+
+    // 把该客人所有其他的 main_followup 设为 false，当前设为 true
+    const others = records.filter(x => x.customer_id === currentCustomerId && x.id !== id);
+    for (let o of others) {
+      if (o.is_main_followup) await api.update('records', `id=eq.${o.id}`, { is_main_followup: false });
+    }
+    await api.update('records', `id=eq.${id}`, { is_main_followup: true });
+    
+    // 顺便问问要不要把所有其他项目的日期也同步过来
+    await syncFollowUpDateToAll(id, r.next_date);
+    await loadData();
   }
 
   // --- Manage Follow-up ---
@@ -504,17 +566,9 @@
     let updateData = {};
 
     if (action === 'executed') {
-      updateData = { 
-        status: 'current', 
-        tag: 'liked', 
-        appointment_date: null, 
-        next_date: new Date(today.setMonth(today.getMonth() + 3)).toISOString().split('T')[0] 
-      };
+      updateData = { status: 'current', tag: 'liked', appointment_date: null, next_date: null };
     } else if (action === 'cancelled') {
-      updateData = { 
-        appointment_date: null, 
-        next_date: new Date(today.setDate(today.getDate() + 30)).toISOString().split('T')[0] 
-      };
+      updateData = { appointment_date: null, next_date: new Date(today.setDate(today.getDate() + 30)).toISOString().split('T')[0] };
     } else if (action === 'reschedule_appt') {
       const newDate = prompt('Enter new appointment date (YYYY-MM-DD):');
       if (!newDate) return;
@@ -522,44 +576,4 @@
     } else if (action === 'change_next') {
       const newDate = prompt('Enter new follow-up date (YYYY-MM-DD):');
       if (!newDate) return;
-      updateData = { next_date: newDate };
-    } else if (action === 'not_interested') {
-      updateData = { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null };
-    }
-
-    try {
-      await api.update('records', `id=eq.${r.id}`, updateData);
-      closeModal('appointmentModal');
-      await loadData();
-      showToast('Updated');
-    } catch (e) { alert(e.message); }
-  }
-
-  // --- Quick Actions ---
-  async function proceedItem(id) {
-    const r = records.find(x => x.id === id);
-    const today = new Date();
-    today.setMonth(today.getMonth() + 3);
-    const nextDate = today.toISOString().split('T')[0];
-    
-    try {
-      await api.update('records', `id=eq.${r.id}`, { status: 'current', next_date: nextDate, tag: '' });
-      await loadData();
-      showToast('Moved to Current');
-    } catch (e) { alert(e.message); }
-  }
-
-  async function cancelItem(id) {
-    if (!confirm('Move to History (Not Interested) and stop follow-ups?')) return;
-    try {
-      await api.update('records', `id=eq.${id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null });
-      await loadData();
-      showToast('Moved to History');
-    } catch (e) { alert(e.message); }
-  }
-
-  // Initialize
-  loadData();
-</script>
-</body>
-</html>
+      updateData = { next
