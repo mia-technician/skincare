@@ -253,6 +253,32 @@
   </div>
 </div>
 
+<!-- Add Product Modal (漏掉的补上了) -->
+<div class="modal-overlay" id="addProductModal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal('addProductModal')">✖</button>
+    <h3 style="margin-bottom: 16px;">Add Product to Routine</h3>
+    <input type="hidden" id="addProdId">
+    <input type="hidden" id="addProdSlot">
+    
+    <div class="form-group">
+      <label>Product</label>
+      <div id="addProdName" style="font-weight:600; font-size:1rem; color:#0f172a; padding:8px; background:#f1f5f9; border-radius:6px;"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Last Purchased / Used Date (上次购买/使用)</label>
+      <input type="date" id="addProdLastDate">
+      <div class="hint-text">Optional. System will calculate time elapsed.</div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 20px;">
+      <button class="btn btn-outline" onclick="closeModal('addProductModal')">Cancel</button>
+      <button class="btn" style="background:#10b981" onclick="saveProductToRoutine()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Item Modal (Treatments) -->
 <div class="modal-overlay" id="itemModal">
   <div class="modal-content">
@@ -598,7 +624,6 @@
     resultsDiv.classList.add('show');
   }
 
-  // 新增：打开产品添加弹窗，填购买日期
   function openAddProductModal(prodId, slot) {
     const prod = productsLib.find(p => p.id === prodId);
     if (!prod) return;
@@ -607,7 +632,6 @@
     document.getElementById('addProdName').innerText = prod.name + (prod.brand ? ` (${prod.brand})` : '');
     document.getElementById('addProdLastDate').value = '';
     openModal('addProductModal');
-    // 隐藏搜索下拉
     document.querySelectorAll('.search-results').forEach(el => el.classList.remove('show'));
   }
 
@@ -623,7 +647,7 @@
     let data = { 
       customer_id: currentCustomerId, category: 'product', name: prod.name, 
       status: 'current', time_slot: slot, sort_order: 99, is_main_followup: false, is_strict: false,
-      last_date: lastDate // 保存上次购买/使用日期
+      last_date: lastDate
     };
     try {
         await api.insert('records', data);
