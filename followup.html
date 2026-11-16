@@ -311,8 +311,9 @@
     </div>
 
     <div class="form-group" id="cfExpiryGroup">
-      <label>Expiry Date (有效期至)</label>
+      <label>Next Follow-up / Expiry Date (下次跟进/有效期)</label>
       <input type="date" id="cfExpiryDate">
+      <div class="hint-text">You will be reminded on this date.</div>
     </div>
 
     <div class="form-group" id="cfUsedDateGroup" style="display:none;">
@@ -623,6 +624,10 @@
     const pinBtn = status !== 'past' ? `<button class="btn btn-sm ${r.is_main_followup ? 'btn' : 'btn-outline'}" onclick="setMainFollowup('${r.id}')" title="Set as main follow-up">📌</button>` : '';
     const strictLock = r.is_strict ? `<span style="color:#dc2626; font-weight:bold;" title="${r.strict_note || 'Strict Deadline'}">🔒</span>` : '';
     
+    // Comp Facial 专属提醒按钮（如果到期）
+    const manageBtn = (isDue && r.category !== 'comp_facial') ? `<button class="btn btn-sm" style="background:#dc2626; margin-left:8px;" onclick="openAppointmentModal('${r.id}')">⚠️ Manage</button>` : '';
+
+    // Comp Facial 专属到期警告（让过期看起来更明显）
     let compFacialWarning = '';
     if (r.category === 'comp_facial' && r.status === 'current' && r.next_date) {
         if (r.next_date < today) {
@@ -653,6 +658,7 @@
         <div class="item-actions">
           ${buttons}
           ${pinBtn}
+          ${manageBtn}
         </div>
       </div>
     `;
@@ -987,7 +993,12 @@
     let updateData = {};
 
     if (action === 'executed') {
-      updateData = { status: 'current', tag: 'liked', appointment_date: null, next_date: null, is_strict: false, strict_note: null };
+      // 如果是 Comp Facial，点击已执行后转为 History
+      if (r.category === 'comp_facial') {
+          updateData = { status: 'past', last_date: new Date().toISOString().split('T')[0], next_date: null };
+      } else {
+          updateData = { status: 'current', tag: 'liked', appointment_date: null, next_date: null, is_strict: false, strict_note: null };
+      }
     } else if (action === 'cancelled') {
       updateData = { appointment_date: null, next_date: new Date(today.setDate(today.getDate() + 30)).toISOString().split('T')[0] };
     } else if (action === 'reschedule_appt') {
