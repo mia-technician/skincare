@@ -347,58 +347,21 @@
   </div>
 </div>
 
-<!-- Advanced Search Modal -->
+<!-- Advanced Search Modal (Simplified) -->
 <div class="modal-overlay" id="searchModal">
-  <div class="modal-content" style="max-width: 650px;">
+  <div class="modal-content" style="max-width: 500px;">
     <button class="close-btn" onclick="closeModal('searchModal')">✖</button>
     <h3 style="margin-bottom: 16px;">🔍 Advanced Search</h3>
     
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
-      <div class="form-group"><label>Type</label>
-        <select id="searchType">
-          <option value="">Any</option>
-          <option value="treatment">Treatment (项目)</option>
-          <option value="product">Product (产品)</option>
-          <option value="comp_facial">Comp Facial (赠送护理)</option>
-        </select>
-      </div>
-      <div class="form-group"><label>Status</label>
-        <select id="searchStatus">
-          <option value="">Any</option>
-          <option value="recommended">Recommended</option>
-          <option value="current">Current</option>
-          <option value="past">History</option>
-        </select>
-      </div>
-      <div class="form-group"><label>Tag</label>
-        <select id="searchTag">
-          <option value="">Any</option>
-          <option value="liked">Liked</option>
-          <option value="interested">Interested</option>
-          <option value="disliked">Disliked</option>
-          <option value="not_interested">Not Interested</option>
-        </select>
-      </div>
-      <div class="form-group"><label>Item Keyword</label>
-        <input type="text" id="searchKw" placeholder="e.g. Botox">
-      </div>
+    <div class="form-group" style="margin-bottom: 16px;">
+      <label>Global Keyword (全局搜索)</label>
+      <input type="text" id="searchKw" placeholder="Search name, concern, product, treatment...">
+      <div class="hint-text">Searches across all customer names, concerns, and items.<br>💡 Tip: Type "本月生日" or "下月生日" to find birthdays.</div>
     </div>
 
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
-      <div class="form-group"><label>Customer Concern (诉求)</label>
-        <input type="text" id="searchConcern" placeholder="e.g. Acne, Pigmentation">
-      </div>
-      <div class="form-group"><label>Customer Name/ID</label>
-        <input type="text" id="searchCustName" placeholder="e.g. Jane">
-      </div>
-    </div>
-
-    <div class="form-group" style="display:flex; gap:16px; margin-bottom:12px;">
-      <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
-        <input type="checkbox" id="searchStrict" style="width:auto;"> 🔒 Strict Deadline
-      </label>
-      <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
-        <input type="checkbox" id="searchMain" style="width:auto;"> 📌 Main Follow-up
+    <div class="form-group" style="background:#fef2f2; padding:12px; border-radius:8px; border:1px solid #fecaca; margin-bottom:16px;">
+      <label style="display:flex; align-items:center; gap:8px; color:#991b1b; cursor:pointer;">
+        <input type="checkbox" id="searchStrictDue" style="width:auto;"> 🔒 Only show Strict Deadlines that are Due/Overdue
       </label>
     </div>
 
@@ -413,7 +376,7 @@
         <h4 style="font-size:0.9rem;" id="searchResultsTitle">Results</h4>
         <button class="btn btn-sm" style="background:#3b82f6" onclick="copyEmails()">📋 Copy Emails</button>
       </div>
-      <div id="searchResultsList" style="max-height: 200px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px;"></div>
+      <div id="searchResultsList" style="max-height: 250px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px;"></div>
     </div>
   </div>
 </div>
@@ -576,21 +539,17 @@
 
     const myRecords = records.filter(r => r.customer_id === id);
 
-    // Rec
     const recs = myRecords.filter(r => r.status === 'recommended');
     renderSplitColumns('recTreatmentsColumn', 'recProductsColumn', recs);
 
-    // Current
     const currents = myRecords.filter(r => r.status === 'current');
     renderSplitColumns('currentTreatmentsColumn', 'currentProductsColumn', currents);
 
-    // Past
     const history = myRecords.filter(r => r.status === 'past');
     renderSplitColumns('pastTreatmentsColumn', 'pastProductsColumn', history);
   }
 
   function renderSplitColumns(treatmentContainerId, productContainerId, recordsList) {
-    // 拆分：左侧放 treatment 和 comp_facial，右侧放 product
     const treatments = recordsList.filter(r => r.category === 'treatment' || r.category === 'comp_facial');
     const products = recordsList.filter(r => r.category === 'product');
 
@@ -601,7 +560,6 @@
     pContainer.innerHTML = products.length ? products.map(r => renderItemCard(r, r.status)).join('') : '<div class="empty-column">No items</div>';
   }
 
-  // ==================== 渲染卡片 ====================
   function renderItemCard(r, status) {
     let tagHtml = '';
     if (r.tag === 'liked') tagHtml = '<span class="tag tag-liked">Liked</span>';
@@ -1067,51 +1025,94 @@
   }
 
   function clearSearch() {
-    document.getElementById('searchType').value = '';
-    document.getElementById('searchStatus').value = '';
-    document.getElementById('searchTag').value = '';
     document.getElementById('searchKw').value = '';
-    document.getElementById('searchConcern').value = '';
-    document.getElementById('searchCustName').value = '';
-    document.getElementById('searchStrict').checked = false;
-    document.getElementById('searchMain').checked = false;
+    document.getElementById('searchStrictDue').checked = false;
     document.getElementById('searchResultsArea').style.display = 'none';
   }
 
   function executeAdvancedSearch() {
-    const type = document.getElementById('searchType').value;
-    const status = document.getElementById('searchStatus').value;
-    const tag = document.getElementById('searchTag').value;
     const kw = document.getElementById('searchKw').value.toLowerCase().trim();
-    const concern = document.getElementById('searchConcern').value.toLowerCase().trim();
-    const custName = document.getElementById('searchCustName').value.toLowerCase().trim();
-    const strict = document.getElementById('searchStrict').checked;
-    const main = document.getElementById('searchMain').checked;
+    const onlyStrictDue = document.getElementById('searchStrictDue').checked;
+    const today = new Date().toISOString().split('T')[0];
 
-    const matched = records.filter(r => {
-      if (type && r.category !== type) return false;
-      if (status && r.status !== status) return false;
-      if (tag && r.tag !== tag) return false;
-      if (kw && !r.name.toLowerCase().includes(kw)) return false;
-      if (strict && !r.is_strict) return false;
-      if (main && !r.is_main_followup) return false;
+    // 计算本月和下个月
+    const currentMonth = new Date().getMonth() + 1;
+    let nextMonth = currentMonth + 1;
+    if (nextMonth > 12) nextMonth = 1;
 
+    // 1. 找出匹配关键字的客人 ID
+    let matchedCustomerIds = new Set();
+    if (kw) {
+        customers.forEach(c => {
+            const customerHay = [c.name, c.client_id, c.concern, c.email].filter(Boolean).join(' ').toLowerCase();
+            
+            // 增加对生日的匹配判断
+            let isBirthdayMatch = false;
+            if (kw.includes('生日') || kw.includes('birthday')) {
+                if ((kw.includes('本月') || kw.includes('current')) && c.birth_month === currentMonth) isBirthdayMatch = true;
+                if ((kw.includes('下月') || kw.includes('next')) && c.birth_month === nextMonth) isBirthdayMatch = true;
+                // 如果只搜了"生日"，没加"本月/下月"，就把所有有生日的查出来
+                if (!kw.includes('本月') && !kw.includes('下月') && !kw.includes('current') && !kw.includes('next') && c.birth_month) isBirthdayMatch = true;
+            }
+
+            if (customerHay.includes(kw) || isBirthdayMatch) matchedCustomerIds.add(c.id);
+        });
+    }
+
+    // 2. 遍历 records，看是否符合条件
+    const matchedRecords = records.filter(r => {
       const c = customers.find(x => x.id === r.customer_id);
       if (!c) return false;
-      if (concern && !(c.concern || '').toLowerCase().includes(concern)) return false;
-      if (custName && !(c.name.toLowerCase().includes(custName) || (c.client_id && c.client_id.toLowerCase().includes(custName)))) return false;
 
-      return true;
+      // 如果勾选了只看严格到期
+      if (onlyStrictDue) {
+          if (!r.is_strict) return false;
+          if (r.status === 'past') return false;
+          if (!r.next_date || r.next_date > today) return false;
+      }
+
+      // 如果没有关键字，且没有勾选严格到期，不显示
+      if (!kw && !onlyStrictDue) return false;
+
+      // 如果有条件
+      if (kw) {
+          // 如果客人的名字/诉求/生日已经匹配上了，直接算匹配
+          if (matchedCustomerIds.has(c.id)) return true;
+          
+          // 否则看看是不是项目名字匹配
+          const itemHay = [r.name, r.tag, r.category, r.strict_note].filter(Boolean).join(' ').toLowerCase();
+          if (itemHay.includes(kw)) return true;
+
+          return false;
+      }
+
+      return true; // onlyStrictDue = true 的情况
     });
 
+    // 提取唯一的客人
     const uniqueCustomers = [];
     const seenIds = new Set();
-    matched.forEach(r => {
+    matchedRecords.forEach(r => {
       if (!seenIds.has(r.customer_id)) {
         seenIds.add(r.customer_id);
         uniqueCustomers.push(customers.find(c => c.id === r.customer_id));
       }
     });
+
+    // 如果只勾了生日（且没有勾选严格到期），要把所有本月/下月生日的客人都加上
+    // 因为如果客人没有 records，上面 matchedRecords 会漏掉他
+    if (kw && !onlyStrictDue) {
+       customers.forEach(c => {
+           const isCurrent = kw.includes('本月') || kw.includes('current');
+           const isNext = kw.includes('下月') || kw.includes('next');
+           if ((isCurrent && c.birth_month === currentMonth) || (isNext && c.birth_month === nextMonth)) {
+               if (!seenIds.has(c.id)) {
+                   seenIds.add(c.id);
+                   uniqueCustomers.push(c);
+               }
+           }
+       });
+    }
 
     currentSearchResults = uniqueCustomers;
 
