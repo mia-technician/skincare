@@ -89,6 +89,7 @@
   .item-dates { font-size: 0.75rem; color: #64748b; display: flex; flex-direction: column; gap: 2px; }
   .item-dates span { display: flex; align-items: center; gap: 4px; }
   .date-overdue { color: #dc2626; font-weight: 700; }
+  .note-text { font-size: 0.7rem; color: #64748b; background: #f1f5f9; padding: 4px 6px; border-radius: 4px; margin-top: 4px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
   
   .empty-column { color: #94a3b8; font-size: 0.8rem; text-align: center; padding: 20px 0; }
   
@@ -253,13 +254,14 @@
   </div>
 </div>
 
-<!-- Add Product Modal (漏掉的补上了) -->
+<!-- Add Product Modal -->
 <div class="modal-overlay" id="addProductModal">
   <div class="modal-content">
     <button class="close-btn" onclick="closeModal('addProductModal')">✖</button>
-    <h3 style="margin-bottom: 16px;">Add Product to Routine</h3>
+    <h3 style="margin-bottom: 16px;" id="addProdModalTitle">Add Product to Routine</h3>
     <input type="hidden" id="addProdId">
     <input type="hidden" id="addProdSlot">
+    <input type="hidden" id="addProdEditMode" value="false">
     
     <div class="form-group">
       <label>Product</label>
@@ -269,7 +271,11 @@
     <div class="form-group">
       <label>Last Purchased / Used Date (上次购买/使用)</label>
       <input type="date" id="addProdLastDate">
-      <div class="hint-text">Optional. System will calculate time elapsed.</div>
+    </div>
+
+    <div class="form-group">
+      <label>Note (备注)</label>
+      <input type="text" id="addProdNote" placeholder="e.g. Use only at night, mild irritation...">
     </div>
 
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 20px;">
@@ -303,7 +309,6 @@
     <div class="form-group">
       <label>Last Date (上次做)</label>
       <input type="date" id="itemLastDate">
-      <div class="hint-text">If entered, system calculates time elapsed.</div>
     </div>
     
     <div class="form-group">
@@ -343,13 +348,11 @@
     <div class="form-group">
       <label>Expiry Date (有效期)</label>
       <input type="date" id="cfExpiryDate">
-      <div class="hint-text">The facial expires on this date.</div>
     </div>
 
     <div class="form-group">
       <label>Next Follow-up Date (下次跟进)</label>
       <input type="date" id="cfFollowupDate">
-      <div class="hint-text">You will be reminded to follow up on this date.</div>
     </div>
 
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 20px;">
@@ -573,10 +576,16 @@
     const dueDateClass = isDue ? 'date-overdue' : '';
     let displayName = r.category === 'comp_facial' ? `🎁 ${r.name}` : r.name;
     let categoryLabel = r.category === 'comp_facial' ? `<span class="badge comp_facial" style="font-size:0.6rem; padding:1px 4px;">Comp Facial</span>` : '';
+    
+    // 如果是产品且带有备注，显示备注
+    let noteHtml = '';
+    if (r.category === 'product' && r.strict_note) {
+        noteHtml = `<div class="note-text" title="${r.strict_note}">📝 ${r.strict_note}</div>`;
+    }
 
     return `<div class="${cardClass}" data-id="${r.id}">
         <div class="item-header"><div class="item-name-area">${displayName} ${categoryLabel} ${strictLock} ${tagHtml} ${compFacialWarning}</div><span class="badge ${status}">${status}</span></div>
-        <div class="item-dates">${timeAgo}${expiryInfo}${r.next_date ? `<span class="${dueDateClass}">Next follow-up: ${r.next_date}</span>` : ''}${apptInfo}</div>
+        <div class="item-dates">${timeAgo}${expiryInfo}${r.next_date ? `<span class="${dueDateClass}">Next follow-up: ${r.next_date}</span>` : ''}${apptInfo}${noteHtml}</div>
         <div class="item-actions">${buttons}${pinBtn}${manageBtn}</div>
       </div>`;
   }
@@ -589,11 +598,22 @@
     let buttons = status === 'recommended' ? `<button class="btn btn-sm" style="background:#10b981; padding:2px 6px;" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn-sm btn-outline" style="padding:2px 6px;" onclick="cancelItem('${r.id}')">✖</button>` : `<button class="btn btn-sm btn-outline" style="padding:2px 6px; color:#dc2626;" onclick="cancelItem('${r.id}')">✖</button>`;
     const timeAgo = r.last_date ? `<span style="color:#f59e0b; font-size:0.7rem;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
 
+    // 如果有备注则显示
+    let noteHtml = r.strict_note ? `<div style="font-size:0.65rem; color:#64748b; font-style:italic; margin-top:2px;" title="${r.strict_note}">📝 ${r.strict_note}</div>` : '';
+
     return `<div class="item-card ${status}" data-id="${r.id}" style="padding: 8px; flex-direction: row; align-items: center; gap: 8px;">
         <div class="drag-handle">⋮⋮</div>
         <img src="${imgSrc}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; background:#f1f5f9;">
-        <div style="flex:1;"><div style="font-weight:600; font-size:0.8rem; color:#0f172a;">${r.name} ${brandStr}</div><div>${timeAgo}</div></div>
-        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;"><span class="badge ${status}" style="font-size:0.55rem; padding:1px 4px;">${status === 'recommended' ? 'Rec' : 'In Use'}</span>${buttons}</div>
+        <div style="flex:1;">
+            <div style="font-weight:600; font-size:0.8rem; color:#0f172a;">${r.name} ${brandStr}</div>
+            <div>${timeAgo}</div>
+            ${noteHtml}
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
+            <span class="badge ${status}" style="font-size:0.55rem; padding:1px 4px;">${status === 'recommended' ? 'Rec' : 'In Use'}</span>
+            ${buttons}
+            <button class="btn btn-sm btn-outline" style="padding:2px 6px; font-size:0.65rem;" onclick="openEditProductModal('${r.id}')">✏️</button>
+        </div>
       </div>`;
   }
 
@@ -627,19 +647,49 @@
   function openAddProductModal(prodId, slot) {
     const prod = productsLib.find(p => p.id === prodId);
     if (!prod) return;
+    document.getElementById('addProdModalTitle').innerText = 'Add Product to Routine';
+    document.getElementById('addProdEditMode').value = 'false';
     document.getElementById('addProdId').value = prodId;
     document.getElementById('addProdSlot').value = slot;
     document.getElementById('addProdName').innerText = prod.name + (prod.brand ? ` (${prod.brand})` : '');
     document.getElementById('addProdLastDate').value = '';
+    document.getElementById('addProdNote').value = '';
     openModal('addProductModal');
     document.querySelectorAll('.search-results').forEach(el => el.classList.remove('show'));
   }
 
+  function openEditProductModal(id) {
+    const r = records.find(x => x.id === id);
+    if (!r) return;
+    const prod = productsLib.find(p => p.name.toLowerCase() === r.name.toLowerCase());
+    document.getElementById('addProdModalTitle').innerText = 'Edit Product';
+    document.getElementById('addProdEditMode').value = 'true';
+    document.getElementById('addProdId').value = r.id;
+    document.getElementById('addProdSlot').value = r.time_slot;
+    document.getElementById('addProdName').innerText = r.name + (prod && prod.brand ? ` (${prod.brand})` : '');
+    document.getElementById('addProdLastDate').value = r.last_date || '';
+    document.getElementById('addProdNote').value = r.strict_note || '';
+    openModal('addProductModal');
+  }
+
   async function saveProductToRoutine() {
-    const prodId = document.getElementById('addProdId').value;
+    const isEdit = document.getElementById('addProdEditMode').value === 'true';
+    const id = document.getElementById('addProdId').value;
     const slot = document.getElementById('addProdSlot').value;
     const lastDate = document.getElementById('addProdLastDate').value || null;
+    const note = document.getElementById('addProdNote').value.trim() || null;
     
+    if (isEdit) {
+        try {
+            await api.update('records', `id=eq.${id}`, { last_date: lastDate, strict_note: note });
+            closeModal('addProductModal');
+            await loadData(); showToast('Product updated');
+        } catch(e) { alert(e.message); }
+        return;
+    }
+
+    // 新建逻辑
+    const prodId = document.getElementById('addProdId').value;
     const prod = productsLib.find(p => p.id === prodId); if (!prod) return;
     const existing = records.find(r => r.customer_id === currentCustomerId && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === slot && r.status !== 'past');
     if (existing) { alert('This product is already in this slot.'); return; }
@@ -647,7 +697,8 @@
     let data = { 
       customer_id: currentCustomerId, category: 'product', name: prod.name, 
       status: 'current', time_slot: slot, sort_order: 99, is_main_followup: false, is_strict: false,
-      last_date: lastDate
+      last_date: lastDate,
+      strict_note: note  // 复用 strict_note 存产品备注
     };
     try {
         await api.insert('records', data);
@@ -658,6 +709,7 @@
     } catch(e) { alert(e.message); }
   }
 
+  // ... (剩下治疗和疗程相关逻辑与之前一样)
   function openItemModal(status, category) {
     if (!currentCustomerId) return;
     document.getElementById('itemId').value = ''; document.getElementById('itemCategory').value = category; document.getElementById('itemStatus').value = status; document.getElementById('itemName').value = ''; document.getElementById('itemTag').value = ''; document.getElementById('itemLastDate').value = ''; document.getElementById('itemNextDate').value = ''; document.getElementById('itemAppDate').value = ''; document.getElementById('itemIsStrict').checked = false; document.getElementById('itemStrictNote').value = ''; document.getElementById('itemStrictNote').style.display = 'none';
@@ -721,7 +773,7 @@
     const myProducts = records.filter(r => r.customer_id === currentCustomerId && r.category === 'product' && r.status !== 'past');
     const am = myProducts.filter(r => r.time_slot === 'AM' || !r.time_slot).sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
     const pm = myProducts.filter(r => r.time_slot === 'PM').sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
-    const genList = (arr) => { if (arr.length === 0) return '<p style="color:#94a3b8; font-style:italic;">No products assigned.</p>'; return `<ul style="padding-left:20px; line-height:1.8;">${arr.map(p => { const matchedProd = productsLib.find(prod => prod.name.toLowerCase() === p.name.toLowerCase()); const brand = matchedProd && matchedProd.brand ? ` <span style="color:#94a3b8; font-size:12px;">(${matchedProd.brand})</span>` : ''; return `<li>${p.name} ${brand}</li>`; }).join('')}</ul>`; };
+    const genList = (arr) => { if (arr.length === 0) return '<p style="color:#94a3b8; font-style:italic;">No products assigned.</p>'; return `<ul style="padding-left:20px; line-height:1.8;">${arr.map(p => { const matchedProd = productsLib.find(prod => prod.name.toLowerCase() === p.name.toLowerCase()); const brand = matchedProd && matchedProd.brand ? ` <span style="color:#94a3b8; font-size:12px;">(${matchedProd.brand})</span>` : ''; const note = p.strict_note ? ` <span style="color:#94a3b8; font-size:11px;">- ${p.strict_note}</span>` : ''; return `<li>${p.name} ${brand} ${note}</li>`; }).join('')}</ul>`; };
     const html = `<div style="font-family:'Inter', sans-serif; color:#1e293b;"><div style="text-align:center; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px;"><h1 style="font-size:1.8rem; margin-bottom:8px;">Home Care Routine</h1><p style="color:#64748b;">Prepared for: <strong>${c.name}</strong></p><p style="color:#94a3b8; font-size:0.85rem;">${new Date().toLocaleDateString()}</p></div><div style="display:flex; gap:40px; margin-top:20px;"><div style="flex:1;"><h3 style="color:#d97706; border-bottom:1px solid #fcd34d; padding-bottom:8px; margin-bottom:12px;">☀️ Morning</h3>${genList(am)}</div><div style="flex:1;"><h3 style="color:#4338ca; border-bottom:1px solid #a5b4fc; padding-bottom:8px; margin-bottom:12px;">🌙 Evening</h3>${genList(pm)}</div></div><div style="margin-top:40px; text-align:center; font-size:0.8rem; color:#94a3b8;"><p>If you have any questions, please contact the clinic.</p></div></div>`;
     document.getElementById('printRoutineContent').innerHTML = html; openModal('printRoutineModal');
   }
