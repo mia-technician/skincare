@@ -317,6 +317,14 @@
     
     <div class="form-group"><label>Name of Treatment *</label><input type="text" id="itemName"></div>
     
+    <div class="form-group">
+      <label>Status</label>
+      <select id="itemStatusSelect">
+        <option value="current">🟢 In Use / Done</option>
+        <option value="recommended">🟡 Recommended</option>
+      </select>
+    </div>
+
     <div class="form-group"><label>Tag (标签)</label>
       <select id="itemTag">
         <option value="">无 (None)</option>
@@ -813,7 +821,6 @@
     } catch(e) { alert(e.message); }
   }
 
-  // 新增：永久删除功能（仅限 Past 里面的内容）
   async function permanentlyDelete(id) {
       if (!confirm('This will permanently delete this record from the database. Are you sure?')) return;
       try {
@@ -822,9 +829,21 @@
       } catch (e) { alert(e.message); }
   }
 
+  // 修复：将状态可选化，支持推荐
   function openItemModal(status, category) {
     if (!currentCustomerId) return;
-    document.getElementById('itemId').value = ''; document.getElementById('itemCategory').value = category; document.getElementById('itemStatus').value = status; document.getElementById('itemName').value = ''; document.getElementById('itemTag').value = ''; document.getElementById('itemLastDate').value = ''; document.getElementById('itemNextDate').value = ''; document.getElementById('itemAppDate').value = ''; document.getElementById('itemIsStrict').checked = false; document.getElementById('itemStrictNote').value = ''; document.getElementById('itemStrictNote').style.display = 'none';
+    document.getElementById('itemId').value = ''; 
+    document.getElementById('itemCategory').value = category; 
+    document.getElementById('itemStatus').value = status; 
+    document.getElementById('itemStatusSelect').value = status; // 默认选中当前状态
+    document.getElementById('itemName').value = ''; 
+    document.getElementById('itemTag').value = ''; 
+    document.getElementById('itemLastDate').value = ''; 
+    document.getElementById('itemNextDate').value = ''; 
+    document.getElementById('itemAppDate').value = ''; 
+    document.getElementById('itemIsStrict').checked = false; 
+    document.getElementById('itemStrictNote').value = ''; 
+    document.getElementById('itemStrictNote').style.display = 'none';
     document.getElementById('itemModalTitle').innerText = `Add ${category === 'treatment' ? 'Treatment' : 'Product'}`;
     document.getElementById('nextDateHint').innerText = 'Optional. You can manually set a date.';
     openModal('itemModal');
@@ -832,16 +851,40 @@
 
   function openEditItemModal(id) {
     const r = records.find(x => x.id === id); if (!r) return;
-    document.getElementById('itemId').value = r.id; document.getElementById('itemCategory').value = r.category; document.getElementById('itemStatus').value = r.status; document.getElementById('itemName').value = r.name; document.getElementById('itemTag').value = r.tag || ''; document.getElementById('itemLastDate').value = r.last_date || ''; document.getElementById('itemNextDate').value = r.next_date || ''; document.getElementById('itemAppDate').value = r.appointment_date || ''; document.getElementById('itemIsStrict').checked = r.is_strict || false; document.getElementById('itemStrictNote').value = r.strict_note || ''; document.getElementById('itemStrictNote').style.display = r.is_strict ? 'block' : 'none';
+    document.getElementById('itemId').value = r.id; 
+    document.getElementById('itemCategory').value = r.category; 
+    document.getElementById('itemStatus').value = r.status; 
+    document.getElementById('itemStatusSelect').value = r.status;
+    document.getElementById('itemName').value = r.name; 
+    document.getElementById('itemTag').value = r.tag || ''; 
+    document.getElementById('itemLastDate').value = r.last_date || ''; 
+    document.getElementById('itemNextDate').value = r.next_date || ''; 
+    document.getElementById('itemAppDate').value = r.appointment_date || ''; 
+    document.getElementById('itemIsStrict').checked = r.is_strict || false; 
+    document.getElementById('itemStrictNote').value = r.strict_note || ''; 
+    document.getElementById('itemStrictNote').style.display = r.is_strict ? 'block' : 'none';
     document.getElementById('itemModalTitle').innerText = `Edit ${r.category === 'treatment' ? 'Treatment' : 'Product'}`;
     document.getElementById('nextDateHint').innerText = 'Change this date to update the follow-up.';
     openModal('itemModal');
   }
 
   async function saveItem() {
-    const id = document.getElementById('itemId').value; const name = document.getElementById('itemName').value; if (!name) return alert('Name required');
-    const category = document.getElementById('itemCategory').value; const status = document.getElementById('itemStatus').value; const tag = document.getElementById('itemTag').value; const lastDate = document.getElementById('itemLastDate').value || null; const nextDate = document.getElementById('itemNextDate').value || null; const apptDate = document.getElementById('itemAppDate').value || null; const isStrict = document.getElementById('itemIsStrict').checked; const strictNote = isStrict ? document.getElementById('itemStrictNote').value : null;
+    const id = document.getElementById('itemId').value; 
+    const name = document.getElementById('itemName').value; 
+    if (!name) return alert('Name required');
+    
+    const category = document.getElementById('itemCategory').value; 
+    // 关键：从下拉框里拿状态
+    const status = document.getElementById('itemStatusSelect').value; 
+    const tag = document.getElementById('itemTag').value; 
+    const lastDate = document.getElementById('itemLastDate').value || null; 
+    const nextDate = document.getElementById('itemNextDate').value || null; 
+    const apptDate = document.getElementById('itemAppDate').value || null; 
+    const isStrict = document.getElementById('itemIsStrict').checked; 
+    const strictNote = isStrict ? document.getElementById('itemStrictNote').value : null;
+    
     let data = { name, category, status, tag, last_date: lastDate, next_date: status === 'past' ? null : nextDate, appointment_date: status === 'past' ? null : apptDate, is_strict: status === 'past' ? false : isStrict, strict_note: status === 'past' ? null : strictNote };
+    
     try {
       if (id) await api.update('records', `id=eq.${id}`, data);
       else { data.customer_id = currentCustomerId; await api.insert('records', data); }
