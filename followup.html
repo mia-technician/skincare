@@ -48,6 +48,7 @@
   .badge.recommended { background: #fef08a; color: #854d0e; }
   .badge.current { background: #bbf7d0; color: #166534; }
   .badge.past { background: #e2e8f0; color: #475569; }
+  .badge.comp_facial { background: #e0e7ff; color: #3730a3; }
   
   /* Tags */
   .tag { font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; margin-left: 6px; }
@@ -95,7 +96,7 @@
 </head>
 <body>
 
-<!-- 新增：CRM 登录遮罩层 -->
+<!-- CRM 登录遮罩层 -->
 <div id="loginOverlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999;">
     <div style="background: white; padding: 30px; border-radius: 16px; width: 340px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <h3 style="margin-bottom: 20px; color: #0f172a;">🔐 CRM Login Required</h3>
@@ -143,9 +144,11 @@
 
     <div class="card">
       <div class="section-title">🔄 In Use / Current</div>
-      <div style="margin-bottom: 12px; display: flex; gap: 8px;">
+      <div style="margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
         <button class="btn btn-sm" style="background:#10b981" onclick="openItemModal('current', 'treatment')">➕ Add Current Treatment</button>
         <button class="btn btn-sm" style="background:#10b981" onclick="openItemModal('current', 'product')">➕ Add Current Product</button>
+        <!-- 新增 Comp Facial 按钮 -->
+        <button class="btn btn-sm" style="background:#8b5cf6" onclick="openCompFacialModal()">➕ Add Comp Facial</button>
       </div>
       <div id="currentSection"></div>
     </div>
@@ -246,6 +249,40 @@
   </div>
 </div>
 
+<!-- Comp Facial Modal -->
+<div class="modal-overlay" id="compFacialModal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal('compFacialModal')">✖</button>
+    <h3 style="margin-bottom: 16px;">Add Comp Facial</h3>
+    <input type="hidden" id="cfId">
+    
+    <div class="form-group"><label>Facial Name *</label><input type="text" id="cfName" placeholder="e.g. Microdermabrasion"></div>
+    
+    <div class="form-group">
+      <label>Status</label>
+      <select id="cfStatus" onchange="toggleCfDateFields()">
+        <option value="pending">待使用 (Pending)</option>
+        <option value="used">已使用 (Used)</option>
+      </select>
+    </div>
+
+    <div class="form-group" id="cfExpiryGroup">
+      <label>Expiry Date (有效期至)</label>
+      <input type="date" id="cfExpiryDate">
+    </div>
+
+    <div class="form-group" id="cfUsedDateGroup" style="display:none;">
+      <label>Used Date (哪天已使用)</label>
+      <input type="date" id="cfUsedDate">
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 20px;">
+      <button class="btn btn-outline" onclick="closeModal('compFacialModal')">Cancel</button>
+      <button class="btn" style="background:#8b5cf6" onclick="saveCompFacial()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Manage Follow-up Modal -->
 <div class="modal-overlay" id="appointmentModal">
   <div class="modal-content">
@@ -278,6 +315,7 @@
           <option value="">Any</option>
           <option value="treatment">Treatment (项目)</option>
           <option value="product">Product (产品)</option>
+          <option value="comp_facial">Comp Facial (赠送护理)</option>
         </select>
       </div>
       <div class="form-group"><label>Status</label>
@@ -342,14 +380,11 @@
   const SUPABASE_URL = "https://dmrskyskryrdclknezth.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
 
-  // 初始化 Supabase 客户端
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // 全局变量
   let customers = [], records = [], currentCustomerId = null;
   let currentSearchResults = [];
 
-  // 鉴权：使用 Supabase Auth
+  // ==================== 认证 ====================
   async function loginCRM() {
     const email = document.getElementById('authEmail').value.trim();
     const password = document.getElementById('authPassword').value;
@@ -382,11 +417,10 @@
     }
   }
 
-  // API 封装
+  // ==================== API ====================
   const api = {
     headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
     async request(path, options = {}) {
-      // 获取当前登录用户的 Token
       const { data: { session } } = await supabaseClient.auth.getSession();
       const token = session ? session.access_token : SUPABASE_ANON_KEY;
 
@@ -408,7 +442,6 @@
     delete: (table, query) => api.request(`${table}?${query}`, { method: 'DELETE' })
   };
 
-  // 显示提示
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.innerText = msg;
@@ -419,7 +452,7 @@
   function closeModal(id) { document.getElementById(id).classList.remove('show'); }
   function openModal(id) { document.getElementById(id).classList.add('show'); }
 
-  // 加载数据
+  // ==================== 数据加载 ====================
   async function loadData() {
     try {
       customers = await api.select('customers', 'order=name.asc');
@@ -462,6 +495,7 @@
     return `${months} month(s) ago`;
   }
 
+  // ==================== 渲染个人档案 ====================
   function renderProfile(id) {
     const c = customers.find(x => x.id === id);
     if (!c) return;
@@ -508,6 +542,7 @@
     document.getElementById('historySection').innerHTML = history.length ? history.map(r => renderItemCard(r, 'past')).join('') : '<div style="color:#94a3b8; font-size:0.85rem;">None</div>';
   }
 
+  // ==================== 渲染卡片 ====================
   function renderItemCard(r, status) {
     let tagHtml = '';
     if (r.tag === 'liked') tagHtml = '<span class="tag tag-liked">Liked</span>';
@@ -518,21 +553,30 @@
     const timeAgo = r.last_date ? `<span style="color:#f59e0b;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
 
     let buttons = '';
-    if (status === 'recommended') {
-      buttons = `
-        <button class="btn btn-sm" style="background:#10b981" onclick="proceedItem('${r.id}')">Proceed</button>
-        <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Not Interested</button>
-        <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit</button>
-      `;
-    } else if (status === 'current') {
-      buttons = `
-        <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Cancel Follow-up</button>
-        <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit</button>
-      `;
+    if (r.category === 'comp_facial') {
+        // Comp Facial 专属按钮
+        if (r.status === 'pending') {
+            buttons = `<button class="btn btn-sm" style="background:#8b5cf6" onclick="openEditCompFacialModal('${r.id}')">✏️ Edit / Mark Used</button>`;
+        } else {
+            buttons = `<button class="btn btn-sm btn-outline" onclick="openEditCompFacialModal('${r.id}')">✏️ Edit</button>`;
+        }
     } else {
-      buttons = `
-        <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit / Tag</button>
-      `;
+        if (status === 'recommended') {
+          buttons = `
+            <button class="btn btn-sm" style="background:#10b981" onclick="proceedItem('${r.id}')">Proceed</button>
+            <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Not Interested</button>
+            <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit</button>
+          `;
+        } else if (status === 'current') {
+          buttons = `
+            <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Cancel Follow-up</button>
+            <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit</button>
+          `;
+        } else {
+          buttons = `
+            <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit / Tag</button>
+          `;
+        }
     }
 
     const today = new Date().toISOString().split('T')[0];
@@ -548,30 +592,116 @@
     const apptInfo = r.appointment_date ? `<span style="color:#3b82f6; font-weight:600;">Next Appt: ${r.appointment_date}</span>` : '';
     const pinBtn = status !== 'past' ? `<button class="btn btn-sm ${r.is_main_followup ? 'btn' : 'btn-outline'}" style="margin-left:4px;" onclick="setMainFollowup('${r.id}')" title="Set as main follow-up">📌</button>` : '';
     const strictLock = r.is_strict ? `<span style="color:#dc2626; font-weight:bold; margin-left:6px;" title="${r.strict_note || 'Strict Deadline'}">🔒 Strict</span>` : '';
-    const manageBtn = isDue ? `<button class="btn btn-sm" style="background:#dc2626; margin-left:8px;" onclick="openAppointmentModal('${r.id}')">⚠️ Manage</button>` : '';
+    
+    // Comp Facial 到期警告
+    let compFacialWarning = '';
+    if (r.category === 'comp_facial' && r.status === 'pending' && r.next_date) {
+        if (r.next_date < today) {
+            compFacialWarning = `<span style="color:#dc2626; font-weight:bold; margin-left:6px;">⚠️ Expired</span>`;
+            cardClass += ' strict-overdue'; // 过期变红
+        }
+    }
 
     const dueDateClass = isDue ? 'date-overdue' : '';
+
+    let displayName = r.name;
+    let categoryLabel = '';
+    if (r.category === 'comp_facial') {
+        categoryLabel = `<span class="badge comp_facial">Comp Facial</span>`;
+        displayName = `🎁 ${r.name}`;
+    }
 
     return `
       <div class="${cardClass}">
         <div>
-          <strong>${r.name}</strong> ${strictLock} <span class="badge ${status}">${status}</span> ${tagHtml}
+          <strong>${displayName}</strong> ${categoryLabel} ${strictLock} <span class="badge ${status}">${status}</span> ${tagHtml} ${compFacialWarning}
           <div class="item-dates">
             ${timeAgo}
-            ${r.next_date ? `<span class="${dueDateClass}">Next follow-up: ${r.next_date}</span>` : ''}
+            ${r.next_date ? `<span class="${dueDateClass}">${r.category === 'comp_facial' ? 'Expiry' : 'Next follow-up'}: ${r.next_date}</span>` : ''}
             ${apptInfo}
           </div>
         </div>
         <div class="item-actions">
           ${buttons}
           ${pinBtn}
-          ${manageBtn}
         </div>
       </div>
     `;
   }
 
-  // --- Link Related Profile Logic ---
+  // ==================== Comp Facial 专属逻辑 ====================
+  function openCompFacialModal() {
+    if (!currentCustomerId) return;
+    document.getElementById('cfId').value = '';
+    document.getElementById('cfName').value = '';
+    document.getElementById('cfStatus').value = 'pending';
+    document.getElementById('cfExpiryDate').value = '';
+    document.getElementById('cfUsedDate').value = '';
+    toggleCfDateFields();
+    openModal('compFacialModal');
+  }
+
+  function openEditCompFacialModal(id) {
+    const r = records.find(x => x.id === id);
+    if (!r) return;
+    document.getElementById('cfId').value = r.id;
+    document.getElementById('cfName').value = r.name.replace('🎁 ', '');
+    document.getElementById('cfStatus').value = r.status === 'past' ? 'used' : 'pending'; // 这里我们用 past 代表 used
+    document.getElementById('cfExpiryDate').value = r.next_date || '';
+    document.getElementById('cfUsedDate').value = r.last_date || '';
+    toggleCfDateFields();
+    openModal('compFacialModal');
+  }
+
+  function toggleCfDateFields() {
+    const status = document.getElementById('cfStatus').value;
+    if (status === 'used') {
+        document.getElementById('cfUsedDateGroup').style.display = 'block';
+        document.getElementById('cfExpiryGroup').style.display = 'none';
+    } else {
+        document.getElementById('cfUsedDateGroup').style.display = 'none';
+        document.getElementById('cfExpiryGroup').style.display = 'block';
+    }
+  }
+
+  async function saveCompFacial() {
+    const id = document.getElementById('cfId').value;
+    const name = document.getElementById('cfName').value.trim();
+    if (!name) return alert('Facial Name required');
+
+    const cfStatus = document.getElementById('cfStatus').value;
+    const expiry = document.getElementById('cfExpiryDate').value || null;
+    const usedDate = document.getElementById('cfUsedDate').value || null;
+
+    // 数据库映射：
+    // status = 'current' (待使用) -> 在 Current 区显示
+    // status = 'past' (已使用) -> 在 History 区显示
+    // next_date 存有效期
+    // last_date 存已使用日期
+    let data = {
+        name: name,
+        category: 'comp_facial',
+        status: cfStatus === 'used' ? 'past' : 'current',
+        next_date: cfStatus === 'used' ? null : expiry,
+        last_date: cfStatus === 'used' ? usedDate : null,
+        is_main_followup: false,
+        is_strict: false
+    };
+
+    try {
+      if (id) {
+        await api.update('records', `id=eq.${id}`, data);
+      } else {
+        data.customer_id = currentCustomerId;
+        await api.insert('records', data);
+      }
+      closeModal('compFacialModal');
+      await loadData();
+      showToast('Comp Facial saved');
+    } catch (e) { alert(e.message); }
+  }
+
+  // ==================== Link Related Profile ====================
   function openLinkModal() {
     document.getElementById('linkSearch').value = '';
     renderLinkOptions();
@@ -616,7 +746,7 @@
     } catch (e) { alert(e.message); }
   }
 
-  // --- Customer Modals ---
+  // ==================== 客户管理 ====================
   function openCustomerModal() {
     document.getElementById('custId').value = '';
     document.getElementById('custName').value = '';
@@ -665,7 +795,7 @@
     } catch (e) { alert(e.message); }
   }
 
-  // --- Item Modals ---
+  // ==================== 普通项目/产品管理 ====================
   function openItemModal(status, category) {
     if (!currentCustomerId) return;
     document.getElementById('itemId').value = '';
@@ -682,7 +812,6 @@
     
     document.getElementById('itemModalTitle').innerText = `Add ${status === 'past' ? 'Past ' : ''}${category === 'treatment' ? 'Treatment' : 'Product'}`;
     
-    // 如果是历史记录，隐藏跟进日期和预约日期
     const isPast = status === 'past';
     document.getElementById('lastDateGroup').style.display = 'block';
     document.getElementById('nextDateGroup').style.display = isPast ? 'none' : 'block';
@@ -694,7 +823,7 @@
   }
 
   function populateNextDateOptions() {
-    const myRecords = records.filter(r => r.customer_id === currentCustomerId && r.next_date && r.status !== 'past');
+    const myRecords = records.filter(r => r.customer_id === currentCustomerId && r.next_date && r.status !== 'past' && r.category !== 'comp_facial');
     const dates = [...new Set(myRecords.map(r => r.next_date))].sort();
     
     const hintEl = document.getElementById('nextDateHint');
@@ -781,7 +910,7 @@
   }
 
   async function syncFollowUpDateToAll(sourceId, date) {
-    const others = records.filter(r => r.customer_id === currentCustomerId && r.id !== sourceId && r.status !== 'past');
+    const others = records.filter(r => r.customer_id === currentCustomerId && r.id !== sourceId && r.status !== 'past' && r.category !== 'comp_facial');
     if (others.length === 0) return;
 
     const confirmSync = confirm(`Do you want to sync this follow-up date (${date}) to all other active items for this customer?`);
@@ -808,7 +937,7 @@
     await loadData();
   }
 
-  // --- Manage Follow-up ---
+  // ==================== 跟进处理 ====================
   let activeRecordId = null;
   function openAppointmentModal(id) {
     const r = records.find(x => x.id === id);
@@ -862,7 +991,6 @@
     } catch (e) { alert(e.message); }
   }
 
-  // --- Quick Actions ---
   async function proceedItem(id) {
     const r = records.find(x => x.id === id);
     try {
@@ -881,7 +1009,7 @@
     } catch (e) { alert(e.message); }
   }
 
-  // --- Advanced Search ---
+  // ==================== 高级搜索 ====================
   function openSearchModal() {
     openModal('searchModal');
   }
@@ -966,14 +1094,13 @@
     });
   }
 
-  // 点击遮罩层关闭弹窗
+  // 关闭遮罩层
   document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) closeModal(overlay.id);
     });
   });
 
-  // 页面加载时检查会话
   checkSession();
 </script>
 </body>
