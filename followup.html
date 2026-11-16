@@ -579,7 +579,20 @@
     let tagHtml = r.tag === 'liked' ? '<span class="tag tag-liked">Liked</span>' : (r.tag === 'interested' ? '<span class="tag tag-interested">Interested</span>' : (r.tag === 'disliked' ? '<span class="tag tag-disliked">Disliked</span>' : (r.tag === 'not_interested' ? '<span class="tag tag-not-interested">Not Interested</span>' : '')));
     const timeAgo = r.last_date ? `<span style="color:#f59e0b;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
 
-    let buttons = r.category === 'comp_facial' ? `<button class="btn btn-sm" style="background:#8b5cf6" onclick="openEditCompFacialModal('${r.id}')">✏️ Edit / Mark Used</button>` : (status === 'recommended' ? `<button class="btn btn-sm" style="background:#10b981" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Not Interested</button><button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️</button>` : `<button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Cancel</button><button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️</button>`);
+    let buttons = '';
+    if (r.category === 'comp_facial') {
+        buttons = `<button class="btn btn-sm" style="background:#8b5cf6" onclick="openEditCompFacialModal('${r.id}')">✏️ Edit / Mark Used</button>`;
+        if (status === 'past') {
+            buttons += `<button class="btn btn-sm btn-outline" style="color:#dc2626; border-color:#fca5a5; margin-left:4px;" onclick="permanentlyDelete('${r.id}')">🗑️ Delete</button>`;
+        }
+    } else if (status === 'recommended') {
+        buttons = `<button class="btn btn-sm" style="background:#10b981" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Not Interested</button><button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️</button>`;
+    } else {
+        buttons = `<button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Cancel</button><button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️</button>`;
+        if (status === 'past') {
+            buttons += `<button class="btn btn-sm btn-outline" style="color:#dc2626; border-color:#fca5a5; margin-left:4px;" onclick="permanentlyDelete('${r.id}')">🗑️ Delete</button>`;
+        }
+    }
 
     const today = new Date().toISOString().split('T')[0];
     const isDue = status !== 'past' && ((r.next_date && r.next_date <= today) || (r.appointment_date && r.appointment_date <= today));
@@ -616,7 +629,16 @@
     const imgSrc = matchedProd && matchedProd.image ? matchedProd.image : 'https://via.placeholder.com/40/f1f5f9/94a3b8?text=Img';
     const brandStr = matchedProd && matchedProd.brand ? `<span style="font-size:0.65rem; color:#94a3b8; margin-left:4px;">(${matchedProd.brand})</span>` : '';
 
-    let buttons = status === 'recommended' ? `<button class="btn btn-sm" style="background:#10b981; padding:2px 6px;" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn-sm btn-outline" style="padding:2px 6px;" onclick="cancelItem('${r.id}')">✖</button>` : `<button class="btn btn-sm btn-outline" style="padding:2px 6px; color:#dc2626;" onclick="cancelItem('${r.id}')">✖</button>`;
+    let buttons = '';
+    if (status === 'recommended') {
+        buttons = `<button class="btn btn-sm" style="background:#10b981; padding:2px 6px;" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn-sm btn-outline" style="padding:2px 6px;" onclick="cancelItem('${r.id}')">✖</button>`;
+    } else {
+        buttons = `<button class="btn btn-sm btn-outline" style="padding:2px 6px; color:#dc2626;" onclick="cancelItem('${r.id}')">✖</button>`;
+    }
+    if (status === 'past') {
+        buttons += `<button class="btn btn-sm btn-outline" style="padding:2px 6px; color:#dc2626; border-color:#fca5a5; margin-top:2px;" onclick="permanentlyDelete('${r.id}')">🗑️</button>`;
+    }
+
     const timeAgo = r.last_date ? `<span style="color:#f59e0b; font-size:0.7rem;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
 
     let noteHtml = r.strict_note ? `<div style="font-size:0.65rem; color:#64748b; font-style:italic; margin-top:2px;" title="${r.strict_note}">📝 ${r.strict_note}</div>` : '';
@@ -626,6 +648,8 @@
         cardClass += ' recommended';
     } else if (isDuplicated) {
         cardClass += ' both-slot';
+    } else if (status === 'past') {
+        cardClass += ' past';
     } else {
         cardClass += ' current';
     }
@@ -641,7 +665,7 @@
             ${noteHtml}
         </div>
         <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
-            <span class="badge ${status}" style="font-size:0.55rem; padding:1px 4px;">${status === 'recommended' ? 'Rec' : 'In Use'}</span>
+            <span class="badge ${status}" style="font-size:0.55rem; padding:1px 4px;">${status === 'recommended' ? 'Rec' : (status === 'past' ? 'Past' : 'In Use')}</span>
             ${buttons}
             <button class="btn btn-sm btn-outline" style="padding:2px 6px; font-size:0.65rem;" onclick="openEditProductModal('${r.id}')">✏️</button>
         </div>
@@ -728,7 +752,6 @@
     
     if (isEdit) {
         try {
-            // 如果修改为BOTH，先不管，提醒用户单独改
             const actualSlot = (slot === 'BOTH') ? 'AM' : slot;
             const data = { 
                 status: status,
@@ -738,7 +761,6 @@
             };
             await api.update('records', `id=eq.${id}`, data);
             
-            // 同步更新另一时段的同名产品
             const currentRecord = records.find(x => x.id === id);
             if (currentRecord) {
                 const otherSlot = actualSlot === 'AM' ? 'PM' : 'AM';
@@ -754,11 +776,9 @@
         return;
     }
 
-    // 新建逻辑
     const prodId = document.getElementById('addProdId').value;
     const prod = productsLib.find(p => p.id === prodId); if (!prod) return;
     
-    // 基础数据模板（使用 spread 操作符确保是全新对象）
     const baseData = { 
         customer_id: currentCustomerId, 
         category: 'product', 
@@ -772,15 +792,12 @@
 
     try {
         if (slot === 'BOTH') {
-            // 检查是否任一已有
             const hasAM = records.some(r => r.customer_id === currentCustomerId && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === 'AM' && r.status !== 'past');
             const hasPM = records.some(r => r.customer_id === currentCustomerId && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === 'PM' && r.status !== 'past');
             
             if (hasAM || hasPM) { alert('One of the slots already has this product. Please edit it directly instead.'); return; }
 
-            // 插入 AM
             await api.insert('records', { ...baseData, time_slot: 'AM', sort_order: 99 });
-            // 插入 PM
             await api.insert('records', { ...baseData, time_slot: 'PM', sort_order: 99 });
         } else {
             const existing = records.some(r => r.customer_id === currentCustomerId && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === slot && r.status !== 'past');
@@ -796,7 +813,15 @@
     } catch(e) { alert(e.message); }
   }
 
-  // ... 其他逻辑 ...
+  // 新增：永久删除功能（仅限 Past 里面的内容）
+  async function permanentlyDelete(id) {
+      if (!confirm('This will permanently delete this record from the database. Are you sure?')) return;
+      try {
+          await api.delete('records', `id=eq.${id}`);
+          await loadData(); showToast('Permanently deleted');
+      } catch (e) { alert(e.message); }
+  }
+
   function openItemModal(status, category) {
     if (!currentCustomerId) return;
     document.getElementById('itemId').value = ''; document.getElementById('itemCategory').value = category; document.getElementById('itemStatus').value = status; document.getElementById('itemName').value = ''; document.getElementById('itemTag').value = ''; document.getElementById('itemLastDate').value = ''; document.getElementById('itemNextDate').value = ''; document.getElementById('itemAppDate').value = ''; document.getElementById('itemIsStrict').checked = false; document.getElementById('itemStrictNote').value = ''; document.getElementById('itemStrictNote').style.display = 'none';
