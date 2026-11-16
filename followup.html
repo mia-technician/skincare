@@ -301,24 +301,17 @@
     <input type="hidden" id="cfId">
     
     <div class="form-group"><label>Facial Name *</label><input type="text" id="cfName" placeholder="e.g. Microdermabrasion"></div>
-    
+
     <div class="form-group">
-      <label>Status</label>
-      <select id="cfStatus" onchange="toggleCfDateFields()">
-        <option value="pending">待使用 (Pending)</option>
-        <option value="used">已使用 (Used)</option>
-      </select>
-    </div>
-
-    <div class="form-group" id="cfExpiryGroup">
-      <label>Next Follow-up / Expiry Date (下次跟进/有效期)</label>
+      <label>Expiry Date (有效期)</label>
       <input type="date" id="cfExpiryDate">
-      <div class="hint-text">You will be reminded on this date.</div>
+      <div class="hint-text">The facial expires on this date.</div>
     </div>
 
-    <div class="form-group" id="cfUsedDateGroup" style="display:none;">
-      <label>Used Date (哪天已使用)</label>
-      <input type="date" id="cfUsedDate">
+    <div class="form-group">
+      <label>Next Follow-up Date (下次跟进)</label>
+      <input type="date" id="cfFollowupDate">
+      <div class="hint-text">You will be reminded to follow up on this date.</div>
     </div>
 
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 20px;">
@@ -624,15 +617,19 @@
     const pinBtn = status !== 'past' ? `<button class="btn btn-sm ${r.is_main_followup ? 'btn' : 'btn-outline'}" onclick="setMainFollowup('${r.id}')" title="Set as main follow-up">📌</button>` : '';
     const strictLock = r.is_strict ? `<span style="color:#dc2626; font-weight:bold;" title="${r.strict_note || 'Strict Deadline'}">🔒</span>` : '';
     
-    // Comp Facial 专属提醒按钮（如果到期）
+    // 只有非 comp_facial 并且到期的才有 Manage 按钮
     const manageBtn = (isDue && r.category !== 'comp_facial') ? `<button class="btn btn-sm" style="background:#dc2626; margin-left:8px;" onclick="openAppointmentModal('${r.id}')">⚠️ Manage</button>` : '';
 
-    // Comp Facial 专属到期警告（让过期看起来更明显）
     let compFacialWarning = '';
-    if (r.category === 'comp_facial' && r.status === 'current' && r.next_date) {
-        if (r.next_date < today) {
-            compFacialWarning = `<span style="color:#dc2626; font-weight:bold; font-size:0.7rem;">⚠️ Expired</span>`;
-            cardClass += ' strict-overdue';
+    let expiryInfo = '';
+    if (r.category === 'comp_facial') {
+        // 用 last_date 作为有效期
+        if (r.last_date) {
+            expiryInfo = `<span style="color:#8b5cf6;">Expiry: ${r.last_date}</span>`;
+            if (r.last_date < today) {
+                compFacialWarning = `<span style="color:#dc2626; font-weight:bold; font-size:0.7rem;">⚠️ Expired</span>`;
+                cardClass += ' strict-overdue';
+            }
         }
     }
 
@@ -652,7 +649,8 @@
         </div>
         <div class="item-dates">
           ${timeAgo}
-          ${r.next_date ? `<span class="${dueDateClass}">${r.category === 'comp_facial' ? 'Expiry' : 'Next follow-up'}: ${r.next_date}</span>` : ''}
+          ${expiryInfo}
+          ${r.next_date ? `<span class="${dueDateClass}">Next follow-up: ${r.next_date}</span>` : ''}
           ${apptInfo}
         </div>
         <div class="item-actions">
@@ -669,10 +667,8 @@
     if (!currentCustomerId) return;
     document.getElementById('cfId').value = '';
     document.getElementById('cfName').value = '';
-    document.getElementById('cfStatus').value = 'pending';
     document.getElementById('cfExpiryDate').value = '';
-    document.getElementById('cfUsedDate').value = '';
-    toggleCfDateFields();
+    document.getElementById('cfFollowupDate').value = '';
     openModal('compFacialModal');
   }
 
@@ -680,23 +676,18 @@
     const r = records.find(x => x.id === id);
     if (!r) return;
     document.getElementById('cfId').value = r.id;
-    document.getElementById('cfName').value = r.name.replace('🎁 ', '');
-    document.getElementById('cfStatus').value = r.status === 'past' ? 'used' : 'pending';
-    document.getElementById('cfExpiryDate').value = r.next_date || '';
-    document.getElementById('cfUsedDate').value = r.last_date || '';
-    toggleCfDateFields();
-    openModal('compFacialModal');
-  }
-
-  function toggleCfDateFields() {
-    const status = document.getElementById('cfStatus').value;
-    if (status === 'used') {
-        document.getElementById('cfUsedDateGroup').style.display = 'block';
-        document.getElementById('cfExpiryGroup').style.display = 'none';
+    document.getElementById('cfName').value = r.name;
+    
+    // 如果已经是 past，说明已使用，就不用再显示有效期和跟进日了，直接转入编辑已使用逻辑
+    if (r.status === 'past') {
+        document.getElementById('cfExpiryDate').value = r.last_date || ''; 
+        document.getElementById('cfFollowupDate').value = r.next_date || '';
     } else {
-        document.getElementById('cfUsedDateGroup').style.display = 'none';
-        document.getElementById('cfExpiryGroup').style.display = 'block';
+        document.getElementById('cfExpiryDate').value = r.last_date || '';
+        document.getElementById('cfFollowupDate').value = r.next_date || '';
     }
+    
+    openModal('compFacialModal');
   }
 
   async function saveCompFacial() {
@@ -704,16 +695,15 @@
     const name = document.getElementById('cfName').value.trim();
     if (!name) return alert('Facial Name required');
 
-    const cfStatus = document.getElementById('cfStatus').value;
     const expiry = document.getElementById('cfExpiryDate').value || null;
-    const usedDate = document.getElementById('cfUsedDate').value || null;
+    const followup = document.getElementById('cfFollowupDate').value || null;
 
     let data = {
         name: name,
         category: 'comp_facial',
-        status: cfStatus === 'used' ? 'past' : 'current',
-        next_date: cfStatus === 'used' ? null : expiry,
-        last_date: cfStatus === 'used' ? usedDate : null,
+        status: 'current', // In Use 里的一定是待使用的
+        last_date: expiry, // 用 last_date 存有效期
+        next_date: followup, // 用 next_date 存跟进日
         is_main_followup: false,
         is_strict: false
     };
