@@ -554,13 +554,11 @@
     const tContainer = document.getElementById('treatmentContainer');
     tContainer.innerHTML = treatments.length ? treatments.map(r => renderItemCard(r, r.status)).join('') : '<div class="empty-column" style="grid-column:1/-1;">No active treatments.</div>';
 
-    // 判断产品是否有重复（早晚都有）
     const products = myRecords.filter(r => r.category === 'product' && r.status !== 'past');
     const amProducts = products.filter(r => r.time_slot === 'AM' || !r.time_slot).sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
     const pmProducts = products.filter(r => r.time_slot === 'PM').sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
 
     const renderProductWithDuplicationCheck = (product, slot) => {
-        // 检查另一时段是否有同名产品
         const otherSlot = slot === 'AM' ? 'PM' : 'AM';
         const isDuplicated = products.some(p => p.time_slot === otherSlot && p.name.toLowerCase() === product.name.toLowerCase());
         return renderProductCard(product, product.status, isDuplicated);
@@ -623,17 +621,15 @@
 
     let noteHtml = r.strict_note ? `<div style="font-size:0.65rem; color:#64748b; font-style:italic; margin-top:2px;" title="${r.strict_note}">📝 ${r.strict_note}</div>` : '';
 
-    // 根据状态和是否重复，决定左侧边框颜色和卡片背景色
     let cardClass = 'item-card';
     if (status === 'recommended') {
         cardClass += ' recommended';
     } else if (isDuplicated) {
-        cardClass += ' both-slot'; // 青绿色边框
+        cardClass += ' both-slot';
     } else {
-        cardClass += ' current'; // 绿框
+        cardClass += ' current';
     }
 
-    // 重复标签
     let linkIcon = isDuplicated ? `<span style="font-size:0.6rem; color:#0d9488; font-weight:bold; margin-left:4px;">🔗 Both</span>` : '';
 
     return `<div class="${cardClass}" data-id="${r.id}" style="padding: 8px; flex-direction: row; align-items: center; gap: 8px;">
@@ -686,13 +682,12 @@
     document.getElementById('addProdModalTitle').innerText = 'Add Product to Routine';
     document.getElementById('addProdEditMode').value = 'false';
     document.getElementById('addProdId').value = prodId;
-    document.getElementById('addProdStatus').value = 'current'; // 默认 In Use
+    document.getElementById('addProdStatus').value = 'current';
     document.getElementById('addProdSlotSelect').value = defaultSlot || 'AM';
     document.getElementById('addProdName').innerText = prod.name + (prod.brand ? ` (${prod.brand})` : '');
     document.getElementById('addProdLastDate').value = '';
     document.getElementById('addProdNote').value = '';
     
-    // 切换日期输入框显示
     toggleProductDateField();
     
     openModal('addProductModal');
@@ -733,9 +728,11 @@
     
     if (isEdit) {
         try {
+            // 如果修改为BOTH，先不管，提醒用户单独改
+            const actualSlot = (slot === 'BOTH') ? 'AM' : slot;
             const data = { 
                 status: status,
-                time_slot: slot === 'BOTH' ? 'AM' : slot, // 如果改成了 Both，这里暂按 AM 处理，需后续补充逻辑
+                time_slot: actualSlot,
                 last_date: status === 'recommended' ? null : lastDate, 
                 strict_note: note 
             };
@@ -744,12 +741,10 @@
             // 同步更新另一时段的同名产品
             const currentRecord = records.find(x => x.id === id);
             if (currentRecord) {
-                const otherSlot = slot === 'AM' ? 'PM' : (slot === 'PM' ? 'AM' : null);
-                if (otherSlot) {
-                    const otherRecord = records.find(r => r.customer_id === currentCustomerId && r.category === 'product' && r.name.toLowerCase() === currentRecord.name.toLowerCase() && r.time_slot === otherSlot && r.status !== 'past');
-                    if (otherRecord) {
-                        await api.update('records', `id=eq.${otherRecord.id}`, { last_date: status === 'recommended' ? null : lastDate, strict_note: note });
-                    }
+                const otherSlot = actualSlot === 'AM' ? 'PM' : 'AM';
+                const otherRecord = records.find(r => r.customer_id === currentCustomerId && r.category === 'product' && r.name.toLowerCase() === currentRecord.name.toLowerCase() && r.time_slot === otherSlot && r.status !== 'past');
+                if (otherRecord) {
+                    await api.update('records', `id=eq.${otherRecord.id}`, { last_date: status === 'recommended' ? null : lastDate, strict_note: note });
                 }
             }
             
@@ -763,25 +758,35 @@
     const prodId = document.getElementById('addProdId').value;
     const prod = productsLib.find(p => p.id === prodId); if (!prod) return;
     
-    // 检查是否冲突
-    const existing = records.find(r => r.customer_id === currentCustomerId && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === slot && r.status !== 'past' && slot !== 'BOTH');
-    if (existing) { alert('This product is already in this slot.'); return; }
-    
-    let data = { 
-      customer_id: currentCustomerId, category: 'product', name: prod.name, 
-      status: status, sort_order: 99, is_main_followup: false, is_strict: false,
-      last_date: status === 'recommended' ? null : lastDate,
-      strict_note: note
+    // 基础数据模板（使用 spread 操作符确保是全新对象）
+    const baseData = { 
+        customer_id: currentCustomerId, 
+        category: 'product', 
+        name: prod.name, 
+        status: status, 
+        is_main_followup: false, 
+        is_strict: false,
+        last_date: status === 'recommended' ? null : lastDate,
+        strict_note: note
     };
 
     try {
         if (slot === 'BOTH') {
+            // 检查是否任一已有
+            const hasAM = records.some(r => r.customer_id === currentCustomerId && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === 'AM' && r.status !== 'past');
+            const hasPM = records.some(r => r.customer_id === currentCustomerId && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === 'PM' && r.status !== 'past');
+            
+            if (hasAM || hasPM) { alert('One of the slots already has this product. Please edit it directly instead.'); return; }
+
             // 插入 AM
-            await api.insert('records', { ...data, time_slot: 'AM' });
+            await api.insert('records', { ...baseData, time_slot: 'AM', sort_order: 99 });
             // 插入 PM
-            await api.insert('records', { ...data, time_slot: 'PM' });
+            await api.insert('records', { ...baseData, time_slot: 'PM', sort_order: 99 });
         } else {
-            await api.insert('records', { ...data, time_slot: slot });
+            const existing = records.some(r => r.customer_id === currentCustomerId && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === slot && r.status !== 'past');
+            if (existing) { alert('This product is already in this slot.'); return; }
+            
+            await api.insert('records', { ...baseData, time_slot: slot, sort_order: 99 });
         }
         
         document.querySelectorAll('.search-wrapper input').forEach(el => el.value = '');
@@ -791,7 +796,7 @@
     } catch(e) { alert(e.message); }
   }
 
-  // ... 其他逻辑不变 ...
+  // ... 其他逻辑 ...
   function openItemModal(status, category) {
     if (!currentCustomerId) return;
     document.getElementById('itemId').value = ''; document.getElementById('itemCategory').value = category; document.getElementById('itemStatus').value = status; document.getElementById('itemName').value = ''; document.getElementById('itemTag').value = ''; document.getElementById('itemLastDate').value = ''; document.getElementById('itemNextDate').value = ''; document.getElementById('itemAppDate').value = ''; document.getElementById('itemIsStrict').checked = false; document.getElementById('itemStrictNote').value = ''; document.getElementById('itemStrictNote').style.display = 'none';
@@ -821,12 +826,10 @@
 
   async function proceedItem(id) { const r = records.find(x => x.id === id); try { await api.update('records', `id=eq.${r.id}`, { status: 'current', tag: '' }); await loadData(); showToast('Moved to Current'); } catch (e) { alert(e.message); } }
   
-  // 重点修改：删除时检查早晚同名
   async function cancelItem(id) {
     const r = records.find(x => x.id === id);
     if (!r) return;
 
-    // 如果是产品，检查另一时段是否有同名
     if (r.category === 'product') {
         const otherSlot = r.time_slot === 'AM' ? 'PM' : 'AM';
         const otherRecord = records.find(x => x.customer_id === currentCustomerId && x.category === 'product' && x.name.toLowerCase() === r.name.toLowerCase() && x.time_slot === otherSlot && x.status !== 'past');
@@ -834,12 +837,10 @@
         if (otherRecord) {
             const choice = confirm('This product is also in the ' + otherSlot + ' routine.\n\nClick "OK" to remove from BOTH (AM & PM).\nClick "Cancel" to remove ONLY from ' + r.time_slot + '.');
             if (choice) {
-                // 删除两个
                 await api.update('records', `id=eq.${r.id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false });
                 await api.update('records', `id=eq.${otherRecord.id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false });
                 await loadData(); showToast('Removed from both AM & PM');
             } else {
-                // 只删除当前
                 await api.update('records', `id=eq.${r.id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false });
                 await loadData(); showToast('Removed from ' + r.time_slot);
             }
@@ -847,7 +848,6 @@
         }
     }
 
-    // 普通删除逻辑
     if (!confirm('Move to History (Past) and stop follow-ups?')) return;
     try {
         await api.update('records', `id=eq.${id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false });
