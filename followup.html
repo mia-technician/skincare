@@ -356,13 +356,27 @@
     <div class="form-group" style="margin-bottom: 16px;">
       <label>Global Keyword (全局搜索)</label>
       <input type="text" id="searchKw" placeholder="Search name, concern, product, treatment...">
-      <div class="hint-text">Searches across all customer names, concerns, and items.<br>💡 Tip: Type "本月生日" or "下月生日" to find birthdays.</div>
+      <div class="hint-text">Searches across all customer names, concerns, and items.</div>
     </div>
 
-    <div class="form-group" style="background:#fef2f2; padding:12px; border-radius:8px; border:1px solid #fecaca; margin-bottom:16px;">
-      <label style="display:flex; align-items:center; gap:8px; color:#991b1b; cursor:pointer;">
-        <input type="checkbox" id="searchStrictDue" style="width:auto;"> 🔒 Only show Strict Deadlines that are Due/Overdue
-      </label>
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
+      <div class="form-group" style="background:#fef2f2; padding:12px; border-radius:8px; border:1px solid #fecaca; margin-bottom: 0;">
+        <label style="display:flex; align-items:center; gap:8px; color:#991b1b; cursor:pointer;">
+          <input type="checkbox" id="searchStrictDue" style="width:auto;"> 🔒 Only show Strict Deadlines that are Due/Overdue
+        </label>
+      </div>
+
+      <div class="form-group" style="background:#f0fdf4; padding:12px; border-radius:8px; border:1px solid #bbf7d0; margin-bottom: 0;">
+        <label style="display:flex; align-items:center; gap:8px; color:#166534; cursor:pointer;">
+          <input type="checkbox" id="searchBirthdayCurrent" style="width:auto;"> 🎂 This Month's Birthdays
+        </label>
+      </div>
+
+      <div class="form-group" style="background:#eff6ff; padding:12px; border-radius:8px; border:1px solid #bfdbfe; margin-bottom: 0;">
+        <label style="display:flex; align-items:center; gap:8px; color:#1e3a8a; cursor:pointer;">
+          <input type="checkbox" id="searchBirthdayNext" style="width:auto;"> 🎂 Next Month's Birthdays
+        </label>
+      </div>
     </div>
 
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:12px;">
@@ -1027,39 +1041,35 @@
   function clearSearch() {
     document.getElementById('searchKw').value = '';
     document.getElementById('searchStrictDue').checked = false;
+    document.getElementById('searchBirthdayCurrent').checked = false;
+    document.getElementById('searchBirthdayNext').checked = false;
     document.getElementById('searchResultsArea').style.display = 'none';
   }
 
   function executeAdvancedSearch() {
     const kw = document.getElementById('searchKw').value.toLowerCase().trim();
     const onlyStrictDue = document.getElementById('searchStrictDue').checked;
+    const bdCurrent = document.getElementById('searchBirthdayCurrent').checked;
+    const bdNext = document.getElementById('searchBirthdayNext').checked;
+    
     const today = new Date().toISOString().split('T')[0];
-
-    // 计算本月和下个月
     const currentMonth = new Date().getMonth() + 1;
     let nextMonth = currentMonth + 1;
     if (nextMonth > 12) nextMonth = 1;
+
+    // 如果没有勾选任何条件，且没有输入关键字，不显示结果
+    if (!kw && !onlyStrictDue && !bdCurrent && !bdNext) return;
 
     // 1. 找出匹配关键字的客人 ID
     let matchedCustomerIds = new Set();
     if (kw) {
         customers.forEach(c => {
             const customerHay = [c.name, c.client_id, c.concern, c.email].filter(Boolean).join(' ').toLowerCase();
-            
-            // 增加对生日的匹配判断
-            let isBirthdayMatch = false;
-            if (kw.includes('生日') || kw.includes('birthday')) {
-                if ((kw.includes('本月') || kw.includes('current')) && c.birth_month === currentMonth) isBirthdayMatch = true;
-                if ((kw.includes('下月') || kw.includes('next')) && c.birth_month === nextMonth) isBirthdayMatch = true;
-                // 如果只搜了"生日"，没加"本月/下月"，就把所有有生日的查出来
-                if (!kw.includes('本月') && !kw.includes('下月') && !kw.includes('current') && !kw.includes('next') && c.birth_month) isBirthdayMatch = true;
-            }
-
-            if (customerHay.includes(kw) || isBirthdayMatch) matchedCustomerIds.add(c.id);
+            if (customerHay.includes(kw)) matchedCustomerIds.add(c.id);
         });
     }
 
-    // 2. 遍历 records，看是否符合条件
+    // 2. 遍历 records，看是否符合条件（仅针对需要有 record 才能匹配的逻辑）
     const matchedRecords = records.filter(r => {
       const c = customers.find(x => x.id === r.customer_id);
       if (!c) return false;
@@ -1071,22 +1081,17 @@
           if (!r.next_date || r.next_date > today) return false;
       }
 
-      // 如果没有关键字，且没有勾选严格到期，不显示
-      if (!kw && !onlyStrictDue) return false;
-
       // 如果有条件
       if (kw) {
-          // 如果客人的名字/诉求/生日已经匹配上了，直接算匹配
           if (matchedCustomerIds.has(c.id)) return true;
           
-          // 否则看看是不是项目名字匹配
           const itemHay = [r.name, r.tag, r.category, r.strict_note].filter(Boolean).join(' ').toLowerCase();
           if (itemHay.includes(kw)) return true;
 
           return false;
       }
 
-      return true; // onlyStrictDue = true 的情况
+      return onlyStrictDue; // 如果没有关键字，只返回严格到期的记录（前提是勾选了）
     });
 
     // 提取唯一的客人
@@ -1099,20 +1104,17 @@
       }
     });
 
-    // 如果只勾了生日（且没有勾选严格到期），要把所有本月/下月生日的客人都加上
-    // 因为如果客人没有 records，上面 matchedRecords 会漏掉他
-    if (kw && !onlyStrictDue) {
-       customers.forEach(c => {
-           const isCurrent = kw.includes('本月') || kw.includes('current');
-           const isNext = kw.includes('下月') || kw.includes('next');
-           if ((isCurrent && c.birth_month === currentMonth) || (isNext && c.birth_month === nextMonth)) {
-               if (!seenIds.has(c.id)) {
-                   seenIds.add(c.id);
-                   uniqueCustomers.push(c);
-               }
-           }
-       });
-    }
+    // 3. 如果勾选了生日，把生日的客人直接加进来（因为生日不需要 record）
+    customers.forEach(c => {
+        if (seenIds.has(c.id)) return;
+        if (bdCurrent && c.birth_month === currentMonth) {
+            seenIds.add(c.id);
+            uniqueCustomers.push(c);
+        } else if (bdNext && c.birth_month === nextMonth) {
+            seenIds.add(c.id);
+            uniqueCustomers.push(c);
+        }
+    });
 
     currentSearchResults = uniqueCustomers;
 
