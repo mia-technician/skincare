@@ -653,6 +653,11 @@
   function openAddProductModal(prodId, slot) {
     const prod = productsLib.find(p => p.id === prodId);
     if (!prod) return;
+    
+    // 查找早晚是否有同一个产品的记录
+    const existingAM = records.find(r => r.customer_id === currentCustomerId && r.category === 'product' && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === 'AM' && r.status !== 'past');
+    const existingPM = records.find(r => r.customer_id === currentCustomerId && r.category === 'product' && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === 'PM' && r.status !== 'past');
+
     document.getElementById('addProdModalTitle').innerText = 'Add Product to Routine';
     document.getElementById('addProdEditMode').value = 'false';
     document.getElementById('addProdId').value = prodId;
@@ -661,8 +666,15 @@
     document.getElementById('prodSlotSelectGroup').style.display = 'block';
     document.getElementById('addProdSlotSelect').disabled = false;
     document.getElementById('addProdName').innerText = prod.name + (prod.brand ? ` (${prod.brand})` : '');
-    document.getElementById('addProdLastDate').value = '';
-    document.getElementById('addProdNote').value = '';
+    
+    // 如果对方时段已经存在，自动带入日期和备注
+    let autoDate = '';
+    let autoNote = '';
+    if (slot === 'PM' && existingAM) { autoDate = existingAM.last_date || ''; autoNote = existingAM.strict_note || ''; }
+    if (slot === 'AM' && existingPM) { autoDate = existingPM.last_date || ''; autoNote = existingPM.strict_note || ''; }
+    
+    document.getElementById('addProdLastDate').value = autoDate;
+    document.getElementById('addProdNote').value = autoNote;
     openModal('addProductModal');
     document.querySelectorAll('.search-results').forEach(el => el.classList.remove('show'));
   }
@@ -693,9 +705,21 @@
     
     if (isEdit) {
         try {
+            // 更新当前记录
             await api.update('records', `id=eq.${id}`, { last_date: lastDate, strict_note: note, time_slot: slot });
+            
+            // 同步更新另一时段的同名产品
+            const currentRecord = records.find(x => x.id === id);
+            if (currentRecord) {
+                const otherSlot = slot === 'AM' ? 'PM' : 'AM';
+                const otherRecord = records.find(r => r.customer_id === currentCustomerId && r.category === 'product' && r.name.toLowerCase() === currentRecord.name.toLowerCase() && r.time_slot === otherSlot && r.status !== 'past');
+                if (otherRecord) {
+                    await api.update('records', `id=eq.${otherRecord.id}`, { last_date: lastDate, strict_note: note });
+                }
+            }
+            
             closeModal('addProductModal');
-            await loadData(); showToast('Product updated');
+            await loadData(); showToast('Product updated & synced');
         } catch(e) { alert(e.message); }
         return;
     }
@@ -714,6 +738,14 @@
     };
     try {
         await api.insert('records', data);
+        
+        // 如果另一时段有同名产品但日期和备注为空，也顺便同步过去
+        const otherSlot = slot === 'AM' ? 'PM' : 'AM';
+        const otherRecord = records.find(r => r.customer_id === currentCustomerId && r.category === 'product' && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === otherSlot && r.status !== 'past');
+        if (otherRecord && (!otherRecord.last_date || !otherRecord.strict_note)) {
+            await api.update('records', `id=eq.${otherRecord.id}`, { last_date: lastDate || otherRecord.last_date, strict_note: note || otherRecord.strict_note });
+        }
+        
         document.querySelectorAll('.search-wrapper input').forEach(el => el.value = '');
         document.querySelectorAll('.search-results').forEach(el => el.classList.remove('show'));
         closeModal('addProductModal');
