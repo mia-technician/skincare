@@ -6,7 +6,6 @@
 <title>Clinic CRM · Patient Follow-up</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- 引入 SortableJS 用于拖拽排序 -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -254,7 +253,7 @@
   </div>
 </div>
 
-<!-- Item Modal (Unified - Treatments Only now) -->
+<!-- Item Modal (Treatments) -->
 <div class="modal-overlay" id="itemModal">
   <div class="modal-content">
     <button class="close-btn" onclick="closeModal('itemModal')">✖</button>
@@ -391,7 +390,6 @@
       <button class="btn" onclick="executeAdvancedSearch()">Search</button>
     </div>
 
-    <!-- Search Results Area -->
     <div id="searchResultsArea" style="display:none; border-top:1px solid #e2e8f0; padding-top:16px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h4 style="font-size:0.9rem;" id="searchResultsTitle">Results</h4>
@@ -404,9 +402,7 @@
 
 <!-- Print Routine Modal -->
 <div class="modal-overlay" id="printRoutineModal">
-  <div class="modal-content" style="max-width: 800px; padding: 40px;" id="printRoutineContent">
-    <!-- 动态注入打印内容 -->
-  </div>
+  <div class="modal-content" style="max-width: 800px; padding: 40px;" id="printRoutineContent"></div>
 </div>
 
 <div class="toast" id="toast">Saved</div>
@@ -419,54 +415,29 @@
   let customers = [], records = [], productsLib = [], currentCustomerId = null;
   let currentSearchResults = [];
 
-  // ==================== 认证 ====================
   async function loginCRM() {
     const email = document.getElementById('authEmail').value.trim();
     const password = document.getElementById('authPassword').value;
     const errorEl = document.getElementById('authError');
     errorEl.style.display = 'none';
-
-    if (!email || !password) {
-        errorEl.innerText = "Please enter email and password.";
-        errorEl.style.display = 'block';
-        return;
-    }
-
+    if (!email || !password) { errorEl.innerText = "Please enter email and password."; errorEl.style.display = 'block'; return; }
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-    if (error) {
-        errorEl.innerText = "Login failed: " + error.message;
-        errorEl.style.display = 'block';
-        return;
-    }
-
+    if (error) { errorEl.innerText = "Login failed: " + error.message; errorEl.style.display = 'block'; return; }
     document.getElementById('loginOverlay').style.display = 'none';
     loadData();
   }
 
   async function checkSession() {
     const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session) {
-        document.getElementById('loginOverlay').style.display = 'none';
-        loadData();
-    }
+    if (session) { document.getElementById('loginOverlay').style.display = 'none'; loadData(); }
   }
 
-  // ==================== API ====================
   const api = {
     headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
     async request(path, options = {}) {
       const { data: { session } } = await supabaseClient.auth.getSession();
       const token = session ? session.access_token : SUPABASE_ANON_KEY;
-
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-          ...options,
-          headers: {
-              ...this.headers,
-              'Authorization': `Bearer ${token}`,
-              ...(options.headers || {})
-          }
-      });
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { ...options, headers: { ...this.headers, 'Authorization': `Bearer ${token}`, ...(options.headers || {}) } });
       if (!res.ok) throw new Error(await res.text());
       const text = await res.text();
       return text ? JSON.parse(text) : null;
@@ -477,20 +448,12 @@
     delete: (table, query) => api.request(`${table}?${query}`, { method: 'DELETE' })
   };
 
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.innerText = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2000);
-  }
-
+  function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
   function closeModal(id) { document.getElementById(id).classList.remove('show'); }
   function openModal(id) { document.getElementById(id).classList.add('show'); }
 
-  // ==================== 数据加载 ====================
   async function loadData() {
     try {
-      // 加载客人、记录，以及产品库（用于自动匹配图片）
       const [cRes, rRes, pRes] = await Promise.all([
         api.select('customers', 'order=name.asc'),
         api.select('records', 'order=next_date.asc.nullslast'),
@@ -499,7 +462,6 @@
       customers = cRes;
       records = rRes;
       productsLib = pRes || [];
-
       renderCustomers();
       if (currentCustomerId) renderProfile(currentCustomerId);
     } catch (e) { alert('Error loading data: ' + e.message); }
@@ -509,252 +471,120 @@
     const kw = document.getElementById('searchInput').value.toLowerCase();
     const list = document.getElementById('customerList');
     const filtered = customers.filter(c => c.name.toLowerCase().includes(kw) || (c.client_id && c.client_id.toLowerCase().includes(kw)));
-    list.innerHTML = filtered.map(c => `
-      <div class="customer-item ${c.id === currentCustomerId ? 'active' : ''}" onclick="selectCustomer('${c.id}')">
-        <div class="customer-name">${c.name}</div>
-        <div class="customer-info">ID: ${c.client_id || 'N/A'} | ${c.email || 'No email'}</div>
-      </div>
-    `).join('');
+    list.innerHTML = filtered.map(c => `<div class="customer-item ${c.id === currentCustomerId ? 'active' : ''}" onclick="selectCustomer('${c.id}')"><div class="customer-name">${c.name}</div><div class="customer-info">ID: ${c.client_id || 'N/A'} | ${c.email || 'No email'}</div></div>`).join('');
   }
 
-  function selectCustomer(id) {
-    currentCustomerId = id;
-    renderCustomers();
-    renderProfile(id);
-    document.getElementById('mainPanel').style.display = 'flex';
-    closeModal('searchModal');
-  }
+  function selectCustomer(id) { currentCustomerId = id; renderCustomers(); renderProfile(id); document.getElementById('mainPanel').style.display = 'flex'; closeModal('searchModal'); }
 
   function calcMonthsAgo(dateStr) {
     if (!dateStr) return null;
-    const past = new Date(dateStr);
-    const now = new Date();
+    const past = new Date(dateStr); const now = new Date();
     let months = (now.getFullYear() - past.getFullYear()) * 12 + (now.getMonth() - past.getMonth());
     if (now.getDate() < past.getDate()) months--;
-    if (months <= 0) {
-      const days = Math.floor((now - past) / (1000 * 60 * 60 * 24));
-      return days > 0 ? `${days} day(s) ago` : 'Today';
-    }
+    if (months <= 0) { const days = Math.floor((now - past) / (1000 * 60 * 60 * 24)); return days > 0 ? `${days} day(s) ago` : 'Today'; }
     return `${months} month(s) ago`;
   }
 
-  // ==================== 渲染个人档案 ====================
   function renderProfile(id) {
     const c = customers.find(x => x.id === id);
     if (!c) return;
-    
     const currentMonth = new Date().getMonth() + 1;
     const isBirthday = c.birth_month === currentMonth;
-    const birthdayHtml = isBirthday ? `<span class="birthday-badge">🎂 Birthday Month</span>` : '';
-
-    document.getElementById('profileName').innerHTML = `${c.name} ${birthdayHtml}`;
-    document.getElementById('profileDetails').innerHTML = `
-      <span><strong>ID:</strong> ${c.client_id || 'N/A'}</span>
-      <span><strong>Email:</strong> ${c.email || 'N/A'}</span>
-      <span><strong>Birth Month:</strong> ${c.birth_month || 'N/A'}</span>
-      <span><strong>Concern:</strong> ${c.concern || 'N/A'}</span>
-    `;
+    document.getElementById('profileName').innerHTML = `${c.name} ${isBirthday ? '<span class="birthday-badge">🎂 Birthday Month</span>' : ''}`;
+    document.getElementById('profileDetails').innerHTML = `<span><strong>ID:</strong> ${c.client_id || 'N/A'}</span><span><strong>Email:</strong> ${c.email || 'N/A'}</span><span><strong>Birth Month:</strong> ${c.birth_month || 'N/A'}</span><span><strong>Concern:</strong> ${c.concern || 'N/A'}</span>`;
 
     const linkedArea = document.getElementById('linkedProfilesArea');
     let linkedHtml = '';
     if (c.linked_customer_ids && c.linked_customer_ids.length > 0) {
-      c.linked_customer_ids.forEach(lid => {
-        const lc = customers.find(x => x.id === lid);
-        if (lc) {
-          linkedHtml += `
-            <div class="linked-card" onclick="selectCustomer('${lc.id}')">
-              <span class="linked-name">👨‍👩‍👧 ${lc.name}</span>
-              <span class="linked-id">#${lc.client_id || ''}</span>
-            </div>
-          `;
-        }
-      });
+      c.linked_customer_ids.forEach(lid => { const lc = customers.find(x => x.id === lid); if (lc) { linkedHtml += `<div class="linked-card" onclick="selectCustomer('${lc.id}')"><span class="linked-name">👨‍👩‍👧 ${lc.name}</span><span class="linked-id">#${lc.client_id || ''}</span></div>`; } });
     }
     linkedHtml += `<button class="btn btn-outline btn-sm" onclick="openLinkModal()">➕ Link Related Profile</button>`;
     linkedArea.innerHTML = linkedHtml;
 
     const myRecords = records.filter(r => r.customer_id === id);
-
-    // 处理 Treatments
     const treatments = myRecords.filter(r => (r.category === 'treatment' || r.category === 'comp_facial') && r.status !== 'past');
     const tContainer = document.getElementById('treatmentContainer');
     tContainer.innerHTML = treatments.length ? treatments.map(r => renderItemCard(r, r.status)).join('') : '<div class="empty-column" style="grid-column:1/-1;">No active treatments.</div>';
 
-    // 处理 Products (分早晚)
     const products = myRecords.filter(r => r.category === 'product' && r.status !== 'past');
-    
-    // 兼容旧数据：如果没有 time_slot，默认算 AM
     const amProducts = products.filter(r => r.time_slot === 'AM' || !r.time_slot).sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
     const pmProducts = products.filter(r => r.time_slot === 'PM').sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
 
     document.getElementById('amProductContainer').innerHTML = amProducts.length ? amProducts.map(r => renderProductCard(r, r.status)).join('') : '<div class="empty-column">Empty</div>';
     document.getElementById('pmProductContainer').innerHTML = pmProducts.length ? pmProducts.map(r => renderProductCard(r, r.status)).join('') : '<div class="empty-column">Empty</div>';
 
-    // 处理 History
     const history = myRecords.filter(r => r.status === 'past');
-    const pastTreatments = history.filter(r => r.category === 'treatment' || r.category === 'comp_facial');
-    const pastProducts = history.filter(r => r.category === 'product');
+    document.getElementById('pastTreatmentsColumn').innerHTML = history.filter(r => r.category === 'treatment' || r.category === 'comp_facial').map(r => renderItemCard(r, 'past')).join('') || '<div class="empty-column">Empty</div>';
+    document.getElementById('pastProductsColumn').innerHTML = history.filter(r => r.category === 'product').map(r => renderItemCard(r, 'past')).join('') || '<div class="empty-column">Empty</div>';
 
-    document.getElementById('pastTreatmentsColumn').innerHTML = pastTreatments.length ? pastTreatments.map(r => renderItemCard(r, 'past')).join('') : '<div class="empty-column">Empty</div>';
-    document.getElementById('pastProductsColumn').innerHTML = pastProducts.length ? pastProducts.map(r => renderItemCard(r, 'past')).join('') : '<div class="empty-column">Empty</div>';
-
-    // 初始化拖拽排序
     initSortable('amProductContainer', 'AM');
     initSortable('pmProductContainer', 'PM');
   }
 
-  // ==================== 渲染卡片 ====================
   function renderItemCard(r, status) {
-    let tagHtml = '';
-    if (r.tag === 'liked') tagHtml = '<span class="tag tag-liked">Liked</span>';
-    if (r.tag === 'interested') tagHtml = '<span class="tag tag-interested">Interested</span>';
-    if (r.tag === 'disliked') tagHtml = '<span class="tag tag-disliked">Disliked</span>';
-    if (r.tag === 'not_interested') tagHtml = '<span class="tag tag-not-interested">Not Interested</span>';
-
+    let tagHtml = r.tag === 'liked' ? '<span class="tag tag-liked">Liked</span>' : (r.tag === 'interested' ? '<span class="tag tag-interested">Interested</span>' : (r.tag === 'disliked' ? '<span class="tag tag-disliked">Disliked</span>' : (r.tag === 'not_interested' ? '<span class="tag tag-not-interested">Not Interested</span>' : '')));
     const timeAgo = r.last_date ? `<span style="color:#f59e0b;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
 
-    let buttons = '';
-    if (r.category === 'comp_facial') {
-        buttons = `
-          <button class="btn btn-sm" style="background:#8b5cf6" onclick="openEditCompFacialModal('${r.id}')">✏️ Edit / Mark Used</button>
-        `;
-    } else {
-        if (status === 'recommended') {
-          buttons = `
-            <button class="btn btn-sm" style="background:#10b981" onclick="proceedItem('${r.id}')">Proceed</button>
-            <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Not Interested</button>
-            <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️</button>
-          `;
-        } else {
-          buttons = `
-            <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Cancel</button>
-            <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️</button>
-          `;
-        }
-    }
+    let buttons = r.category === 'comp_facial' ? `<button class="btn btn-sm" style="background:#8b5cf6" onclick="openEditCompFacialModal('${r.id}')">✏️ Edit / Mark Used</button>` : (status === 'recommended' ? `<button class="btn btn-sm" style="background:#10b981" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Not Interested</button><button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️</button>` : `<button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Cancel</button><button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️</button>`);
 
     const today = new Date().toISOString().split('T')[0];
     const isDue = status !== 'past' && ((r.next_date && r.next_date <= today) || (r.appointment_date && r.appointment_date <= today));
-    
     let cardClass = `item-card ${r.status}`;
     if (r.is_main_followup) cardClass += ' main-followup';
-    if (isDue) {
-      if (r.is_strict) cardClass += ' strict-overdue';
-      else cardClass += ' due';
-    }
+    if (isDue) { if (r.is_strict) cardClass += ' strict-overdue'; else cardClass += ' due'; }
 
     const apptInfo = r.appointment_date ? `<span style="color:#3b82f6; font-weight:600;">Next Appt: ${r.appointment_date}</span>` : '';
     const pinBtn = status !== 'past' ? `<button class="btn btn-sm ${r.is_main_followup ? 'btn' : 'btn-outline'}" onclick="setMainFollowup('${r.id}')" title="Set as main follow-up">📌</button>` : '';
     const strictLock = r.is_strict ? `<span style="color:#dc2626; font-weight:bold;" title="${r.strict_note || 'Strict Deadline'}">🔒</span>` : '';
-    
     const manageBtn = (isDue && r.category !== 'comp_facial') ? `<button class="btn btn-sm" style="background:#dc2626; margin-left:8px;" onclick="openAppointmentModal('${r.id}')">⚠️ Manage</button>` : '';
 
-    let compFacialWarning = '';
-    let expiryInfo = '';
+    let compFacialWarning = ''; let expiryInfo = '';
     if (r.category === 'comp_facial') {
         if (r.last_date) {
             expiryInfo = `<span style="color:#8b5cf6;">Expiry: ${r.last_date}</span>`;
-            if (r.last_date < today) {
-                compFacialWarning = `<span style="color:#dc2626; font-weight:bold; font-size:0.7rem;">⚠️ Expired</span>`;
-                cardClass += ' strict-overdue';
-            }
+            if (r.last_date < today) { compFacialWarning = `<span style="color:#dc2626; font-weight:bold; font-size:0.7rem;">⚠️ Expired</span>`; cardClass += ' strict-overdue'; }
         }
     }
 
     const dueDateClass = isDue ? 'date-overdue' : '';
+    let displayName = r.category === 'comp_facial' ? `🎁 ${r.name}` : r.name;
+    let categoryLabel = r.category === 'comp_facial' ? `<span class="badge comp_facial" style="font-size:0.6rem; padding:1px 4px;">Comp Facial</span>` : '';
 
-    let displayName = r.name;
-    let categoryLabel = '';
-    if (r.category === 'comp_facial') {
-        categoryLabel = `<span class="badge comp_facial" style="font-size:0.6rem; padding:1px 4px;">Comp Facial</span>`;
-        displayName = `🎁 ${r.name}`;
-    }
-
-    return `
-      <div class="${cardClass}" data-id="${r.id}">
-        <div class="item-header">
-          <div class="item-name-area">
-            ${displayName} ${categoryLabel} ${strictLock} ${tagHtml} ${compFacialWarning}
-          </div>
-          <span class="badge ${status}">${status}</span>
-        </div>
-        <div class="item-dates">
-          ${timeAgo}
-          ${expiryInfo}
-          ${r.next_date ? `<span class="${dueDateClass}">Next follow-up: ${r.next_date}</span>` : ''}
-          ${apptInfo}
-        </div>
-        <div class="item-actions">
-          ${buttons}
-          ${pinBtn}
-          ${manageBtn}
-        </div>
-      </div>
-    `;
+    return `<div class="${cardClass}" data-id="${r.id}">
+        <div class="item-header"><div class="item-name-area">${displayName} ${categoryLabel} ${strictLock} ${tagHtml} ${compFacialWarning}</div><span class="badge ${status}">${status}</span></div>
+        <div class="item-dates">${timeAgo}${expiryInfo}${r.next_date ? `<span class="${dueDateClass}">Next follow-up: ${r.next_date}</span>` : ''}${apptInfo}</div>
+        <div class="item-actions">${buttons}${pinBtn}${manageBtn}</div>
+      </div>`;
   }
 
-  // 专用于产品的卡片（带拖拽手柄和图片识别）
   function renderProductCard(r, status) {
-    // 自动认亲逻辑
     const matchedProd = productsLib.find(p => p.name.toLowerCase() === r.name.toLowerCase());
     const imgSrc = matchedProd && matchedProd.image ? matchedProd.image : 'https://via.placeholder.com/40/f1f5f9/94a3b8?text=Img';
     const brandStr = matchedProd && matchedProd.brand ? `<span style="font-size:0.65rem; color:#94a3b8; margin-left:4px;">(${matchedProd.brand})</span>` : '';
 
-    let buttons = '';
-    if (status === 'recommended') {
-      buttons = `
-        <button class="btn btn-sm" style="background:#10b981; padding:2px 6px;" onclick="proceedItem('${r.id}')">Proceed</button>
-        <button class="btn btn-sm btn-outline" style="padding:2px 6px;" onclick="cancelItem('${r.id}')">✖</button>
-      `;
-    } else {
-      buttons = `
-        <button class="btn btn-sm btn-outline" style="padding:2px 6px; color:#dc2626;" onclick="cancelItem('${r.id}')">✖</button>
-      `;
-    }
-
+    let buttons = status === 'recommended' ? `<button class="btn btn-sm" style="background:#10b981; padding:2px 6px;" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn-sm btn-outline" style="padding:2px 6px;" onclick="cancelItem('${r.id}')">✖</button>` : `<button class="btn btn-sm btn-outline" style="padding:2px 6px; color:#dc2626;" onclick="cancelItem('${r.id}')">✖</button>`;
     const timeAgo = r.last_date ? `<span style="color:#f59e0b; font-size:0.7rem;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
 
-    return `
-      <div class="item-card ${status}" data-id="${r.id}" style="padding: 8px; flex-direction: row; align-items: center; gap: 8px;">
+    return `<div class="item-card ${status}" data-id="${r.id}" style="padding: 8px; flex-direction: row; align-items: center; gap: 8px;">
         <div class="drag-handle">⋮⋮</div>
         <img src="${imgSrc}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; background:#f1f5f9;">
-        <div style="flex:1;">
-          <div style="font-weight:600; font-size:0.8rem; color:#0f172a;">${r.name} ${brandStr}</div>
-          <div>${timeAgo}</div>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
-           <span class="badge ${status}" style="font-size:0.55rem; padding:1px 4px;">${status === 'recommended' ? 'Rec' : 'In Use'}</span>
-           ${buttons}
-        </div>
-      </div>
-    `;
+        <div style="flex:1;"><div style="font-weight:600; font-size:0.8rem; color:#0f172a;">${r.name} ${brandStr}</div><div>${timeAgo}</div></div>
+        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;"><span class="badge ${status}" style="font-size:0.55rem; padding:1px 4px;">${status === 'recommended' ? 'Rec' : 'In Use'}</span>${buttons}</div>
+      </div>`;
   }
 
-  // ==================== 拖拽与搜索 ====================
   function initSortable(containerId, slot) {
     const el = document.getElementById(containerId);
     if (!el) return;
-    
-    // 先销毁旧的实例，防止重复
-    if (el.sortableInstance) {
-        el.sortableInstance.destroy();
-    }
-
+    if (el.sortableInstance) el.sortableInstance.destroy();
     el.sortableInstance = new Sortable(el, {
-        animation: 150,
-        handle: '.drag-handle',
-        ghostClass: 'sortable-ghost',
+        animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost',
         onEnd: async function (evt) {
             const items = Array.from(el.querySelectorAll('.item-card'));
-            // 更新本地数据和数据库
             for (let i = 0; i < items.length; i++) {
                 const id = items[i].dataset.id;
                 const record = records.find(r => r.id === id);
-                if (record) {
-                    record.sort_order = i; // 本地更新
-                    // 异步保存到云端
-                    await api.update('records', `id=eq.${id}`, { sort_order: i, time_slot: slot });
-                }
+                if (record) { record.sort_order = i; await api.update('records', `id=eq.${id}`, { sort_order: i, time_slot: slot }); }
             }
             showToast('Order saved');
         }
@@ -764,433 +594,94 @@
   async function searchProduct(inputEl, slot) {
     const kw = inputEl.value.toLowerCase().trim();
     const resultsDiv = inputEl.nextElementSibling;
-    
     if (!kw) { resultsDiv.classList.remove('show'); return; }
-
     const matched = productsLib.filter(p => p.name.toLowerCase().includes(kw) || (p.brand && p.brand.toLowerCase().includes(kw)));
-    
-    if (matched.length === 0) {
-        resultsDiv.innerHTML = '<div class="search-item" style="color:#94a3b8;">No products found</div>';
-    } else {
-        resultsDiv.innerHTML = matched.map(p => `
-            <div class="search-item" onclick="addProductToRoutine('${p.id}', '${slot}')">
-                <span>${p.name}</span>
-                <span style="color:#94a3b8;">${p.brand || ''}</span>
-            </div>
-        `).join('');
-    }
+    resultsDiv.innerHTML = matched.length === 0 ? '<div class="search-item" style="color:#94a3b8;">No products found</div>' : matched.map(p => `<div class="search-item" onclick="addProductToRoutine('${p.id}', '${slot}')"><span>${p.name}</span><span style="color:#94a3b8;">${p.brand || ''}</span></div>`).join('');
     resultsDiv.classList.add('show');
   }
 
   async function addProductToRoutine(prodId, slot) {
-    const prod = productsLib.find(p => p.id === prodId);
-    if (!prod) return;
-
-    // 检查该客人是否已经在这个槽位有这个产品了（防止重复）
+    const prod = productsLib.find(p => p.id === prodId); if (!prod) return;
     const existing = records.find(r => r.customer_id === currentCustomerId && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === slot && r.status !== 'past');
-    if (existing) {
-        alert('This product is already in this slot.');
-        return;
-    }
-
-    let data = {
-        customer_id: currentCustomerId,
-        category: 'product',
-        name: prod.name,
-        status: 'current', // 默认添加到 current 中作为使用中
-        time_slot: slot,
-        sort_order: 99, // 默认放最后
-        is_main_followup: false,
-        is_strict: false
-    };
-
+    if (existing) { alert('This product is already in this slot.'); return; }
+    let data = { customer_id: currentCustomerId, category: 'product', name: prod.name, status: 'current', time_slot: slot, sort_order: 99, is_main_followup: false, is_strict: false };
     try {
         await api.insert('records', data);
-        // 清空搜索框并刷新
         document.querySelectorAll('.search-wrapper input').forEach(el => el.value = '');
         document.querySelectorAll('.search-results').forEach(el => el.classList.remove('show'));
-        await loadData();
-        showToast('Product added');
+        await loadData(); showToast('Product added');
     } catch(e) { alert(e.message); }
   }
 
-  // ==================== 其他逻辑 (Follow-up, Editing, etc) ====================
-  // ... 保留之前的 item modal, comp facial modal, proceed, cancel, manage 等逻辑 ...
-  // 注：为了节省篇幅，这里直接沿用之前逻辑，只需确保 openEditItemModal 等函数正常工作。
-
   function openItemModal(status, category) {
     if (!currentCustomerId) return;
-    document.getElementById('itemId').value = '';
-    document.getElementById('itemCategory').value = category;
-    document.getElementById('itemStatus').value = status;
-    document.getElementById('itemName').value = '';
-    document.getElementById('itemTag').value = '';
-    document.getElementById('itemLastDate').value = '';
-    document.getElementById('itemNextDate').value = '';
-    document.getElementById('itemAppDate').value = '';
-    document.getElementById('itemIsStrict').checked = false;
-    document.getElementById('itemStrictNote').value = '';
-    document.getElementById('itemStrictNote').style.display = 'none';
-    
-    document.getElementById('itemModalTitle').innerText = `Add ${status === 'past' ? 'Past ' : ''}${category === 'treatment' ? 'Treatment' : 'Product'}`;
-    
-    const isPast = status === 'past';
-    document.getElementById('lastDateGroup').style.display = 'block';
-    document.getElementById('nextDateGroup').style.display = isPast ? 'none' : 'block';
-    document.getElementById('appointmentDateGroup').style.display = (!isPast && status === 'current') ? 'block' : 'none';
-    document.getElementById('strictDateGroup').style.display = isPast ? 'none' : 'block';
-    
-    populateNextDateOptions();
+    document.getElementById('itemId').value = ''; document.getElementById('itemCategory').value = category; document.getElementById('itemStatus').value = status; document.getElementById('itemName').value = ''; document.getElementById('itemTag').value = ''; document.getElementById('itemLastDate').value = ''; document.getElementById('itemNextDate').value = ''; document.getElementById('itemAppDate').value = ''; document.getElementById('itemIsStrict').checked = false; document.getElementById('itemStrictNote').value = ''; document.getElementById('itemStrictNote').style.display = 'none';
+    document.getElementById('itemModalTitle').innerText = `Add ${category === 'treatment' ? 'Treatment' : 'Product'}`;
+    document.getElementById('nextDateHint').innerText = 'Optional. You can manually set a date.';
     openModal('itemModal');
   }
 
-  function populateNextDateOptions() {
-    const myRecords = records.filter(r => r.customer_id === currentCustomerId && r.next_date && r.status !== 'past' && r.category !== 'comp_facial');
-    const dates = [...new Set(myRecords.map(r => r.next_date))].sort();
-    
-    const hintEl = document.getElementById('nextDateHint');
-    if (dates.length > 0) {
-      hintEl.innerHTML = `Existing follow-up dates: ` + dates.map(d => 
-        `<span style="cursor:pointer; color:#3b82f6; text-decoration:underline; margin-right:6px;" onclick="document.getElementById('itemNextDate').value='${d}'">${d}</span>`
-      ).join('');
-    } else {
-      hintEl.innerText = 'Optional. You can manually set a date.';
-    }
-  }
-
   function openEditItemModal(id) {
-    const r = records.find(x => x.id === id);
-    if (!r) return;
-    document.getElementById('itemId').value = r.id;
-    document.getElementById('itemCategory').value = r.category;
-    document.getElementById('itemStatus').value = r.status;
-    document.getElementById('itemName').value = r.name;
-    document.getElementById('itemTag').value = r.tag || '';
-    document.getElementById('itemLastDate').value = r.last_date || '';
-    document.getElementById('itemNextDate').value = r.next_date || '';
-    document.getElementById('itemAppDate').value = r.appointment_date || '';
-    document.getElementById('itemIsStrict').checked = r.is_strict || false;
-    document.getElementById('itemStrictNote').value = r.strict_note || '';
-    document.getElementById('itemStrictNote').style.display = r.is_strict ? 'block' : 'none';
-    
+    const r = records.find(x => x.id === id); if (!r) return;
+    document.getElementById('itemId').value = r.id; document.getElementById('itemCategory').value = r.category; document.getElementById('itemStatus').value = r.status; document.getElementById('itemName').value = r.name; document.getElementById('itemTag').value = r.tag || ''; document.getElementById('itemLastDate').value = r.last_date || ''; document.getElementById('itemNextDate').value = r.next_date || ''; document.getElementById('itemAppDate').value = r.appointment_date || ''; document.getElementById('itemIsStrict').checked = r.is_strict || false; document.getElementById('itemStrictNote').value = r.strict_note || ''; document.getElementById('itemStrictNote').style.display = r.is_strict ? 'block' : 'none';
     document.getElementById('itemModalTitle').innerText = `Edit ${r.category === 'treatment' ? 'Treatment' : 'Product'}`;
-    
-    const isPast = r.status === 'past';
-    document.getElementById('lastDateGroup').style.display = 'block';
-    document.getElementById('nextDateGroup').style.display = isPast ? 'none' : 'block';
-    document.getElementById('appointmentDateGroup').style.display = (!isPast && r.status === 'current') ? 'block' : 'none';
-    document.getElementById('strictDateGroup').style.display = isPast ? 'none' : 'block';
-    
     document.getElementById('nextDateHint').innerText = 'Change this date to update the follow-up.';
-    
     openModal('itemModal');
   }
 
   async function saveItem() {
-    const id = document.getElementById('itemId').value;
-    const name = document.getElementById('itemName').value;
-    if (!name) return alert('Name required');
-    
-    const category = document.getElementById('itemCategory').value;
-    const status = document.getElementById('itemStatus').value;
-    const tag = document.getElementById('itemTag').value;
-    const lastDate = document.getElementById('itemLastDate').value || null;
-    const nextDate = document.getElementById('itemNextDate').value || null;
-    const apptDate = document.getElementById('itemAppDate').value || null;
-    const isStrict = document.getElementById('itemIsStrict').checked;
-    const strictNote = isStrict ? document.getElementById('itemStrictNote').value : null;
-    
-    let data = { 
-      name, category, status, tag, 
-      last_date: lastDate, 
-      next_date: status === 'past' ? null : nextDate, 
-      appointment_date: status === 'past' ? null : apptDate,
-      is_strict: status === 'past' ? false : isStrict, 
-      strict_note: status === 'past' ? null : strictNote
-    };
-
+    const id = document.getElementById('itemId').value; const name = document.getElementById('itemName').value; if (!name) return alert('Name required');
+    const category = document.getElementById('itemCategory').value; const status = document.getElementById('itemStatus').value; const tag = document.getElementById('itemTag').value; const lastDate = document.getElementById('itemLastDate').value || null; const nextDate = document.getElementById('itemNextDate').value || null; const apptDate = document.getElementById('itemAppDate').value || null; const isStrict = document.getElementById('itemIsStrict').checked; const strictNote = isStrict ? document.getElementById('itemStrictNote').value : null;
+    let data = { name, category, status, tag, last_date: lastDate, next_date: status === 'past' ? null : nextDate, appointment_date: status === 'past' ? null : apptDate, is_strict: status === 'past' ? false : isStrict, strict_note: status === 'past' ? null : strictNote };
     try {
-      let savedRecord;
-      if (id) {
-        const res = await api.update('records', `id=eq.${id}`, data);
-        savedRecord = res[0];
-      } else {
-        data.customer_id = currentCustomerId;
-        const res = await api.insert('records', data);
-        savedRecord = res[0];
-      }
-
-      closeModal('itemModal');
-      await loadData();
-      showToast('Saved successfully');
-    } catch (e) { alert(e.message); }
-  }
-
-  async function proceedItem(id) {
-    const r = records.find(x => x.id === id);
-    try {
-      await api.update('records', `id=eq.${r.id}`, { status: 'current', tag: '' });
-      await loadData();
-      showToast('Moved to Current');
-    } catch (e) { alert(e.message); }
-  }
-
-  async function cancelItem(id) {
-    if (!confirm('Move to History (Past) and stop follow-ups?')) return;
-    try {
-      await api.update('records', `id=eq.${id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false });
-      await loadData();
-      showToast('Moved to History');
-    } catch (e) { alert(e.message); }
-  }
-  
-  async function setMainFollowup(id) {
-    const r = records.find(x => x.id === id);
-    if (!r || !r.next_date) return alert('This item has no follow-up date to set as main.');
-
-    const others = records.filter(x => x.customer_id === currentCustomerId && x.id !== id);
-    for (let o of others) {
-      if (o.is_main_followup) await api.update('records', `id=eq.${o.id}`, { is_main_followup: false });
-    }
-    await api.update('records', `id=eq.${id}`, { is_main_followup: true });
-    await loadData();
-  }
-
-  // 移除之前的 merge 逻辑（因为已全合并）
-  // 移除之前的 搜索添加产品按钮，全部用下方的下拉搜索框代替。
-
-  // ==================== Comp Facial ====================
-  function openCompFacialModal() {
-    if (!currentCustomerId) return;
-    document.getElementById('cfId').value = '';
-    document.getElementById('cfName').value = '';
-    document.getElementById('cfExpiryDate').value = '';
-    document.getElementById('cfFollowupDate').value = '';
-    openModal('compFacialModal');
-  }
-
-  function openEditCompFacialModal(id) {
-    const r = records.find(x => x.id === id);
-    if (!r) return;
-    document.getElementById('cfId').value = r.id;
-    document.getElementById('cfName').value = r.name;
-    document.getElementById('cfExpiryDate').value = r.last_date || '';
-    document.getElementById('cfFollowupDate').value = r.next_date || '';
-    openModal('compFacialModal');
-  }
-
-  async function saveCompFacial() {
-    const id = document.getElementById('cfId').value;
-    const name = document.getElementById('cfName').value.trim();
-    if (!name) return alert('Facial Name required');
-
-    const expiry = document.getElementById('cfExpiryDate').value || null;
-    const followup = document.getElementById('cfFollowupDate').value || null;
-
-    let data = {
-        name: name, category: 'comp_facial', status: 'current', 
-        last_date: expiry, next_date: followup, is_main_followup: false, is_strict: false
-    };
-
-    try {
-      if (id) { await api.update('records', `id=eq.${id}`, data); } 
+      if (id) await api.update('records', `id=eq.${id}`, data);
       else { data.customer_id = currentCustomerId; await api.insert('records', data); }
-      closeModal('compFacialModal');
-      await loadData();
-      showToast('Comp Facial saved');
+      closeModal('itemModal'); await loadData(); showToast('Saved successfully');
     } catch (e) { alert(e.message); }
   }
 
-  // ==================== Link Profile ====================
+  async function proceedItem(id) { const r = records.find(x => x.id === id); try { await api.update('records', `id=eq.${r.id}`, { status: 'current', tag: '' }); await loadData(); showToast('Moved to Current'); } catch (e) { alert(e.message); } }
+  async function cancelItem(id) { if (!confirm('Move to History (Past) and stop follow-ups?')) return; try { await api.update('records', `id=eq.${id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false }); await loadData(); showToast('Moved to History'); } catch (e) { alert(e.message); } }
+  async function setMainFollowup(id) { const r = records.find(x => x.id === id); if (!r || !r.next_date) return alert('This item has no follow-up date to set as main.'); const others = records.filter(x => x.customer_id === currentCustomerId && x.id !== id); for (let o of others) { if (o.is_main_followup) await api.update('records', `id=eq.${o.id}`, { is_main_followup: false }); } await api.update('records', `id=eq.${id}`, { is_main_followup: true }); await loadData(); }
+
+  function openCompFacialModal() { if (!currentCustomerId) return; document.getElementById('cfId').value = ''; document.getElementById('cfName').value = ''; document.getElementById('cfExpiryDate').value = ''; document.getElementById('cfFollowupDate').value = ''; openModal('compFacialModal'); }
+  function openEditCompFacialModal(id) { const r = records.find(x => x.id === id); if (!r) return; document.getElementById('cfId').value = r.id; document.getElementById('cfName').value = r.name; document.getElementById('cfExpiryDate').value = r.last_date || ''; document.getElementById('cfFollowupDate').value = r.next_date || ''; openModal('compFacialModal'); }
+  async function saveCompFacial() { const id = document.getElementById('cfId').value; const name = document.getElementById('cfName').value.trim(); if (!name) return alert('Facial Name required'); const expiry = document.getElementById('cfExpiryDate').value || null; const followup = document.getElementById('cfFollowupDate').value || null; let data = { name, category: 'comp_facial', status: 'current', last_date: expiry, next_date: followup, is_main_followup: false, is_strict: false }; try { if (id) await api.update('records', `id=eq.${id}`, data); else { data.customer_id = currentCustomerId; await api.insert('records', data); } closeModal('compFacialModal'); await loadData(); showToast('Comp Facial saved'); } catch (e) { alert(e.message); } }
+
   function openLinkModal() { document.getElementById('linkSearch').value = ''; renderLinkOptions(); openModal('linkModal'); }
+  function renderLinkOptions() { const kw = document.getElementById('linkSearch').value.toLowerCase(); const list = document.getElementById('linkOptionsList'); const c = customers.find(x => x.id === currentCustomerId); const alreadyLinked = c.linked_customer_ids || []; const options = customers.filter(x => x.id !== currentCustomerId && !alreadyLinked.includes(x.id) && (x.name.toLowerCase().includes(kw) || (x.client_id && x.client_id.toLowerCase().includes(kw)))); list.innerHTML = options.length === 0 ? '<div style="color:#94a3b8; font-size:0.85rem;">No available customers found.</div>' : options.map(x => `<div class="customer-item" onclick="linkCustomer('${x.id}')"><div class="customer-name">${x.name}</div><div class="customer-info">ID: ${x.client_id || 'N/A'}</div></div>`).join(''); }
+  async function linkCustomer(linkId) { const c = customers.find(x => x.id === currentCustomerId); const lc = customers.find(x => x.id === linkId); if (!c || !lc) return; try { await api.update('customers', `id=eq.${c.id}`, { linked_customer_ids: [...(c.linked_customer_ids || []), linkId] }); await api.update('customers', `id=eq.${lc.id}`, { linked_customer_ids: [...(lc.linked_customer_ids || []), currentCustomerId] }); closeModal('linkModal'); await loadData(); showToast('Profiles linked'); } catch (e) { alert(e.message); } }
 
-  function renderLinkOptions() {
-    const kw = document.getElementById('linkSearch').value.toLowerCase();
-    const list = document.getElementById('linkOptionsList');
-    const c = customers.find(x => x.id === currentCustomerId);
-    const alreadyLinked = c.linked_customer_ids || [];
-    const options = customers.filter(x => x.id !== currentCustomerId && !alreadyLinked.includes(x.id) && (x.name.toLowerCase().includes(kw) || (x.client_id && x.client_id.toLowerCase().includes(kw))));
-    if (options.length === 0) { list.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem;">No available customers found.</div>'; return; }
-    list.innerHTML = options.map(x => `<div class="customer-item" onclick="linkCustomer('${x.id}')"><div class="customer-name">${x.name}</div><div class="customer-info">ID: ${x.client_id || 'N/A'}</div></div>`).join('');
-  }
+  function openCustomerModal() { document.getElementById('custId').value = ''; document.getElementById('custName').value = ''; document.getElementById('custClientId').value = ''; document.getElementById('custEmail').value = ''; document.getElementById('custBirth').value = ''; document.getElementById('custConcern').value = ''; document.getElementById('customerModalTitle').innerText = 'Add Customer'; openModal('customerModal'); }
+  function openEditCustomerModal() { const c = customers.find(x => x.id === currentCustomerId); if (!c) return; document.getElementById('custId').value = c.id; document.getElementById('custName').value = c.name; document.getElementById('custClientId').value = c.client_id || ''; document.getElementById('custEmail').value = c.email || ''; document.getElementById('custBirth').value = c.birth_month || ''; document.getElementById('custConcern').value = c.concern || ''; document.getElementById('customerModalTitle').innerText = 'Edit Customer'; openModal('customerModal'); }
+  async function saveCustomer() { const id = document.getElementById('custId').value; const data = { name: document.getElementById('custName').value, client_id: document.getElementById('custClientId').value, email: document.getElementById('custEmail').value, birth_month: parseInt(document.getElementById('custBirth').value) || null, concern: document.getElementById('custConcern').value }; if (!data.name) return alert('Name required'); try { if (id) await api.update('customers', `id=eq.${id}`, data); else { const [newCust] = await api.insert('customers', data); currentCustomerId = newCust.id; } closeModal('customerModal'); await loadData(); showToast('Customer saved'); } catch (e) { alert(e.message); } }
 
-  async function linkCustomer(linkId) {
-    const c = customers.find(x => x.id === currentCustomerId);
-    const lc = customers.find(x => x.id === linkId);
-    if (!c || !lc) return;
-    try {
-      await api.update('customers', `id=eq.${c.id}`, { linked_customer_ids: [...(c.linked_customer_ids || []), linkId] });
-      await api.update('customers', `id=eq.${lc.id}`, { linked_customer_ids: [...(lc.linked_customer_ids || []), currentCustomerId] });
-      closeModal('linkModal'); await loadData(); showToast('Profiles linked');
-    } catch (e) { alert(e.message); }
-  }
-
-  // ==================== Customer ====================
-  function openCustomerModal() {
-    document.getElementById('custId').value = ''; document.getElementById('custName').value = ''; document.getElementById('custClientId').value = ''; document.getElementById('custEmail').value = ''; document.getElementById('custBirth').value = ''; document.getElementById('custConcern').value = '';
-    document.getElementById('customerModalTitle').innerText = 'Add Customer'; openModal('customerModal');
-  }
-
-  function openEditCustomerModal() {
-    const c = customers.find(x => x.id === currentCustomerId); if (!c) return;
-    document.getElementById('custId').value = c.id; document.getElementById('custName').value = c.name; document.getElementById('custClientId').value = c.client_id || ''; document.getElementById('custEmail').value = c.email || ''; document.getElementById('custBirth').value = c.birth_month || ''; document.getElementById('custConcern').value = c.concern || '';
-    document.getElementById('customerModalTitle').innerText = 'Edit Customer'; openModal('customerModal');
-  }
-
-  async function saveCustomer() {
-    const id = document.getElementById('custId').value;
-    const data = { name: document.getElementById('custName').value, client_id: document.getElementById('custClientId').value, email: document.getElementById('custEmail').value, birth_month: parseInt(document.getElementById('custBirth').value) || null, concern: document.getElementById('custConcern').value };
-    if (!data.name) return alert('Name required');
-    try {
-      if (id) { await api.update('customers', `id=eq.${id}`, data); } 
-      else { const [newCust] = await api.insert('customers', data); currentCustomerId = newCust.id; }
-      closeModal('customerModal'); await loadData(); showToast('Customer saved');
-    } catch (e) { alert(e.message); }
-  }
-
-  // ==================== Manage Follow-up ====================
   let activeRecordId = null;
-  function openAppointmentModal(id) {
-    const r = records.find(x => x.id === id); if (!r) return;
-    activeRecordId = id;
-    if (r.is_strict) {
-      document.getElementById('normalActions').style.display = 'none';
-      document.getElementById('manageWarning').innerHTML = `<span style="color:#dc2626; font-weight:bold;">⚠️ This is a strict deadline (${r.strict_note || 'No reason provided'}). It cannot be delayed.</span>`;
-    } else {
-      document.getElementById('normalActions').style.display = 'block';
-      document.getElementById('manageWarning').innerText = 'This item is due. What would you like to do?';
-    }
-    openModal('appointmentModal');
-  }
+  function openAppointmentModal(id) { const r = records.find(x => x.id === id); if (!r) return; activeRecordId = id; if (r.is_strict) { document.getElementById('normalActions').style.display = 'none'; document.getElementById('manageWarning').innerHTML = `<span style="color:#dc2626; font-weight:bold;">⚠️ This is a strict deadline (${r.strict_note || 'No reason provided'}). It cannot be delayed.</span>`; } else { document.getElementById('normalActions').style.display = 'block'; document.getElementById('manageWarning').innerText = 'This item is due. What would you like to do?'; } openModal('appointmentModal'); }
+  async function handleAppointmentAction(action) { const r = records.find(x => x.id === activeRecordId); if (!r) return; const today = new Date(); let updateData = {}; if (action === 'executed') { if (r.category === 'comp_facial') updateData = { status: 'past', last_date: today.toISOString().split('T')[0], next_date: null }; else updateData = { status: 'current', tag: 'liked', appointment_date: null, next_date: null, is_strict: false, strict_note: null }; } else if (action === 'cancelled') { updateData = { appointment_date: null, next_date: new Date(today.setDate(today.getDate() + 30)).toISOString().split('T')[0] }; } else if (action === 'reschedule_appt') { const newDate = prompt('Enter new appointment date (YYYY-MM-DD):'); if (!newDate) return; updateData = { appointment_date: newDate, next_date: newDate }; } else if (action === 'change_next') { const newDate = prompt('Enter new follow-up date (YYYY-MM-DD):'); if (!newDate) return; updateData = { next_date: newDate }; } else if (action === 'not_interested') { updateData = { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false }; } try { await api.update('records', `id=eq.${r.id}`, updateData); closeModal('appointmentModal'); await loadData(); showToast('Updated'); } catch (e) { alert(e.message); } }
 
-  async function handleAppointmentAction(action) {
-    const r = records.find(x => x.id === activeRecordId); if (!r) return;
-    const today = new Date(); let updateData = {};
-    if (action === 'executed') {
-      if (r.category === 'comp_facial') updateData = { status: 'past', last_date: today.toISOString().split('T')[0], next_date: null };
-      else updateData = { status: 'current', tag: 'liked', appointment_date: null, next_date: null, is_strict: false, strict_note: null };
-    } else if (action === 'cancelled') {
-      updateData = { appointment_date: null, next_date: new Date(today.setDate(today.getDate() + 30)).toISOString().split('T')[0] };
-    } else if (action === 'reschedule_appt') {
-      const newDate = prompt('Enter new appointment date (YYYY-MM-DD):'); if (!newDate) return;
-      updateData = { appointment_date: newDate, next_date: newDate };
-    } else if (action === 'change_next') {
-      const newDate = prompt('Enter new follow-up date (YYYY-MM-DD):'); if (!newDate) return;
-      updateData = { next_date: newDate };
-    } else if (action === 'not_interested') {
-      updateData = { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false };
-    }
-    try {
-      await api.update('records', `id=eq.${r.id}`, updateData);
-      closeModal('appointmentModal'); await loadData(); showToast('Updated');
-    } catch (e) { alert(e.message); }
-  }
-
-  // ==================== Advanced Search ====================
   function openSearchModal() { openModal('searchModal'); }
-  function clearSearch() {
-    document.getElementById('searchKw').value = ''; document.getElementById('searchStrictDue').checked = false; document.getElementById('searchBirthdayCurrent').checked = false; document.getElementById('searchBirthdayNext').checked = false; document.getElementById('searchResultsArea').style.display = 'none';
-  }
-
+  function clearSearch() { document.getElementById('searchKw').value = ''; document.getElementById('searchStrictDue').checked = false; document.getElementById('searchBirthdayCurrent').checked = false; document.getElementById('searchBirthdayNext').checked = false; document.getElementById('searchResultsArea').style.display = 'none'; }
   function executeAdvancedSearch() {
-    const kw = document.getElementById('searchKw').value.toLowerCase().trim();
-    const onlyStrictDue = document.getElementById('searchStrictDue').checked;
-    const bdCurrent = document.getElementById('searchBirthdayCurrent').checked;
-    const bdNext = document.getElementById('searchBirthdayNext').checked;
-    const today = new Date().toISOString().split('T')[0];
-    const currentMonth = new Date().getMonth() + 1;
-    let nextMonth = currentMonth + 1; if (nextMonth > 12) nextMonth = 1;
-    if (!kw && !onlyStrictDue && !bdCurrent && !bdNext) return;
-
-    let matchedCustomerIds = new Set();
-    if (kw) {
-        customers.forEach(c => {
-            const customerHay = [c.name, c.client_id, c.concern, c.email].filter(Boolean).join(' ').toLowerCase();
-            if (customerHay.includes(kw)) matchedCustomerIds.add(c.id);
-        });
-    }
-
-    const matchedRecords = records.filter(r => {
-      const c = customers.find(x => x.id === r.customer_id); if (!c) return false;
-      if (onlyStrictDue) {
-          if (!r.is_strict) return false; if (r.status === 'past') return false; if (!r.next_date || r.next_date > today) return false;
-      }
-      if (kw) {
-          if (matchedCustomerIds.has(c.id)) return true;
-          const itemHay = [r.name, r.tag, r.category, r.strict_note].filter(Boolean).join(' ').toLowerCase();
-          if (itemHay.includes(kw)) return true;
-          return false;
-      }
-      return onlyStrictDue; 
-    });
-
-    const uniqueCustomers = [];
-    const seenIds = new Set();
-    matchedRecords.forEach(r => { if (!seenIds.has(r.customer_id)) { seenIds.add(r.customer_id); uniqueCustomers.push(customers.find(c => c.id === r.customer_id)); } });
-    customers.forEach(c => { if (seenIds.has(c.id)) return; if (bdCurrent && c.birth_month === currentMonth) { seenIds.add(c.id); uniqueCustomers.push(c); } else if (bdNext && c.birth_month === nextMonth) { seenIds.add(c.id); uniqueCustomers.push(c); } });
-
-    currentSearchResults = uniqueCustomers;
-    const resultArea = document.getElementById('searchResultsArea'); const resultList = document.getElementById('searchResultsList'); const resultTitle = document.getElementById('searchResultsTitle');
-    resultArea.style.display = 'block'; resultTitle.innerText = `Results (${uniqueCustomers.length} customers)`;
-    if (uniqueCustomers.length === 0) { resultList.innerHTML = '<div style="padding:12px; color:#94a3b8;">No matches found.</div>'; return; }
-    resultList.innerHTML = uniqueCustomers.map(c => `<div class="search-result-item" onclick="selectCustomer('${c.id}')"><div><strong>${c.name}</strong><span style="font-size:0.75rem; color:#64748b; margin-left:8px;">${c.concern || ''}</span></div><span style="font-size:0.75rem; color:#3b82f6;">View →</span></div>`).join('');
+    const kw = document.getElementById('searchKw').value.toLowerCase().trim(); const onlyStrictDue = document.getElementById('searchStrictDue').checked; const bdCurrent = document.getElementById('searchBirthdayCurrent').checked; const bdNext = document.getElementById('searchBirthdayNext').checked; const today = new Date().toISOString().split('T')[0]; const currentMonth = new Date().getMonth() + 1; let nextMonth = currentMonth + 1; if (nextMonth > 12) nextMonth = 1; if (!kw && !onlyStrictDue && !bdCurrent && !bdNext) return;
+    let matchedCustomerIds = new Set(); if (kw) { customers.forEach(c => { const customerHay = [c.name, c.client_id, c.concern, c.email].filter(Boolean).join(' ').toLowerCase(); if (customerHay.includes(kw)) matchedCustomerIds.add(c.id); }); }
+    const matchedRecords = records.filter(r => { const c = customers.find(x => x.id === r.customer_id); if (!c) return false; if (onlyStrictDue) { if (!r.is_strict) return false; if (r.status === 'past') return false; if (!r.next_date || r.next_date > today) return false; } if (kw) { if (matchedCustomerIds.has(c.id)) return true; const itemHay = [r.name, r.tag, r.category, r.strict_note].filter(Boolean).join(' ').toLowerCase(); if (itemHay.includes(kw)) return true; return false; } return onlyStrictDue; });
+    const uniqueCustomers = []; const seenIds = new Set(); matchedRecords.forEach(r => { if (!seenIds.has(r.customer_id)) { seenIds.add(r.customer_id); uniqueCustomers.push(customers.find(c => c.id === r.customer_id)); } }); customers.forEach(c => { if (seenIds.has(c.id)) return; if (bdCurrent && c.birth_month === currentMonth) { seenIds.add(c.id); uniqueCustomers.push(c); } else if (bdNext && c.birth_month === nextMonth) { seenIds.add(c.id); uniqueCustomers.push(c); } });
+    currentSearchResults = uniqueCustomers; const resultArea = document.getElementById('searchResultsArea'); const resultList = document.getElementById('searchResultsList'); const resultTitle = document.getElementById('searchResultsTitle'); resultArea.style.display = 'block'; resultTitle.innerText = `Results (${uniqueCustomers.length} customers)`; if (uniqueCustomers.length === 0) { resultList.innerHTML = '<div style="padding:12px; color:#94a3b8;">No matches found.</div>'; return; } resultList.innerHTML = uniqueCustomers.map(c => `<div class="search-result-item" onclick="selectCustomer('${c.id}')"><div><strong>${c.name}</strong><span style="font-size:0.75rem; color:#64748b; margin-left:8px;">${c.concern || ''}</span></div><span style="font-size:0.75rem; color:#3b82f6;">View →</span></div>`).join('');
   }
+  function copyEmails() { const emails = currentSearchResults.map(c => c.email).filter(e => e && e.trim() !== ''); if (emails.length === 0) return alert('No emails found in the search results.'); navigator.clipboard.writeText(emails.join(', ')).then(() => { showToast(`Copied ${emails.length} email(s) to clipboard`); }); }
 
-  function copyEmails() {
-    const emails = currentSearchResults.map(c => c.email).filter(e => e && e.trim() !== '');
-    if (emails.length === 0) return alert('No emails found in the search results.');
-    navigator.clipboard.writeText(emails.join(', ')).then(() => { showToast(`Copied ${emails.length} email(s) to clipboard`); });
-  }
-
-  // ==================== 打印 Routine ====================
   function printRoutine() {
-    const c = customers.find(x => x.id === currentCustomerId);
-    if (!c) return;
-    
+    const c = customers.find(x => x.id === currentCustomerId); if (!c) return;
     const myProducts = records.filter(r => r.customer_id === currentCustomerId && r.category === 'product' && r.status !== 'past');
     const am = myProducts.filter(r => r.time_slot === 'AM' || !r.time_slot).sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
     const pm = myProducts.filter(r => r.time_slot === 'PM').sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
-
-    const genList = (arr) => {
-        if (arr.length === 0) return '<p style="color:#94a3b8; font-style:italic;">No products assigned.</p>';
-        return `<ul style="padding-left:20px; line-height:1.8;">${arr.map(p => {
-            const matchedProd = productsLib.find(prod => prod.name.toLowerCase() === p.name.toLowerCase());
-            const brand = matchedProd && matchedProd.brand ? ` <span style="color:#94a3b8; font-size:12px;">(${matchedProd.brand})</span>` : '';
-            return `<li>${p.name} ${brand}</li>`;
-        }).join('')}</ul>`;
-    };
-
-    const html = `
-        <div style="font-family:'Inter', sans-serif; color:#1e293b;">
-            <div style="text-align:center; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px;">
-                <h1 style="font-size:1.8rem; margin-bottom:8px;">Home Care Routine</h1>
-                <p style="color:#64748b;">Prepared for: <strong>${c.name}</strong></p>
-                <p style="color:#94a3b8; font-size:0.85rem;">${new Date().toLocaleDateString()}</p>
-            </div>
-            <div style="display:flex; gap:40px; margin-top:20px;">
-                <div style="flex:1;">
-                    <h3 style="color:#d97706; border-bottom:1px solid #fcd34d; padding-bottom:8px; margin-bottom:12px;">☀️ Morning</h3>
-                    ${genList(am)}
-                </div>
-                <div style="flex:1;">
-                    <h3 style="color:#4338ca; border-bottom:1px solid #a5b4fc; padding-bottom:8px; margin-bottom:12px;">🌙 Evening</h3>
-                    ${genList(pm)}
-                </div>
-            </div>
-            <div style="margin-top:40px; text-align:center; font-size:0.8rem; color:#94a3b8;">
-                <p>If you have any questions, please contact the clinic.</p>
-            </div>
-        </div>
-    `;
-    
-    document.getElementById('printRoutineContent').innerHTML = html;
-    openModal('printRoutineModal');
+    const genList = (arr) => { if (arr.length === 0) return '<p style="color:#94a3b8; font-style:italic;">No products assigned.</p>'; return `<ul style="padding-left:20px; line-height:1.8;">${arr.map(p => { const matchedProd = productsLib.find(prod => prod.name.toLowerCase() === p.name.toLowerCase()); const brand = matchedProd && matchedProd.brand ? ` <span style="color:#94a3b8; font-size:12px;">(${matchedProd.brand})</span>` : ''; return `<li>${p.name} ${brand}</li>`; }).join('')}</ul>`; };
+    const html = `<div style="font-family:'Inter', sans-serif; color:#1e293b;"><div style="text-align:center; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px;"><h1 style="font-size:1.8rem; margin-bottom:8px;">Home Care Routine</h1><p style="color:#64748b;">Prepared for: <strong>${c.name}</strong></p><p style="color:#94a3b8; font-size:0.85rem;">${new Date().toLocaleDateString()}</p></div><div style="display:flex; gap:40px; margin-top:20px;"><div style="flex:1;"><h3 style="color:#d97706; border-bottom:1px solid #fcd34d; padding-bottom:8px; margin-bottom:12px;">☀️ Morning</h3>${genList(am)}</div><div style="flex:1;"><h3 style="color:#4338ca; border-bottom:1px solid #a5b4fc; padding-bottom:8px; margin-bottom:12px;">🌙 Evening</h3>${genList(pm)}</div></div><div style="margin-top:40px; text-align:center; font-size:0.8rem; color:#94a3b8;"><p>If you have any questions, please contact the clinic.</p></div></div>`;
+    document.getElementById('printRoutineContent').innerHTML = html; openModal('printRoutineModal');
   }
 
-  document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(overlay.id); });
-  });
-
+  document.querySelectorAll('.modal-overlay').forEach(overlay => { overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(overlay.id); }); });
   checkSession();
 </script>
 </body>
