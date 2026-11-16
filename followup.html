@@ -254,7 +254,7 @@
   </div>
 </div>
 
-<!-- Add Product Modal -->
+<!-- Add/Edit Product Modal -->
 <div class="modal-overlay" id="addProductModal">
   <div class="modal-content">
     <button class="close-btn" onclick="closeModal('addProductModal')">✖</button>
@@ -266,6 +266,14 @@
     <div class="form-group">
       <label>Product</label>
       <div id="addProdName" style="font-weight:600; font-size:1rem; color:#0f172a; padding:8px; background:#f1f5f9; border-radius:6px;"></div>
+    </div>
+
+    <div class="form-group" id="prodSlotSelectGroup">
+      <label>Time Slot (早晚)</label>
+      <select id="addProdSlotSelect">
+        <option value="AM">☀️ Morning (AM)</option>
+        <option value="PM">🌙 Evening (PM)</option>
+      </select>
     </div>
 
     <div class="form-group">
@@ -577,7 +585,6 @@
     let displayName = r.category === 'comp_facial' ? `🎁 ${r.name}` : r.name;
     let categoryLabel = r.category === 'comp_facial' ? `<span class="badge comp_facial" style="font-size:0.6rem; padding:1px 4px;">Comp Facial</span>` : '';
     
-    // 如果是产品且带有备注，显示备注
     let noteHtml = '';
     if (r.category === 'product' && r.strict_note) {
         noteHtml = `<div class="note-text" title="${r.strict_note}">📝 ${r.strict_note}</div>`;
@@ -598,7 +605,6 @@
     let buttons = status === 'recommended' ? `<button class="btn btn-sm" style="background:#10b981; padding:2px 6px;" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn-sm btn-outline" style="padding:2px 6px;" onclick="cancelItem('${r.id}')">✖</button>` : `<button class="btn btn-sm btn-outline" style="padding:2px 6px; color:#dc2626;" onclick="cancelItem('${r.id}')">✖</button>`;
     const timeAgo = r.last_date ? `<span style="color:#f59e0b; font-size:0.7rem;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
 
-    // 如果有备注则显示
     let noteHtml = r.strict_note ? `<div style="font-size:0.65rem; color:#64748b; font-style:italic; margin-top:2px;" title="${r.strict_note}">📝 ${r.strict_note}</div>` : '';
 
     return `<div class="item-card ${status}" data-id="${r.id}" style="padding: 8px; flex-direction: row; align-items: center; gap: 8px;">
@@ -651,6 +657,9 @@
     document.getElementById('addProdEditMode').value = 'false';
     document.getElementById('addProdId').value = prodId;
     document.getElementById('addProdSlot').value = slot;
+    document.getElementById('addProdSlotSelect').value = slot;
+    document.getElementById('prodSlotSelectGroup').style.display = 'block';
+    document.getElementById('addProdSlotSelect').disabled = false;
     document.getElementById('addProdName').innerText = prod.name + (prod.brand ? ` (${prod.brand})` : '');
     document.getElementById('addProdLastDate').value = '';
     document.getElementById('addProdNote').value = '';
@@ -666,6 +675,9 @@
     document.getElementById('addProdEditMode').value = 'true';
     document.getElementById('addProdId').value = r.id;
     document.getElementById('addProdSlot').value = r.time_slot;
+    document.getElementById('addProdSlotSelect').value = r.time_slot || 'AM';
+    document.getElementById('prodSlotSelectGroup').style.display = 'block';
+    document.getElementById('addProdSlotSelect').disabled = false;
     document.getElementById('addProdName').innerText = r.name + (prod && prod.brand ? ` (${prod.brand})` : '');
     document.getElementById('addProdLastDate').value = r.last_date || '';
     document.getElementById('addProdNote').value = r.strict_note || '';
@@ -675,13 +687,13 @@
   async function saveProductToRoutine() {
     const isEdit = document.getElementById('addProdEditMode').value === 'true';
     const id = document.getElementById('addProdId').value;
-    const slot = document.getElementById('addProdSlot').value;
+    const slot = document.getElementById('addProdSlotSelect').value;
     const lastDate = document.getElementById('addProdLastDate').value || null;
     const note = document.getElementById('addProdNote').value.trim() || null;
     
     if (isEdit) {
         try {
-            await api.update('records', `id=eq.${id}`, { last_date: lastDate, strict_note: note });
+            await api.update('records', `id=eq.${id}`, { last_date: lastDate, strict_note: note, time_slot: slot });
             closeModal('addProductModal');
             await loadData(); showToast('Product updated');
         } catch(e) { alert(e.message); }
@@ -698,7 +710,7 @@
       customer_id: currentCustomerId, category: 'product', name: prod.name, 
       status: 'current', time_slot: slot, sort_order: 99, is_main_followup: false, is_strict: false,
       last_date: lastDate,
-      strict_note: note  // 复用 strict_note 存产品备注
+      strict_note: note
     };
     try {
         await api.insert('records', data);
@@ -709,7 +721,7 @@
     } catch(e) { alert(e.message); }
   }
 
-  // ... (剩下治疗和疗程相关逻辑与之前一样)
+  // ... (剩下治疗和疗程相关逻辑)
   function openItemModal(status, category) {
     if (!currentCustomerId) return;
     document.getElementById('itemId').value = ''; document.getElementById('itemCategory').value = category; document.getElementById('itemStatus').value = status; document.getElementById('itemName').value = ''; document.getElementById('itemTag').value = ''; document.getElementById('itemLastDate').value = ''; document.getElementById('itemNextDate').value = ''; document.getElementById('itemAppDate').value = ''; document.getElementById('itemIsStrict').checked = false; document.getElementById('itemStrictNote').value = ''; document.getElementById('itemStrictNote').style.display = 'none';
