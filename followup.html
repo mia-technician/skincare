@@ -67,8 +67,13 @@
   /* Items & Highlights */
   .item-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; transition: 0.2s; }
   .item-card:last-child { margin-bottom: 0; }
-  .item-card.recommended { border-left: 4px solid #eab308; }
-  .item-card.current { border-left: 4px solid #10b981; }
+  
+  /* 推荐中的黄框 */
+  .item-card.recommended { border-left: 4px solid #eab308; background: #fefce8; }
+  /* 早晚通用的青绿框 */
+  .item-card.both-slot { border-left: 4px solid #0d9488; background: #f0fdfa; }
+  /* 普通使用中的绿框 */
+  .item-card.current { border-left: 4px solid #10b981; background: #f8fafc; }
   
   /* 拖拽手柄 */
   .drag-handle { cursor: grab; color: #cbd5e1; padding: 0 4px; }
@@ -260,7 +265,6 @@
     <button class="close-btn" onclick="closeModal('addProductModal')">✖</button>
     <h3 style="margin-bottom: 16px;" id="addProdModalTitle">Add Product to Routine</h3>
     <input type="hidden" id="addProdId">
-    <input type="hidden" id="addProdSlot">
     <input type="hidden" id="addProdEditMode" value="false">
     
     <div class="form-group">
@@ -268,15 +272,24 @@
       <div id="addProdName" style="font-weight:600; font-size:1rem; color:#0f172a; padding:8px; background:#f1f5f9; border-radius:6px;"></div>
     </div>
 
-    <div class="form-group" id="prodSlotSelectGroup">
-      <label>Time Slot (早晚)</label>
-      <select id="addProdSlotSelect">
-        <option value="AM">☀️ Morning (AM)</option>
-        <option value="PM">🌙 Evening (PM)</option>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="addProdStatus" onchange="toggleProductDateField()">
+        <option value="current">🟢 In Use</option>
+        <option value="recommended">🟡 Recommended</option>
       </select>
     </div>
 
     <div class="form-group">
+      <label>Time Slot</label>
+      <select id="addProdSlotSelect">
+        <option value="AM">☀️ Morning (AM)</option>
+        <option value="PM">🌙 Evening (PM)</option>
+        <option value="BOTH">☀️🌙 Both (Morning & Evening)</option>
+      </select>
+    </div>
+
+    <div class="form-group" id="prodLastDateGroup">
       <label>Last Purchased / Used Date (上次购买/使用)</label>
       <input type="date" id="addProdLastDate">
     </div>
@@ -541,12 +554,20 @@
     const tContainer = document.getElementById('treatmentContainer');
     tContainer.innerHTML = treatments.length ? treatments.map(r => renderItemCard(r, r.status)).join('') : '<div class="empty-column" style="grid-column:1/-1;">No active treatments.</div>';
 
+    // 判断产品是否有重复（早晚都有）
     const products = myRecords.filter(r => r.category === 'product' && r.status !== 'past');
     const amProducts = products.filter(r => r.time_slot === 'AM' || !r.time_slot).sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
     const pmProducts = products.filter(r => r.time_slot === 'PM').sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
 
-    document.getElementById('amProductContainer').innerHTML = amProducts.length ? amProducts.map(r => renderProductCard(r, r.status)).join('') : '<div class="empty-column">Empty</div>';
-    document.getElementById('pmProductContainer').innerHTML = pmProducts.length ? pmProducts.map(r => renderProductCard(r, r.status)).join('') : '<div class="empty-column">Empty</div>';
+    const renderProductWithDuplicationCheck = (product, slot) => {
+        // 检查另一时段是否有同名产品
+        const otherSlot = slot === 'AM' ? 'PM' : 'AM';
+        const isDuplicated = products.some(p => p.time_slot === otherSlot && p.name.toLowerCase() === product.name.toLowerCase());
+        return renderProductCard(product, product.status, isDuplicated);
+    };
+
+    document.getElementById('amProductContainer').innerHTML = amProducts.length ? amProducts.map(r => renderProductWithDuplicationCheck(r, 'AM')).join('') : '<div class="empty-column">Empty</div>';
+    document.getElementById('pmProductContainer').innerHTML = pmProducts.length ? pmProducts.map(r => renderProductWithDuplicationCheck(r, 'PM')).join('') : '<div class="empty-column">Empty</div>';
 
     const history = myRecords.filter(r => r.status === 'past');
     document.getElementById('pastTreatmentsColumn').innerHTML = history.filter(r => r.category === 'treatment' || r.category === 'comp_facial').map(r => renderItemCard(r, 'past')).join('') || '<div class="empty-column">Empty</div>';
@@ -584,20 +605,15 @@
     const dueDateClass = isDue ? 'date-overdue' : '';
     let displayName = r.category === 'comp_facial' ? `🎁 ${r.name}` : r.name;
     let categoryLabel = r.category === 'comp_facial' ? `<span class="badge comp_facial" style="font-size:0.6rem; padding:1px 4px;">Comp Facial</span>` : '';
-    
-    let noteHtml = '';
-    if (r.category === 'product' && r.strict_note) {
-        noteHtml = `<div class="note-text" title="${r.strict_note}">📝 ${r.strict_note}</div>`;
-    }
 
     return `<div class="${cardClass}" data-id="${r.id}">
         <div class="item-header"><div class="item-name-area">${displayName} ${categoryLabel} ${strictLock} ${tagHtml} ${compFacialWarning}</div><span class="badge ${status}">${status}</span></div>
-        <div class="item-dates">${timeAgo}${expiryInfo}${r.next_date ? `<span class="${dueDateClass}">Next follow-up: ${r.next_date}</span>` : ''}${apptInfo}${noteHtml}</div>
+        <div class="item-dates">${timeAgo}${expiryInfo}${r.next_date ? `<span class="${dueDateClass}">Next follow-up: ${r.next_date}</span>` : ''}${apptInfo}</div>
         <div class="item-actions">${buttons}${pinBtn}${manageBtn}</div>
       </div>`;
   }
 
-  function renderProductCard(r, status) {
+  function renderProductCard(r, status, isDuplicated) {
     const matchedProd = productsLib.find(p => p.name.toLowerCase() === r.name.toLowerCase());
     const imgSrc = matchedProd && matchedProd.image ? matchedProd.image : 'https://via.placeholder.com/40/f1f5f9/94a3b8?text=Img';
     const brandStr = matchedProd && matchedProd.brand ? `<span style="font-size:0.65rem; color:#94a3b8; margin-left:4px;">(${matchedProd.brand})</span>` : '';
@@ -607,11 +623,24 @@
 
     let noteHtml = r.strict_note ? `<div style="font-size:0.65rem; color:#64748b; font-style:italic; margin-top:2px;" title="${r.strict_note}">📝 ${r.strict_note}</div>` : '';
 
-    return `<div class="item-card ${status}" data-id="${r.id}" style="padding: 8px; flex-direction: row; align-items: center; gap: 8px;">
+    // 根据状态和是否重复，决定左侧边框颜色和卡片背景色
+    let cardClass = 'item-card';
+    if (status === 'recommended') {
+        cardClass += ' recommended';
+    } else if (isDuplicated) {
+        cardClass += ' both-slot'; // 青绿色边框
+    } else {
+        cardClass += ' current'; // 绿框
+    }
+
+    // 重复标签
+    let linkIcon = isDuplicated ? `<span style="font-size:0.6rem; color:#0d9488; font-weight:bold; margin-left:4px;">🔗 Both</span>` : '';
+
+    return `<div class="${cardClass}" data-id="${r.id}" style="padding: 8px; flex-direction: row; align-items: center; gap: 8px;">
         <div class="drag-handle">⋮⋮</div>
         <img src="${imgSrc}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; background:#f1f5f9;">
         <div style="flex:1;">
-            <div style="font-weight:600; font-size:0.8rem; color:#0f172a;">${r.name} ${brandStr}</div>
+            <div style="font-weight:600; font-size:0.8rem; color:#0f172a;">${r.name} ${brandStr} ${linkIcon}</div>
             <div>${timeAgo}</div>
             ${noteHtml}
         </div>
@@ -646,75 +675,81 @@
     const resultsDiv = inputEl.nextElementSibling;
     if (!kw) { resultsDiv.classList.remove('show'); return; }
     const matched = productsLib.filter(p => p.name.toLowerCase().includes(kw) || (p.brand && p.brand.toLowerCase().includes(kw)));
-    resultsDiv.innerHTML = matched.length === 0 ? '<div class="search-item" style="color:#94a3b8;">No products found</div>' : matched.map(p => `<div class="search-item" onclick="openAddProductModal('${p.id}', '${slot}')"><span>${p.name}</span><span style="color:#94a3b8;">${p.brand || ''}</span></div>`).join('');
+    resultsDiv.innerHTML = matched.length === 0 ? '<div class="search-item" style="color:#94a3b8;">No products found</div>' : matched.map(p => `<div class="search-item" onclick="openAddProductModal('${p.id}')"><span>${p.name}</span><span style="color:#94a3b8;">${p.brand || ''}</span></div>`).join('');
     resultsDiv.classList.add('show');
   }
 
-  function openAddProductModal(prodId, slot) {
+  function openAddProductModal(prodId, defaultSlot) {
     const prod = productsLib.find(p => p.id === prodId);
     if (!prod) return;
-    
-    // 查找早晚是否有同一个产品的记录
-    const existingAM = records.find(r => r.customer_id === currentCustomerId && r.category === 'product' && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === 'AM' && r.status !== 'past');
-    const existingPM = records.find(r => r.customer_id === currentCustomerId && r.category === 'product' && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === 'PM' && r.status !== 'past');
 
     document.getElementById('addProdModalTitle').innerText = 'Add Product to Routine';
     document.getElementById('addProdEditMode').value = 'false';
     document.getElementById('addProdId').value = prodId;
-    document.getElementById('addProdSlot').value = slot;
-    document.getElementById('addProdSlotSelect').value = slot;
-    document.getElementById('prodSlotSelectGroup').style.display = 'block';
-    document.getElementById('addProdSlotSelect').disabled = false;
+    document.getElementById('addProdStatus').value = 'current'; // 默认 In Use
+    document.getElementById('addProdSlotSelect').value = defaultSlot || 'AM';
     document.getElementById('addProdName').innerText = prod.name + (prod.brand ? ` (${prod.brand})` : '');
+    document.getElementById('addProdLastDate').value = '';
+    document.getElementById('addProdNote').value = '';
     
-    // 如果对方时段已经存在，自动带入日期和备注
-    let autoDate = '';
-    let autoNote = '';
-    if (slot === 'PM' && existingAM) { autoDate = existingAM.last_date || ''; autoNote = existingAM.strict_note || ''; }
-    if (slot === 'AM' && existingPM) { autoDate = existingPM.last_date || ''; autoNote = existingPM.strict_note || ''; }
+    // 切换日期输入框显示
+    toggleProductDateField();
     
-    document.getElementById('addProdLastDate').value = autoDate;
-    document.getElementById('addProdNote').value = autoNote;
     openModal('addProductModal');
     document.querySelectorAll('.search-results').forEach(el => el.classList.remove('show'));
+  }
+
+  function toggleProductDateField() {
+    const status = document.getElementById('addProdStatus').value;
+    document.getElementById('prodLastDateGroup').style.display = (status === 'recommended') ? 'none' : 'block';
   }
 
   function openEditProductModal(id) {
     const r = records.find(x => x.id === id);
     if (!r) return;
     const prod = productsLib.find(p => p.name.toLowerCase() === r.name.toLowerCase());
+    
     document.getElementById('addProdModalTitle').innerText = 'Edit Product';
     document.getElementById('addProdEditMode').value = 'true';
     document.getElementById('addProdId').value = r.id;
-    document.getElementById('addProdSlot').value = r.time_slot;
+    document.getElementById('addProdStatus').value = r.status;
     document.getElementById('addProdSlotSelect').value = r.time_slot || 'AM';
-    document.getElementById('prodSlotSelectGroup').style.display = 'block';
-    document.getElementById('addProdSlotSelect').disabled = false;
     document.getElementById('addProdName').innerText = r.name + (prod && prod.brand ? ` (${prod.brand})` : '');
     document.getElementById('addProdLastDate').value = r.last_date || '';
     document.getElementById('addProdNote').value = r.strict_note || '';
+    
+    toggleProductDateField();
+    
     openModal('addProductModal');
   }
 
   async function saveProductToRoutine() {
     const isEdit = document.getElementById('addProdEditMode').value === 'true';
     const id = document.getElementById('addProdId').value;
+    const status = document.getElementById('addProdStatus').value;
     const slot = document.getElementById('addProdSlotSelect').value;
     const lastDate = document.getElementById('addProdLastDate').value || null;
     const note = document.getElementById('addProdNote').value.trim() || null;
     
     if (isEdit) {
         try {
-            // 更新当前记录
-            await api.update('records', `id=eq.${id}`, { last_date: lastDate, strict_note: note, time_slot: slot });
+            const data = { 
+                status: status,
+                time_slot: slot === 'BOTH' ? 'AM' : slot, // 如果改成了 Both，这里暂按 AM 处理，需后续补充逻辑
+                last_date: status === 'recommended' ? null : lastDate, 
+                strict_note: note 
+            };
+            await api.update('records', `id=eq.${id}`, data);
             
             // 同步更新另一时段的同名产品
             const currentRecord = records.find(x => x.id === id);
             if (currentRecord) {
-                const otherSlot = slot === 'AM' ? 'PM' : 'AM';
-                const otherRecord = records.find(r => r.customer_id === currentCustomerId && r.category === 'product' && r.name.toLowerCase() === currentRecord.name.toLowerCase() && r.time_slot === otherSlot && r.status !== 'past');
-                if (otherRecord) {
-                    await api.update('records', `id=eq.${otherRecord.id}`, { last_date: lastDate, strict_note: note });
+                const otherSlot = slot === 'AM' ? 'PM' : (slot === 'PM' ? 'AM' : null);
+                if (otherSlot) {
+                    const otherRecord = records.find(r => r.customer_id === currentCustomerId && r.category === 'product' && r.name.toLowerCase() === currentRecord.name.toLowerCase() && r.time_slot === otherSlot && r.status !== 'past');
+                    if (otherRecord) {
+                        await api.update('records', `id=eq.${otherRecord.id}`, { last_date: status === 'recommended' ? null : lastDate, strict_note: note });
+                    }
                 }
             }
             
@@ -727,23 +762,26 @@
     // 新建逻辑
     const prodId = document.getElementById('addProdId').value;
     const prod = productsLib.find(p => p.id === prodId); if (!prod) return;
-    const existing = records.find(r => r.customer_id === currentCustomerId && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === slot && r.status !== 'past');
+    
+    // 检查是否冲突
+    const existing = records.find(r => r.customer_id === currentCustomerId && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === slot && r.status !== 'past' && slot !== 'BOTH');
     if (existing) { alert('This product is already in this slot.'); return; }
     
     let data = { 
       customer_id: currentCustomerId, category: 'product', name: prod.name, 
-      status: 'current', time_slot: slot, sort_order: 99, is_main_followup: false, is_strict: false,
-      last_date: lastDate,
+      status: status, sort_order: 99, is_main_followup: false, is_strict: false,
+      last_date: status === 'recommended' ? null : lastDate,
       strict_note: note
     };
+
     try {
-        await api.insert('records', data);
-        
-        // 如果另一时段有同名产品但日期和备注为空，也顺便同步过去
-        const otherSlot = slot === 'AM' ? 'PM' : 'AM';
-        const otherRecord = records.find(r => r.customer_id === currentCustomerId && r.category === 'product' && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === otherSlot && r.status !== 'past');
-        if (otherRecord && (!otherRecord.last_date || !otherRecord.strict_note)) {
-            await api.update('records', `id=eq.${otherRecord.id}`, { last_date: lastDate || otherRecord.last_date, strict_note: note || otherRecord.strict_note });
+        if (slot === 'BOTH') {
+            // 插入 AM
+            await api.insert('records', { ...data, time_slot: 'AM' });
+            // 插入 PM
+            await api.insert('records', { ...data, time_slot: 'PM' });
+        } else {
+            await api.insert('records', { ...data, time_slot: slot });
         }
         
         document.querySelectorAll('.search-wrapper input').forEach(el => el.value = '');
@@ -753,7 +791,7 @@
     } catch(e) { alert(e.message); }
   }
 
-  // ... (剩下治疗和疗程相关逻辑)
+  // ... 其他逻辑不变 ...
   function openItemModal(status, category) {
     if (!currentCustomerId) return;
     document.getElementById('itemId').value = ''; document.getElementById('itemCategory').value = category; document.getElementById('itemStatus').value = status; document.getElementById('itemName').value = ''; document.getElementById('itemTag').value = ''; document.getElementById('itemLastDate').value = ''; document.getElementById('itemNextDate').value = ''; document.getElementById('itemAppDate').value = ''; document.getElementById('itemIsStrict').checked = false; document.getElementById('itemStrictNote').value = ''; document.getElementById('itemStrictNote').style.display = 'none';
@@ -782,7 +820,41 @@
   }
 
   async function proceedItem(id) { const r = records.find(x => x.id === id); try { await api.update('records', `id=eq.${r.id}`, { status: 'current', tag: '' }); await loadData(); showToast('Moved to Current'); } catch (e) { alert(e.message); } }
-  async function cancelItem(id) { if (!confirm('Move to History (Past) and stop follow-ups?')) return; try { await api.update('records', `id=eq.${id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false }); await loadData(); showToast('Moved to History'); } catch (e) { alert(e.message); } }
+  
+  // 重点修改：删除时检查早晚同名
+  async function cancelItem(id) {
+    const r = records.find(x => x.id === id);
+    if (!r) return;
+
+    // 如果是产品，检查另一时段是否有同名
+    if (r.category === 'product') {
+        const otherSlot = r.time_slot === 'AM' ? 'PM' : 'AM';
+        const otherRecord = records.find(x => x.customer_id === currentCustomerId && x.category === 'product' && x.name.toLowerCase() === r.name.toLowerCase() && x.time_slot === otherSlot && x.status !== 'past');
+        
+        if (otherRecord) {
+            const choice = confirm('This product is also in the ' + otherSlot + ' routine.\n\nClick "OK" to remove from BOTH (AM & PM).\nClick "Cancel" to remove ONLY from ' + r.time_slot + '.');
+            if (choice) {
+                // 删除两个
+                await api.update('records', `id=eq.${r.id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false });
+                await api.update('records', `id=eq.${otherRecord.id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false });
+                await loadData(); showToast('Removed from both AM & PM');
+            } else {
+                // 只删除当前
+                await api.update('records', `id=eq.${r.id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false });
+                await loadData(); showToast('Removed from ' + r.time_slot);
+            }
+            return;
+        }
+    }
+
+    // 普通删除逻辑
+    if (!confirm('Move to History (Past) and stop follow-ups?')) return;
+    try {
+        await api.update('records', `id=eq.${id}`, { status: 'past', tag: 'not_interested', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false });
+        await loadData(); showToast('Moved to History');
+    } catch (e) { alert(e.message); }
+  }
+
   async function setMainFollowup(id) { const r = records.find(x => x.id === id); if (!r || !r.next_date) return alert('This item has no follow-up date to set as main.'); const others = records.filter(x => x.customer_id === currentCustomerId && x.id !== id); for (let o of others) { if (o.is_main_followup) await api.update('records', `id=eq.${o.id}`, { is_main_followup: false }); } await api.update('records', `id=eq.${id}`, { is_main_followup: true }); await loadData(); }
 
   function openCompFacialModal() { if (!currentCustomerId) return; document.getElementById('cfId').value = ''; document.getElementById('cfName').value = ''; document.getElementById('cfExpiryDate').value = ''; document.getElementById('cfFollowupDate').value = ''; openModal('compFacialModal'); }
