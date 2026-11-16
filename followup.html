@@ -9,7 +9,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #f4f7f9; font-family: 'Inter', sans-serif; color: #1e293b; padding: 20px; }
-  .container { max-width: 1200px; margin: 0 auto; display: flex; gap: 20px; }
+  .container { max-width: 1300px; margin: 0 auto; display: flex; gap: 20px; }
   
   /* Left Sidebar */
   .sidebar { width: 320px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
@@ -44,6 +44,12 @@
 
   /* Sections */
   .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  
+  /* 双列网格 */
+  .split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .split-column { background: #fff; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; }
+  .column-header { font-size: 0.9rem; font-weight: 700; color: #475569; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; display: flex; justify-content: space-between; align-items: center;}
+
   .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; font-weight: 600; text-transform: uppercase; }
   .badge.recommended { background: #fef08a; color: #854d0e; }
   .badge.current { background: #bbf7d0; color: #166534; }
@@ -58,7 +64,8 @@
   .tag-not-interested { background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
   
   /* Items & Highlights */
-  .item-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; transition: 0.2s; }
+  .item-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; transition: 0.2s; }
+  .item-card:last-child { margin-bottom: 0; }
   
   /* 普通到期高亮 */
   .item-card.due { border-color: #fca5a5; background: #fef2f2; }
@@ -69,10 +76,14 @@
   .item-card.main-followup { border: 2px solid #3b82f6; background: #eff6ff; box-shadow: 0 4px 12px rgba(59,130,246,0.15); }
   .item-card.main-followup.strict-overdue { border-color: #dc2626; background: #fee2e2; }
 
-  .item-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-  .item-dates { font-size: 0.75rem; color: #64748b; margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+  .item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; flex-wrap: wrap; }
+  .item-name-area { font-weight: 700; font-size: 0.9rem; color: #0f172a; }
+  .item-actions { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+  .item-dates { font-size: 0.75rem; color: #64748b; display: flex; flex-direction: column; gap: 2px; }
   .item-dates span { display: flex; align-items: center; gap: 4px; }
   .date-overdue { color: #dc2626; font-weight: 700; }
+  
+  .empty-column { color: #94a3b8; font-size: 0.8rem; text-align: center; padding: 20px 0; }
   
   /* Modals */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 1000; }
@@ -92,6 +103,11 @@
   /* Toast */
   .toast { position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: #fff; padding: 12px 24px; border-radius: 8px; opacity: 0; transform: translateY(20px); transition: 0.3s; z-index: 9999; pointer-events: none; }
   .toast.show { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 1000px) {
+    .container { flex-direction: column; }
+    .split-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -133,33 +149,62 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="section-title">✨ Recommended / Interested</div>
+    <!-- Recommended -->
+    <div class="card" style="padding-bottom: 12px;">
+      <div class="section-title" style="margin-bottom: 8px;">✨ Recommended / Interested</div>
       <div style="margin-bottom: 12px; display: flex; gap: 8px;">
         <button class="btn btn-sm" onclick="openItemModal('recommended', 'treatment')">➕ Rec. Treatment</button>
         <button class="btn btn-sm" onclick="openItemModal('recommended', 'product')">➕ Rec. Product</button>
       </div>
-      <div id="recommendedSection"></div>
+      <div class="split-grid">
+        <div class="split-column">
+          <div class="column-header">💆 Treatments</div>
+          <div id="recTreatmentsColumn"></div>
+        </div>
+        <div class="split-column">
+          <div class="column-header">📦 Products</div>
+          <div id="recProductsColumn"></div>
+        </div>
+      </div>
     </div>
 
-    <div class="card">
-      <div class="section-title">🔄 In Use / Current</div>
+    <!-- Current -->
+    <div class="card" style="padding-bottom: 12px;">
+      <div class="section-title" style="margin-bottom: 8px;">🔄 In Use / Current</div>
       <div style="margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
         <button class="btn btn-sm" style="background:#10b981" onclick="openItemModal('current', 'treatment')">➕ Add Current Treatment</button>
         <button class="btn btn-sm" style="background:#10b981" onclick="openItemModal('current', 'product')">➕ Add Current Product</button>
-        <!-- 新增 Comp Facial 按钮 -->
         <button class="btn btn-sm" style="background:#8b5cf6" onclick="openCompFacialModal()">➕ Add Comp Facial</button>
       </div>
-      <div id="currentSection"></div>
+      <div class="split-grid">
+        <div class="split-column">
+          <div class="column-header">💆 Treatments & Facials</div>
+          <div id="currentTreatmentsColumn"></div>
+        </div>
+        <div class="split-column">
+          <div class="column-header">📦 Products</div>
+          <div id="currentProductsColumn"></div>
+        </div>
+      </div>
     </div>
 
-    <div class="card">
-      <div class="section-title">📁 History / Past</div>
+    <!-- History -->
+    <div class="card" style="padding-bottom: 12px;">
+      <div class="section-title" style="margin-bottom: 8px;">📁 History / Past</div>
       <div style="margin-bottom: 12px; display: flex; gap: 8px;">
         <button class="btn btn-sm" style="background:#64748b" onclick="openItemModal('past', 'treatment')">➕ Add Past Treatment</button>
         <button class="btn btn-sm" style="background:#64748b" onclick="openItemModal('past', 'product')">➕ Add Past Product</button>
       </div>
-      <div id="historySection"></div>
+      <div class="split-grid">
+        <div class="split-column">
+          <div class="column-header">💆 Past Treatments</div>
+          <div id="pastTreatmentsColumn"></div>
+        </div>
+        <div class="split-column">
+          <div class="column-header">📦 Past Products</div>
+          <div id="pastProductsColumn"></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -234,7 +279,6 @@
       <input type="date" id="itemAppDate">
     </div>
 
-    <!-- 严格期限设定 -->
     <div class="form-group" id="strictDateGroup" style="background:#fef2f2; padding:12px; border-radius:8px; border:1px solid #fecaca;">
       <label style="display:flex; align-items:center; gap:8px; color:#991b1b; cursor:pointer;">
         <input type="checkbox" id="itemIsStrict" style="width:auto;" onchange="document.getElementById('itemStrictNote').style.display = this.checked ? 'block' : 'none'"> 🔒 Strict Deadline (不可延期)
@@ -532,14 +576,29 @@
 
     const myRecords = records.filter(r => r.customer_id === id);
 
+    // Rec
     const recs = myRecords.filter(r => r.status === 'recommended');
-    document.getElementById('recommendedSection').innerHTML = recs.length ? recs.map(r => renderItemCard(r, 'recommended')).join('') : '<div style="color:#94a3b8; font-size:0.85rem;">None</div>';
+    renderSplitColumns('recTreatmentsColumn', 'recProductsColumn', recs);
 
+    // Current
     const currents = myRecords.filter(r => r.status === 'current');
-    document.getElementById('currentSection').innerHTML = currents.length ? currents.map(r => renderItemCard(r, 'current')).join('') : '<div style="color:#94a3b8; font-size:0.85rem;">None</div>';
+    renderSplitColumns('currentTreatmentsColumn', 'currentProductsColumn', currents);
 
+    // Past
     const history = myRecords.filter(r => r.status === 'past');
-    document.getElementById('historySection').innerHTML = history.length ? history.map(r => renderItemCard(r, 'past')).join('') : '<div style="color:#94a3b8; font-size:0.85rem;">None</div>';
+    renderSplitColumns('pastTreatmentsColumn', 'pastProductsColumn', history);
+  }
+
+  function renderSplitColumns(treatmentContainerId, productContainerId, recordsList) {
+    // 拆分：左侧放 treatment 和 comp_facial，右侧放 product
+    const treatments = recordsList.filter(r => r.category === 'treatment' || r.category === 'comp_facial');
+    const products = recordsList.filter(r => r.category === 'product');
+
+    const tContainer = document.getElementById(treatmentContainerId);
+    const pContainer = document.getElementById(productContainerId);
+
+    tContainer.innerHTML = treatments.length ? treatments.map(r => renderItemCard(r, r.status)).join('') : '<div class="empty-column">No items</div>';
+    pContainer.innerHTML = products.length ? products.map(r => renderItemCard(r, r.status)).join('') : '<div class="empty-column">No items</div>';
   }
 
   // ==================== 渲染卡片 ====================
@@ -554,8 +613,7 @@
 
     let buttons = '';
     if (r.category === 'comp_facial') {
-        // Comp Facial 专属按钮
-        if (r.status === 'pending') {
+        if (r.status === 'pending' || r.status === 'current') {
             buttons = `<button class="btn btn-sm" style="background:#8b5cf6" onclick="openEditCompFacialModal('${r.id}')">✏️ Edit / Mark Used</button>`;
         } else {
             buttons = `<button class="btn btn-sm btn-outline" onclick="openEditCompFacialModal('${r.id}')">✏️ Edit</button>`;
@@ -565,16 +623,16 @@
           buttons = `
             <button class="btn btn-sm" style="background:#10b981" onclick="proceedItem('${r.id}')">Proceed</button>
             <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Not Interested</button>
-            <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit</button>
+            <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️</button>
           `;
         } else if (status === 'current') {
           buttons = `
-            <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Cancel Follow-up</button>
-            <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit</button>
+            <button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Cancel</button>
+            <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️</button>
           `;
         } else {
           buttons = `
-            <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit / Tag</button>
+            <button class="btn btn-sm btn-outline" onclick="openEditItemModal('${r.id}')">✏️ Edit</button>
           `;
         }
     }
@@ -590,15 +648,14 @@
     }
 
     const apptInfo = r.appointment_date ? `<span style="color:#3b82f6; font-weight:600;">Next Appt: ${r.appointment_date}</span>` : '';
-    const pinBtn = status !== 'past' ? `<button class="btn btn-sm ${r.is_main_followup ? 'btn' : 'btn-outline'}" style="margin-left:4px;" onclick="setMainFollowup('${r.id}')" title="Set as main follow-up">📌</button>` : '';
-    const strictLock = r.is_strict ? `<span style="color:#dc2626; font-weight:bold; margin-left:6px;" title="${r.strict_note || 'Strict Deadline'}">🔒 Strict</span>` : '';
+    const pinBtn = status !== 'past' ? `<button class="btn btn-sm ${r.is_main_followup ? 'btn' : 'btn-outline'}" onclick="setMainFollowup('${r.id}')" title="Set as main follow-up">📌</button>` : '';
+    const strictLock = r.is_strict ? `<span style="color:#dc2626; font-weight:bold;" title="${r.strict_note || 'Strict Deadline'}">🔒</span>` : '';
     
-    // Comp Facial 到期警告
     let compFacialWarning = '';
-    if (r.category === 'comp_facial' && r.status === 'pending' && r.next_date) {
+    if (r.category === 'comp_facial' && r.status === 'current' && r.next_date) {
         if (r.next_date < today) {
-            compFacialWarning = `<span style="color:#dc2626; font-weight:bold; margin-left:6px;">⚠️ Expired</span>`;
-            cardClass += ' strict-overdue'; // 过期变红
+            compFacialWarning = `<span style="color:#dc2626; font-weight:bold; font-size:0.7rem;">⚠️ Expired</span>`;
+            cardClass += ' strict-overdue';
         }
     }
 
@@ -607,19 +664,19 @@
     let displayName = r.name;
     let categoryLabel = '';
     if (r.category === 'comp_facial') {
-        categoryLabel = `<span class="badge comp_facial">Comp Facial</span>`;
+        categoryLabel = `<span class="badge comp_facial" style="font-size:0.6rem; padding:1px 4px;">Comp Facial</span>`;
         displayName = `🎁 ${r.name}`;
     }
 
     return `
       <div class="${cardClass}">
-        <div>
-          <strong>${displayName}</strong> ${categoryLabel} ${strictLock} <span class="badge ${status}">${status}</span> ${tagHtml} ${compFacialWarning}
-          <div class="item-dates">
-            ${timeAgo}
-            ${r.next_date ? `<span class="${dueDateClass}">${r.category === 'comp_facial' ? 'Expiry' : 'Next follow-up'}: ${r.next_date}</span>` : ''}
-            ${apptInfo}
-          </div>
+        <div class="item-header">
+          <div class="item-name-area">${displayName} ${categoryLabel} ${strictLock} ${tagHtml} ${compFacialWarning}</div>
+        </div>
+        <div class="item-dates">
+          ${timeAgo}
+          ${r.next_date ? `<span class="${dueDateClass}">${r.category === 'comp_facial' ? 'Expiry' : 'Next follow-up'}: ${r.next_date}</span>` : ''}
+          ${apptInfo}
         </div>
         <div class="item-actions">
           ${buttons}
@@ -646,7 +703,7 @@
     if (!r) return;
     document.getElementById('cfId').value = r.id;
     document.getElementById('cfName').value = r.name.replace('🎁 ', '');
-    document.getElementById('cfStatus').value = r.status === 'past' ? 'used' : 'pending'; // 这里我们用 past 代表 used
+    document.getElementById('cfStatus').value = r.status === 'past' ? 'used' : 'pending';
     document.getElementById('cfExpiryDate').value = r.next_date || '';
     document.getElementById('cfUsedDate').value = r.last_date || '';
     toggleCfDateFields();
@@ -673,11 +730,6 @@
     const expiry = document.getElementById('cfExpiryDate').value || null;
     const usedDate = document.getElementById('cfUsedDate').value || null;
 
-    // 数据库映射：
-    // status = 'current' (待使用) -> 在 Current 区显示
-    // status = 'past' (已使用) -> 在 History 区显示
-    // next_date 存有效期
-    // last_date 存已使用日期
     let data = {
         name: name,
         category: 'comp_facial',
@@ -1094,7 +1146,6 @@
     });
   }
 
-  // 关闭遮罩层
   document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) closeModal(overlay.id);
