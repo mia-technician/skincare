@@ -459,9 +459,7 @@
         api.select('records', 'order=next_date.asc.nullslast'),
         api.select('products', 'order=name.asc')
       ]);
-      customers = cRes;
-      records = rRes;
-      productsLib = pRes || [];
+      customers = cRes; records = rRes; productsLib = pRes || [];
       renderCustomers();
       if (currentCustomerId) renderProfile(currentCustomerId);
     } catch (e) { alert('Error loading data: ' + e.message); }
@@ -596,19 +594,42 @@
     const resultsDiv = inputEl.nextElementSibling;
     if (!kw) { resultsDiv.classList.remove('show'); return; }
     const matched = productsLib.filter(p => p.name.toLowerCase().includes(kw) || (p.brand && p.brand.toLowerCase().includes(kw)));
-    resultsDiv.innerHTML = matched.length === 0 ? '<div class="search-item" style="color:#94a3b8;">No products found</div>' : matched.map(p => `<div class="search-item" onclick="addProductToRoutine('${p.id}', '${slot}')"><span>${p.name}</span><span style="color:#94a3b8;">${p.brand || ''}</span></div>`).join('');
+    resultsDiv.innerHTML = matched.length === 0 ? '<div class="search-item" style="color:#94a3b8;">No products found</div>' : matched.map(p => `<div class="search-item" onclick="openAddProductModal('${p.id}', '${slot}')"><span>${p.name}</span><span style="color:#94a3b8;">${p.brand || ''}</span></div>`).join('');
     resultsDiv.classList.add('show');
   }
 
-  async function addProductToRoutine(prodId, slot) {
+  // 新增：打开产品添加弹窗，填购买日期
+  function openAddProductModal(prodId, slot) {
+    const prod = productsLib.find(p => p.id === prodId);
+    if (!prod) return;
+    document.getElementById('addProdId').value = prodId;
+    document.getElementById('addProdSlot').value = slot;
+    document.getElementById('addProdName').innerText = prod.name + (prod.brand ? ` (${prod.brand})` : '');
+    document.getElementById('addProdLastDate').value = '';
+    openModal('addProductModal');
+    // 隐藏搜索下拉
+    document.querySelectorAll('.search-results').forEach(el => el.classList.remove('show'));
+  }
+
+  async function saveProductToRoutine() {
+    const prodId = document.getElementById('addProdId').value;
+    const slot = document.getElementById('addProdSlot').value;
+    const lastDate = document.getElementById('addProdLastDate').value || null;
+    
     const prod = productsLib.find(p => p.id === prodId); if (!prod) return;
     const existing = records.find(r => r.customer_id === currentCustomerId && r.name.toLowerCase() === prod.name.toLowerCase() && r.time_slot === slot && r.status !== 'past');
     if (existing) { alert('This product is already in this slot.'); return; }
-    let data = { customer_id: currentCustomerId, category: 'product', name: prod.name, status: 'current', time_slot: slot, sort_order: 99, is_main_followup: false, is_strict: false };
+    
+    let data = { 
+      customer_id: currentCustomerId, category: 'product', name: prod.name, 
+      status: 'current', time_slot: slot, sort_order: 99, is_main_followup: false, is_strict: false,
+      last_date: lastDate // 保存上次购买/使用日期
+    };
     try {
         await api.insert('records', data);
         document.querySelectorAll('.search-wrapper input').forEach(el => el.value = '');
         document.querySelectorAll('.search-results').forEach(el => el.classList.remove('show'));
+        closeModal('addProductModal');
         await loadData(); showToast('Product added');
     } catch(e) { alert(e.message); }
   }
