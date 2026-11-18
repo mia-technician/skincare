@@ -667,7 +667,13 @@
     const dueDateClass = isDue ? 'date-overdue' : '';
     let displayName = r.category === 'comp_facial' ? `🎁 ${r.name}` : r.name;
     let categoryLabel = r.category === 'comp_facial' ? `<span class="badge comp_facial" style="font-size:0.6rem; padding:1px 4px;">Comp Facial</span>` : '';
-    let noteHtml = r.strict_note ? `<div class="note-text" title="${r.strict_note}">📝 ${r.strict_note}</div>` : '';
+   let noteHtml = '';
+if (r.note) {
+  noteHtml += `<div class="note-text" title="${r.note}">📝 ${r.note}</div>`;
+}
+if (r.strict_note) {
+  noteHtml += `<div class="note-text" title="${r.strict_note}" style="color:#dc2626;">🔒 ${r.strict_note}</div>`;
+}
 
     return `<div class="${cardClass}" data-id="${r.id}">
         <div class="item-header"><div class="item-name-area">${displayName} ${categoryLabel} ${strictLock} ${tagHtml} ${compFacialWarning}</div><span class="badge ${status}">${status}</span></div>
@@ -778,44 +784,59 @@
     document.getElementById('treatStrictNote').style.display = 'none';
     openModal('treatmentModal');
   }
-  function openEditTreatmentModal(id) {
-    const r = records.find(x => x.id === id);
-    if (!r) return;
-    document.getElementById('treatId').value = r.id;
-    document.getElementById('treatEditMode').value = 'true';
-    document.getElementById('treatModalTitle').innerText = 'Edit Treatment';
-    document.getElementById('treatNameInput').value = r.name;
-    document.getElementById('treatNameInput').style.display = 'none';
-    document.getElementById('treatSelectedName').innerText = r.name;
-    document.getElementById('treatSelectedName').style.display = 'block';
-    document.getElementById('treatStatusSelect').value = r.status;
-    document.getElementById('treatLastDate').value = r.last_date || '';
-    document.getElementById('treatNextDate').value = r.next_date || '';
-    document.getElementById('treatNote').value = r.strict_note || '';
-    document.getElementById('treatIsStrict').checked = r.is_strict || false;
-    document.getElementById('treatStrictNote').value = r.strict_note || '';
-    document.getElementById('treatStrictNote').style.display = r.is_strict ? 'block' : 'none';
-    openModal('treatmentModal');
-  }
-  async function saveTreatment() {
-    const id = document.getElementById('treatId').value;
-    const isEdit = document.getElementById('treatEditMode').value === 'true';
-    let name = document.getElementById('treatSelectedName').innerText;
-    if (!name) return alert('Please select a treatment from the library.');
-    const status = document.getElementById('treatStatusSelect').value;
-    const lastDate = document.getElementById('treatLastDate').value || null;
-    const nextDate = document.getElementById('treatNextDate').value || null;
-    const note = document.getElementById('treatNote').value.trim() || null;
-    const isStrict = document.getElementById('treatIsStrict').checked;
-    const strictNote = isStrict ? document.getElementById('treatStrictNote').value : null;
+function openEditTreatmentModal(id) {
+  const r = records.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('treatId').value = r.id;
+  document.getElementById('treatEditMode').value = 'true';
+  document.getElementById('treatModalTitle').innerText = 'Edit Treatment';
+  document.getElementById('treatNameInput').value = r.name;
+  document.getElementById('treatNameInput').style.display = 'none';
+  document.getElementById('treatSelectedName').innerText = r.name;
+  document.getElementById('treatSelectedName').style.display = 'block';
+  document.getElementById('treatStatusSelect').value = r.status;
+  document.getElementById('treatLastDate').value = r.last_date || '';
+  document.getElementById('treatNextDate').value = r.next_date || '';
+  document.getElementById('treatNote').value = r.note || '';
+  document.getElementById('treatIsStrict').checked = r.is_strict || false;
+  document.getElementById('treatStrictNote').value = r.strict_note || '';
+  document.getElementById('treatStrictNote').style.display = r.is_strict ? 'block' : 'none';
+  openModal('treatmentModal');
+}
+async function saveTreatment() {
+  const id = document.getElementById('treatId').value;
+  const isEdit = document.getElementById('treatEditMode').value === 'true';
+  let name = document.getElementById('treatSelectedName').innerText;
+  if (!name) return alert('Please select a treatment from the library.');
 
-    let data = { name, category: 'treatment', status, last_date: lastDate, next_date: nextDate, strict_note: note, is_strict: isStrict, strict_note: strictNote };
-    try {
-      if (isEdit) await api.update('records', `id=eq.${id}`, data);
-      else { data.customer_id = currentCustomerId; await api.insert('records', data); }
-      closeModal('treatmentModal'); await loadData(); showToast('Treatment saved');
-    } catch (e) { alert(e.message); }
-  }
+  const status     = document.getElementById('treatStatusSelect').value;
+  const lastDate   = document.getElementById('treatLastDate').value || null;
+  const nextDate   = document.getElementById('treatNextDate').value || null;
+  const note       = document.getElementById('treatNote').value.trim() || null;
+  const isStrict   = document.getElementById('treatIsStrict').checked;
+  const strictNote = isStrict
+      ? (document.getElementById('treatStrictNote').value.trim() || null)
+      : null;
+
+  const data = {
+    name,
+    category: 'treatment',
+    status,
+    last_date:  lastDate,
+    next_date:  nextDate,
+    note:       note,
+    is_strict:  isStrict,
+    strict_note: strictNote
+  };
+
+  try {
+    if (isEdit) await api.update('records', `id=eq.${id}`, data);
+    else { data.customer_id = currentCustomerId; await api.insert('records', data); }
+    closeModal('treatmentModal');
+    await loadData();
+    showToast('Treatment saved');
+  } catch (e) { alert(e.message); }
+}
 
   // 产品搜索
   function searchProductForModal(inputEl, resultsId) {
