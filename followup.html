@@ -444,7 +444,30 @@
   </div>
 </div>
 
-<!-- Advanced Search Modal -->
+<!-- End Treatment Modal -->
+<div class="modal-overlay" id="endTreatmentModal">
+  <div class="modal-content" style="max-width: 420px;">
+    <button class="close-btn" onclick="closeModal('endTreatmentModal')">✖</button>
+    <h3 style="margin-bottom: 8px;">End Treatment</h3>
+    <p style="font-size:0.85rem; color:#64748b; margin-bottom:20px;">
+      How did this treatment end? It will be moved to Past Treatments.
+    </p>
+
+    <button class="btn" style="background:#10b981; width:100%; margin-bottom:10px; padding:12px; font-size:0.9rem;"
+            onclick="confirmEndTreatment('completed')">
+      ✅ Done / Completed <span style="opacity:0.8; font-weight:400;">(已完成)</span>
+    </button>
+
+    <button class="btn" style="background:#ef4444; width:100%; margin-bottom:10px; padding:12px; font-size:0.9rem;"
+            onclick="confirmEndTreatment('discontinued')">
+      🚫 Quit / Discontinued <span style="opacity:0.8; font-weight:400;">(放弃)</span>
+    </button>
+
+    <button class="btn btn-outline" style="width:100%;"
+            onclick="closeModal('endTreatmentModal')">Cancel</button>
+  </div>
+</div>
+ <!-- Advanced Search Modal -->
 <div class="modal-overlay" id="searchModal">
   <div class="modal-content" style="max-width: 500px;">
     <button class="close-btn" onclick="closeModal('searchModal')">✖</button>
@@ -631,7 +654,14 @@
   }
 
   function renderItemCard(r, status) {
-    let tagHtml = r.tag === 'liked' ? '<span class="tag tag-liked">Liked</span>' : (r.tag === 'interested' ? '<span class="tag tag-interested">Interested</span>' : (r.tag === 'disliked' ? '<span class="tag tag-disliked">Disliked</span>' : (r.tag === 'not_interested' ? '<span class="tag tag-not-interested">Not Interested</span>' : '')));
+ let tagHtml =
+    r.tag === 'liked'        ? '<span class="tag tag-liked">Liked</span>'
+  : r.tag === 'interested'   ? '<span class="tag tag-interested">Interested</span>'
+  : r.tag === 'disliked'     ? '<span class="tag tag-disliked">Disliked</span>'
+  : r.tag === 'not_interested' ? '<span class="tag tag-not-interested">Not Interested</span>'
+  : r.tag === 'completed'    ? '<span class="tag" style="background:#bbf7d0; color:#166534;">✅ Completed</span>'
+  : r.tag === 'discontinued' ? '<span class="tag" style="background:#fecaca; color:#991b1b;">🚫 Discontinued</span>'
+  : '';
     const timeAgo = r.last_date ? `<span style="color:#f59e0b;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
 
     let buttons = '';
@@ -640,8 +670,8 @@
     } else if (status === 'recommended') {
         buttons = `<button class="btn btn-sm" style="background:#10b981" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Not Interested</button><button class="btn btn-sm btn-outline" onclick="openEditTreatmentModal('${r.id}')">✏️</button>`;
     } else if (status === 'current') {
-        buttons = `<button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Cancel</button><button class="btn btn-sm btn-outline" onclick="openEditTreatmentModal('${r.id}')">✏️</button>`;
-    } else if (status === 'past') {
+    buttons = `<button class="btn btn-sm btn-outline" onclick="endTreatment('${r.id}')">End</button><button class="btn btn-sm btn-outline" onclick="openEditTreatmentModal('${r.id}')">✏️</button>`;
+}else if (status === 'past') {
         buttons = `<button class="btn btn-sm btn-outline" style="color:#dc2626; border-color:#fca5a5;" onclick="permanentlyDelete('${r.id}')">🗑️ Delete</button>`;
     }
 
@@ -978,6 +1008,35 @@ async function saveTreatment() {
     }
     if (!confirm('Move to History (Past)?')) return;
     try { await api.update('records', `id=eq.${id}`, { status: 'past' }); await loadData(); showToast('Moved to History'); } catch (e) { alert(e.message); }
+  }
+  let pendingEndId = null;
+
+  function endTreatment(id) {
+    pendingEndId = id;
+    openModal('endTreatmentModal');
+  }
+
+  async function confirmEndTreatment(outcome) {
+    if (!pendingEndId) return;
+    const id = pendingEndId;
+    pendingEndId = null;
+
+    const r = records.find(x => x.id === id);
+    if (!r) { closeModal('endTreatmentModal'); return; }
+
+    const updateData = {
+      status: 'past',
+      tag: outcome,
+      is_main_followup: false,
+      is_strict: false
+    };
+
+    try {
+      await api.update('records', `id=eq.${id}`, updateData);
+      closeModal('endTreatmentModal');
+      await loadData();
+      showToast(outcome === 'completed' ? 'Marked as completed ✅' : 'Marked as discontinued 🚫');
+    } catch (e) { alert(e.message); }
   }
   async function permanentlyDelete(id) {
       if (!confirm('Permanently delete this record from database?')) return;
