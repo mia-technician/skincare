@@ -4,6 +4,18 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase.js"></script>
+    <script>
+supabase.auth.onAuthStateChange(async (event, session) => {
+  if (event === "PASSWORD_RECOVERY") {
+    const newPwd = prompt("请设置新密码");
+    if (newPwd) {
+      const { error } = await supabase.auth.updateUser({ password: newPwd });
+      if (error) alert("设置失败：" + error.message);
+      else alert("✅ 密码设置成功！以后可以邮箱+密码登录了");
+    }
+  }
+});
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Skin Care</title>
@@ -876,7 +888,7 @@ const SYSTEM_USER_ID = "2c9b8bce-b2ab-47bb-92a1-f0d5143b4788";  // 👈 改成�
 
 let isAuthenticated = false;
 let currentUserId = SYSTEM_USER_ID; // 默认使用系统用户 ID（未验证时无法操作）
-let supabaseClient = null;
+let  = null;
 
 // ==================== 默认数据 ====================
 const DEFAULT_PRODUCTS = [
@@ -1031,12 +1043,12 @@ function loadFromLocalStorage() {
 
 // ==================== 云端操作（需要密码验证）====================
 async function loadFromCloud() {
-    if (!supabaseClient || isLoading) return false;
+    if (! || isLoading) return false;
     isLoading = true;
     try {
-        const { data: products } = await supabaseClient.from('products').select('*');
-        const { data: routines } = await supabaseClient.from('routines').select('*');
-        const { data: state } = await supabaseClient.from('user_state').select('current_routine_id').maybeSingle();
+        const { data: products } = await .from('products').select('*');
+        const { data: routines } = await .from('routines').select('*');
+        const { data: state } = await .from('user_state').select('current_routine_id').maybeSingle();
         
         if (products && products.length > 0) {
             productsData = products;
