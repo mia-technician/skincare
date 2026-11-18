@@ -403,7 +403,18 @@
     
 <script>
     // Configuration
-    const CLOUD_PASSWORD = "laserVersante";
+async function ensureAuth() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.user) return session.user;
+
+  const email = prompt('管理员邮箱：');
+  const password = prompt('密码：');
+  if (!email || !password) { alert('需要登录才能保存'); return null; }
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) { alert('登录失败：' + error.message); return null; }
+  return data.user;
+}
     const SYSTEM_USER_ID = "2c9b8bce-b2ab-47bb-92a1-f0d5143b4788";  // 与 SQL 中保持一致
     let currentId = null;
     let documents = [];
@@ -725,14 +736,11 @@ const fieldMapping = {
     }
 
     async function saveDocument() {
-        const password = prompt('Enter cloud storage password:');
-        if (password !== CLOUD_PASSWORD) {
-            alert('Incorrect password! Cannot save.');
-            return;
-        }
+const user = await ensureAuth();
+if (!user) return;
         
         const data = getCurrentDocumentData();
-        
+        data.user_id = user.id;
         try {
             const { error } = await supabase.from('prepost_documents').insert([data]);
             if (error) throw error;
@@ -751,11 +759,8 @@ const fieldMapping = {
             return;
         }
         
-        const password = prompt('Enter cloud storage password:');
-        if (password !== CLOUD_PASSWORD) {
-            alert('Incorrect password! Cannot update.');
-            return;
-        }
+        const user = await ensureAuth();
+        if (!user) return;
         
         const data = getCurrentDocumentData();
         
