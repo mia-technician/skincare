@@ -1043,12 +1043,12 @@ function loadFromLocalStorage() {
 
 // ==================== 云端操作（需要密码验证）====================
 async function loadFromCloud() {
-    if (! || isLoading) return false;
+    if (!supabaseClient || isLoading) return false;
     isLoading = true;
     try {
-        const { data: products } = await .from('products').select('*');
-        const { data: routines } = await .from('routines').select('*');
-        const { data: state } = await .from('user_state').select('current_routine_id').maybeSingle();
+        const { data: products } = await supabaseClient.from('products').select('*');
+        const { data: routines } = await supabaseClient.from('routines').select('*');
+        const { data: state } = await supabaseClient.from('user_state').select('current_routine_id').maybeSingle();
         
         if (products && products.length > 0) {
             productsData = products;
