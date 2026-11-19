@@ -47,11 +47,11 @@
   .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
   
   /* 自适应网格 */
-  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
   
-  .sub-column { background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; }
-  .sub-column-header { font-size: 0.9rem; font-weight: 700; color: #475569; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
+  .sub-column { background: #f8fafc; border-radius: 12px; padding: 14px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; min-width: 0; overflow-wrap: anywhere; }
+  .sub-column-header { font-size: 0.88rem; font-weight: 700; color: #475569; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; display: flex; justify-content: space-between; align-items: center; gap: 8px; min-width: 0; }
 
   .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; font-weight: 600; text-transform: uppercase; }
   .badge.recommended { background: #fef08a; color: #854d0e; }
@@ -59,7 +59,7 @@
   .badge.past { background: #e2e8f0; color: #475569; }
   
   /* Items */
-  .item-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; transition: 0.2s; position: relative; }
+  .item-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px; transition: 0.2s; position: relative; min-width: 0; overflow-wrap: anywhere; word-break: break-word; box-shadow: 0 1px 2px rgba(15,23,42,0.04); }
   .item-card:last-child { margin-bottom: 0; }
   
   /* 颜色标记 */
@@ -80,14 +80,17 @@
   .item-card.main-followup { border: 2px solid #3b82f6; background: #eff6ff; box-shadow: 0 4px 12px rgba(59,130,246,0.15); }
 
   .item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; flex-wrap: wrap; }
-  .item-name-area { font-weight: 700; font-size: 0.9rem; color: #0f172a; display: flex; align-items: center; gap: 6px;}
-  .item-actions { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
-  .item-dates { font-size: 0.75rem; color: #64748b; display: flex; flex-direction: column; gap: 2px; }
+  .item-name-area { font-weight: 700; font-size: 0.88rem; color: #0f172a; display: flex; align-items: center; gap: 6px; min-width: 0; flex-wrap: wrap; overflow-wrap: anywhere; }
+  .item-actions { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; margin-top: 2px; }
+  .item-dates { font-size: 0.72rem; color: #64748b; display: flex; flex-direction: column; gap: 2px; font-variant-numeric: tabular-nums; }
   .item-dates span { display: flex; align-items: center; gap: 4px; }
   .date-overdue { color: #dc2626; font-weight: 700; }
-  .note-text { font-size: 0.7rem; color: #64748b; background: #f1f5f9; padding: 4px 6px; border-radius: 4px; margin-top: 4px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .note-text { font-size: 0.68rem; color: #64748b; background: #f1f5f9; padding: 4px 6px; border-radius: 4px; margin-top: 4px; font-style: italic; white-space: normal; overflow-wrap: anywhere; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   
-  .empty-column { color: #94a3b8; font-size: 0.8rem; text-align: center; padding: 20px 0; }
+  .empty-column { color: #94a3b8; font-size: 0.76rem; text-align: center; padding: 18px 8px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #fff; }
+  .col-count { font-size: 0.66rem; font-weight: 700; color: #475569; background: #e2e8f0; border-radius: 10px; padding: 1px 7px; flex-shrink: 0; }
+  .med-dose { font-size: 0.7rem; color: #3b82f6; background: #eff6ff; border-radius: 4px; padding: 2px 6px; align-self: flex-start; max-width: 100%; overflow-wrap: anywhere; }
+  .med-meta { font-size: 0.7rem; color: #64748b; display: flex; gap: 10px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
   
   /* 搜索下拉 */
   .search-wrapper { position: relative; margin-top: 10px; }
@@ -125,6 +128,10 @@
   @media (max-width: 1200px) {
     .container { flex-direction: column; }
     .sidebar { width: 100%; }
+    .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 700px) {
     .grid-3, .grid-2 { grid-template-columns: 1fr; }
   }
 </style>
@@ -179,15 +186,15 @@
       </div>
       <div class="grid-3">
         <div class="sub-column">
-          <div class="sub-column-header">Recommended</div>
+          <div class="sub-column-header"><span>Recommended</span><span class="col-count" id="cntTreatRec">0</span></div>
           <div id="treatRecContainer"></div>
         </div>
         <div class="sub-column">
-          <div class="sub-column-header">In Use / Done</div>
+          <div class="sub-column-header"><span>In Use / Done</span><span class="col-count" id="cntTreatCur">0</span></div>
           <div id="treatCurrentContainer"></div>
         </div>
         <div class="sub-column">
-          <div class="sub-column-header">Past Treatments</div>
+          <div class="sub-column-header"><span>Past Treatments</span><span class="col-count" id="cntTreatPast">0</span></div>
           <div id="treatPastContainer"></div>
         </div>
       </div>
@@ -203,15 +210,15 @@
       </div>
       <div class="grid-3">
         <div class="sub-column">
-          <div class="sub-column-header" style="color:#d97706;">☀️ Morning Routine</div>
+          <div class="sub-column-header" style="color:#d97706;"><span>☀️ Morning Routine</span><span class="col-count" id="cntAmProd">0</span></div>
           <div id="amProductContainer"></div>
         </div>
         <div class="sub-column">
-          <div class="sub-column-header" style="color:#4338ca;">🌙 Evening Routine</div>
+          <div class="sub-column-header" style="color:#4338ca;"><span>🌙 Evening Routine</span><span class="col-count" id="cntPmProd">0</span></div>
           <div id="pmProductContainer"></div>
         </div>
         <div class="sub-column">
-          <div class="sub-column-header">📦 Past Products</div>
+          <div class="sub-column-header"><span>📦 Past Products</span><span class="col-count" id="cntPastProd">0</span></div>
           <div id="pastProductContainer"></div>
         </div>
       </div>
@@ -225,13 +232,17 @@
           <button class="btn btn-sm" style="background:#3b82f6" onclick="openAddMedicationModal()">➕ Add Medication</button>
         </div>
       </div>
-      <div class="grid-2">
+      <div class="grid-3">
         <div class="sub-column">
-          <div class="sub-column-header" style="color:#3b82f6;">Current Medications</div>
+          <div class="sub-column-header" style="color:#b45309;"><span>✨ Recommended</span><span class="col-count" id="cntMedRec">0</span></div>
+          <div id="medRecContainer"></div>
+        </div>
+        <div class="sub-column">
+          <div class="sub-column-header" style="color:#3b82f6;"><span>💊 Current Medications</span><span class="col-count" id="cntMedCur">0</span></div>
           <div id="medicationContainer"></div>
         </div>
         <div class="sub-column">
-          <div class="sub-column-header">Past Medications</div>
+          <div class="sub-column-header"><span>🗂 Past Medications</span><span class="col-count" id="cntMedPast">0</span></div>
           <div id="pastMedicationContainer"></div>
         </div>
       </div>
@@ -341,6 +352,15 @@
     <div class="form-group">
       <label>Next Follow-up / Refill Date (下次跟进日)</label>
       <input type="date" id="addMedNextDate">
+    </div>
+
+    <div class="form-group">
+      <label>Status (状态)</label>
+      <select id="addMedStatus">
+        <option value="recommended">✨ Recommended (推荐)</option>
+        <option value="current" selected>💊 Current (当前)</option>
+        <option value="past">🗂 Past (已停用)</option>
+      </select>
     </div>
 
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 20px;">
@@ -587,9 +607,9 @@
     const tRec = myRecords.filter(r => r.category === 'treatment' && r.status === 'recommended');
     const tPast = myRecords.filter(r => r.category === 'treatment' && r.status === 'past');
     
-    document.getElementById('treatRecContainer').innerHTML = tRec.length ? tRec.map(r => renderItemCard(r, r.status)).join('') : '<div class="empty-column">None</div>';
-    document.getElementById('treatCurrentContainer').innerHTML = tCurrent.length ? tCurrent.map(r => renderItemCard(r, r.status)).join('') : '<div class="empty-column">None</div>';
-    document.getElementById('treatPastContainer').innerHTML = tPast.length ? tPast.map(r => renderItemCard(r, r.status)).join('') : '<div class="empty-column">None</div>';
+    setColumn('treatRecContainer', tRec, 'cntTreatRec', r => renderItemCard(r, r.status));
+    setColumn('treatCurrentContainer', tCurrent, 'cntTreatCur', r => renderItemCard(r, r.status));
+    setColumn('treatPastContainer', tPast, 'cntTreatPast', r => renderItemCard(r, r.status));
 
     // 区块 2: Products
     const products = myRecords.filter(r => r.category === 'product' && r.status !== 'past');
@@ -602,21 +622,67 @@
         return renderProductCard(product, product.status, isDuplicated);
     };
 
-    document.getElementById('amProductContainer').innerHTML = amProducts.length ? amProducts.map(r => renderProductWithDuplicationCheck(r, 'AM')).join('') : '<div class="empty-column">None</div>';
-    document.getElementById('pmProductContainer').innerHTML = pmProducts.length ? pmProducts.map(r => renderProductWithDuplicationCheck(r, 'PM')).join('') : '<div class="empty-column">None</div>';
-    
+    setColumn('amProductContainer', amProducts, 'cntAmProd', r => renderProductWithDuplicationCheck(r, 'AM'));
+    setColumn('pmProductContainer', pmProducts, 'cntPmProd', r => renderProductWithDuplicationCheck(r, 'PM'));
+
     const pastProducts = myRecords.filter(r => r.category === 'product' && r.status === 'past');
-    document.getElementById('pastProductContainer').innerHTML = pastProducts.length ? pastProducts.map(r => renderItemCard(r, 'past')).join('') : '<div class="empty-column">None</div>';
+    setColumn('pastProductContainer', pastProducts, 'cntPastProd', r => renderItemCard(r, 'past'));
 
     // 区块 3: Medications
-    const medCurrent = myRecords.filter(r => r.category === 'medication' && r.status !== 'past');
+    const medRec = myRecords.filter(r => r.category === 'medication' && r.status === 'recommended');
+    const medCurrent = myRecords.filter(r => r.category === 'medication' && (r.status === 'current' || !r.status));
     const medPast = myRecords.filter(r => r.category === 'medication' && r.status === 'past');
-    
-    document.getElementById('medicationContainer').innerHTML = medCurrent.length ? medCurrent.map(r => renderProductCard(r, 'current', false)).join('') : '<div class="empty-column">None</div>';
-    document.getElementById('pastMedicationContainer').innerHTML = medPast.length ? medPast.map(r => renderItemCard(r, 'past')).join('') : '<div class="empty-column">None</div>';
+
+    setColumn('medRecContainer', medRec, 'cntMedRec', r => renderMedicationCard(r, 'recommended'));
+    setColumn('medicationContainer', medCurrent, 'cntMedCur', r => renderMedicationCard(r, 'current'));
+    setColumn('pastMedicationContainer', medPast, 'cntMedPast', r => renderMedicationCard(r, 'past'));
 
     initSortable('amProductContainer', 'AM');
     initSortable('pmProductContainer', 'PM');
+  }
+
+  function setColumn(containerId, list, countId, renderFn) {
+    const el = document.getElementById(containerId);
+    if (el) el.innerHTML = list.length ? list.map(renderFn).join('') : '<div class="empty-column">暂无</div>';
+    const c = document.getElementById(countId);
+    if (c) c.innerText = list.length;
+  }
+
+  async function medEnd(id) {
+    const r = records.find(x => x.id === id); if (!r) return;
+    if (!confirm('Mark this medication as ended?')) return;
+    try { await api.update('records', `id=eq.${r.id}`, { status: 'past' }); await loadData(); showToast('Moved to Past'); }
+    catch (e) { alert(e.message); }
+  }
+
+  function renderMedicationCard(r, status) {
+    const today = new Date().toISOString().split('T')[0];
+    const isDue = r.next_date && r.next_date <= today && status !== 'past';
+    let cls = 'item-card';
+    if (status === 'past') cls += ' past';
+    else if (status === 'recommended') cls += ' recommended';
+    else cls += ' medication';
+    if (isDue) cls += ' due';
+
+    const dose = r.strict_note ? `<div class="med-dose">${r.strict_note}</div>` : '';
+    const refill = r.next_date ? `<span style="${isDue ? 'color:#dc2626;font-weight:700;' : ''}">🗓 Refill: ${r.next_date}</span>` : '';
+    const lastTxt = r.last_date ? `<span>⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
+
+    let btns = '';
+    if (status === 'recommended') {
+      btns = `<button class="btn btn-sm" style="background:#10b981;padding:2px 8px;" onclick="proceedItem('${r.id}')">Started</button><button class="btn btn-sm btn-outline" style="padding:2px 8px;" onclick="openEditMedicationModal('${r.id}')">✏️</button><button class="btn btn-sm btn-outline" style="padding:2px 8px;color:#dc2626;" onclick="permanentlyDelete('${r.id}')">✖</button>`;
+    } else if (status === 'current') {
+      btns = `<button class="btn btn-sm btn-outline" style="padding:2px 8px;" onclick="medEnd('${r.id}')">End</button><button class="btn btn-sm btn-outline" style="padding:2px 8px;" onclick="openEditMedicationModal('${r.id}')">✏️</button>`;
+    } else {
+      btns = `<button class="btn btn-sm btn-outline" style="padding:2px 8px;color:#dc2626;" onclick="permanentlyDelete('${r.id}')">🗑️</button>`;
+    }
+
+    return `<div class="${cls}" data-id="${r.id}">
+        <div class="item-header"><div class="item-name-area">${r.name}</div></div>
+        ${dose}
+        ${(refill || lastTxt) ? `<div class="med-meta">${refill}${lastTxt}</div>` : ''}
+        <div class="item-actions">${btns}</div>
+      </div>`;
   }
 
   function renderItemCard(r, status) {
@@ -915,6 +981,7 @@ async function saveTreatment() {
     document.getElementById('addMedName').value = '';
     document.getElementById('addMedDosage').value = '';
     document.getElementById('addMedNextDate').value = '';
+    document.getElementById('addMedStatus').value = 'current';
     openModal('addMedicationModal');
   }
   function openEditMedicationModal(id) {
@@ -926,6 +993,7 @@ async function saveTreatment() {
     document.getElementById('addMedName').value = r.name;
     document.getElementById('addMedDosage').value = r.strict_note || '';
     document.getElementById('addMedNextDate').value = r.next_date || '';
+    document.getElementById('addMedStatus').value = r.status || 'current';
     openModal('addMedicationModal');
   }
   async function saveMedication() {
@@ -935,7 +1003,8 @@ async function saveTreatment() {
     if (!name) return alert('Medication name required');
     const dosage = document.getElementById('addMedDosage').value.trim() || null;
     const nextDate = document.getElementById('addMedNextDate').value || null;
-    let data = { name, category: 'medication', status: 'current', strict_note: dosage, next_date: nextDate };
+    const status = document.getElementById('addMedStatus').value || 'current';
+    let data = { name, category: 'medication', status, strict_note: dosage, next_date: nextDate };
     try {
       if (isEdit) await api.update('records', `id=eq.${id}`, data);
       else { data.customer_id = currentCustomerId; await api.insert('records', data); }
