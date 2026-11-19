@@ -57,7 +57,6 @@
   .badge.recommended { background: #fef08a; color: #854d0e; }
   .badge.current { background: #bbf7d0; color: #166534; }
   .badge.past { background: #e2e8f0; color: #475569; }
-  .badge.comp_facial { background: #e0e7ff; color: #3730a3; }
   
   /* Items */
   .item-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; transition: 0.2s; position: relative; }
@@ -176,7 +175,6 @@
         💆 Treatments & Facials
         <div style="margin-left:auto; display:flex; gap:8px;">
           <button class="btn btn-sm" style="background:#10b981" onclick="openAddTreatmentModal()">➕ Add Treatment</button>
-          <button class="btn btn-sm" style="background:#8b5cf6" onclick="openCompFacialModal()">➕ Comp Facial</button>
         </div>
       </div>
       <div class="grid-3">
@@ -404,37 +402,6 @@
   </div>
 </div>
 
-<!-- Comp Facial Modal -->
-<div class="modal-overlay" id="compFacialModal">
-  <div class="modal-content">
-    <button class="close-btn" onclick="closeModal('compFacialModal')">✖</button>
-    <h3 style="margin-bottom: 16px;">Add Comp Facial</h3>
-    <input type="hidden" id="cfId">
-    
-    <div class="form-group"><label>Facial Name *</label><input type="text" id="cfName" placeholder="e.g. Microdermabrasion"></div>
-
-    <div class="form-group">
-      <label>Expiry Date (有效期)</label>
-      <input type="date" id="cfExpiryDate">
-    </div>
-
-    <div class="form-group">
-      <label>Next Follow-up Date (下次跟进)</label>
-      <input type="date" id="cfFollowupDate">
-    </div>
-
-    <div class="form-group">
-      <label>Note (备注)</label>
-      <input type="text" id="cfNote" placeholder="Special notes...">
-    </div>
-
-    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 20px;">
-      <button class="btn btn-outline" onclick="closeModal('compFacialModal')">Cancel</button>
-      <button class="btn" style="background:#8b5cf6" onclick="saveCompFacial()">Save</button>
-    </div>
-  </div>
-</div>
-
 <!-- Manage Follow-up Modal -->
 <div class="modal-overlay" id="appointmentModal">
   <div class="modal-content">
@@ -618,11 +585,10 @@
     // 区块 1: Treatments
     const tCurrent = myRecords.filter(r => r.category === 'treatment' && r.status === 'current');
     const tRec = myRecords.filter(r => r.category === 'treatment' && r.status === 'recommended');
-    const tPast = myRecords.filter(r => (r.category === 'treatment' || r.category === 'comp_facial') && r.status === 'past');
-    const cfCurrent = myRecords.filter(r => r.category === 'comp_facial' && r.status === 'current');
+    const tPast = myRecords.filter(r => r.category === 'treatment' && r.status === 'past');
     
     document.getElementById('treatRecContainer').innerHTML = tRec.length ? tRec.map(r => renderItemCard(r, r.status)).join('') : '<div class="empty-column">None</div>';
-    document.getElementById('treatCurrentContainer').innerHTML = (tCurrent.length + cfCurrent.length) ? [...tCurrent, ...cfCurrent].map(r => renderItemCard(r, r.status)).join('') : '<div class="empty-column">None</div>';
+    document.getElementById('treatCurrentContainer').innerHTML = tCurrent.length ? tCurrent.map(r => renderItemCard(r, r.status)).join('') : '<div class="empty-column">None</div>';
     document.getElementById('treatPastContainer').innerHTML = tPast.length ? tPast.map(r => renderItemCard(r, r.status)).join('') : '<div class="empty-column">None</div>';
 
     // 区块 2: Products
@@ -665,9 +631,7 @@
     const timeAgo = r.last_date ? `<span style="color:#f59e0b;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
 
     let buttons = '';
-    if (r.category === 'comp_facial') {
-        buttons = `<button class="btn btn-sm" style="background:#8b5cf6" onclick="openEditCompFacialModal('${r.id}')">✏️ Edit / Mark Used</button>`;
-    } else if (status === 'recommended') {
+    if (status === 'recommended') {
         buttons = `<button class="btn btn-sm" style="background:#10b981" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Not Interested</button><button class="btn btn-sm btn-outline" onclick="openEditTreatmentModal('${r.id}')">✏️</button>`;
     } else if (status === 'current') {
     buttons = `<button class="btn btn-sm btn-outline" onclick="endTreatment('${r.id}')">End</button><button class="btn btn-sm btn-outline" onclick="openEditTreatmentModal('${r.id}')">✏️</button>`;
@@ -684,19 +648,10 @@
     const apptInfo = r.appointment_date ? `<span style="color:#3b82f6; font-weight:600;">Next Appt: ${r.appointment_date}</span>` : '';
     const pinBtn = status !== 'past' ? `<button class="btn btn-sm ${r.is_main_followup ? 'btn' : 'btn-outline'}" onclick="setMainFollowup('${r.id}')" title="Set as main follow-up">📌</button>` : '';
     const strictLock = r.is_strict ? `<span style="color:#dc2626; font-weight:bold;" title="${r.strict_note || 'Strict Deadline'}">🔒</span>` : '';
-    const manageBtn = (isDue && r.category !== 'comp_facial') ? `<button class="btn btn-sm" style="background:#dc2626; margin-left:8px;" onclick="openAppointmentModal('${r.id}')">⚠️ Manage</button>` : '';
-
-    let compFacialWarning = ''; let expiryInfo = '';
-    if (r.category === 'comp_facial') {
-        if (r.last_date) {
-            expiryInfo = `<span style="color:#8b5cf6;">Expiry: ${r.last_date}</span>`;
-            if (r.last_date < today) { compFacialWarning = `<span style="color:#dc2626; font-weight:bold; font-size:0.7rem;">⚠️ Expired</span>`; cardClass += ' strict-overdue'; }
-        }
-    }
+    const manageBtn = isDue ? `<button class="btn btn-sm" style="background:#dc2626; margin-left:8px;" onclick="openAppointmentModal('${r.id}')">⚠️ Manage</button>` : '';
 
     const dueDateClass = isDue ? 'date-overdue' : '';
-    let displayName = r.category === 'comp_facial' ? `🎁 ${r.name}` : r.name;
-    let categoryLabel = r.category === 'comp_facial' ? `<span class="badge comp_facial" style="font-size:0.6rem; padding:1px 4px;">Comp Facial</span>` : '';
+    const displayName = r.name;
    let noteHtml = '';
 if (r.note) {
   noteHtml += `<div class="note-text" title="${r.note}">📝 ${r.note}</div>`;
@@ -706,8 +661,8 @@ if (r.strict_note) {
 }
 
     return `<div class="${cardClass}" data-id="${r.id}">
-        <div class="item-header"><div class="item-name-area">${displayName} ${categoryLabel} ${strictLock} ${tagHtml} ${compFacialWarning}</div><span class="badge ${status}">${status}</span></div>
-        <div class="item-dates">${timeAgo}${expiryInfo}${r.next_date ? `<span class="${dueDateClass}">Next follow-up: ${r.next_date}</span>` : ''}${apptInfo}${noteHtml}</div>
+        <div class="item-header"><div class="item-name-area">${displayName} ${strictLock} ${tagHtml}</div><span class="badge ${status}">${status}</span></div>
+        <div class="item-dates">${timeAgo}${r.next_date ? `<span class="${dueDateClass}">Next follow-up: ${r.next_date}</span>` : ''}${apptInfo}${noteHtml}</div>
         <div class="item-actions">${buttons}${pinBtn}${manageBtn}</div>
       </div>`;
   }
@@ -1093,9 +1048,6 @@ async function saveTreatment() {
   }
 
   // 其他
-  function openCompFacialModal() { if (!currentCustomerId) return; document.getElementById('cfId').value = ''; document.getElementById('cfName').value = ''; document.getElementById('cfExpiryDate').value = ''; document.getElementById('cfFollowupDate').value = ''; document.getElementById('cfNote').value = ''; openModal('compFacialModal'); }
-  function openEditCompFacialModal(id) { const r = records.find(x => x.id === id); if (!r) return; document.getElementById('cfId').value = r.id; document.getElementById('cfName').value = r.name; document.getElementById('cfExpiryDate').value = r.last_date || ''; document.getElementById('cfFollowupDate').value = r.next_date || ''; document.getElementById('cfNote').value = r.strict_note || ''; openModal('compFacialModal'); }
-  async function saveCompFacial() { const id = document.getElementById('cfId').value; const name = document.getElementById('cfName').value.trim(); if (!name) return alert('Facial Name required'); const expiry = document.getElementById('cfExpiryDate').value || null; const followup = document.getElementById('cfFollowupDate').value || null; const note = document.getElementById('cfNote').value.trim() || null; let data = { name, category: 'comp_facial', status: 'current', last_date: expiry, next_date: followup, strict_note: note, is_main_followup: false, is_strict: false }; try { if (id) await api.update('records', `id=eq.${id}`, data); else { data.customer_id = currentCustomerId; await api.insert('records', data); } closeModal('compFacialModal'); await loadData(); showToast('Comp Facial saved'); } catch (e) { alert(e.message); } }
 
   function openLinkModal() { document.getElementById('linkSearch').value = ''; renderLinkOptions(); openModal('linkModal'); }
   function renderLinkOptions() { const kw = document.getElementById('linkSearch').value.toLowerCase(); const list = document.getElementById('linkOptionsList'); const c = customers.find(x => x.id === currentCustomerId); const alreadyLinked = c.linked_customer_ids || []; const options = customers.filter(x => x.id !== currentCustomerId && !alreadyLinked.includes(x.id) && (x.name.toLowerCase().includes(kw) || (x.client_id && x.client_id.toLowerCase().includes(kw)))); list.innerHTML = options.length === 0 ? '<div style="color:#94a3b8; font-size:0.85rem;">No available customers found.</div>' : options.map(x => `<div class="customer-item" onclick="linkCustomer('${x.id}')"><div class="customer-name">${x.name}</div><div class="customer-info">ID: ${x.client_id || 'N/A'}</div></div>`).join(''); }
