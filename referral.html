@@ -10,7 +10,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #f1f5f9; font-family: 'Inter', sans-serif; color: #333; padding: 20px; }
-  
+
   .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; max-width: 1100px; margin-left: auto; margin-right: auto;}
   .stat-card { background: #fff; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.2s; }
   .stat-card.searching { background: #eff6ff; border: 1px solid #bfdbfe; }
@@ -72,7 +72,7 @@
 
   .workspace { max-width: 1100px; margin: 0 auto; }
   .tree-area { display: flex; flex-direction: column; gap: 20px; }
-  
+
   .top-add-bar { text-align: center; margin-bottom: 4px; }
   .btn-add-l1 { padding: 12px 28px; background: #3b82f6; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(59,130,246,0.3); transition: 0.2s; }
   .btn-add-l1:hover { background: #2563eb; transform: translateY(-1px); }
@@ -96,7 +96,7 @@
   .node-controls { display: flex; gap: 4px; flex-wrap: wrap; align-items: center;}
 
   .card-details { font-size: 0.8rem; color: #64748b; margin-top: 2px; display: flex; gap: 15px; flex-wrap: wrap;}
-  
+
   .node-stats-line {
     margin-top: 6px; padding-top: 6px; border-top: 1px dashed #e2e8f0;
     display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.75rem; color: #64748b; align-items: center;
@@ -127,7 +127,7 @@
   .btn-move-node { background: #eef2ff; color: #4f46e5; padding: 4px 8px; font-size: 0.75rem; border: 1px solid #c7d2fe; }
 
   .status-pending { font-weight: 700; color: #dc2626; }
-  .status-used { font-style: italic; color: #94a3b8; text-decoration: line-through; } 
+  .status-used { font-style: italic; color: #94a3b8; text-decoration: line-through; }
   .status-blue { font-weight: 400; color: #2563eb; }
   .status-gray { color: #cbd5e1; }
 
@@ -192,7 +192,7 @@
     <form id="editForm" onsubmit="saveData(event)">
       <input type="hidden" id="editPersonId">
       <input type="hidden" id="editParentId">
-      
+
       <div class="form-group">
         <label for="inputNodeName">姓名 *</label>
         <input type="text" id="inputNodeName" required placeholder="如: Ti Pu">
@@ -274,34 +274,68 @@
 <script>
   const SUPABASE_URL = "https://dmrskyskryrdclknezth.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
-(async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    const email = prompt('管理员邮箱：');
-    const password = prompt('密码：');
-    if (email && password) await supabase.auth.signInWithPassword({ email, password });
+
+  // ==========================================================
+  // ========== 鉴权：每次请求取 session 的 access_token ========
+  // ==========================================================
+  let currentUser = null;
+
+  async function getAccessToken() {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) throw new Error("读取会话失败: " + error.message);
+    if (!session || !session.access_token) return null;   // 未登录，不回退 anon key
+    currentUser = session.user;
+    return session.access_token;
   }
-})();
+
+  async function ensureAuth(interactive) {
+    const token = await getAccessToken();
+    if (token) return token;
+
+    if (interactive) {
+      const email = prompt('管理员邮箱：');
+      if (!email) throw new Error("未登录，操作已取消");
+      const password = prompt('密码：');
+      if (!password) throw new Error("未登录，操作已取消");
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw new Error("登录失败: " + error.message);
+      currentUser = data.user;
+      return data.session.access_token;
+    }
+    throw new Error("未登录，请先登录后再操作");
+  }
+
+  // 页面加载：检查会话，不存在则提示登录
+  (async () => {
+    try {
+      const token = await getAccessToken();
+      if (!token) {
+        showToast("当前未登录，请先登录后刷新页面", true);
+        alert("检测到你未登录。请先登录，登录后本页面的保存功能才可用。");
+        return;
+      }
+      // 已登录，加载数据
+      fetchDataFromCloud();
+    } catch (err) {
+      showToast("会话检查失败: " + err.message, true);
+    }
+  })();
 
   const api = {
-  headers: {
-    'apikey': SUPABASE_ANON_KEY,
-    'Content-Type': 'application/json'
-  },
-  async request(path, options = {}) {
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token || SUPABASE_ANON_KEY;
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-      ...options,
-      headers: {
-        ...this.headers,
-        'Authorization': 'Bearer ' + token,
-        ...(options.headers || {})
-      }
-    });
-
+    baseHeaders: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json'
+    },
+    async request(path, options = {}) {
+      // 每次请求都取最新的 access_token；未登录直接报错，绝不回退 anon key
+      const token = await ensureAuth(true);
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
         ...options,
-        headers: { ...this.headers, ...(options.headers || {}) }
+        headers: {
+          ...this.baseHeaders,
+          'Authorization': 'Bearer ' + token,
+          ...(options.headers || {})
+        }
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
       const text = await res.text();
@@ -959,8 +993,6 @@
     if (show) document.getElementById('loading').classList.add('show');
     else document.getElementById('loading').classList.remove('show');
   }
-
-  fetchDataFromCloud();
 </script>
 </body>
 </html>
