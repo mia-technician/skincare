@@ -121,6 +121,38 @@
   @media (max-width: 700px) {
     .grid-3, .grid-2 { grid-template-columns: 1fr; }
   }
+ /* ----新增：搜索区域版面优化---- */
+.sidebar-tool-row{
+  display:flex;
+  gap:10px;
+  margin-bottom:12px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.sidebar-tool-row label{
+  flex:0 0 auto;
+  white-space:nowrap;
+}
+.search-mode-group{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  padding:14px 16px;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+}
+.search-mode-group label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+  font-size:0.9rem;
+}
+.search-mode-group input[type="radio"]{
+  width:16px;
+  height:16px;
+}
+
 </style>
 </head>
 <body>
@@ -145,8 +177,8 @@
         <div class="view-tab" data-view="allfollow" onclick="switchLeftView('allfollow')">📋全部待随访</div>
         <div class="view-tab" data-view="allcustomer" onclick="switchLeftView('allcustomer')">👥全部客人</div>
       </div>
-      <div class="sidebar-tool-row">
-        <label style="font-size:0.75rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="leftStrictFilter">🔒仅Strict</label>
+            <div class="sidebar-tool-row">
+        <label><input type="checkbox" id="leftStrictFilter"> 🔒仅Strict</label>
         <button class="btn btn-sm btn-outline" onclick="exportLeftViewCsv()">📤导出CSV</button>
         <button class="btn btn-sm btn-outline" onclick="copyLeftViewEmails()">📋复制邮箱</button>
       </div>
@@ -426,13 +458,13 @@
       <input type="text" id="searchKw" placeholder="Search name, treatment, note, tag...">
     </div>
 
-    <div class="form-group">
+        <div class="form-group">
       <label>Search Mode (select one):</label>
-      <div style="display:flex;flex‑direction:column;gap:8px;padding:8px;border:1px solid #e2e8f0;border‑radius:8px;">
-        <label style="display:flex;align‑items:center;gap:6px;cursor:pointer;"><input type="radio" name="searchMode" value="keyword" checked>🔍 Global Keyword Search</label>
-        <label style="display:flex;align‑items:center;gap:6px;cursor:pointer;"><input type="radio" name="searchMode" value="strictDue">🔒 Strict‑Due only (strict & overdue)</label>
-        <label style="display:flex;align‑items:center;gap:6px;cursor:pointer;"><input type="radio" name="searchMode" value="bdayThis">🎂 This Month Birthdays only</label>
-        <label style="display:flex;align‑items:center;gap:6px;cursor:pointer;"><input type="radio" name="searchMode" value="bdayNext">🎂 Next Month Birthdays only</label>
+      <div class="search-mode-group">
+        <label><input type="radio" name="searchMode" value="keyword" checked> 🔍 Global Keyword Search</label>
+        <label><input type="radio" name="searchMode" value="strictDue"> 🔒 Strict‑Due only (strict & overdue)</label>
+        <label><input type="radio" name="searchMode" value="bdayThis"> 🎂 This Month Birthdays only</label>
+        <label><input type="radio" name="searchMode" value="bdayNext"> 🎂 Next Month Birthdays only</label>
       </div>
     </div>
 
