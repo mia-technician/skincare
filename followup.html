@@ -121,7 +121,17 @@
   @media (max-width: 700px) {
     .grid-3, .grid-2 { grid-template-columns: 1fr; }
   }
- /* ----新增：搜索区域版面优化---- */
+
+ /* UI Typography & layout fix */
+button,
+input,
+select,
+textarea,
+label {
+  font-family: inherit;
+  font-size: 100%;
+}
+
 .sidebar-tool-row{
   display:flex;
   gap:10px;
@@ -132,26 +142,38 @@
 .sidebar-tool-row label{
   flex:0 0 auto;
   white-space:nowrap;
+  font-weight:400;
+  font-size:0.9rem;
 }
+.sidebar-tool-row .btn-sm{
+  min-width:110px;
+}
+
 .search-mode-group{
   display:flex;
   flex-direction:column;
-  gap:12px;
-  padding:14px 16px;
+  gap:14px;
+  padding:16px 18px;
   border:1px solid #e2e8f0;
   border-radius:10px;
 }
 .search-mode-group label{
   display:flex;
   align-items:center;
-  gap:8px;
+  gap:10px;
   cursor:pointer;
-  font-size:0.9rem;
+  font-size:0.95rem;
+  font-weight:400;
 }
 .search-mode-group input[type="radio"]{
-  width:16px;
-  height:16px;
+  width:17px;
+  height:17px;
 }
+.form-group label{
+  font-weight:600;
+  font-size:0.95rem;
+}
+
 
 </style>
 </head>
@@ -171,17 +193,19 @@
       <button class="btn" style="width: 100%; margin-bottom: 12px;" onclick="openCustomerModal()">➕ Add New Customer</button>
       <button class="btn btn-outline" style="width: 100%; margin-bottom: 12px;" onclick="openSearchModal()">🔍 Advanced Search</button>
 
-      <div class="view-tabs">
-        <div class="view-tab active" data-view="overdue" onclick="switchLeftView('overdue')">🔴已到期</div>
-        <div class="view-tab" data-view="next7" onclick="switchLeftView('next7')">⏰7天内</div>
-        <div class="view-tab" data-view="allfollow" onclick="switchLeftView('allfollow')">📋全部待随访</div>
-        <div class="view-tab" data-view="allcustomer" onclick="switchLeftView('allcustomer')">👥全部客人</div>
+        <div class="view-tabs">
+        <div class="view-tab active" data-view="overdue" onclick="switchLeftView('overdue')">🔴 Overdue</div>
+        <div class="view-tab" data-view="next7" onclick="switchLeftView('next7')">⏰ Next 7 Days</div>
+        <div class="view-tab" data-view="allfollow" onclick="switchLeftView('allfollow')">📋 All Follow‑up</div>
+        <div class="view-tab" data-view="allcustomer" onclick="switchLeftView('allcustomer')">👥 All Customers</div>
       </div>
-            <div class="sidebar-tool-row">
-        <label><input type="checkbox" id="leftStrictFilter"> 🔒仅Strict</label>
-        <button class="btn btn-sm btn-outline" onclick="exportLeftViewCsv()">📤导出CSV</button>
-        <button class="btn btn-sm btn-outline" onclick="copyLeftViewEmails()">📋复制邮箱</button>
+
+        <div class="sidebar-tool-row">
+        <label><input type="checkbox" id="leftStrictFilter"> 🔒 Only Strict</label>
+        <button class="btn btn-sm btn-outline" onclick="exportLeftViewCsv()">📤 Export CSV</button>
+        <button class="btn btn-sm btn-outline" onclick="copyLeftViewEmails()">📋 Copy Emails</button>
       </div>
+
 
       <input type="text" id="searchInput" class="search-box" placeholder="🔍 Quick search name/ID..." oninput="renderCustomers()">
       <div class="customer-list" id="customerList"></div>
@@ -458,7 +482,7 @@
       <input type="text" id="searchKw" placeholder="Search name, treatment, note, tag...">
     </div>
 
-        <div class="form-group">
+      <div class="form-group">
       <label>Search Mode (select one):</label>
       <div class="search-mode-group">
         <label><input type="radio" name="searchMode" value="keyword" checked> 🔍 Global Keyword Search</label>
@@ -467,6 +491,7 @@
         <label><input type="radio" name="searchMode" value="bdayNext"> 🎂 Next Month Birthdays only</label>
       </div>
     </div>
+
 
     <div style="display:flex; justify‑content:flex‑end; gap:8px; margin‑bottom:12px;">
       <button class="btn btn-outline" onclick="clearSearch()">Clear</button>
