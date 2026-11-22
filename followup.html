@@ -1379,7 +1379,7 @@ async function saveTreatment() {
     const resultList = document.getElementById('searchResultsList');
     const resultTitle = document.getElementById('searchResultsTitle');
     resultArea.style.display = 'block';
-    resultTitle.innerHTML = `Result:<br>(${currentSearchResults.length} customers)`;
+    resultTitle.innerHTML = `Result (${currentSearchResults.length} customers)`;
     if (currentSearchResults.length === 0) { resultList.innerHTML = '<div style="padding:12px; color:#94a3b8;">No matches found.</div>'; return; }
     resultList.innerHTML = currentSearchResults.map(c => `
 <div class="search-result-item" onclick="selectCustomer('${c.id}')">
