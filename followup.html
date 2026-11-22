@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clinic CRM · Patient Follow-up</title>
+<title>Clinic CRM · Patient Follow‑up</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -12,7 +12,6 @@
   body { background: #f4f7f9; font-family: 'Inter', sans-serif; color: #1e293b; padding: 20px; }
   .container { max-width: 1600px; margin: 0 auto; display: flex; gap: 20px; }
   
-  /* Left Sidebar */
   .sidebar { width: 320px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
   .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
   .btn { padding: 8px 16px; background: #3b82f6; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; }
@@ -20,31 +19,8 @@
   .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
   .btn-outline { background: #fff; color: #475569; border: 1px solid #cbd5e1; }
   .btn-outline:hover { background: #f1f5f9; }
+  .btn-restore { background:#10b981; color:#fff; }
 
-  /* 左侧列表：视图切换 + 到期提醒 */
-  .view-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
-  .view-tab { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 7px 9px; font-size: 0.73rem; font-weight: 600; color: #475569; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: 0.15s; white-space: nowrap; }
-  .view-tab:hover { background: #f1f5f9; }
-  .view-tab.active { background: #eff6ff; border-color: #3b82f6; color: #1d4ed8; }
-  .view-tab[data-view="overdue"].active { background: #fee2e2; border-color: #dc2626; color: #991b1b; }
-  .tab-count { font-size: 0.64rem; font-weight: 700; background: #e2e8f0; color: #475569; border-radius: 10px; padding: 0 6px; min-width: 18px; text-align: center; }
-  .view-tab.active .tab-count { background: #fff; }
-  .strict-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 600; color: #991b1b; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 6px 10px; margin-bottom: 10px; cursor: pointer; }
-  .strict-toggle input { width: auto; }
-  .list-meta { font-size: 0.69rem; color: #64748b; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #e2e8f0; display: flex; justify-content: space-between; gap: 6px; font-variant-numeric: tabular-nums; }
-  .ci-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; min-width: 0; }
-  .ov-badge { font-size: 0.62rem; font-weight: 700; padding: 1px 6px; border-radius: 10px; flex-shrink: 0; white-space: nowrap; }
-  .ov-badge.late { background: #fee2e2; color: #b91c1c; }
-  .ov-badge.today { background: #ffedd5; color: #c2410c; }
-  .ov-badge.soon { background: #fef9c3; color: #a16207; }
-  .customer-item.overdue-item { border-left: 3px solid #dc2626; }
-  .customer-item.soon-item { border-left: 3px solid #f59e0b; }
-  .customer-item.active.overdue-item { background: #fef2f2; border-color: #fca5a5; border-left-color: #dc2626; }
-  .export-row { display: flex; gap: 6px; margin-bottom: 10px; }
-  .export-row .btn { flex: 1; padding: 6px 8px; font-size: 0.73rem; }
-  .empty-list { color: #94a3b8; font-size: 0.78rem; text-align: center; padding: 22px 10px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #fff; line-height: 1.7; }
-  
-  /* Search & List */
   .search-box { width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem; }
   .customer-list { flex: 1; overflow-y: auto; max-height: 500px; display: flex; flex-direction: column; gap: 8px; }
   .customer-item { padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
@@ -53,51 +29,45 @@
   .customer-name { font-weight: 600; font-size: 0.95rem; }
   .customer-info { font-size: 0.75rem; color: #64748b; margin-top: 4px; }
 
-  /* Right Main Panel */
+  .view-tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap;}
+  .view-tab{font-size:0.7rem;padding:4px 8px;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer;}
+  .view-tab.active{background:#3b82f6;color:white;border-color:#3b82f6;}
+  .sidebar-tool-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+
   .main-panel { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
   .profile-header { display: flex; justify-content: space-between; align-items: flex-start; }
   .profile-name { font-size: 1.5rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 10px; }
   .birthday-badge { font-size: 0.8rem; background: #fce7f3; color: #db2777; padding: 4px 10px; border-radius: 20px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
   .profile-details { display: flex; gap: 16px; font-size: 0.85rem; color: #475569; margin-top: 8px; flex-wrap: wrap; }
-  
-  /* Linked Profiles */
+
   .linked-card { display: inline-flex; align-items: center; background: #eff6ff; border: 1px solid #bfdbfe; padding: 8px 12px; border-radius: 12px; cursor: pointer; transition: 0.2s; margin-right: 8px; margin-bottom: 8px; }
   .linked-card:hover { background: #dbeafe; }
   .linked-name { font-weight: 600; font-size: 0.85rem; color: #1e3a8a; }
   .linked-id { font-size: 0.7rem; color: #64748b; margin-left: 6px; }
 
-  /* Sections */
   .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-  
-  /* 自适应网格 */
   .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
   .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
-  
+
   .sub-column { background: #f8fafc; border-radius: 12px; padding: 14px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; min-width: 0; overflow-wrap: anywhere; }
   .sub-column-header { font-size: 0.88rem; font-weight: 700; color: #475569; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; display: flex; justify-content: space-between; align-items: center; gap: 8px; min-width: 0; }
-
   .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; font-weight: 600; text-transform: uppercase; }
   .badge.recommended { background: #fef08a; color: #854d0e; }
   .badge.current { background: #bbf7d0; color: #166534; }
   .badge.past { background: #e2e8f0; color: #475569; }
-  
-  /* Items */
+
   .item-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px; transition: 0.2s; position: relative; min-width: 0; overflow-wrap: anywhere; word-break: break-word; box-shadow: 0 1px 2px rgba(15,23,42,0.04); }
   .item-card:last-child { margin-bottom: 0; }
-  
-  /* 颜色标记 */
   .item-card.recommended { border-left: 4px solid #eab308; background: #fefce8; }
   .item-card.both-slot { border-left: 4px solid #0d9488; background: #f0fdfa; }
   .item-card.current { border-left: 4px solid #10b981; background: #fff; }
   .item-card.medication { border-left: 4px solid #3b82f6; background: #fff; }
   .item-card.past { border-left: 4px solid #cbd5e1; background: #f8fafc; opacity: 0.9; }
-  
-  /* 拖拽手柄 */
+
   .drag-handle { cursor: grab; color: #cbd5e1; padding: 0 4px; }
   .drag-handle:active { cursor: grabbing; }
   .sortable-ghost { opacity: 0.4; background: #e2e8f0; }
 
-  /* 高亮/提醒 */
   .item-card.due { border-color: #fca5a5; background: #fef2f2; }
   .item-card.strict-overdue { border: 2px solid #dc2626; background: #fee2e2; box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.15); }
   .item-card.main-followup { border: 2px solid #3b82f6; background: #eff6ff; box-shadow: 0 4px 12px rgba(59,130,246,0.15); }
@@ -109,13 +79,12 @@
   .item-dates span { display: flex; align-items: center; gap: 4px; }
   .date-overdue { color: #dc2626; font-weight: 700; }
   .note-text { font-size: 0.68rem; color: #64748b; background: #f1f5f9; padding: 4px 6px; border-radius: 4px; margin-top: 4px; font-style: italic; white-space: normal; overflow-wrap: anywhere; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  
+
   .empty-column { color: #94a3b8; font-size: 0.76rem; text-align: center; padding: 18px 8px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #fff; }
   .col-count { font-size: 0.66rem; font-weight: 700; color: #475569; background: #e2e8f0; border-radius: 10px; padding: 1px 7px; flex-shrink: 0; }
   .med-dose { font-size: 0.7rem; color: #3b82f6; background: #eff6ff; border-radius: 4px; padding: 2px 6px; align-self: flex-start; max-width: 100%; overflow-wrap: anywhere; }
   .med-meta { font-size: 0.7rem; color: #64748b; display: flex; gap: 10px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
-  
-  /* 搜索下拉 */
+
   .search-wrapper { position: relative; margin-top: 10px; }
   .search-wrapper input { width: 100%; padding: 8px 12px; border: 1px dashed #cbd5e1; border-radius: 8px; font-size: 0.8rem; background: #fff; }
   .search-wrapper input:focus { outline: none; border-color: #3b82f6; border-style: solid; }
@@ -123,13 +92,11 @@
   .search-results.show { display: block; }
   .search-item { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; cursor: pointer; font-size: 0.8rem; display: flex; justify-content: space-between; }
   .search-item:hover { background: #f8fafc; }
-
   .inline-search { position: relative; }
   .inline-search input { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; }
   .inline-results { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100; max-height: 150px; overflow-y: auto; display: none; }
   .inline-results.show { display: block; }
 
-  /* Modals */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 1000; }
   .modal-overlay.show { display: flex; }
   .modal-content { background: #fff; padding: 24px; border-radius: 16px; width: 90%; max-width: 480px; max-height: 90vh; overflow-y: auto; position: relative; }
@@ -138,13 +105,10 @@
   .form-group { margin-bottom: 12px; }
   .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; }
   .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; }
+  .form-group select:disabled { background:#e5e7eb; color:#6b7280; }
   .hint-text { font-size: 0.7rem; color: #64748b; margin-top: 4px; }
-
-  /* Search Results List */
   .search-result-item { padding: 12px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
   .search-result-item:hover { background: #f8fafc; }
-
-  /* Toast */
   .toast { position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: #fff; padding: 12px 24px; border-radius: 8px; opacity: 0; transform: translateY(20px); transition: 0.3s; z-index: 9999; pointer-events: none; }
   .toast.show { opacity: 1; transform: translateY(0); }
 
@@ -160,8 +124,6 @@
 </style>
 </head>
 <body>
-
-<!-- 登录遮罩层 -->
 <div id="loginOverlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999;">
     <div style="background: white; padding: 30px; border-radius: 16px; width: 340px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <h3 style="margin-bottom: 20px; color: #0f172a;">🔐 CRM Login Required</h3>
@@ -171,31 +133,28 @@
         <p id="authError" style="color: red; font-size: 0.8rem; margin-top: 10px; display: none;"></p>
     </div>
 </div>
-
 <div class="container">
-  <!-- Left Sidebar -->
   <div class="sidebar">
     <div class="card">
       <button class="btn" style="width: 100%; margin-bottom: 12px;" onclick="openCustomerModal()">➕ Add New Customer</button>
       <button class="btn btn-outline" style="width: 100%; margin-bottom: 12px;" onclick="openSearchModal()">🔍 Advanced Search</button>
-      <div class="view-tabs" id="viewTabs">
-        <button class="view-tab active" data-view="overdue" onclick="setSidebarView('overdue')">🔴 已到期 <span class="tab-count" id="tabCntOverdue">0</span></button>
-        <button class="view-tab" data-view="soon" onclick="setSidebarView('soon')">⏰ 7天内 <span class="tab-count" id="tabCntSoon">0</span></button>
-        <button class="view-tab" data-view="all" onclick="setSidebarView('all')">📋 待随访 <span class="tab-count" id="tabCntAll">0</span></button>
-        <button class="view-tab" data-view="customers" onclick="setSidebarView('customers')">👥 全部客人</button>
+
+      <div class="view-tabs">
+        <div class="view-tab active" data-view="overdue" onclick="switchLeftView('overdue')">🔴已到期</div>
+        <div class="view-tab" data-view="next7" onclick="switchLeftView('next7')">⏰7天内</div>
+        <div class="view-tab" data-view="allfollow" onclick="switchLeftView('allfollow')">📋全部待随访</div>
+        <div class="view-tab" data-view="allcustomer" onclick="switchLeftView('allcustomer')">👥全部客人</div>
       </div>
-      <input type="text" id="searchInput" class="search-box" placeholder="🔍 在当前列表中搜索姓名 / ID / 邮箱" oninput="renderCustomers()">
-      <label class="strict-toggle"><input type="checkbox" id="strictOnly" onchange="renderCustomers()"> 🔒 只看不可延期（Strict）</label>
-      <div class="export-row">
-        <button class="btn btn-outline btn-sm" onclick="exportTodayFollowups()" title="导出已到期名单：姓名 / ID / 邮箱">📤 导出CSV</button>
-        <button class="btn btn-outline btn-sm" onclick="copyTodayEmails()" title="复制已到期客人的邮箱">📋 复制邮箱</button>
+      <div class="sidebar-tool-row">
+        <label style="font-size:0.75rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="leftStrictFilter">🔒仅Strict</label>
+        <button class="btn btn-sm btn-outline" onclick="exportLeftViewCsv()">📤导出CSV</button>
+        <button class="btn btn-sm btn-outline" onclick="copyLeftViewEmails()">📋复制邮箱</button>
       </div>
-      <div class="list-meta" id="listMeta"><span>—</span></div>
+
+      <input type="text" id="searchInput" class="search-box" placeholder="🔍 Quick search name/ID..." oninput="renderCustomers()">
       <div class="customer-list" id="customerList"></div>
     </div>
   </div>
-
-  <!-- Right Main Panel -->
   <div class="main-panel" id="mainPanel" style="display: none;">
     <div class="card">
       <div class="profile-header">
@@ -210,8 +169,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 区块 1：Treatments -->
     <div class="card">
       <div class="section-title">
         💆 Treatments & Facials
@@ -234,12 +191,10 @@
         </div>
       </div>
     </div>
-
-    <!-- 区块 2：Products -->
     <div class="card">
       <div class="section-title">
         📦 Home Care Products
-        <div style="margin-left:auto; display:flex; gap:8px;">
+        <div style="margin-left:auto; display:flex; flex-direction:row; gap:8px;">
           <button class="btn btn-sm" style="background:#10b981" onclick="openAddProductSearch()">➕ Add Product</button>
         </div>
       </div>
@@ -258,8 +213,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 区块 3：Medications -->
     <div class="card">
       <div class="section-title">
         💊 Medications
@@ -285,7 +238,6 @@
   </div>
 </div>
 
-<!-- Customer Modal -->
 <div class="modal-overlay" id="customerModal">
   <div class="modal-content">
     <button class="close-btn" onclick="closeModal('customerModal')">✖</button>
@@ -294,52 +246,47 @@
     <div class="form-group"><label>Name *</label><input type="text" id="custName"></div>
     <div class="form-group"><label>Client ID</label><input type="text" id="custClientId"></div>
     <div class="form-group"><label>Email</label><input type="email" id="custEmail"></div>
-    <div class="form-group"><label>Birth Month (1-12)</label><input type="number" id="custBirth" min="1" max="12"></div>
+    <div class="form-group"><label>Birth Month (1‑12)</label><input type="number" id="custBirth" min="1" max="12"></div>
     <div class="form-group"><label>Concern</label><input type="text" id="custConcern"></div>
-    <div style="display:flex; justify-content:flex-end; gap:8px;">
+    <div style="display:flex; justify-content:flex‑end; gap:8px;">
       <button class="btn btn-outline" onclick="closeModal('customerModal')">Cancel</button>
       <button class="btn" onclick="saveCustomer()">Save</button>
     </div>
   </div>
 </div>
 
-<!-- Link Customer Modal -->
 <div class="modal-overlay" id="linkModal">
   <div class="modal-content">
     <button class="close-btn" onclick="closeModal('linkModal')">✖</button>
     <h3 style="margin-bottom: 16px;">Link Related Profile</h3>
-    <p style="font-size:0.8rem; color:#64748b; margin-bottom:16px;">Search for a family member or partner to link.</p>
+    <p style="font‑size:0.8rem; color:#64748b; margin‑bottom:16px;">Search for a family member or partner to link.</p>
     <input type="text" id="linkSearch" class="search-box" placeholder="Search name or ID..." oninput="renderLinkOptions()">
-    <div id="linkOptionsList" style="max-height: 200px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:16px;"></div>
-    <div style="display:flex; justify-content:flex-end; gap:8px;">
+    <div id="linkOptionsList" style="max‑height: 200px; overflow‑y:auto; display:flex; flex‑direction:column; gap:8px; margin‑bottom:16px;"></div>
+    <div style="display:flex; justify‑content:flex‑end; gap:8px;">
       <button class="btn btn-outline" onclick="closeModal('linkModal')">Cancel</button>
     </div>
   </div>
 </div>
 
-<!-- Add/Edit Product Modal -->
 <div class="modal-overlay" id="addProductModal">
   <div class="modal-content">
     <button class="close-btn" onclick="closeModal('addProductModal')">✖</button>
-    <h3 style="margin-bottom: 16px;" id="addProdModalTitle">Add Product to Routine</h3>
+    <h3 style="margin‑bottom: 16px;" id="addProdModalTitle">Add Product to Routine</h3>
     <input type="hidden" id="addProdId">
     <input type="hidden" id="addProdEditMode" value="false">
-    
-    <div class="form-group inline-search" id="prodSearchGroup">
+    <div class="form-group inline‑search" id="prodSearchGroup">
       <label>Product Name *</label>
       <input type="text" id="addProdNameInput" placeholder="Search product library..." oninput="searchProductForModal(this, 'addProdResults')" autocomplete="off">
-      <div id="addProdResults" class="inline-results"></div>
-      <div id="addProdSelectedName" style="font-weight:600; margin-top:4px; display:none;"></div>
+      <div id="addProdResults" class="inline‑results"></div>
+      <div id="addProdSelectedName" style="font‑weight:600; margin‑top:4px; display:none;"></div>
     </div>
-
     <div class="form-group">
       <label>Status</label>
-      <select id="addProdStatus" onchange="toggleProductDateField()">
+      <select id="addProdStatus">
         <option value="current">🟢 In Use</option>
         <option value="recommended">🟡 Recommended</option>
       </select>
     </div>
-
     <div class="form-group" id="prodSlotGroup">
       <label>Time Slot</label>
       <select id="addProdSlotSelect">
@@ -348,47 +295,39 @@
         <option value="BOTH">☀️🌙 Both (Morning & Evening)</option>
       </select>
     </div>
-
     <div class="form-group" id="prodLastDateGroup">
       <label>Last Purchased / Used Date</label>
       <input type="date" id="addProdLastDate">
     </div>
-
     <div class="form-group">
       <label>Note (备注)</label>
       <input type="text" id="addProdNote" placeholder="e.g. Use only at night, mild irritation...">
     </div>
-
-    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 20px;">
+    <div style="display:flex; justify‑content:flex‑end; gap:8px; margin‑top: 20px;">
       <button class="btn btn-outline" onclick="closeModal('addProductModal')">Cancel</button>
       <button class="btn" style="background:#10b981" onclick="saveProductToRoutine()">Save</button>
     </div>
   </div>
 </div>
 
-<!-- Add/Edit Medication Modal -->
 <div class="modal-overlay" id="addMedicationModal">
   <div class="modal-content">
     <button class="close-btn" onclick="closeModal('addMedicationModal')">✖</button>
-    <h3 style="margin-bottom: 16px;" id="addMedModalTitle">Add Medication</h3>
+    <h3 style="margin‑bottom: 16px;" id="addMedModalTitle">Add Medication</h3>
     <input type="hidden" id="addMedId">
     <input type="hidden" id="addMedEditMode" value="false">
-
     <div class="form-group">
       <label>Medication Name *</label>
       <input type="text" id="addMedName" placeholder="e.g. Doxycycline">
     </div>
-
     <div class="form-group">
       <label>Dosage / Quantity (剂量)</label>
       <input type="text" id="addMedDosage" placeholder="e.g. 100mg daily, 1 pill x 30 days">
     </div>
-
     <div class="form-group">
-      <label>Next Follow-up / Refill Date (下次跟进日)</label>
+      <label>Next Follow‑up / Refill Date (下次跟进日)</label>
       <input type="date" id="addMedNextDate">
     </div>
-
     <div class="form-group">
       <label>Status (状态)</label>
       <select id="addMedStatus">
@@ -397,161 +336,148 @@
         <option value="past">🗂 Past (已停用)</option>
       </select>
     </div>
-
-    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 20px;">
+    <div style="display:flex; justify‑content:flex‑end; gap:8px; margin‑top: 20px;">
       <button class="btn btn-outline" onclick="closeModal('addMedicationModal')">Cancel</button>
       <button class="btn" style="background:#3b82f6" onclick="saveMedication()">Save</button>
     </div>
   </div>
 </div>
 
-<!-- Add/Edit Treatment Modal -->
 <div class="modal-overlay" id="treatmentModal">
   <div class="modal-content">
     <button class="close-btn" onclick="closeModal('treatmentModal')">✖</button>
-    <h3 style="margin-bottom: 16px;" id="treatModalTitle">Add Treatment</h3>
+    <h3 style="margin‑bottom: 16px;" id="treatModalTitle">Add Treatment</h3>
     <input type="hidden" id="treatId">
     <input type="hidden" id="treatEditMode" value="false">
-    
-    <div class="form-group inline-search" id="treatSearchGroup">
+    <div class="form-group inline‑search" id="treatSearchGroup">
       <label>Treatment Name *</label>
       <input type="text" id="treatNameInput" placeholder="Search treatment library..." oninput="searchTreatmentForModal(this, 'treatResults')" autocomplete="off">
-      <div id="treatResults" class="inline-results"></div>
-      <div id="treatSelectedName" style="font-weight:600; margin-top:4px; display:none;"></div>
+      <div id="treatResults" class="inline‑results"></div>
+      <div id="treatSelectedName" style="font‑weight:600; margin‑top:4px; display:none;"></div>
     </div>
-
     <div class="form-group">
       <label>Status</label>
       <select id="treatStatusSelect">
         <option value="current">🟢 In Use</option>
         <option value="recommended">🟡 Recommended</option>
+        <option value="past">🗂 Past</option>
       </select>
     </div>
-
     <div class="form-group">
       <label>Last Date (上次做)</label>
       <input type="date" id="treatLastDate">
     </div>
-    
     <div class="form-group">
-      <label>Next Follow-up Date (下次跟进)</label>
+      <label>Next Follow‑up Date (下次跟进)</label>
       <input type="date" id="treatNextDate">
     </div>
-
     <div class="form-group">
       <label>Note (专属备注)</label>
       <input type="text" id="treatNote" placeholder="e.g. Allergic to numbing cream...">
     </div>
-
-    <div class="form-group" style="background:#fef2f2; padding:12px; border-radius:8px; border:1px solid #fecaca;">
-      <label style="display:flex; align-items:center; gap:8px; color:#991b1b; cursor:pointer;">
+    <div class="form-group" style="background:#fef2f2; padding:12px; border‑radius:8px; border:1px solid #fecaca;">
+      <label style="display:flex; align‑items:center; gap:8px; color:#991b1b; cursor:pointer;">
         <input type="checkbox" id="treatIsStrict" style="width:auto;" onchange="document.getElementById('treatStrictNote').style.display = this.checked ? 'block' : 'none'"> 🔒 Strict Deadline (不可延期)
       </label>
-      <input type="text" id="treatStrictNote" placeholder="Reason" style="margin-top:8px; display:none;">
+      <input type="text" id="treatStrictNote" placeholder="Reason" style="margin‑top:8px; display:none;">
     </div>
-
-    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 20px;">
+    <div style="display:flex; justify‑content:flex‑end; gap:8px; margin‑top: 20px;">
       <button class="btn btn-outline" onclick="closeModal('treatmentModal')">Cancel</button>
       <button class="btn" onclick="saveTreatment()">Save</button>
     </div>
   </div>
 </div>
 
-<!-- Manage Follow-up Modal -->
 <div class="modal-overlay" id="appointmentModal">
   <div class="modal-content">
     <button class="close-btn" onclick="closeModal('appointmentModal')">✖</button>
-    <h3 style="margin-bottom: 16px;">Manage Follow-up</h3>
+    <h3 style="margin‑bottom: 16px;">Manage Follow‑up</h3>
     <div id="manageModalBody"></div>
   </div>
 </div>
 
-<!-- End Treatment Modal -->
 <div class="modal-overlay" id="endTreatmentModal">
-  <div class="modal-content" style="max-width: 420px;">
+  <div class="modal-content" style="max‑width: 420px;">
     <button class="close-btn" onclick="closeModal('endTreatmentModal')">✖</button>
-    <h3 style="margin-bottom: 8px;">End Treatment</h3>
-    <p style="font-size:0.85rem; color:#64748b; margin-bottom:20px;">
+    <h3 style="margin‑bottom: 8px;">End Treatment</h3>
+    <p style="font‑size:0.85rem; color:#64748b; margin‑bottom:20px;">
       How did this treatment end? It will be moved to Past Treatments.
     </p>
-
-    <button class="btn" style="background:#10b981; width:100%; margin-bottom:10px; padding:12px; font-size:0.9rem;"
+    <button class="btn" style="background:#10b981; width:100%; margin‑bottom:10px; padding:12px; font‑size:0.9rem;"
             onclick="confirmEndTreatment('completed')">
-      ✅ Done / Completed <span style="opacity:0.8; font-weight:400;">(已完成)</span>
+      ✅ Done / Completed <span style="opacity:0.8; font‑weight:400;">(已完成)</span>
     </button>
-
-    <button class="btn" style="background:#ef4444; width:100%; margin-bottom:10px; padding:12px; font-size:0.9rem;"
+    <button class="btn" style="background:#ef4444; width:100%; margin‑bottom:10px; padding:12px; font‑size:0.9rem;"
             onclick="confirmEndTreatment('discontinued')">
-      🚫 Quit / Discontinued <span style="opacity:0.8; font-weight:400;">(放弃)</span>
+      🚫 Quit / Discontinued <span style="opacity:0.8; font‑weight:400;">(放弃)</span>
     </button>
-
     <button class="btn btn-outline" style="width:100%;"
             onclick="closeModal('endTreatmentModal')">Cancel</button>
   </div>
 </div>
- <!-- Advanced Search Modal -->
+
 <div class="modal-overlay" id="searchModal">
-  <div class="modal-content" style="max-width: 500px;">
+  <div class="modal-content" style="max‑width: 520px;">
     <button class="close-btn" onclick="closeModal('searchModal')">✖</button>
-    <h3 style="margin-bottom: 16px;">🔍 Advanced Search</h3>
-    
-    <div class="form-group" style="margin-bottom: 16px;">
-      <label>Global Keyword (全局搜索)</label>
-      <input type="text" id="searchKw" placeholder="Search name, concern, product, treatment...">
+    <h3 style="margin‑bottom: 16px;">🔍 Advanced Search</h3>
+
+    <div class="form-group">
+      <label>Global Keyword</label>
+      <input type="text" id="searchKw" placeholder="Search name, treatment, note, tag...">
     </div>
 
-    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
-      <div class="form-group" style="background:#fef2f2; padding:12px; border-radius:8px; border:1px solid #fecaca; margin-bottom: 0;">
-        <label style="display:flex; align-items:center; gap:8px; color:#991b1b; cursor:pointer;">
-          <input type="checkbox" id="searchStrictDue" style="width:auto;"> 🔒 Only show Strict Deadlines that are Due/Overdue
-        </label>
-      </div>
-
-      <div class="form-group" style="background:#f0fdf4; padding:12px; border-radius:8px; border:1px solid #bbf7d0; margin-bottom: 0;">
-        <label style="display:flex; align-items:center; gap:8px; color:#166534; cursor:pointer;">
-          <input type="checkbox" id="searchBirthdayCurrent" style="width:auto;"> 🎂 This Month's Birthdays
-        </label>
-      </div>
-
-      <div class="form-group" style="background:#eff6ff; padding:12px; border-radius:8px; border:1px solid #bfdbfe; margin-bottom: 0;">
-        <label style="display:flex; align-items:center; gap:8px; color:#1e3a8a; cursor:pointer;">
-          <input type="checkbox" id="searchBirthdayNext" style="width:auto;"> 🎂 Next Month's Birthdays
-        </label>
+    <div class="form-group">
+      <label>Search Mode (select one):</label>
+      <div style="display:flex;flex‑direction:column;gap:8px;padding:8px;border:1px solid #e2e8f0;border‑radius:8px;">
+        <label style="display:flex;align‑items:center;gap:6px;cursor:pointer;"><input type="radio" name="searchMode" value="keyword" checked>🔍 Global Keyword Search</label>
+        <label style="display:flex;align‑items:center;gap:6px;cursor:pointer;"><input type="radio" name="searchMode" value="strictDue">🔒 Strict‑Due only (strict & overdue)</label>
+        <label style="display:flex;align‑items:center;gap:6px;cursor:pointer;"><input type="radio" name="searchMode" value="bdayThis">🎂 This Month Birthdays only</label>
+        <label style="display:flex;align‑items:center;gap:6px;cursor:pointer;"><input type="radio" name="searchMode" value="bdayNext">🎂 Next Month Birthdays only</label>
       </div>
     </div>
 
-    <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:12px;">
+    <div style="display:flex; justify‑content:flex‑end; gap:8px; margin‑bottom:12px;">
       <button class="btn btn-outline" onclick="clearSearch()">Clear</button>
       <button class="btn" onclick="executeAdvancedSearch()">Search</button>
     </div>
 
-    <div id="searchResultsArea" style="display:none; border-top:1px solid #e2e8f0; padding-top:16px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <h4 style="font-size:0.9rem;" id="searchResultsTitle">Results</h4>
-        <div style="display:flex; gap:6px;">
-          <button class="btn btn-sm" onclick="exportSearchResultCSV()">📤 Export CSV</button>
-          <button class="btn btn-sm" style="background:#3b82f6" onclick="copyEmails()">📋 Copy Emails</button>
+    <div id="searchResultsArea" style="display:none; border‑top:1px solid #e2e8f0; padding‑top:16px;">
+      <div style="display:flex; justify‑content:space‑between; align‑items:center; margin‑bottom:12px;flex‑wrap:wrap;gap:6px;">
+        <h4 style="font‑size:0.9rem;" id="searchResultsTitle">Results</h4>
+        <div>
+          <button class="btn btn-sm" onclick="exportSearchResultCSV()">📤 Export CSV(Name,ID,Email)</button>
+          <button class="btn btn-sm btn-outline" onclick="copySearchResultEmails()">📋 Copy Emails</button>
         </div>
       </div>
-      <div id="searchResultsList" style="max-height: 250px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px;"></div>
+      <div id="searchResultsList" style="max‑height: 250px; overflow‑y:auto; border:1px solid #e2e8f0; border‑radius:8px;"></div>
     </div>
   </div>
 </div>
 
-<!-- Print Routine Modal -->
 <div class="modal-overlay" id="printRoutineModal">
-  <div class="modal-content" style="max-width: 800px; padding: 40px;" id="printRoutineContent"></div>
+  <div class="modal-content" style="max‑width: 800px; padding: 40px;" id="printRoutineContent"></div>
 </div>
 
 <div class="toast" id="toast">Saved</div>
-
 <script>
   const SUPABASE_URL = "https://dmrskyskryrdclknezth.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
-
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let customers = [], records = [], productsLib = [], servicesLib = [], currentCustomerId = null;
   let currentSearchResults = [];
+  let leftActiveView = "overdue";
+
+  function getVancouverTodayStr(){
+    return new Intl.DateTimeFormat('en-CA', {timeZone:'America/Vancouver',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()).replace(/\//g,"-");
+  }
+  function getVancouverDateObj(dateStr){
+    if(!dateStr) return null;
+    const [y,m,d] = dateStr.split("-").map(Number);
+    return new Date(Date.UTC(y,m-1,d,7,0,0));
+  }
+  function vancouverMonth(){
+    return parseInt(new Intl.DateTimeFormat('en-CA',{timeZone:'America/Vancouver',month:'numeric'}).format(new Date()),10);
+  }
 
   async function loginCRM() {
     const email = document.getElementById('authEmail').value.trim();
@@ -560,16 +486,14 @@
     errorEl.style.display = 'none';
     if (!email || !password) { errorEl.innerText = "Please enter email and password."; errorEl.style.display = 'block'; return; }
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if (error) { errorEl.innerText = "Login failed: " + error.message; errorEl.style.display = 'block'; return; }
+    if (error) { errorEl.innerText = "Login failed: " + error.message; errorEl.style.display = 'block'; alert("Login failed: " + error.message); return; }
     document.getElementById('loginOverlay').style.display = 'none';
     loadData();
   }
-
   async function checkSession() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) { document.getElementById('loginOverlay').style.display = 'none'; loadData(); }
   }
-
   const api = {
     headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
     async request(path, options = {}) {
@@ -585,11 +509,9 @@
     update: (table, query, data) => api.request(`${table}?${query}`, { method: 'PATCH', headers: { 'Prefer': 'return=representation' }, body: JSON.stringify(data) }),
     delete: (table, query) => api.request(`${table}?${query}`, { method: 'DELETE' })
   };
-
   function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
   function closeModal(id) { document.getElementById(id).classList.remove('show'); }
   function openModal(id) { document.getElementById(id).classList.add('show'); }
-
   async function loadData() {
     try {
       const [cRes, rRes, pRes, sRes] = await Promise.all([
@@ -604,227 +526,103 @@
     } catch (e) { alert('Error loading data: ' + e.message); }
   }
 
-  /* ============ 温哥华时区工具（全局统一，避免 UTC 差一天） ============ */
-  const CLINIC_TZ = 'America/Vancouver';
-  function todayLocal() {
-    return new Intl.DateTimeFormat('en-CA', { timeZone: CLINIC_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-  }
-  function monthLocal() { return Number(todayLocal().split('-')[1]); }
-  function addDaysLocal(n) {
-    const b = todayLocal().split('-').map(Number);
-    return new Date(Date.UTC(b[0], b[1] - 1, b[2] + n)).toISOString().split('T')[0];
-  }
-  function daysBetween(fromStr, toStr) {
-    const a = fromStr.split('-').map(Number), b = toStr.split('-').map(Number);
-    return Math.round((Date.UTC(b[0], b[1] - 1, b[2]) - Date.UTC(a[0], a[1] - 1, a[2])) / 86400000);
-  }
-
-  /* ============ 左侧列表：默认 = 已到期的随访提醒 ============ */
-  let sidebarView = 'overdue';
-
-  function setSidebarView(view) {
-    sidebarView = view;
-    document.querySelectorAll('.view-tab').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  function switchLeftView(view){
+    leftActiveView = view;
+    document.querySelectorAll(".view-tab").forEach(t=>t.classList.remove("active"));
+    document.querySelector(`.view-tab[data-view="${view}"]`).classList.add("active");
     renderCustomers();
   }
 
-  /* 一条记录是否"还在跟进中且有日期"：past / not_interested 一律不算
-     返回最早到期日 + 相对今天的偏移（正数=已逾期，0=今天，负数=还没到） */
-  function dueInfoOfRecord(r, today) {
-    if (!r || r.status === 'past') return null;
-    if (r.tag === 'not_interested') return null;
-    const dates = [r.next_date, r.appointment_date].filter(Boolean);
-    if (!dates.length) return null;
-    const earliest = dates.slice().sort()[0];
-    return { earliest, offset: daysBetween(earliest, today) };
-  }
+  function getLeftFilterCustomerList(){
+    const kw = document.getElementById('searchInput').value.toLowerCase();
+    const strictOnly = document.getElementById("leftStrictFilter").checked;
+    const todayStr = getVancouverTodayStr();
+    const todayObj = getVancouverDateObj(todayStr);
+    const sevenDaysLaterObj = new Date(todayObj.getTime() + 7*24*3600*1000);
 
-  /* 按客人归集：overdue(>=0) / soon(-1..-7) / all */
-  function categorizeFollowups(strictOnly, today) {
-    const map = new Map();
-    records.forEach(r => {
-      const info = dueInfoOfRecord(r, today);
-      if (!info) return;
-      if (strictOnly && !r.is_strict) return;
-      if (!map.has(r.customer_id)) map.set(r.customer_id, { overdue: [], soon: [], all: [] });
-      const e = map.get(r.customer_id);
-      e.all.push({ record: r, info });
-      if (info.offset >= 0) e.overdue.push({ record: r, info });
-      else if (info.offset >= -7) e.soon.push({ record: r, info });
-    });
-    return map;
-  }
-
-  function dueLabel(info) {
-    if (info.offset > 0) return { text: `逾期 ${info.offset} 天`, cls: 'late' };
-    if (info.offset === 0) return { text: '今天到期', cls: 'today' };
-    return { text: `${-info.offset} 天后`, cls: 'soon' };
-  }
-
-  function catShort(r) { return r.category === 'medication' ? '用药' : r.category === 'product' ? '产品' : '疗程'; }
-
-  function customerRow(c, items, topInfo) {
-    let badge = '';
-    let lock = '';
-    let sub = `ID: ${c.client_id || 'N/A'} | ${c.email || 'No email'}`;
-    let cls = '';
-    if (items && items.length && topInfo) {
-      const lab = dueLabel(topInfo.info);
-      badge = `<span class="ov-badge ${lab.cls}">${lab.text}</span>`;
-      const hasStrict = items.some(i => i.record.is_strict);
-      const first = items[0].record;
-      lock = hasStrict ? ' <span style="font-size:0.7rem;" title="含不可延期">🔒</span>' : '';
-      sub = `ID: ${c.client_id || 'N/A'} · ${items.length} 条 · ${catShort(first)} ${first.name}`;
-      cls = topInfo.info.offset >= 0 ? ' overdue-item' : ' soon-item';
-    }
-    return `<div class="customer-item${cls} ${c.id === currentCustomerId ? 'active' : ''}" onclick="selectCustomer('${c.id}')"><div class="ci-top"><span class="customer-name">${c.name}${lock}</span>${badge}</div><div class="customer-info">${sub}</div></div>`;
-  }
-
-  /* -------- 导出：今天要 follow 的名单（已到期，含今天到期） -------- */
-  function getOverdueRows() {
-    const today = todayLocal();
-    const kw = (document.getElementById('searchInput').value || '').toLowerCase().trim();
-    const strictOnly = document.getElementById('strictOnly').checked;
-    const map = categorizeFollowups(strictOnly, today);
-    const rows = [];
-    map.forEach((e, cid) => {
-      if (!e.overdue.length) return;
-      const c = customers.find(x => x.id === cid);
-      if (!c) return;
-      if (kw) {
-        const hay = [c.name, c.client_id, c.email].filter(Boolean).join(' ').toLowerCase();
-        if (!hay.includes(kw)) return;
-      }
-      const sorted = e.overdue.slice().sort((a, b) => b.info.offset - a.info.offset);
-      const first = sorted[0].record;
-      rows.push({
-        name: c.name || '',
-        clientId: c.client_id || '',
-        email: c.email || '',
-        days: sorted[0].info.offset,          // 0 = 今天到期，>0 = 已逾期天数
-        item: first.name || '',
-        cat: catShort(first),
-        strict: e.overdue.some(i => i.record.is_strict),
-        count: e.overdue.length
+    let rawCustomerList;
+    if(strictOnly){
+      const strictCustIdSet = new Set();
+      records.forEach(r=>{
+        if(r.is_strict){
+          strictCustIdSet.add(r.customer_id);
+        }
       });
-    });
-    rows.sort((a, b) => b.days - a.days);
-    return rows;
-  }
-
-  function csvCell(v) {
-    const t = String(v == null ? '' : v).replace(/"/g, '""');
-    return `"${t}"`;
-  }
-
-  function exportTodayFollowups() {
-    const rows = getOverdueRows();
-    if (!rows.length) return alert('当前没有到期的随访名单（可检查是否开了搜索或 Strict 过滤）。');
-    const head = ['Name', 'Client ID', 'Email', '逾期天数', '最近到期项', '类别', '不可延期', '到期条数'];
-    const lines = [head.map(csvCell).join(',')];
-    rows.forEach(r => {
-      lines.push([r.name, r.clientId, r.email, r.days === 0 ? '今天到期' : r.days, r.item, r.cat, r.strict ? '是' : '', r.count].map(csvCell).join(','));
-    });
-    const csv = '\ufeff' + lines.join('\r\n');   // BOM：Excel 打开中文不乱码
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `followup-${todayLocal()}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-    showToast(`已导出 ${rows.length} 位客人的随访名单`);
-  }
-
-  function copyTodayEmails() {
-    const rows = getOverdueRows();
-    const emails = [...new Set(rows.map(r => (r.email || '').trim()).filter(Boolean))];
-    if (!emails.length) return alert('这批名单里没有填邮箱。');
-    navigator.clipboard.writeText(emails.join(', '))
-      .then(() => showToast(`已复制 ${emails.length} 个邮箱`))
-      .catch(() => alert('复制失败，请手动复制。'));
+      rawCustomerList = customers.filter(c=> strictCustIdSet.has(c.id));
+    }else{
+      if(leftActiveView === "allcustomer"){
+        rawCustomerList = [...customers];
+      }else{
+        const customerIdSet = new Set();
+        customers.forEach(c=>{
+          const myRecs = records.filter(r=>r.customer_id === c.id && r.status !== "past" && r.tag !== "not_interested");
+          let hit = false;
+          for(const r of myRecs){
+            const fd = r.next_date ? getVancouverDateObj(r.next_date) : null;
+            const ad = r.appointment_date ? getVancouverDateObj(r.appointment_date) : null;
+            let effectiveDate = fd;
+            if(!effectiveDate && ad) effectiveDate = ad;
+            if(!effectiveDate) continue;
+            if(leftActiveView === "overdue"){
+              if(effectiveDate <= todayObj) hit = true;
+            }else if(leftActiveView === "next7"){
+              if(effectiveDate > todayObj && effectiveDate <= sevenDaysLaterObj) hit = true;
+            }else if(leftActiveView === "allfollow"){
+              hit = true;
+            }
+            if(hit) break;
+          }
+          if(hit) customerIdSet.add(c.id);
+        });
+        rawCustomerList = customers.filter(c=>customerIdSet.has(c.id));
+      }
+    }
+    if(kw){
+      rawCustomerList = rawCustomerList.filter(c=>
+        c.name.toLowerCase().includes(kw) || (c.client_id && c.client_id.toLowerCase().includes(kw))
+      );
+    }
+    return rawCustomerList;
   }
 
   function renderCustomers() {
-    const today = todayLocal();
-    const kw = (document.getElementById('searchInput').value || '').toLowerCase().trim();
-    const strictOnly = document.getElementById('strictOnly').checked;
     const list = document.getElementById('customerList');
-    const meta = document.getElementById('listMeta');
-
-    const map = categorizeFollowups(strictOnly, today);
-    const entriesAll = [...map.values()];
-    const cntOverdueCust = entriesAll.filter(e => e.overdue.length).length;
-    const cntOverdueItems = entriesAll.reduce((s, e) => s + e.overdue.length, 0);
-    const cntSoonCust = entriesAll.filter(e => e.soon.length).length;
-    document.getElementById('tabCntOverdue').innerText = cntOverdueCust;
-    document.getElementById('tabCntSoon').innerText = cntSoonCust;
-    document.getElementById('tabCntAll').innerText = map.size;
-
-    /* ---- 全部客人视图：保持原来的行为 ---- */
-    if (sidebarView === 'customers') {
-      const filtered = customers.filter(c => c.name.toLowerCase().includes(kw) || (c.client_id && c.client_id.toLowerCase().includes(kw)));
-      meta.innerHTML = `<span>👥 全部客人</span><span>${filtered.length} 位</span>`;
-      list.innerHTML = filtered.length ? filtered.map(c => customerRow(c, null, null)).join('') : '<div class="empty-list">没有匹配的客人</div>';
-      return;
-    }
-
-    /* ---- 随访视图：在归集结果里取当前这一组 ---- */
-    const viewKey = sidebarView === 'soon' ? 'soon' : sidebarView === 'all' ? 'all' : 'overdue';
-    const entries = [];
-    map.forEach((e, cid) => {
-      const items = e[viewKey];
-      if (!items.length) return;
-      const c = customers.find(x => x.id === cid);
-      if (!c) return;
-      if (kw) {
-        const hay = [c.name, c.client_id, c.email].filter(Boolean).join(' ').toLowerCase();
-        if (!hay.includes(kw)) return;
-      }
-      // 已到期：逾期最久的排最前；7天内 / 全部：日期最近的排最前
-      const sorted = items.slice().sort((a, b) => viewKey === 'overdue' ? b.info.offset - a.info.offset : a.info.offset - b.info.offset);
-      entries.push({ customer: c, items: sorted, top: sorted[0] });
-    });
-    entries.sort((a, b) => viewKey === 'overdue' ? b.top.info.offset - a.top.info.offset : a.top.info.offset - b.top.info.offset);
-
-    const itemCount = entries.reduce((s, e) => s + e.items.length, 0);
-    if (viewKey === 'overdue') meta.innerHTML = `<span>🔴 已到期</span><span>${entries.length} 位 · ${itemCount} 条提醒</span>`;
-    else if (viewKey === 'soon') meta.innerHTML = `<span>⏰ 未来 7 天内</span><span>${entries.length} 位 · ${itemCount} 条提醒</span>`;
-    else meta.innerHTML = `<span>📋 全部待随访</span><span>${entries.length} 位 · ${itemCount} 条提醒</span>`;
-
-    if (!entries.length) {
-      const tip = viewKey === 'overdue' ? '目前没有到期的随访提醒 ✅<br><span style="font-size:0.72rem;">可切到「⏰ 7天内」或「📋 待随访」查看</span>'
-        : viewKey === 'soon' ? '未来 7 天内没有随访安排'
-        : '目前没有待随访的记录';
-      list.innerHTML = `<div class="empty-list">${tip}</div>`;
-      return;
-    }
-    list.innerHTML = entries.map(e => customerRow(e.customer, e.items, e.top)).join('');
+    const filtered = getLeftFilterCustomerList();
+    list.innerHTML = filtered.map(c => `<div class="customer-item ${c.id === currentCustomerId ? 'active' : ''}" onclick="selectCustomer('${c.id}')"><div class="customer-name">${c.name}</div><div class="customer-info">ID: ${c.client_id || 'N/A'} | ${c.email || 'No email'}</div></div>`).join('');
   }
 
   function selectCustomer(id) { currentCustomerId = id; renderCustomers(); renderProfile(id); document.getElementById('mainPanel').style.display = 'flex'; closeModal('searchModal'); }
-
   function calcMonthsAgo(dateStr) {
     if (!dateStr) return null;
-    const p = dateStr.split('-').map(Number);           // yyyy-mm-dd
-    if (p.length < 3 || !p[0]) return null;
-    const [y, m, d] = [p[0], p[1], p[2]];
-    const n = todayLocal().split('-').map(Number);       // 温哥华今天
-    const months = (n[0] - y) * 12 + (n[1] - m) - (n[2] < d ? 1 : 0);
-    if (months > 0) return `${months} month(s) ago`;
-    const days = daysBetween(`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`, todayLocal());
-    return days > 0 ? `${days} day(s) ago` : 'Today';
+    const past = getVancouverDateObj(dateStr); const now = getVancouverDateObj(getVancouverTodayStr());
+    let months = (now.getFullYear() - past.getFullYear()) * 12 + (now.getMonth() - past.getMonth());
+    if (now.getDate() < past.getDate()) months--;
+    if (months <= 0) { const days = Math.floor((now - past) / (1000 * 60 * 60 * 24)); return days > 0 ? `${days} day(s) ago` : 'Today'; }
+    return `${months} month(s) ago`;
+  }
+
+  async function restorePastRecord(recordId){
+    const r = records.find(x=>x.id === recordId);
+    if(!r) return;
+    if(!confirm("⚠️ Restore this past item back to In‑Use.\nImportant: Please review Next follow‑up date, old date may trigger overdue alerts.\nProceed?")) return;
+    const updatePayload = {
+      status:"current",
+      tag:null,
+      is_main_followup:false,
+      is_strict:false
+    };
+    await api.update("records",`id=eq.${r.id}`,updatePayload);
+    showToast("Restored, please check follow‑up date");
+    await loadData();
   }
 
   function renderProfile(id) {
     const c = customers.find(x => x.id === id);
     if (!c) return;
-    const currentMonth = monthLocal();
-    const isBirthday = c.birth_month === currentMonth;
+    const currMonth = vancouverMonth();
+    const isBirthday = c.birth_month === currMonth;
     document.getElementById('profileName').innerHTML = `${c.name} ${isBirthday ? '<span class="birthday-badge">🎂 Birthday Month</span>' : ''}`;
     document.getElementById('profileDetails').innerHTML = `<span><strong>ID:</strong> ${c.client_id || 'N/A'}</span><span><strong>Email:</strong> ${c.email || 'N/A'}</span><span><strong>Birth Month:</strong> ${c.birth_month || 'N/A'}</span><span><strong>Concern:</strong> ${c.concern || 'N/A'}</span>`;
-
     const linkedArea = document.getElementById('linkedProfilesArea');
     let linkedHtml = '';
     if (c.linked_customer_ids && c.linked_customer_ids.length > 0) {
@@ -832,10 +630,8 @@
     }
     linkedHtml += `<button class="btn btn-outline btn-sm" onclick="openLinkModal()">➕ Link Related Profile</button>`;
     linkedArea.innerHTML = linkedHtml;
-
     const myRecords = records.filter(r => r.customer_id === id);
     
-    // 区块 1: Treatments
     const tCurrent = myRecords.filter(r => r.category === 'treatment' && r.status === 'current');
     const tRec = myRecords.filter(r => r.category === 'treatment' && r.status === 'recommended');
     const tPast = myRecords.filter(r => r.category === 'treatment' && r.status === 'past');
@@ -844,7 +640,6 @@
     setColumn('treatCurrentContainer', tCurrent, 'cntTreatCur', r => renderItemCard(r, r.status));
     setColumn('treatPastContainer', tPast, 'cntTreatPast', r => renderItemCard(r, r.status));
 
-    // 区块 2: Products
     const products = myRecords.filter(r => r.category === 'product' && r.status !== 'past');
     const amProducts = products.filter(r => r.time_slot === 'AM' || !r.time_slot).sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
     const pmProducts = products.filter(r => r.time_slot === 'PM').sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
@@ -854,62 +649,51 @@
         const isDuplicated = products.some(p => p.time_slot === otherSlot && p.name.toLowerCase() === product.name.toLowerCase());
         return renderProductCard(product, product.status, isDuplicated);
     };
-
     setColumn('amProductContainer', amProducts, 'cntAmProd', r => renderProductWithDuplicationCheck(r, 'AM'));
     setColumn('pmProductContainer', pmProducts, 'cntPmProd', r => renderProductWithDuplicationCheck(r, 'PM'));
-
     const pastProducts = myRecords.filter(r => r.category === 'product' && r.status === 'past');
     setColumn('pastProductContainer', pastProducts, 'cntPastProd', r => renderItemCard(r, 'past'));
 
-    // 区块 3: Medications
     const medRec = myRecords.filter(r => r.category === 'medication' && r.status === 'recommended');
     const medCurrent = myRecords.filter(r => r.category === 'medication' && (r.status === 'current' || !r.status));
     const medPast = myRecords.filter(r => r.category === 'medication' && r.status === 'past');
-
     setColumn('medRecContainer', medRec, 'cntMedRec', r => renderMedicationCard(r, 'recommended'));
     setColumn('medicationContainer', medCurrent, 'cntMedCur', r => renderMedicationCard(r, 'current'));
     setColumn('pastMedicationContainer', medPast, 'cntMedPast', r => renderMedicationCard(r, 'past'));
-
     initSortable('amProductContainer', 'AM');
     initSortable('pmProductContainer', 'PM');
   }
-
   function setColumn(containerId, list, countId, renderFn) {
     const el = document.getElementById(containerId);
     if (el) el.innerHTML = list.length ? list.map(renderFn).join('') : '<div class="empty-column">暂无</div>';
     const c = document.getElementById(countId);
     if (c) c.innerText = list.length;
   }
-
   async function medEnd(id) {
     const r = records.find(x => x.id === id); if (!r) return;
     if (!confirm('Mark this medication as ended?')) return;
     try { await api.update('records', `id=eq.${r.id}`, { status: 'past' }); await loadData(); showToast('Moved to Past'); }
     catch (e) { alert(e.message); }
   }
-
   function renderMedicationCard(r, status) {
-    const today = todayLocal();
+    const today = getVancouverTodayStr();
     const isDue = r.next_date && r.next_date <= today && status !== 'past';
     let cls = 'item-card';
     if (status === 'past') cls += ' past';
     else if (status === 'recommended') cls += ' recommended';
     else cls += ' medication';
     if (isDue) cls += ' due';
-
     const dose = r.strict_note ? `<div class="med-dose">${r.strict_note}</div>` : '';
     const refill = r.next_date ? `<span style="${isDue ? 'color:#dc2626;font-weight:700;' : ''}">🗓 Refill: ${r.next_date}</span>` : '';
     const lastTxt = r.last_date ? `<span>⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
-
     let btns = '';
     if (status === 'recommended') {
       btns = `<button class="btn btn-sm" style="background:#10b981;padding:2px 8px;" onclick="proceedItem('${r.id}')">Started</button><button class="btn btn-sm btn-outline" style="padding:2px 8px;" onclick="openEditMedicationModal('${r.id}')">✏️</button><button class="btn btn-sm btn-outline" style="padding:2px 8px;color:#dc2626;" onclick="permanentlyDelete('${r.id}')">✖</button>`;
     } else if (status === 'current') {
       btns = `<button class="btn btn-sm btn-outline" style="padding:2px 8px;" onclick="medEnd('${r.id}')">End</button><button class="btn btn-sm btn-outline" style="padding:2px 8px;" onclick="openEditMedicationModal('${r.id}')">✏️</button>`;
-    } else {
-      btns = `<button class="btn btn-sm btn-outline" style="padding:2px 8px;color:#dc2626;" onclick="permanentlyDelete('${r.id}')">🗑️</button>`;
+    } else if(status === 'past'){
+      btns = `<button class="btn btn-sm btn-outline" style="padding:2px 8px;" onclick="openEditMedicationModal('${r.id}')">✏️ Edit</button><button class="btn btn-sm btn-outline btn-restore" style="padding:2px 8px;" onclick="restorePastRecord('${r.id}')">🔄 Restore</button><button class="btn btn-sm btn-outline" style="padding:2px 8px;color:#dc2626;" onclick="permanentlyDelete('${r.id}')">🗑️</button>`;
     }
-
     return `<div class="${cls}" data-id="${r.id}">
         <div class="item-header"><div class="item-name-area">${r.name}</div></div>
         ${dose}
@@ -917,7 +701,6 @@
         <div class="item-actions">${btns}</div>
       </div>`;
   }
-
   function renderItemCard(r, status) {
  let tagHtml =
     r.tag === 'liked'        ? '<span class="tag tag-liked">Liked</span>'
@@ -928,27 +711,23 @@
   : r.tag === 'discontinued' ? '<span class="tag" style="background:#fecaca; color:#991b1b;">🚫 Discontinued</span>'
   : '';
     const timeAgo = r.last_date ? `<span style="color:#f59e0b;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
-
     let buttons = '';
     if (status === 'recommended') {
         buttons = `<button class="btn btn-sm" style="background:#10b981" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Not Interested</button><button class="btn btn-sm btn-outline" onclick="openEditTreatmentModal('${r.id}')">✏️</button>`;
     } else if (status === 'current') {
     buttons = `<button class="btn btn-sm btn-outline" onclick="endTreatment('${r.id}')">End</button><button class="btn btn-sm btn-outline" onclick="openEditTreatmentModal('${r.id}')">✏️</button>`;
 }else if (status === 'past') {
-        buttons = `<button class="btn btn-sm btn-outline" style="color:#dc2626; border-color:#fca5a5;" onclick="permanentlyDelete('${r.id}')">🗑️ Delete</button>`;
+        buttons = `<button class="btn btn-sm btn-outline" onclick="openEditTreatmentModal('${r.id}')">✏️ Edit</button><button class="btn btn-sm btn-outline btn-restore" onclick="restorePastRecord('${r.id}')">🔄 Restore</button><button class="btn btn-sm btn-outline" style="color:#dc2626; border-color:#fca5a5;" onclick="permanentlyDelete('${r.id}')">🗑️ Delete</button>`;
     }
-
-    const today = todayLocal();
+    const today = getVancouverTodayStr();
     const isDue = status !== 'past' && ((r.next_date && r.next_date <= today) || (r.appointment_date && r.appointment_date <= today));
     let cardClass = `item-card ${r.status}`;
     if (r.is_main_followup) cardClass += ' main-followup';
     if (isDue) { if (r.is_strict) cardClass += ' strict-overdue'; else cardClass += ' due'; }
-
     const apptInfo = r.appointment_date ? `<span style="color:#3b82f6; font-weight:600;">Next Appt: ${r.appointment_date}</span>` : '';
     const pinBtn = status !== 'past' ? `<button class="btn btn-sm ${r.is_main_followup ? 'btn' : 'btn-outline'}" onclick="setMainFollowup('${r.id}')" title="Set as main follow-up">📌</button>` : '';
     const strictLock = r.is_strict ? `<span style="color:#dc2626; font-weight:bold;" title="${r.strict_note || 'Strict Deadline'}">🔒</span>` : '';
     const manageBtn = isDue ? `<button class="btn btn-sm" style="background:#dc2626; margin-left:8px;" onclick="openAppointmentModal('${r.id}')">⚠️ Manage</button>` : '';
-
     const dueDateClass = isDue ? 'date-overdue' : '';
     const displayName = r.name;
    let noteHtml = '';
@@ -958,31 +737,28 @@ if (r.note) {
 if (r.strict_note) {
   noteHtml += `<div class="note-text" title="${r.strict_note}" style="color:#dc2626;">🔒 ${r.strict_note}</div>`;
 }
-
     return `<div class="${cardClass}" data-id="${r.id}">
         <div class="item-header"><div class="item-name-area">${displayName} ${strictLock} ${tagHtml}</div><span class="badge ${status}">${status}</span></div>
         <div class="item-dates">${timeAgo}${r.next_date ? `<span class="${dueDateClass}">Next follow-up: ${r.next_date}</span>` : ''}${apptInfo}${noteHtml}</div>
         <div class="item-actions">${buttons}${pinBtn}${manageBtn}</div>
       </div>`;
   }
-
   function renderProductCard(r, status, isDuplicated) {
     const matchedProd = productsLib.find(p => p.name.toLowerCase() === r.name.toLowerCase());
     const imgSrc = matchedProd && matchedProd.image ? matchedProd.image : 'https://via.placeholder.com/40/f1f5f9/94a3b8?text=Img';
     const brandStr = matchedProd && matchedProd.brand ? `<span style="font-size:0.65rem; color:#94a3b8; margin-left:4px;">(${matchedProd.brand})</span>` : '';
-
     let buttons = '';
     if (r.category === 'medication') {
         buttons = `<button class="btn btn-sm btn-outline" style="padding:2px 6px;" onclick="openEditMedicationModal('${r.id}')">✏️</button><button class="btn btn-sm btn-outline" style="padding:2px 6px; color:#dc2626;" onclick="cancelItem('${r.id}')">✖</button>`;
     } else if (status === 'recommended') {
         buttons = `<button class="btn btn-sm" style="background:#10b981; padding:2px 6px;" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn-sm btn-outline" style="padding:2px 6px;" onclick="cancelItem('${r.id}')">✖</button>`;
+    } else if(status === 'past'){
+        buttons = `<button class="btn btn-sm btn-outline" style="padding:2px 6px;" onclick="openEditProductModal('${r.id}')">✏️ Edit</button><button class="btn btn-sm btn-outline btn-restore" style="padding:2px 6px;" onclick="restorePastRecord('${r.id}')">🔄 Restore</button><button class="btn btn-sm btn-outline" style="padding:2px 6px; color:#dc2626;" onclick="cancelItem('${r.id}')">✖</button>`;
     } else {
         buttons = `<button class="btn btn-sm btn-outline" style="padding:2px 6px; color:#dc2626;" onclick="cancelItem('${r.id}')">✖</button><button class="btn btn-sm btn-outline" style="padding:2px 6px;" onclick="openEditProductModal('${r.id}')">✏️</button>`;
     }
-
     const timeAgo = r.last_date ? `<span style="color:#f59e0b; font-size:0.7rem;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
     let noteHtml = r.strict_note ? `<div style="font-size:0.65rem; color:#64748b; font-style:italic; margin-top:2px;" title="${r.strict_note}">📝 ${r.strict_note}</div>` : '';
-
     let cardClass = 'item-card';
     if (r.category === 'medication') {
         cardClass += ' medication';
@@ -993,14 +769,11 @@ if (r.strict_note) {
     } else {
         cardClass += ' current';
     }
-
     let linkIcon = isDuplicated ? `<span style="font-size:0.6rem; color:#0d9488; font-weight:bold; margin-left:4px;">🔗 Both</span>` : '';
     const nextDateLabel = r.category === 'medication' ? 'Refill Due' : 'Expiry/Follow-up';
-
-    const today = todayLocal();
+    const today = getVancouverTodayStr();
     const isDue = r.next_date && r.next_date <= today;
     if (isDue) cardClass += ' due';
-
     return `<div class="${cardClass}" data-id="${r.id}" style="padding: 8px; flex-direction: row; align-items: center; gap: 8px;">
         <div class="drag-handle">⋮⋮</div>
         <img src="${imgSrc}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; background:#f1f5f9;">
@@ -1016,7 +789,6 @@ if (r.strict_note) {
         </div>
       </div>`;
   }
-
   function initSortable(containerId, slot) {
     const el = document.getElementById(containerId);
     if (!el) return;
@@ -1035,7 +807,6 @@ if (r.strict_note) {
     });
   }
 
-  // 疗程搜索
   function searchTreatmentForModal(inputEl, resultsId) {
     const kw = inputEl.value.toLowerCase().trim();
     const resultsDiv = document.getElementById(resultsId);
@@ -1085,6 +856,11 @@ function openEditTreatmentModal(id) {
   document.getElementById('treatIsStrict').checked = r.is_strict || false;
   document.getElementById('treatStrictNote').value = r.strict_note || '';
   document.getElementById('treatStrictNote').style.display = r.is_strict ? 'block' : 'none';
+  if(r.status === 'past'){
+    document.getElementById('treatStatusSelect').disabled = true;
+  }else{
+    document.getElementById('treatStatusSelect').disabled = false;
+  }
   openModal('treatmentModal');
 }
 async function saveTreatment() {
@@ -1092,7 +868,6 @@ async function saveTreatment() {
   const isEdit = document.getElementById('treatEditMode').value === 'true';
   let name = document.getElementById('treatSelectedName').innerText;
   if (!name) return alert('Please select a treatment from the library.');
-
   const status     = document.getElementById('treatStatusSelect').value;
   const lastDate   = document.getElementById('treatLastDate').value || null;
   const nextDate   = document.getElementById('treatNextDate').value || null;
@@ -1101,7 +876,6 @@ async function saveTreatment() {
   const strictNote = isStrict
       ? (document.getElementById('treatStrictNote').value.trim() || null)
       : null;
-
   const data = {
     name,
     category: 'treatment',
@@ -1112,7 +886,6 @@ async function saveTreatment() {
     is_strict:  isStrict,
     strict_note: strictNote
   };
-
   try {
     if (isEdit) await api.update('records', `id=eq.${id}`, data);
     else { data.customer_id = currentCustomerId; await api.insert('records', data); }
@@ -1122,7 +895,6 @@ async function saveTreatment() {
   } catch (e) { alert(e.message); }
 }
 
-  // 产品搜索
   function searchProductForModal(inputEl, resultsId) {
     const kw = inputEl.value.toLowerCase().trim();
     const resultsDiv = document.getElementById(resultsId);
@@ -1171,6 +943,11 @@ async function saveTreatment() {
     document.getElementById('addProdSlotSelect').value = r.time_slot || 'AM';
     document.getElementById('addProdLastDate').value = r.last_date || '';
     document.getElementById('addProdNote').value = r.strict_note || '';
+    if(r.status === 'past'){
+      document.getElementById('addProdStatus').disabled = true;
+    }else{
+      document.getElementById('addProdStatus').disabled = false;
+    }
     toggleProductDateField();
     openModal('addProductModal');
   }
@@ -1183,7 +960,6 @@ async function saveTreatment() {
     const slot = document.getElementById('addProdSlotSelect').value;
     const lastDate = document.getElementById('addProdLastDate').value || null;
     const note = document.getElementById('addProdNote').value.trim() || null;
-
     if (isEdit) {
         try {
             const actualSlot = (slot === 'BOTH') ? 'AM' : slot;
@@ -1205,7 +981,6 @@ async function saveTreatment() {
     } catch(e) { alert(e.message); }
   }
 
-  // 药物
   function openAddMedicationModal() {
     if (!currentCustomerId) return;
     document.getElementById('addMedId').value = '';
@@ -1227,6 +1002,11 @@ async function saveTreatment() {
     document.getElementById('addMedDosage').value = r.strict_note || '';
     document.getElementById('addMedNextDate').value = r.next_date || '';
     document.getElementById('addMedStatus').value = r.status || 'current';
+    if(r.status === 'past'){
+      document.getElementById('addMedStatus').disabled = true;
+    }else{
+      document.getElementById('addMedStatus').disabled = false;
+    }
     openModal('addMedicationModal');
   }
   async function saveMedication() {
@@ -1267,27 +1047,22 @@ async function saveTreatment() {
     try { await api.update('records', `id=eq.${id}`, { status: 'past' }); await loadData(); showToast('Moved to History'); } catch (e) { alert(e.message); }
   }
   let pendingEndId = null;
-
   function endTreatment(id) {
     pendingEndId = id;
     openModal('endTreatmentModal');
   }
-
   async function confirmEndTreatment(outcome) {
     if (!pendingEndId) return;
     const id = pendingEndId;
     pendingEndId = null;
-
     const r = records.find(x => x.id === id);
     if (!r) { closeModal('endTreatmentModal'); return; }
-
     const updateData = {
       status: 'past',
       tag: outcome,
       is_main_followup: false,
       is_strict: false
     };
-
     try {
       await api.update('records', `id=eq.${id}`, updateData);
       closeModal('endTreatmentModal');
@@ -1301,7 +1076,6 @@ async function saveTreatment() {
   }
   async function setMainFollowup(id) { const r = records.find(x => x.id === id); if (!r || !r.next_date) return alert('No follow-up date to set as main.'); const others = records.filter(x => x.customer_id === currentCustomerId && x.id !== id); for (let o of others) { if (o.is_main_followup) await api.update('records', `id=eq.${o.id}`, { is_main_followup: false }); } await api.update('records', `id=eq.${id}`, { is_main_followup: true }); await loadData(); }
 
-  // 跟进弹窗
   let activeRecordId = null;
   function openAppointmentModal(id) {
       const r = records.find(x => x.id === id); if (!r) return;
@@ -1319,16 +1093,15 @@ async function saveTreatment() {
               <button class="btn" style="background:#f59e0b; width:100%; margin-bottom:8px;" onclick="handleAppointmentAction('cancelled')">❌ Cancelled (Follow up in 1 month)</button>
               <button class="btn btn-outline" style="width:100%; margin-bottom:8px;" onclick="handleAppointmentAction('reschedule_appt')">📅 Set Appointment Date</button>
               <button class="btn btn-outline" style="width:100%; margin-bottom:8px;" onclick="handleAppointmentAction('change_next')">⏳ Change Follow-up Date</button>
-              <button class="btn btn-outline" style="width:100%; color:#dc2626; border-color:#fca5a5;" onclick="handleAppointmentAction('not_interested')">🚫 Not Interested (To History)</button>`;
+              <button class="btn btn-outline" style="width:100%; margin-bottom:8px; color:#dc2626; border-color:#fca5a5;" onclick="handleAppointmentAction('not_interested')">🚫 Not Interested (To History)</button>`;
       }
       openModal('appointmentModal');
   }
-
   async function handleMedicationAction(action) {
       const r = records.find(x => x.id === activeRecordId); if (!r) return;
-      const today = new Date();
+      const today = getVancouverDateObj(getVancouverTodayStr());
       if (action === 'renew') {
-          const nextDate = addDaysLocal(30);
+          const nextDate = new Date(today.getTime() + 30*24*3600*1000).toISOString().split('T')[0];
           await api.update('records', `id=eq.${r.id}`, { next_date: nextDate });
           showToast('Renewed for 30 days');
       } else {
@@ -1337,51 +1110,128 @@ async function saveTreatment() {
       }
       closeModal('appointmentModal'); await loadData();
   }
-
   async function handleAppointmentAction(action) {
     const r = records.find(x => x.id === activeRecordId); if (!r) return;
-    const today = new Date(); let updateData = {};
+    const today = getVancouverDateObj(getVancouverTodayStr()); let updateData = {};
     if (action === 'executed') { updateData = { status: 'current', appointment_date: null, next_date: null, is_strict: false }; }
-    else if (action === 'cancelled') { updateData = { appointment_date: null, next_date: addDaysLocal(30) }; }
+    else if (action === 'cancelled') { updateData = { appointment_date: null, next_date: new Date(today.getTime() + 30*24*3600*1000).toISOString().split('T')[0] }; }
     else if (action === 'reschedule_appt') { const newDate = prompt('Enter new appointment date (YYYY-MM-DD):'); if (!newDate) return; updateData = { appointment_date: newDate, next_date: newDate }; }
     else if (action === 'change_next') { const newDate = prompt('Enter new follow-up date (YYYY-MM-DD):'); if (!newDate) return; updateData = { next_date: newDate }; }
     else if (action === 'not_interested') { updateData = { status: 'past', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false }; }
     try { await api.update('records', `id=eq.${r.id}`, updateData); closeModal('appointmentModal'); await loadData(); showToast('Updated'); } catch (e) { alert(e.message); }
   }
 
-  // 其他
-
   function openLinkModal() { document.getElementById('linkSearch').value = ''; renderLinkOptions(); openModal('linkModal'); }
   function renderLinkOptions() { const kw = document.getElementById('linkSearch').value.toLowerCase(); const list = document.getElementById('linkOptionsList'); const c = customers.find(x => x.id === currentCustomerId); const alreadyLinked = c.linked_customer_ids || []; const options = customers.filter(x => x.id !== currentCustomerId && !alreadyLinked.includes(x.id) && (x.name.toLowerCase().includes(kw) || (x.client_id && x.client_id.toLowerCase().includes(kw)))); list.innerHTML = options.length === 0 ? '<div style="color:#94a3b8; font-size:0.85rem;">No available customers found.</div>' : options.map(x => `<div class="customer-item" onclick="linkCustomer('${x.id}')"><div class="customer-name">${x.name}</div><div class="customer-info">ID: ${x.client_id || 'N/A'}</div></div>`).join(''); }
   async function linkCustomer(linkId) { const c = customers.find(x => x.id === currentCustomerId); const lc = customers.find(x => x.id === linkId); if (!c || !lc) return; try { await api.update('customers', `id=eq.${c.id}`, { linked_customer_ids: [...(c.linked_customer_ids || []), linkId] }); await api.update('customers', `id=eq.${lc.id}`, { linked_customer_ids: [...(lc.linked_customer_ids || []), currentCustomerId] }); closeModal('linkModal'); await loadData(); showToast('Profiles linked'); } catch (e) { alert(e.message); } }
-
   function openCustomerModal() { document.getElementById('custId').value = ''; document.getElementById('custName').value = ''; document.getElementById('custClientId').value = ''; document.getElementById('custEmail').value = ''; document.getElementById('custBirth').value = ''; document.getElementById('custConcern').value = ''; document.getElementById('customerModalTitle').innerText = 'Add Customer'; openModal('customerModal'); }
   function openEditCustomerModal() { const c = customers.find(x => x.id === currentCustomerId); if (!c) return; document.getElementById('custId').value = c.id; document.getElementById('custName').value = c.name; document.getElementById('custClientId').value = c.client_id || ''; document.getElementById('custEmail').value = c.email || ''; document.getElementById('custBirth').value = c.birth_month || ''; document.getElementById('custConcern').value = c.concern || ''; document.getElementById('customerModalTitle').innerText = 'Edit Customer'; openModal('customerModal'); }
   async function saveCustomer() { const id = document.getElementById('custId').value; const data = { name: document.getElementById('custName').value, client_id: document.getElementById('custClientId').value, email: document.getElementById('custEmail').value, birth_month: parseInt(document.getElementById('custBirth').value) || null, concern: document.getElementById('custConcern').value }; if (!data.name) return alert('Name required'); try { if (id) await api.update('customers', `id=eq.${id}`, data); else { const [newCust] = await api.insert('customers', data); currentCustomerId = newCust.id; } closeModal('customerModal'); await loadData(); showToast('Customer saved'); } catch (e) { alert(e.message); } }
 
+  // ========== Advanced Search 互斥单选模式 ==========
   function openSearchModal() { openModal('searchModal'); }
-  function clearSearch() { document.getElementById('searchKw').value = ''; document.getElementById('searchStrictDue').checked = false; document.getElementById('searchBirthdayCurrent').checked = false; document.getElementById('searchBirthdayNext').checked = false; document.getElementById('searchResultsArea').style.display = 'none'; }
-  function executeAdvancedSearch() {
-    const kw = document.getElementById('searchKw').value.toLowerCase().trim(); const onlyStrictDue = document.getElementById('searchStrictDue').checked; const bdCurrent = document.getElementById('searchBirthdayCurrent').checked; const bdNext = document.getElementById('searchBirthdayNext').checked; const today = todayLocal(); const currentMonth = monthLocal(); let nextMonth = currentMonth + 1; if (nextMonth > 12) nextMonth = 1; if (!kw && !onlyStrictDue && !bdCurrent && !bdNext) return;
-    let matchedCustomerIds = new Set(); if (kw) { customers.forEach(c => { const customerHay = [c.name, c.client_id, c.concern, c.email].filter(Boolean).join(' ').toLowerCase(); if (customerHay.includes(kw)) matchedCustomerIds.add(c.id); }); }
-    const matchedRecords = records.filter(r => { const c = customers.find(x => x.id === r.customer_id); if (!c) return false; if (onlyStrictDue) { if (!r.is_strict) return false; const di = dueInfoOfRecord(r, today); if (!di || di.offset < 0) return false; } if (kw) { if (matchedCustomerIds.has(c.id)) return true; const itemHay = [r.name, r.tag, r.category, r.note, r.strict_note].filter(Boolean).join(' ').toLowerCase(); if (itemHay.includes(kw)) return true; return false; } return onlyStrictDue; });
-    const uniqueCustomers = []; const seenIds = new Set(); matchedRecords.forEach(r => { if (!seenIds.has(r.customer_id)) { seenIds.add(r.customer_id); uniqueCustomers.push(customers.find(c => c.id === r.customer_id)); } }); customers.forEach(c => { if (seenIds.has(c.id)) return; if (bdCurrent && c.birth_month === currentMonth) { seenIds.add(c.id); uniqueCustomers.push(c); } else if (bdNext && c.birth_month === nextMonth) { seenIds.add(c.id); uniqueCustomers.push(c); } });
-    currentSearchResults = uniqueCustomers; const resultArea = document.getElementById('searchResultsArea'); const resultList = document.getElementById('searchResultsList'); const resultTitle = document.getElementById('searchResultsTitle'); resultArea.style.display = 'block'; resultTitle.innerText = `Results (${uniqueCustomers.length} customers)`; if (uniqueCustomers.length === 0) { resultList.innerHTML = '<div style="padding:12px; color:#94a3b8;">No matches found.</div>'; return; } resultList.innerHTML = uniqueCustomers.map(c => `<div class="search-result-item" onclick="selectCustomer('${c.id}')"><div><strong>${c.name}</strong><span style="font-size:0.75rem; color:#64748b; margin-left:8px;">${c.concern || ''}</span></div><span style="font-size:0.75rem; color:#3b82f6;">View →</span></div>`).join('');
+  function clearSearch() {
+    document.getElementById('searchKw').value = '';
+    const radios = document.querySelectorAll('input[name="searchMode"]');
+    radios.forEach(r=>r.checked = false);
+    radios[0].checked = true;
+    document.getElementById('searchResultsArea').style.display = 'none';
+    currentSearchResults = [];
   }
-  function copyEmails() { const emails = currentSearchResults.map(c => c.email).filter(e => e && e.trim() !== ''); if (emails.length === 0) return alert('No emails found in the search results.'); navigator.clipboard.writeText(emails.join(', ')).then(() => { showToast(`Copied ${emails.length} email(s)`); }); }
-  function exportSearchResultCSV() {
-    if (!currentSearchResults.length) return alert('当前没有可导出的搜索结果。');
-    const head = ['Name', 'Client ID', 'Email'];
-    const lines = [head.map(csvCell).join(',')];
-    currentSearchResults.forEach(c => lines.push([c.name || '', c.client_id || '', c.email || ''].map(csvCell).join(',')));
-    const csv = '\ufeff' + lines.join('\r\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `search-result-${todayLocal()}.csv`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-    showToast(`已导出 ${currentSearchResults.length} 位客人`);
+
+  function executeAdvancedSearch() {
+    const todayStr = getVancouverTodayStr();
+    const todayObj = getVancouverDateObj(todayStr);
+    const currMonth = vancouverMonth();
+    let nextMonth = currMonth + 1;
+    if(nextMonth>12) nextMonth =1;
+
+    const mode = document.querySelector('input[name="searchMode"]:checked').value;
+    const kwRaw = document.getElementById('searchKw').value.trim().toLowerCase();
+
+    const hitCustomerIds = new Set();
+
+    customers.forEach(cust=>{
+      let ok = false;
+      if(mode === "keyword"){
+        let matchKw = false;
+        const custText = [cust.name, cust.client_id, cust.email, cust.concern].filter(Boolean).join(" ").toLowerCase();
+        if(custText.includes(kwRaw)) matchKw = true;
+        for(const rec of records.filter(r=>r.customer_id === cust.id)){
+          const recText = [rec.name, rec.note, rec.strict_note, rec.tag].filter(Boolean).join(" ").toLowerCase();
+          if(recText.includes(kwRaw)){ matchKw = true; break; }
+        }
+        ok = matchKw;
+      }else if(mode === "strictDue"){
+        for(const rec of records.filter(r=>r.customer_id === cust.id && r.is_strict && r.status!=='past')){
+          const fd = rec.next_date ? getVancouverDateObj(rec.next_date) : null;
+          const ad = rec.appointment_date ? getVancouverDateObj(rec.appointment_date) : null;
+          const eff = fd||ad;
+          if(eff && eff <= todayObj){ ok=true; break; }
+        }
+      }else if(mode === "bdayThis"){
+        ok = (cust.birth_month === currMonth);
+      }else if(mode === "bdayNext"){
+        ok = (cust.birth_month === nextMonth);
+      }
+      if(ok) hitCustomerIds.add(cust.id);
+    });
+
+    currentSearchResults = customers.filter(c=>hitCustomerIds.has(c.id));
+    const resultArea = document.getElementById('searchResultsArea');
+    const resultList = document.getElementById('searchResultsList');
+    const resultTitle = document.getElementById('searchResultsTitle');
+    resultArea.style.display = 'block';
+    resultTitle.innerText = `Results (${currentSearchResults.length} customers)`;
+    if (currentSearchResults.length === 0) { resultList.innerHTML = '<div style="padding:12px; color:#94a3b8;">No matches found.</div>'; return; }
+    resultList.innerHTML = currentSearchResults.map(c => `<div class="search-result-item" onclick="selectCustomer('${c.id}')"><div><strong>${c.name}</strong><span style="font-size:0.75rem; color:#64748b; margin-left:8px;">${c.concern || ''}</span></div><span style="font-size:0.75rem; color:#3b82f6;">View →</span></div>`).join('');
+  }
+
+  // ========== CSV导出工具函数 ==========
+  function escapeCsv(v){
+    if(!v) return "";
+    let s = String(v).replace(/"/g,'""');
+    return `"${s}"`;
+  }
+  function exportCustomerListCsv(customerArr){
+    const bom = "\uFEFF";
+    const headers = ["Name","Client ID","Email"];
+    const rows = customerArr.map(c=>[
+      escapeCsv(c.name||""),
+      escapeCsv(c.client_id||""),
+      escapeCsv(c.email||"")
+    ]);
+    let csv = bom + [headers,...rows].map(r=>r.join(",")).join("\n");
+    const blob = new Blob([csv],{type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const todayFile = getVancouverTodayStr();
+    a.download = `crm-export-${todayFile}.csv`;
+    a.href = url;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast("CSV file downloaded");
+  }
+  function copyCustomerEmails(customerArr){
+    const emails = [...new Set(customerArr.map(c=>c.email).filter(e=>e&&e.trim()))];
+    navigator.clipboard.writeText(emails.join(", ")).then(()=>{ showToast(`Copied ${emails.length} email(s)`); });
+  }
+
+  // 左侧视图导出
+  function exportLeftViewCsv(){
+    const list = getLeftFilterCustomerList();
+    exportCustomerListCsv(list);
+  }
+  function copyLeftViewEmails(){
+    const list = getLeftFilterCustomerList();
+    copyCustomerEmails(list);
+  }
+  // 高级搜索弹窗导出
+  function exportSearchResultCSV(){
+    exportCustomerListCsv(currentSearchResults);
+  }
+  function copySearchResultEmails(){
+    copyCustomerEmails(currentSearchResults);
   }
 
   function printRoutine() {
@@ -1389,13 +1239,13 @@ async function saveTreatment() {
     const myProducts = records.filter(r => r.customer_id === currentCustomerId && r.category === 'product' && r.status !== 'past');
     const am = myProducts.filter(r => r.time_slot === 'AM' || !r.time_slot).sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
     const pm = myProducts.filter(r => r.time_slot === 'PM').sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
-    const genList = (arr) => { if (arr.length === 0) return '<p style="color:#94a3b8; font-style:italic;">No products assigned.</p>'; return `<ul style="padding-left:20px; line-height:1.8;">${arr.map(p => { const matchedProd = productsLib.find(prod => prod.name.toLowerCase() === p.name.toLowerCase()); const brand = matchedProd && matchedProd.brand ? ` <span style="color:#94a3b8; font-size:12px;">(${matchedProd.brand})</span>` : ''; const note = p.strict_note ? ` <span style="color:#94a3b8; font-size:11px;">- ${p.strict_note}</span>` : ''; return `<li>${p.name} ${brand} ${note}</li>`; }).join('')}</ul>`; };
-    const html = `<div style="font-family:'Inter', sans-serif; color:#1e293b;"><div style="text-align:center; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px;"><h1 style="font-size:1.8rem; margin-bottom:8px;">Home Care Routine</h1><p style="color:#64748b;">Prepared for: <strong>${c.name}</strong></p><p style="color:#94a3b8; font-size:0.85rem;">${new Date().toLocaleDateString()}</p></div><div style="display:flex; gap:40px; margin-top:20px;"><div style="flex:1;"><h3 style="color:#d97706; border-bottom:1px solid #fcd34d; padding-bottom:8px; margin-bottom:12px;">☀️ Morning</h3>${genList(am)}</div><div style="flex:1;"><h3 style="color:#4338ca; border-bottom:1px solid #a5b4fc; padding-bottom:8px; margin-bottom:12px;">🌙 Evening</h3>${genList(pm)}</div></div><div style="margin-top:40px; text-align:center; font-size:0.8rem; color:#94a3b8;"><p>If you have any questions, please contact the clinic.</p></div></div>`;
+    const genList = (arr) => { if (arr.length === 0) return '<p style="color:#94a3b8; font-style:italic;">No products assigned.</p>'; return `<ul style="padding-left:20px; line-height:1.8;">${arr.map(p => { const matchedProd = productsLib.find(prod => prod.name.toLowerCase() === p.name.toLowerCase()); const brand = matchedProd && matchedProd.brand ? ` <span style="color:#94a3b8; font-size:12px;">(${matchedProd.brand})</span>` : ''; const note = p.strict_note ? ` <span style="color:#94a3b8; font-size:11px;">‑ ${p.strict_note}</span>` : ''; return `<li>${p.name} ${brand} ${note}</li>`; }).join('')}</ul>`; };
+    const html = `<div style="font-family:'Inter', sans-serif; color:#1e293b;"><div style="text-align:center; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px;"><h1 style="font-size:1.8rem; margin-bottom:8px;">Home Care Routine</h1><p style="color:#64748b;">Prepared for: <strong>${c.name}</strong></p><p style="color:#94a3b8; font-size:0.85rem;">${new Intl.DateTimeFormat('en-CA',{timeZone:'America/Vancouver'}).format(new Date())}</p></div><div style="display:flex; gap:40px; margin-top:20px;"><div style="flex:1;"><h3 style="color:#d97706; border-bottom:1px solid #fcd34d; padding-bottom:8px; margin-bottom:12px;">☀️ Morning</h3>${genList(am)}</div><div style="flex:1;"><h3 style="color:#4338ca; border-bottom:1px solid #a5b4fc; padding-bottom:8px; margin-bottom:12px;">🌙 Evening</h3>${genList(pm)}</div></div><div style="margin-top:40px; text-align:center; font-size:0.8rem; color:#94a3b8;"><p>If you have any questions, please contact the clinic.</p></div></div>`;
     document.getElementById('printRoutineContent').innerHTML = html; openModal('printRoutineModal');
   }
-
   document.querySelectorAll('.modal-overlay').forEach(overlay => { overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(overlay.id); }); });
   checkSession();
 </script>
+
 </body>
 </html>
