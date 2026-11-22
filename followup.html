@@ -239,23 +239,33 @@ label {
 #searchModal .search-mode-group {
   margin-bottom: 8px;
 }
-#searchModal .modal-button-row {
+/* 第一排： Clear Search / Search 各 50% */
+#searchModal .modal-button-row-1 {
   display: flex;
   gap: 10px;
   margin-top: 0;
-  margin-bottom: 28px;
+  margin-bottom: 12px;
 }
-#searchModal .modal-button-row .btn {
+#searchModal .modal-button-row-1 .btn {
   flex: 1;
 }
-#searchModal #searchResultsArea > div:first-child {
-  display:flex;
-  gap:10px;
-  margin-bottom:12px;
+
+/* 第二排： Export CSV / Copy Emails 各 50% */
+#searchModal .modal-button-row-2 {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
 }
-#searchModal #searchResultsArea .btn-sm {
-  flex:1;
+#searchModal .modal-button-row-2 .btn {
+  flex: 1;
 }
+
+/* 搜索结果区域，直接在第二排按钮下方 */
+#searchModal #searchResultsArea {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 16px;
+}
+ 
 #searchModal #searchResultsArea {
   border-top:1px solid #e2e8f0;
   padding-top:16px;
@@ -613,9 +623,9 @@ label {
     </div>
 
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:12px;">
-      <div class="modal-button-row">
-  <button type="button" class="btn btn-outline" onclick="clearSearch()">Clear Search</button>
-  <button type="button" class="btn btn-primary" onclick="executeAdvancedSearch()">Search</button>
+      <div class="modal-button-row-1">
+  <button type="button" class="btn btn-outline" id="btnClearSearch">Clear Search</button>
+  <button type="button" class="btn" id="btnRunSearch">Search</button>
 </div>
     </div>
 
