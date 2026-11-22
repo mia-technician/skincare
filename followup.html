@@ -1422,6 +1422,44 @@ async function saveTreatment() {
   }
   document.querySelectorAll('.modal-overlay').forEach(overlay => { overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(overlay.id); }); });
   checkSession();
+ function runAdvancedSearch() {
+  const table = document.getElementById('followupTable');
+  if (!table) return;
+  const rows = table.querySelectorAll('tbody tr');
+
+  const nameVal = document.getElementById('adv_name').value.trim().toLowerCase();
+  const phoneVal = document.getElementById('adv_phone').value.trim().toLowerCase();
+  const serviceVal = document.getElementById('adv_service').value.trim().toLowerCase();
+  const dateVal = document.getElementById('adv_date').value.trim();
+
+  rows.forEach(row => {
+    const cells = row.querySelectorAll('td');
+    const cellName = cells[0]?.textContent.toLowerCase() || '';
+    const cellPhone = cells[1]?.textContent.toLowerCase() || '';
+    const cellService = cells[2]?.textContent.toLowerCase() || '';
+    const cellDate = cells[3]?.textContent || '';
+
+    const matchName = !nameVal || cellName.includes(nameVal);
+    const matchPhone = !phoneVal || cellPhone.includes(phoneVal);
+    const matchService = !serviceVal || cellService.includes(serviceVal);
+    const matchDate = !dateVal || cellDate.includes(dateVal);
+
+    row.style.display = matchName && matchPhone && matchService && matchDate ? '' : 'none';
+  });
+}
+
+function clearAdvancedSearch() {
+  document.getElementById('adv_name').value = '';
+  document.getElementById('adv_phone').value = '';
+  document.getElementById('adv_service').value = '';
+  document.getElementById('adv_date').value = '';
+
+  const table = document.getElementById('followupTable');
+  if (!table) return;
+  const rows = table.querySelectorAll('tbody tr');
+  rows.forEach(row => row.style.display = '');
+}
+
 </script>
 
 </body>
