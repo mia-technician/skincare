@@ -507,13 +507,25 @@
 
 <div class="toast" id="toast">Saved</div>
 
-<script>
   const SUPABASE_URL = "https://dmrskyskryrdclknezth.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtcnNreXNrcnlyZGNsa25lenRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzE2MzgsImV4cCI6MjA4OTk0NzYzOH0.Dnced4YAY24fE6kLxOe9YuR6Wrgt8pYcqKcjMFWDrY8";
-
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let customers = [], records = [], productsLib = [], servicesLib = [], currentCustomerId = null;
   let currentSearchResults = [];
+  let leftActiveView = "overdue";
+
+  // ========== 温哥华时区日期工具 ==========
+  function getVancouverTodayStr(){
+    return new Intl.DateTimeFormat('en‑CA', {timeZone:'America/Vancouver',year:'numeric',month:'2‑digit',day:'2‑digit'}).format(new Date()).replace(/\//g,"-");
+  }
+  function getVancouverDateObj(dateStr){
+    if(!dateStr) return null;
+    const [y,m,d] = dateStr.split("-").map(Number);
+    return new Date(Date.UTC(y,m‑1,d,7,0,0));
+  }
+  function vancouverMonth(){
+    return parseInt(new Intl.DateTimeFormat('en‑CA',{timeZone:'America/Vancouver',month:'numeric'}).format(new Date()),10);
+  }
 
   async function loginCRM() {
     const email = document.getElementById('authEmail').value.trim();
@@ -526,14 +538,12 @@
     document.getElementById('loginOverlay').style.display = 'none';
     loadData();
   }
-
   async function checkSession() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) { document.getElementById('loginOverlay').style.display = 'none'; loadData(); }
   }
-
   const api = {
-    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Content‑Type': 'application/json' },
     async request(path, options = {}) {
       const { data: { session } } = await supabaseClient.auth.getSession();
       const token = session ? session.access_token : SUPABASE_ANON_KEY;
@@ -547,11 +557,9 @@
     update: (table, query, data) => api.request(`${table}?${query}`, { method: 'PATCH', headers: { 'Prefer': 'return=representation' }, body: JSON.stringify(data) }),
     delete: (table, query) => api.request(`${table}?${query}`, { method: 'DELETE' })
   };
-
   function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
   function closeModal(id) { document.getElementById(id).classList.remove('show'); }
   function openModal(id) { document.getElementById(id).classList.add('show'); }
-
   async function loadData() {
     try {
       const [cRes, rRes, pRes, sRes] = await Promise.all([
@@ -566,18 +574,67 @@
     } catch (e) { alert('Error loading data: ' + e.message); }
   }
 
-  function renderCustomers() {
+  // ========== 左侧视图切换 ==========
+  function switchLeftView(view){
+    leftActiveView = view;
+    document.querySelectorAll(".view‑tab").forEach(t=>t.classList.remove("active"));
+    document.querySelector(`.view‑tab[data‑view="${view}"]`).classList.add("active");
+    renderCustomers();
+  }
+
+  function getLeftFilterCustomerList(){
     const kw = document.getElementById('searchInput').value.toLowerCase();
+    const strictOnly = document.getElementById("leftStrictFilter").checked;
+    const todayStr = getVancouverTodayStr();
+    const todayObj = getVancouverDateObj(todayStr);
+    const sevenDaysLaterObj = new Date(todayObj.getTime() + 7*24*3600*1000);
+
+    let baseCustomers = [...customers];
+    if(kw){
+      baseCustomers = baseCustomers.filter(c=>
+        c.name.toLowerCase().includes(kw) || (c.client_id && c.client_id.toLowerCase().includes(kw))
+      );
+    }
+    if(leftActiveView === "allcustomer"){
+      return baseCustomers;
+    }
+
+    const customerIdSet = new Set();
+    baseCustomers.forEach(c=>{
+      const myRecs = records.filter(r=>r.customer_id === c.id && r.status !== "past" && r.tag !== "not_interested");
+      let hit = false;
+      for(const r of myRecs){
+        const fd = r.next_date ? getVancouverDateObj(r.next_date) : null;
+        const ad = r.appointment_date ? getVancouverDateObj(r.appointment_date) : null;
+        let effectiveDate = fd;
+        if(!effectiveDate && ad) effectiveDate = ad;
+        if(!effectiveDate) continue;
+        if(strictOnly && !r.is_strict) continue;
+
+        if(leftActiveView === "overdue"){
+          if(effectiveDate <= todayObj) hit = true;
+        }else if(leftActiveView === "next7"){
+          if(effectiveDate > todayObj && effectiveDate <= sevenDaysLaterObj) hit = true;
+        }else if(leftActiveView === "allfollow"){
+          hit = true;
+        }
+        if(hit) break;
+      }
+      if(hit) customerIdSet.add(c.id);
+    });
+    return baseCustomers.filter(c=>customerIdSet.has(c.id));
+  }
+
+  function renderCustomers() {
     const list = document.getElementById('customerList');
-    const filtered = customers.filter(c => c.name.toLowerCase().includes(kw) || (c.client_id && c.client_id.toLowerCase().includes(kw)));
-    list.innerHTML = filtered.map(c => `<div class="customer-item ${c.id === currentCustomerId ? 'active' : ''}" onclick="selectCustomer('${c.id}')"><div class="customer-name">${c.name}</div><div class="customer-info">ID: ${c.client_id || 'N/A'} | ${c.email || 'No email'}</div></div>`).join('');
+    const filtered = getLeftFilterCustomerList();
+    list.innerHTML = filtered.map(c => `<div class="customer‑item ${c.id === currentCustomerId ? 'active' : ''}" onclick="selectCustomer('${c.id}')"><div class="customer‑name">${c.name}</div><div class="customer‑info">ID: ${c.client_id || 'N/A'} | ${c.email || 'No email'}</div></div>`).join('');
   }
 
   function selectCustomer(id) { currentCustomerId = id; renderCustomers(); renderProfile(id); document.getElementById('mainPanel').style.display = 'flex'; closeModal('searchModal'); }
-
   function calcMonthsAgo(dateStr) {
     if (!dateStr) return null;
-    const past = new Date(dateStr); const now = new Date();
+    const past = getVancouverDateObj(dateStr); const now = getVancouverDateObj(getVancouverTodayStr());
     let months = (now.getFullYear() - past.getFullYear()) * 12 + (now.getMonth() - past.getMonth());
     if (now.getDate() < past.getDate()) months--;
     if (months <= 0) { const days = Math.floor((now - past) / (1000 * 60 * 60 * 24)); return days > 0 ? `${days} day(s) ago` : 'Today'; }
@@ -587,22 +644,19 @@
   function renderProfile(id) {
     const c = customers.find(x => x.id === id);
     if (!c) return;
-    const currentMonth = new Date().getMonth() + 1;
-    const isBirthday = c.birth_month === currentMonth;
-    document.getElementById('profileName').innerHTML = `${c.name} ${isBirthday ? '<span class="birthday-badge">🎂 Birthday Month</span>' : ''}`;
+    const currMonth = vancouverMonth();
+    const isBirthday = c.birth_month === currMonth;
+    document.getElementById('profileName').innerHTML = `${c.name} ${isBirthday ? '<span class="birthday‑badge">🎂 Birthday Month</span>' : ''}`;
     document.getElementById('profileDetails').innerHTML = `<span><strong>ID:</strong> ${c.client_id || 'N/A'}</span><span><strong>Email:</strong> ${c.email || 'N/A'}</span><span><strong>Birth Month:</strong> ${c.birth_month || 'N/A'}</span><span><strong>Concern:</strong> ${c.concern || 'N/A'}</span>`;
-
     const linkedArea = document.getElementById('linkedProfilesArea');
     let linkedHtml = '';
     if (c.linked_customer_ids && c.linked_customer_ids.length > 0) {
-      c.linked_customer_ids.forEach(lid => { const lc = customers.find(x => x.id === lid); if (lc) { linkedHtml += `<div class="linked-card" onclick="selectCustomer('${lc.id}')"><span class="linked-name">👨‍👩‍👧 ${lc.name}</span><span class="linked-id">#${lc.client_id || ''}</span></div>`; } });
+      c.linked_customer_ids.forEach(lid => { const lc = customers.find(x => x.id === lid); if (lc) { linkedHtml += `<div class="linked‑card" onclick="selectCustomer('${lc.id}')"><span class="linked‑name">👨‍👩‍👧 ${lc.name}</span><span class="linked‑id">#${lc.client_id || ''}</span></div>`; } });
     }
-    linkedHtml += `<button class="btn btn-outline btn-sm" onclick="openLinkModal()">➕ Link Related Profile</button>`;
+    linkedHtml += `<button class="btn btn‑outline btn‑sm" onclick="openLinkModal()">➕ Link Related Profile</button>`;
     linkedArea.innerHTML = linkedHtml;
-
     const myRecords = records.filter(r => r.customer_id === id);
     
-    // 区块 1: Treatments
     const tCurrent = myRecords.filter(r => r.category === 'treatment' && r.status === 'current');
     const tRec = myRecords.filter(r => r.category === 'treatment' && r.status === 'recommended');
     const tPast = myRecords.filter(r => r.category === 'treatment' && r.status === 'past');
@@ -611,7 +665,6 @@
     setColumn('treatCurrentContainer', tCurrent, 'cntTreatCur', r => renderItemCard(r, r.status));
     setColumn('treatPastContainer', tPast, 'cntTreatPast', r => renderItemCard(r, r.status));
 
-    // 区块 2: Products
     const products = myRecords.filter(r => r.category === 'product' && r.status !== 'past');
     const amProducts = products.filter(r => r.time_slot === 'AM' || !r.time_slot).sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
     const pmProducts = products.filter(r => r.time_slot === 'PM').sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
@@ -621,177 +674,152 @@
         const isDuplicated = products.some(p => p.time_slot === otherSlot && p.name.toLowerCase() === product.name.toLowerCase());
         return renderProductCard(product, product.status, isDuplicated);
     };
-
     setColumn('amProductContainer', amProducts, 'cntAmProd', r => renderProductWithDuplicationCheck(r, 'AM'));
     setColumn('pmProductContainer', pmProducts, 'cntPmProd', r => renderProductWithDuplicationCheck(r, 'PM'));
-
     const pastProducts = myRecords.filter(r => r.category === 'product' && r.status === 'past');
     setColumn('pastProductContainer', pastProducts, 'cntPastProd', r => renderItemCard(r, 'past'));
 
-    // 区块 3: Medications
     const medRec = myRecords.filter(r => r.category === 'medication' && r.status === 'recommended');
     const medCurrent = myRecords.filter(r => r.category === 'medication' && (r.status === 'current' || !r.status));
     const medPast = myRecords.filter(r => r.category === 'medication' && r.status === 'past');
-
     setColumn('medRecContainer', medRec, 'cntMedRec', r => renderMedicationCard(r, 'recommended'));
     setColumn('medicationContainer', medCurrent, 'cntMedCur', r => renderMedicationCard(r, 'current'));
     setColumn('pastMedicationContainer', medPast, 'cntMedPast', r => renderMedicationCard(r, 'past'));
-
     initSortable('amProductContainer', 'AM');
     initSortable('pmProductContainer', 'PM');
   }
-
   function setColumn(containerId, list, countId, renderFn) {
     const el = document.getElementById(containerId);
-    if (el) el.innerHTML = list.length ? list.map(renderFn).join('') : '<div class="empty-column">暂无</div>';
+    if (el) el.innerHTML = list.length ? list.map(renderFn).join('') : '<div class="empty‑column">暂无</div>';
     const c = document.getElementById(countId);
     if (c) c.innerText = list.length;
   }
-
   async function medEnd(id) {
     const r = records.find(x => x.id === id); if (!r) return;
     if (!confirm('Mark this medication as ended?')) return;
     try { await api.update('records', `id=eq.${r.id}`, { status: 'past' }); await loadData(); showToast('Moved to Past'); }
     catch (e) { alert(e.message); }
   }
-
   function renderMedicationCard(r, status) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getVancouverTodayStr();
     const isDue = r.next_date && r.next_date <= today && status !== 'past';
-    let cls = 'item-card';
+    let cls = 'item‑card';
     if (status === 'past') cls += ' past';
     else if (status === 'recommended') cls += ' recommended';
     else cls += ' medication';
     if (isDue) cls += ' due';
-
-    const dose = r.strict_note ? `<div class="med-dose">${r.strict_note}</div>` : '';
-    const refill = r.next_date ? `<span style="${isDue ? 'color:#dc2626;font-weight:700;' : ''}">🗓 Refill: ${r.next_date}</span>` : '';
+    const dose = r.strict_note ? `<div class="med‑dose">${r.strict_note}</div>` : '';
+    const refill = r.next_date ? `<span style="${isDue ? 'color:#dc2626;font‑weight:700;' : ''}">🗓 Refill: ${r.next_date}</span>` : '';
     const lastTxt = r.last_date ? `<span>⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
-
     let btns = '';
     if (status === 'recommended') {
-      btns = `<button class="btn btn-sm" style="background:#10b981;padding:2px 8px;" onclick="proceedItem('${r.id}')">Started</button><button class="btn btn-sm btn-outline" style="padding:2px 8px;" onclick="openEditMedicationModal('${r.id}')">✏️</button><button class="btn btn-sm btn-outline" style="padding:2px 8px;color:#dc2626;" onclick="permanentlyDelete('${r.id}')">✖</button>`;
+      btns = `<button class="btn btn‑sm" style="background:#10b981;padding:2px 8px;" onclick="proceedItem('${r.id}')">Started</button><button class="btn btn‑sm btn‑outline" style="padding:2px 8px;" onclick="openEditMedicationModal('${r.id}')">✏️</button><button class="btn btn‑sm btn‑outline" style="padding:2px 8px;color:#dc2626;" onclick="permanentlyDelete('${r.id}')">✖</button>`;
     } else if (status === 'current') {
-      btns = `<button class="btn btn-sm btn-outline" style="padding:2px 8px;" onclick="medEnd('${r.id}')">End</button><button class="btn btn-sm btn-outline" style="padding:2px 8px;" onclick="openEditMedicationModal('${r.id}')">✏️</button>`;
+      btns = `<button class="btn btn‑sm btn‑outline" style="padding:2px 8px;" onclick="medEnd('${r.id}')">End</button><button class="btn btn‑sm btn‑outline" style="padding:2px 8px;" onclick="openEditMedicationModal('${r.id}')">✏️</button>`;
     } else {
-      btns = `<button class="btn btn-sm btn-outline" style="padding:2px 8px;color:#dc2626;" onclick="permanentlyDelete('${r.id}')">🗑️</button>`;
+      btns = `<button class="btn btn‑sm btn‑outline" style="padding:2px 8px;color:#dc2626;" onclick="permanentlyDelete('${r.id}')">🗑️</button>`;
     }
-
-    return `<div class="${cls}" data-id="${r.id}">
-        <div class="item-header"><div class="item-name-area">${r.name}</div></div>
+    return `<div class="${cls}" data‑id="${r.id}">
+        <div class="item‑header"><div class="item‑name‑area">${r.name}</div></div>
         ${dose}
-        ${(refill || lastTxt) ? `<div class="med-meta">${refill}${lastTxt}</div>` : ''}
-        <div class="item-actions">${btns}</div>
+        ${(refill || lastTxt) ? `<div class="med‑meta">${refill}${lastTxt}</div>` : ''}
+        <div class="item‑actions">${btns}</div>
       </div>`;
   }
-
   function renderItemCard(r, status) {
  let tagHtml =
-    r.tag === 'liked'        ? '<span class="tag tag-liked">Liked</span>'
-  : r.tag === 'interested'   ? '<span class="tag tag-interested">Interested</span>'
-  : r.tag === 'disliked'     ? '<span class="tag tag-disliked">Disliked</span>'
-  : r.tag === 'not_interested' ? '<span class="tag tag-not-interested">Not Interested</span>'
+    r.tag === 'liked'        ? '<span class="tag tag‑liked">Liked</span>'
+  : r.tag === 'interested'   ? '<span class="tag tag‑interested">Interested</span>'
+  : r.tag === 'disliked'     ? '<span class="tag tag‑disliked">Disliked</span>'
+  : r.tag === 'not_interested' ? '<span class="tag tag‑not‑interested">Not Interested</span>'
   : r.tag === 'completed'    ? '<span class="tag" style="background:#bbf7d0; color:#166534;">✅ Completed</span>'
   : r.tag === 'discontinued' ? '<span class="tag" style="background:#fecaca; color:#991b1b;">🚫 Discontinued</span>'
   : '';
     const timeAgo = r.last_date ? `<span style="color:#f59e0b;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
-
     let buttons = '';
     if (status === 'recommended') {
-        buttons = `<button class="btn btn-sm" style="background:#10b981" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn-sm btn-outline" onclick="cancelItem('${r.id}')">Not Interested</button><button class="btn btn-sm btn-outline" onclick="openEditTreatmentModal('${r.id}')">✏️</button>`;
+        buttons = `<button class="btn btn‑sm" style="background:#10b981" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn‑sm btn‑outline" onclick="cancelItem('${r.id}')">Not Interested</button><button class="btn btn‑sm btn‑outline" onclick="openEditTreatmentModal('${r.id}')">✏️</button>`;
     } else if (status === 'current') {
-    buttons = `<button class="btn btn-sm btn-outline" onclick="endTreatment('${r.id}')">End</button><button class="btn btn-sm btn-outline" onclick="openEditTreatmentModal('${r.id}')">✏️</button>`;
+    buttons = `<button class="btn btn‑sm btn‑outline" onclick="endTreatment('${r.id}')">End</button><button class="btn btn‑sm btn‑outline" onclick="openEditTreatmentModal('${r.id}')">✏️</button>`;
 }else if (status === 'past') {
-        buttons = `<button class="btn btn-sm btn-outline" style="color:#dc2626; border-color:#fca5a5;" onclick="permanentlyDelete('${r.id}')">🗑️ Delete</button>`;
+        buttons = `<button class="btn btn‑sm btn‑outline" style="color:#dc2626; border‑color:#fca5a5;" onclick="permanentlyDelete('${r.id}')">🗑️ Delete</button>`;
     }
-
-    const today = new Date().toISOString().split('T')[0];
+    const today = getVancouverTodayStr();
     const isDue = status !== 'past' && ((r.next_date && r.next_date <= today) || (r.appointment_date && r.appointment_date <= today));
-    let cardClass = `item-card ${r.status}`;
-    if (r.is_main_followup) cardClass += ' main-followup';
-    if (isDue) { if (r.is_strict) cardClass += ' strict-overdue'; else cardClass += ' due'; }
-
-    const apptInfo = r.appointment_date ? `<span style="color:#3b82f6; font-weight:600;">Next Appt: ${r.appointment_date}</span>` : '';
-    const pinBtn = status !== 'past' ? `<button class="btn btn-sm ${r.is_main_followup ? 'btn' : 'btn-outline'}" onclick="setMainFollowup('${r.id}')" title="Set as main follow-up">📌</button>` : '';
-    const strictLock = r.is_strict ? `<span style="color:#dc2626; font-weight:bold;" title="${r.strict_note || 'Strict Deadline'}">🔒</span>` : '';
-    const manageBtn = isDue ? `<button class="btn btn-sm" style="background:#dc2626; margin-left:8px;" onclick="openAppointmentModal('${r.id}')">⚠️ Manage</button>` : '';
-
-    const dueDateClass = isDue ? 'date-overdue' : '';
+    let cardClass = `item‑card ${r.status}`;
+    if (r.is_main_followup) cardClass += ' main‑followup';
+    if (isDue) { if (r.is_strict) cardClass += ' strict‑overdue'; else cardClass += ' due'; }
+    const apptInfo = r.appointment_date ? `<span style="color:#3b82f6; font‑weight:600;">Next Appt: ${r.appointment_date}</span>` : '';
+    const pinBtn = status !== 'past' ? `<button class="btn btn‑sm ${r.is_main_followup ? 'btn' : 'btn‑outline'}" onclick="setMainFollowup('${r.id}')" title="Set as main follow‑up">📌</button>` : '';
+    const strictLock = r.is_strict ? `<span style="color:#dc2626; font‑weight:bold;" title="${r.strict_note || 'Strict Deadline'}">🔒</span>` : '';
+    const manageBtn = isDue ? `<button class="btn btn‑sm" style="background:#dc2626; margin‑left:8px;" onclick="openAppointmentModal('${r.id}')">⚠️ Manage</button>` : '';
+    const dueDateClass = isDue ? 'date‑overdue' : '';
     const displayName = r.name;
    let noteHtml = '';
 if (r.note) {
-  noteHtml += `<div class="note-text" title="${r.note}">📝 ${r.note}</div>`;
+  noteHtml += `<div class="note‑text" title="${r.note}">📝 ${r.note}</div>`;
 }
 if (r.strict_note) {
-  noteHtml += `<div class="note-text" title="${r.strict_note}" style="color:#dc2626;">🔒 ${r.strict_note}</div>`;
+  noteHtml += `<div class="note‑text" title="${r.strict_note}" style="color:#dc2626;">🔒 ${r.strict_note}</div>`;
 }
-
-    return `<div class="${cardClass}" data-id="${r.id}">
-        <div class="item-header"><div class="item-name-area">${displayName} ${strictLock} ${tagHtml}</div><span class="badge ${status}">${status}</span></div>
-        <div class="item-dates">${timeAgo}${r.next_date ? `<span class="${dueDateClass}">Next follow-up: ${r.next_date}</span>` : ''}${apptInfo}${noteHtml}</div>
-        <div class="item-actions">${buttons}${pinBtn}${manageBtn}</div>
+    return `<div class="${cardClass}" data‑id="${r.id}">
+        <div class="item‑header"><div class="item‑name‑area">${displayName} ${strictLock} ${tagHtml}</div><span class="badge ${status}">${status}</span></div>
+        <div class="item‑dates">${timeAgo}${r.next_date ? `<span class="${dueDateClass}">Next follow‑up: ${r.next_date}</span>` : ''}${apptInfo}${noteHtml}</div>
+        <div class="item‑actions">${buttons}${pinBtn}${manageBtn}</div>
       </div>`;
   }
-
   function renderProductCard(r, status, isDuplicated) {
     const matchedProd = productsLib.find(p => p.name.toLowerCase() === r.name.toLowerCase());
     const imgSrc = matchedProd && matchedProd.image ? matchedProd.image : 'https://via.placeholder.com/40/f1f5f9/94a3b8?text=Img';
-    const brandStr = matchedProd && matchedProd.brand ? `<span style="font-size:0.65rem; color:#94a3b8; margin-left:4px;">(${matchedProd.brand})</span>` : '';
-
+    const brandStr = matchedProd && matchedProd.brand ? `<span style="font‑size:0.65rem; color:#94a3b8; margin‑left:4px;">(${matchedProd.brand})</span>` : '';
     let buttons = '';
     if (r.category === 'medication') {
-        buttons = `<button class="btn btn-sm btn-outline" style="padding:2px 6px;" onclick="openEditMedicationModal('${r.id}')">✏️</button><button class="btn btn-sm btn-outline" style="padding:2px 6px; color:#dc2626;" onclick="cancelItem('${r.id}')">✖</button>`;
+        buttons = `<button class="btn btn‑sm btn‑outline" style="padding:2px 6px;" onclick="openEditMedicationModal('${r.id}')">✏️</button><button class="btn btn‑sm btn‑outline" style="padding:2px 6px; color:#dc2626;" onclick="cancelItem('${r.id}')">✖</button>`;
     } else if (status === 'recommended') {
-        buttons = `<button class="btn btn-sm" style="background:#10b981; padding:2px 6px;" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn-sm btn-outline" style="padding:2px 6px;" onclick="cancelItem('${r.id}')">✖</button>`;
+        buttons = `<button class="btn btn‑sm" style="background:#10b981; padding:2px 6px;" onclick="proceedItem('${r.id}')">Proceed</button><button class="btn btn‑sm btn‑outline" style="padding:2px 6px;" onclick="cancelItem('${r.id}')">✖</button>`;
     } else {
-        buttons = `<button class="btn btn-sm btn-outline" style="padding:2px 6px; color:#dc2626;" onclick="cancelItem('${r.id}')">✖</button><button class="btn btn-sm btn-outline" style="padding:2px 6px;" onclick="openEditProductModal('${r.id}')">✏️</button>`;
+        buttons = `<button class="btn btn‑sm btn‑outline" style="padding:2px 6px; color:#dc2626;" onclick="cancelItem('${r.id}')">✖</button><button class="btn btn‑sm btn‑outline" style="padding:2px 6px;" onclick="openEditProductModal('${r.id}')">✏️</button>`;
     }
-
-    const timeAgo = r.last_date ? `<span style="color:#f59e0b; font-size:0.7rem;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
-    let noteHtml = r.strict_note ? `<div style="font-size:0.65rem; color:#64748b; font-style:italic; margin-top:2px;" title="${r.strict_note}">📝 ${r.strict_note}</div>` : '';
-
-    let cardClass = 'item-card';
+    const timeAgo = r.last_date ? `<span style="color:#f59e0b; font‑size:0.7rem;">⏱ Last: ${calcMonthsAgo(r.last_date)}</span>` : '';
+    let noteHtml = r.strict_note ? `<div style="font‑size:0.65rem; color:#64748b; font‑style:italic; margin‑top:2px;" title="${r.strict_note}">📝 ${r.strict_note}</div>` : '';
+    let cardClass = 'item‑card';
     if (r.category === 'medication') {
         cardClass += ' medication';
     } else if (status === 'recommended') {
         cardClass += ' recommended';
     } else if (isDuplicated) {
-        cardClass += ' both-slot';
+        cardClass += ' both‑slot';
     } else {
         cardClass += ' current';
     }
-
-    let linkIcon = isDuplicated ? `<span style="font-size:0.6rem; color:#0d9488; font-weight:bold; margin-left:4px;">🔗 Both</span>` : '';
-    const nextDateLabel = r.category === 'medication' ? 'Refill Due' : 'Expiry/Follow-up';
-
-    const today = new Date().toISOString().split('T')[0];
+    let linkIcon = isDuplicated ? `<span style="font‑size:0.6rem; color:#0d9488; font‑weight:bold; margin‑left:4px;">🔗 Both</span>` : '';
+    const nextDateLabel = r.category === 'medication' ? 'Refill Due' : 'Expiry/Follow‑up';
+    const today = getVancouverTodayStr();
     const isDue = r.next_date && r.next_date <= today;
     if (isDue) cardClass += ' due';
-
-    return `<div class="${cardClass}" data-id="${r.id}" style="padding: 8px; flex-direction: row; align-items: center; gap: 8px;">
-        <div class="drag-handle">⋮⋮</div>
-        <img src="${imgSrc}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; background:#f1f5f9;">
+    return `<div class="${cardClass}" data‑id="${r.id}" style="padding: 8px; flex‑direction: row; align‑items: center; gap: 8px;">
+        <div class="drag‑handle">⋮⋮</div>
+        <img src="${imgSrc}" style="width:32px; height:32px; border‑radius:50%; object‑fit:cover; background:#f1f5f9;">
         <div style="flex:1;">
-            <div style="font-weight:600; font-size:0.8rem; color:#0f172a;">${r.name} ${brandStr} ${linkIcon}</div>
+            <div style="font‑weight:600; font‑size:0.8rem; color:#0f172a;">${r.name} ${brandStr} ${linkIcon}</div>
             <div>${timeAgo}</div>
             ${noteHtml}
-            ${r.next_date ? `<div style="font-size:0.7rem; color:${isDue ? '#dc2626' : '#64748b'}; margin-top:2px;">${nextDateLabel}: ${r.next_date}</div>` : ''}
+            ${r.next_date ? `<div style="font‑size:0.7rem; color:${isDue ? '#dc2626' : '#64748b'}; margin‑top:2px;">${nextDateLabel}: ${r.next_date}</div>` : ''}
         </div>
-        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
-            <span class="badge ${status}" style="font-size:0.55rem; padding:1px 4px;">${status === 'recommended' ? 'Rec' : 'In Use'}</span>
+        <div style="display:flex; flex‑direction:column; gap:4px; align‑items:flex‑end;">
+            <span class="badge ${status}" style="font‑size:0.55rem; padding:1px 4px;">${status === 'recommended' ? 'Rec' : 'In Use'}</span>
             ${buttons}
         </div>
       </div>`;
   }
-
   function initSortable(containerId, slot) {
     const el = document.getElementById(containerId);
     if (!el) return;
     if (el.sortableInstance) el.sortableInstance.destroy();
     el.sortableInstance = new Sortable(el, {
-        animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost',
+        animation: 150, handle: '.drag‑handle', ghostClass: 'sortable‑ghost',
         onEnd: async function (evt) {
-            const items = Array.from(el.querySelectorAll('.item-card'));
+            const items = Array.from(el.querySelectorAll('.item‑card'));
             for (let i = 0; i < items.length; i++) {
                 const id = items[i].dataset.id;
                 const record = records.find(r => r.id === id);
@@ -802,13 +830,13 @@ if (r.strict_note) {
     });
   }
 
-  // 疗程搜索
+  // ========== 搜索弹窗相关 ==========
   function searchTreatmentForModal(inputEl, resultsId) {
     const kw = inputEl.value.toLowerCase().trim();
     const resultsDiv = document.getElementById(resultsId);
     if (!kw) { resultsDiv.classList.remove('show'); return; }
     const matched = servicesLib.filter(s => s.name.toLowerCase().includes(kw));
-    resultsDiv.innerHTML = matched.length === 0 ? '<div class="search-item" style="color:#94a3b8;">No services found</div>' : matched.map(s => `<div class="search-item" onclick="selectTreatmentFromLib('${s.id}', '${s.name.replace(/'/g, "\\'")}')"><span>${s.name}</span><span style="color:#94a3b8;">$${s.price || 0}</span></div>`).join('');
+    resultsDiv.innerHTML = matched.length === 0 ? '<div class="search‑item" style="color:#94a3b8;">No services found</div>' : matched.map(s => `<div class="search‑item" onclick="selectTreatmentFromLib('${s.id}', '${s.name.replace(/'/g, "\\'")}')"><span>${s.name}</span><span style="color:#94a3b8;">$${s.price || 0}</span></div>`).join('');
     resultsDiv.classList.add('show');
   }
   function selectTreatmentFromLib(id, name) {
@@ -859,7 +887,6 @@ async function saveTreatment() {
   const isEdit = document.getElementById('treatEditMode').value === 'true';
   let name = document.getElementById('treatSelectedName').innerText;
   if (!name) return alert('Please select a treatment from the library.');
-
   const status     = document.getElementById('treatStatusSelect').value;
   const lastDate   = document.getElementById('treatLastDate').value || null;
   const nextDate   = document.getElementById('treatNextDate').value || null;
@@ -868,7 +895,6 @@ async function saveTreatment() {
   const strictNote = isStrict
       ? (document.getElementById('treatStrictNote').value.trim() || null)
       : null;
-
   const data = {
     name,
     category: 'treatment',
@@ -879,7 +905,6 @@ async function saveTreatment() {
     is_strict:  isStrict,
     strict_note: strictNote
   };
-
   try {
     if (isEdit) await api.update('records', `id=eq.${id}`, data);
     else { data.customer_id = currentCustomerId; await api.insert('records', data); }
@@ -889,13 +914,12 @@ async function saveTreatment() {
   } catch (e) { alert(e.message); }
 }
 
-  // 产品搜索
   function searchProductForModal(inputEl, resultsId) {
     const kw = inputEl.value.toLowerCase().trim();
     const resultsDiv = document.getElementById(resultsId);
     if (!kw) { resultsDiv.classList.remove('show'); return; }
     const matched = productsLib.filter(p => p.name.toLowerCase().includes(kw) || (p.brand && p.brand.toLowerCase().includes(kw)));
-    resultsDiv.innerHTML = matched.length === 0 ? '<div class="search-item" style="color:#94a3b8;">No products found</div>' : matched.map(p => `<div class="search-item" onclick="selectProductFromLib('${p.id}', '${p.name.replace(/'/g, "\\'")}')"><span>${p.name}</span><span style="color:#94a3b8;">${p.brand || ''}</span></div>`).join('');
+    resultsDiv.innerHTML = matched.length === 0 ? '<div class="search‑item" style="color:#94a3b8;">No products found</div>' : matched.map(p => `<div class="search‑item" onclick="selectProductFromLib('${p.id}', '${p.name.replace(/'/g, "\\'")}')"><span>${p.name}</span><span style="color:#94a3b8;">${p.brand || ''}</span></div>`).join('');
     resultsDiv.classList.add('show');
   }
   function selectProductFromLib(id, name) {
@@ -950,7 +974,6 @@ async function saveTreatment() {
     const slot = document.getElementById('addProdSlotSelect').value;
     const lastDate = document.getElementById('addProdLastDate').value || null;
     const note = document.getElementById('addProdNote').value.trim() || null;
-
     if (isEdit) {
         try {
             const actualSlot = (slot === 'BOTH') ? 'AM' : slot;
@@ -972,7 +995,6 @@ async function saveTreatment() {
     } catch(e) { alert(e.message); }
   }
 
-  // 药物
   function openAddMedicationModal() {
     if (!currentCustomerId) return;
     document.getElementById('addMedId').value = '';
@@ -1034,27 +1056,22 @@ async function saveTreatment() {
     try { await api.update('records', `id=eq.${id}`, { status: 'past' }); await loadData(); showToast('Moved to History'); } catch (e) { alert(e.message); }
   }
   let pendingEndId = null;
-
   function endTreatment(id) {
     pendingEndId = id;
     openModal('endTreatmentModal');
   }
-
   async function confirmEndTreatment(outcome) {
     if (!pendingEndId) return;
     const id = pendingEndId;
     pendingEndId = null;
-
     const r = records.find(x => x.id === id);
     if (!r) { closeModal('endTreatmentModal'); return; }
-
     const updateData = {
       status: 'past',
       tag: outcome,
       is_main_followup: false,
       is_strict: false
     };
-
     try {
       await api.update('records', `id=eq.${id}`, updateData);
       closeModal('endTreatmentModal');
@@ -1066,9 +1083,8 @@ async function saveTreatment() {
       if (!confirm('Permanently delete this record from database?')) return;
       try { await api.delete('records', `id=eq.${id}`); await loadData(); showToast('Permanently deleted'); } catch (e) { alert(e.message); }
   }
-  async function setMainFollowup(id) { const r = records.find(x => x.id === id); if (!r || !r.next_date) return alert('No follow-up date to set as main.'); const others = records.filter(x => x.customer_id === currentCustomerId && x.id !== id); for (let o of others) { if (o.is_main_followup) await api.update('records', `id=eq.${o.id}`, { is_main_followup: false }); } await api.update('records', `id=eq.${id}`, { is_main_followup: true }); await loadData(); }
+  async function setMainFollowup(id) { const r = records.find(x => x.id === id); if (!r || !r.next_date) return alert('No follow‑up date to set as main.'); const others = records.filter(x => x.customer_id === currentCustomerId && x.id !== id); for (let o of others) { if (o.is_main_followup) await api.update('records', `id=eq.${o.id}`, { is_main_followup: false }); } await api.update('records', `id=eq.${id}`, { is_main_followup: true }); await loadData(); }
 
-  // 跟进弹窗
   let activeRecordId = null;
   function openAppointmentModal(id) {
       const r = records.find(x => x.id === id); if (!r) return;
@@ -1076,26 +1092,25 @@ async function saveTreatment() {
       const container = document.getElementById('manageModalBody');
       
       if (r.category === 'medication') {
-          container.innerHTML = `<p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;">Medication follow-up due. Has the patient improved?</p>
-              <button class="btn" style="background:#10b981; width:100%; margin-bottom:8px;" onclick="handleMedicationAction('renew')">✅ Continue / Renew (+30 days)</button>
-              <button class="btn btn-outline" style="width:100%; margin-bottom:8px;" onclick="handleMedicationAction('change')">🔄 Change Medication (Move to Past)</button>
-              <button class="btn btn-outline" style="width:100%; margin-bottom:8px; color:#dc2626; border-color:#fca5a5;" onclick="handleMedicationAction('discontinue')">🚫 Discontinued (Move to Past)</button>`;
+          container.innerHTML = `<p style="font‑size:0.85rem; color:#64748b; margin‑bottom:16px;">Medication follow‑up due. Has the patient improved?</p>
+              <button class="btn" style="background:#10b981; width:100%; margin‑bottom:8px;" onclick="handleMedicationAction('renew')">✅ Continue / Renew (+30 days)</button>
+              <button class="btn btn‑outline" style="width:100%; margin‑bottom:8px;" onclick="handleMedicationAction('change')">🔄 Change Medication (Move to Past)</button>
+              <button class="btn btn‑outline" style="width:100%; margin‑bottom:8px; color:#dc2626; border‑color:#fca5a5;" onclick="handleMedicationAction('discontinue')">🚫 Discontinued (Move to Past)</button>`;
       } else {
-          container.innerHTML = `<p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;">This item is due. What would you like to do?</p>
-              <button class="btn" style="background:#10b981; width:100%; margin-bottom:8px;" onclick="handleAppointmentAction('executed')">✅ Executed / Done</button>
-              <button class="btn" style="background:#f59e0b; width:100%; margin-bottom:8px;" onclick="handleAppointmentAction('cancelled')">❌ Cancelled (Follow up in 1 month)</button>
-              <button class="btn btn-outline" style="width:100%; margin-bottom:8px;" onclick="handleAppointmentAction('reschedule_appt')">📅 Set Appointment Date</button>
-              <button class="btn btn-outline" style="width:100%; margin-bottom:8px;" onclick="handleAppointmentAction('change_next')">⏳ Change Follow-up Date</button>
-              <button class="btn btn-outline" style="width:100%; color:#dc2626; border-color:#fca5a5;" onclick="handleAppointmentAction('not_interested')">🚫 Not Interested (To History)</button>`;
+          container.innerHTML = `<p style="font‑size:0.85rem; color:#64748b; margin‑bottom:16px;">This item is due. What would you like to do?</p>
+              <button class="btn" style="background:#10b981; width:100%; margin‑bottom:8px;" onclick="handleAppointmentAction('executed')">✅ Executed / Done</button>
+              <button class="btn" style="background:#f59e0b; width:100%; margin‑bottom:8px;" onclick="handleAppointmentAction('cancelled')">❌ Cancelled (Follow up in 1 month)</button>
+              <button class="btn btn‑outline" style="width:100%; margin‑bottom:8px;" onclick="handleAppointmentAction('reschedule_appt')">📅 Set Appointment Date</button>
+              <button class="btn btn‑outline" style="width:100%; margin‑bottom:8px;" onclick="handleAppointmentAction('change_next')">⏳ Change Follow‑up Date</button>
+              <button class="btn btn‑outline" style="width:100%; color:#dc2626; border‑color:#fca5a5;" onclick="handleAppointmentAction('not_interested')">🚫 Not Interested (To History)</button>`;
       }
       openModal('appointmentModal');
   }
-
   async function handleMedicationAction(action) {
       const r = records.find(x => x.id === activeRecordId); if (!r) return;
-      const today = new Date();
+      const today = getVancouverDateObj(getVancouverTodayStr());
       if (action === 'renew') {
-          const nextDate = new Date(today.setDate(today.getDate() + 30)).toISOString().split('T')[0];
+          const nextDate = new Date(today.getTime() + 30*24*3600*1000).toISOString().split('T')[0];
           await api.update('records', `id=eq.${r.id}`, { next_date: nextDate });
           showToast('Renewed for 30 days');
       } else {
@@ -1104,51 +1119,149 @@ async function saveTreatment() {
       }
       closeModal('appointmentModal'); await loadData();
   }
-
   async function handleAppointmentAction(action) {
     const r = records.find(x => x.id === activeRecordId); if (!r) return;
-    const today = new Date(); let updateData = {};
+    const today = getVancouverDateObj(getVancouverTodayStr()); let updateData = {};
     if (action === 'executed') { updateData = { status: 'current', appointment_date: null, next_date: null, is_strict: false }; }
-    else if (action === 'cancelled') { updateData = { appointment_date: null, next_date: new Date(today.setDate(today.getDate() + 30)).toISOString().split('T')[0] }; }
-    else if (action === 'reschedule_appt') { const newDate = prompt('Enter new appointment date (YYYY-MM-DD):'); if (!newDate) return; updateData = { appointment_date: newDate, next_date: newDate }; }
-    else if (action === 'change_next') { const newDate = prompt('Enter new follow-up date (YYYY-MM-DD):'); if (!newDate) return; updateData = { next_date: newDate }; }
+    else if (action === 'cancelled') { updateData = { appointment_date: null, next_date: new Date(today.getTime() + 30*24*3600*1000).toISOString().split('T')[0] }; }
+    else if (action === 'reschedule_appt') { const newDate = prompt('Enter new appointment date (YYYY‑MM‑DD):'); if (!newDate) return; updateData = { appointment_date: newDate, next_date: newDate }; }
+    else if (action === 'change_next') { const newDate = prompt('Enter new follow‑up date (YYYY‑MM‑DD):'); if (!newDate) return; updateData = { next_date: newDate }; }
     else if (action === 'not_interested') { updateData = { status: 'past', next_date: null, appointment_date: null, is_main_followup: false, is_strict: false }; }
     try { await api.update('records', `id=eq.${r.id}`, updateData); closeModal('appointmentModal'); await loadData(); showToast('Updated'); } catch (e) { alert(e.message); }
   }
 
-  // 其他
-
   function openLinkModal() { document.getElementById('linkSearch').value = ''; renderLinkOptions(); openModal('linkModal'); }
-  function renderLinkOptions() { const kw = document.getElementById('linkSearch').value.toLowerCase(); const list = document.getElementById('linkOptionsList'); const c = customers.find(x => x.id === currentCustomerId); const alreadyLinked = c.linked_customer_ids || []; const options = customers.filter(x => x.id !== currentCustomerId && !alreadyLinked.includes(x.id) && (x.name.toLowerCase().includes(kw) || (x.client_id && x.client_id.toLowerCase().includes(kw)))); list.innerHTML = options.length === 0 ? '<div style="color:#94a3b8; font-size:0.85rem;">No available customers found.</div>' : options.map(x => `<div class="customer-item" onclick="linkCustomer('${x.id}')"><div class="customer-name">${x.name}</div><div class="customer-info">ID: ${x.client_id || 'N/A'}</div></div>`).join(''); }
+  function renderLinkOptions() { const kw = document.getElementById('linkSearch').value.toLowerCase(); const list = document.getElementById('linkOptionsList'); const c = customers.find(x => x.id === currentCustomerId); const alreadyLinked = c.linked_customer_ids || []; const options = customers.filter(x => x.id !== currentCustomerId && !alreadyLinked.includes(x.id) && (x.name.toLowerCase().includes(kw) || (x.client_id && x.client_id.toLowerCase().includes(kw)))); list.innerHTML = options.length === 0 ? '<div style="color:#94a3b8; font‑size:0.85rem;">No available customers found.</div>' : options.map(x => `<div class="customer‑item" onclick="linkCustomer('${x.id}')"><div class="customer‑name">${x.name}</div><div class="customer‑info">ID: ${x.client_id || 'N/A'}</div></div>`).join(''); }
   async function linkCustomer(linkId) { const c = customers.find(x => x.id === currentCustomerId); const lc = customers.find(x => x.id === linkId); if (!c || !lc) return; try { await api.update('customers', `id=eq.${c.id}`, { linked_customer_ids: [...(c.linked_customer_ids || []), linkId] }); await api.update('customers', `id=eq.${lc.id}`, { linked_customer_ids: [...(lc.linked_customer_ids || []), currentCustomerId] }); closeModal('linkModal'); await loadData(); showToast('Profiles linked'); } catch (e) { alert(e.message); } }
-
   function openCustomerModal() { document.getElementById('custId').value = ''; document.getElementById('custName').value = ''; document.getElementById('custClientId').value = ''; document.getElementById('custEmail').value = ''; document.getElementById('custBirth').value = ''; document.getElementById('custConcern').value = ''; document.getElementById('customerModalTitle').innerText = 'Add Customer'; openModal('customerModal'); }
   function openEditCustomerModal() { const c = customers.find(x => x.id === currentCustomerId); if (!c) return; document.getElementById('custId').value = c.id; document.getElementById('custName').value = c.name; document.getElementById('custClientId').value = c.client_id || ''; document.getElementById('custEmail').value = c.email || ''; document.getElementById('custBirth').value = c.birth_month || ''; document.getElementById('custConcern').value = c.concern || ''; document.getElementById('customerModalTitle').innerText = 'Edit Customer'; openModal('customerModal'); }
   async function saveCustomer() { const id = document.getElementById('custId').value; const data = { name: document.getElementById('custName').value, client_id: document.getElementById('custClientId').value, email: document.getElementById('custEmail').value, birth_month: parseInt(document.getElementById('custBirth').value) || null, concern: document.getElementById('custConcern').value }; if (!data.name) return alert('Name required'); try { if (id) await api.update('customers', `id=eq.${id}`, data); else { const [newCust] = await api.insert('customers', data); currentCustomerId = newCust.id; } closeModal('customerModal'); await loadData(); showToast('Customer saved'); } catch (e) { alert(e.message); } }
 
+  // ========== 高级搜索（增强版：跨全部记录字段搜索，包含recommended/current/past） ==========
   function openSearchModal() { openModal('searchModal'); }
-  function clearSearch() { document.getElementById('searchKw').value = ''; document.getElementById('searchStrictDue').checked = false; document.getElementById('searchBirthdayCurrent').checked = false; document.getElementById('searchBirthdayNext').checked = false; document.getElementById('searchResultsArea').style.display = 'none'; }
+  function clearSearch() { document.getElementById('searchKw').value = ''; document.getElementById('searchStrictDue').checked = false; document.getElementById('searchBirthdayCurrent').checked = false; document.getElementById('searchBirthdayNext').checked = false; document.getElementById('searchResultsArea').style.display = 'none'; currentSearchResults = []; }
+
   function executeAdvancedSearch() {
-    const kw = document.getElementById('searchKw').value.toLowerCase().trim(); const onlyStrictDue = document.getElementById('searchStrictDue').checked; const bdCurrent = document.getElementById('searchBirthdayCurrent').checked; const bdNext = document.getElementById('searchBirthdayNext').checked; const today = new Date().toISOString().split('T')[0]; const currentMonth = new Date().getMonth() + 1; let nextMonth = currentMonth + 1; if (nextMonth > 12) nextMonth = 1; if (!kw && !onlyStrictDue && !bdCurrent && !bdNext) return;
-    let matchedCustomerIds = new Set(); if (kw) { customers.forEach(c => { const customerHay = [c.name, c.client_id, c.concern, c.email].filter(Boolean).join(' ').toLowerCase(); if (customerHay.includes(kw)) matchedCustomerIds.add(c.id); }); }
-    const matchedRecords = records.filter(r => { const c = customers.find(x => x.id === r.customer_id); if (!c) return false; if (onlyStrictDue) { if (!r.is_strict) return false; if (r.status === 'past') return false; if (!r.next_date || r.next_date > today) return false; } if (kw) { if (matchedCustomerIds.has(c.id)) return true; const itemHay = [r.name, r.tag, r.category, r.strict_note].filter(Boolean).join(' ').toLowerCase(); if (itemHay.includes(kw)) return true; return false; } return onlyStrictDue; });
-    const uniqueCustomers = []; const seenIds = new Set(); matchedRecords.forEach(r => { if (!seenIds.has(r.customer_id)) { seenIds.add(r.customer_id); uniqueCustomers.push(customers.find(c => c.id === r.customer_id)); } }); customers.forEach(c => { if (seenIds.has(c.id)) return; if (bdCurrent && c.birth_month === currentMonth) { seenIds.add(c.id); uniqueCustomers.push(c); } else if (bdNext && c.birth_month === nextMonth) { seenIds.add(c.id); uniqueCustomers.push(c); } });
-    currentSearchResults = uniqueCustomers; const resultArea = document.getElementById('searchResultsArea'); const resultList = document.getElementById('searchResultsList'); const resultTitle = document.getElementById('searchResultsTitle'); resultArea.style.display = 'block'; resultTitle.innerText = `Results (${uniqueCustomers.length} customers)`; if (uniqueCustomers.length === 0) { resultList.innerHTML = '<div style="padding:12px; color:#94a3b8;">No matches found.</div>'; return; } resultList.innerHTML = uniqueCustomers.map(c => `<div class="search-result-item" onclick="selectCustomer('${c.id}')"><div><strong>${c.name}</strong><span style="font-size:0.75rem; color:#64748b; margin-left:8px;">${c.concern || ''}</span></div><span style="font-size:0.75rem; color:#3b82f6;">View →</span></div>`).join('');
+    const kwRaw = document.getElementById('searchKw').value.trim().toLowerCase();
+    const onlyStrictDue = document.getElementById('searchStrictDue').checked;
+    const bdCurrent = document.getElementById('searchBirthdayCurrent').checked;
+    const bdNext = document.getElementById('searchBirthdayNext').checked;
+    const todayStr = getVancouverTodayStr();
+    const todayObj = getVancouverDateObj(todayStr);
+    const currMonth = vancouverMonth();
+    let nextMonth = currMonth + 1;
+    if(nextMonth>12) nextMonth =1;
+
+    const hitCustomerIds = new Set();
+
+    customers.forEach(cust=>{
+      let matchKw = false;
+      let matchBirth = false;
+      let matchStrictDue = false;
+
+      // 关键词匹配：客户本身字段
+      if(kwRaw){
+        const custText = [cust.name, cust.client_id, cust.email, cust.concern].filter(Boolean).join(" ").toLowerCase();
+        if(custText.includes(kwRaw)) matchKw = true;
+        // 遍历该客户所有记录：不限 status past/recommended/current
+        for(const rec of records.filter(r=>r.customer_id === cust.id)){
+          const recText = [rec.name, rec.note, rec.strict_note, rec.tag].filter(Boolean).join(" ").toLowerCase();
+          if(recText.includes(kwRaw)){ matchKw = true; break; }
+        }
+      }
+
+      // 生日条件
+      if(bdCurrent && cust.birth_month === currMonth) matchBirth = true;
+      if(bdNext && cust.birth_month === nextMonth) matchBirth = true;
+
+      // strict‑due条件
+      if(onlyStrictDue){
+        for(const rec of records.filter(r=>r.customer_id === cust.id && r.is_strict && r.status!=='past')){
+          const fd = rec.next_date ? getVancouverDateObj(rec.next_date) : null;
+          const ad = rec.appointment_date ? getVancouverDateObj(rec.appointment_date) : null;
+          const eff = fd||ad;
+          if(eff && eff <= todayObj){ matchStrictDue = true; break; }
+        }
+      }
+
+      // AND逻辑：勾选的条件全部要满足；关键词有就必须命中关键词
+      let ok = true;
+      if(kwRaw && !matchKw) ok=false;
+      if(onlyStrictDue && !matchStrictDue) ok=false;
+      if((bdCurrent||bdNext) && !matchBirth) ok=false;
+
+      if(ok) hitCustomerIds.add(cust.id);
+    });
+
+    currentSearchResults = customers.filter(c=>hitCustomerIds.has(c.id));
+    const resultArea = document.getElementById('searchResultsArea');
+    const resultList = document.getElementById('searchResultsList');
+    const resultTitle = document.getElementById('searchResultsTitle');
+    resultArea.style.display = 'block';
+    resultTitle.innerText = `Results (${currentSearchResults.length} customers)`;
+    if (currentSearchResults.length === 0) { resultList.innerHTML = '<div style="padding:12px; color:#94a3b8;">No matches found.</div>'; return; }
+    resultList.innerHTML = currentSearchResults.map(c => `<div class="search‑result‑item" onclick="selectCustomer('${c.id}')"><div><strong>${c.name}</strong><span style="font‑size:0.75rem; color:#64748b; margin‑left:8px;">${c.concern || ''}</span></div><span style="font‑size:0.75rem; color:#3b82f6;">View →</span></div>`).join('');
   }
-  function copyEmails() { const emails = currentSearchResults.map(c => c.email).filter(e => e && e.trim() !== ''); if (emails.length === 0) return alert('No emails found in the search results.'); navigator.clipboard.writeText(emails.join(', ')).then(() => { showToast(`Copied ${emails.length} email(s)`); }); }
+
+  // ========== CSV导出工具函数 ==========
+  function escapeCsv(v){
+    if(!v) return "";
+    let s = String(v).replace(/"/g,'""');
+    return `"${s}"`;
+  }
+  function exportCustomerListCsv(customerArr){
+    const bom = "\uFEFF";
+    const headers = ["Name","Client ID","Email"];
+    const rows = customerArr.map(c=>[
+      escapeCsv(c.name||""),
+      escapeCsv(c.client_id||""),
+      escapeCsv(c.email||"")
+    ]);
+    let csv = bom + [headers,...rows].map(r=>r.join(",")).join("\n");
+    const blob = new Blob([csv],{type:"text/csv;charset=utf‑8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const todayFile = getVancouverTodayStr();
+    a.download = `crm‑export‑${todayFile}.csv`;
+    a.href = url;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast("CSV file downloaded");
+  }
+  function copyCustomerEmails(customerArr){
+    const emails = [...new Set(customerArr.map(c=>c.email).filter(e=>e&&e.trim()))];
+    navigator.clipboard.writeText(emails.join(", ")).then(()=>{ showToast(`Copied ${emails.length} email(s)`); });
+  }
+
+  // 左侧视图导出
+  function exportLeftViewCsv(){
+    const list = getLeftFilterCustomerList();
+    exportCustomerListCsv(list);
+  }
+  function copyLeftViewEmails(){
+    const list = getLeftFilterCustomerList();
+    copyCustomerEmails(list);
+  }
+  // 高级搜索弹窗导出
+  function exportSearchResultCSV(){
+    exportCustomerListCsv(currentSearchResults);
+  }
+  function copySearchResultEmails(){
+    copyCustomerEmails(currentSearchResults);
+  }
 
   function printRoutine() {
     const c = customers.find(x => x.id === currentCustomerId); if (!c) return;
     const myProducts = records.filter(r => r.customer_id === currentCustomerId && r.category === 'product' && r.status !== 'past');
     const am = myProducts.filter(r => r.time_slot === 'AM' || !r.time_slot).sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
     const pm = myProducts.filter(r => r.time_slot === 'PM').sort((a,b) => (a.sort_order||0) - (b.sort_order||0));
-    const genList = (arr) => { if (arr.length === 0) return '<p style="color:#94a3b8; font-style:italic;">No products assigned.</p>'; return `<ul style="padding-left:20px; line-height:1.8;">${arr.map(p => { const matchedProd = productsLib.find(prod => prod.name.toLowerCase() === p.name.toLowerCase()); const brand = matchedProd && matchedProd.brand ? ` <span style="color:#94a3b8; font-size:12px;">(${matchedProd.brand})</span>` : ''; const note = p.strict_note ? ` <span style="color:#94a3b8; font-size:11px;">- ${p.strict_note}</span>` : ''; return `<li>${p.name} ${brand} ${note}</li>`; }).join('')}</ul>`; };
-    const html = `<div style="font-family:'Inter', sans-serif; color:#1e293b;"><div style="text-align:center; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px;"><h1 style="font-size:1.8rem; margin-bottom:8px;">Home Care Routine</h1><p style="color:#64748b;">Prepared for: <strong>${c.name}</strong></p><p style="color:#94a3b8; font-size:0.85rem;">${new Date().toLocaleDateString()}</p></div><div style="display:flex; gap:40px; margin-top:20px;"><div style="flex:1;"><h3 style="color:#d97706; border-bottom:1px solid #fcd34d; padding-bottom:8px; margin-bottom:12px;">☀️ Morning</h3>${genList(am)}</div><div style="flex:1;"><h3 style="color:#4338ca; border-bottom:1px solid #a5b4fc; padding-bottom:8px; margin-bottom:12px;">🌙 Evening</h3>${genList(pm)}</div></div><div style="margin-top:40px; text-align:center; font-size:0.8rem; color:#94a3b8;"><p>If you have any questions, please contact the clinic.</p></div></div>`;
+    const genList = (arr) => { if (arr.length === 0) return '<p style="color:#94a3b8; font‑style:italic;">No products assigned.</p>'; return `<ul style="padding‑left:20px; line‑height:1.8;">${arr.map(p => { const matchedProd = productsLib.find(prod => prod.name.toLowerCase() === p.name.toLowerCase()); const brand = matchedProd && matchedProd.brand ? ` <span style="color:#94a3b8; font‑size:12px;">(${matchedProd.brand})</span>` : ''; const note = p.strict_note ? ` <span style="color:#94a3b8; font‑size:11px;">‑ ${p.strict_note}</span>` : ''; return `<li>${p.name} ${brand} ${note}</li>`; }).join('')}</ul>`; };
+    const html = `<div style="font‑family:'Inter', sans‑serif; color:#1e293b;"><div style="text‑align:center; margin‑bottom: 30px; border‑bottom: 2px solid #e2e8f0; padding‑bottom: 20px;"><h1 style="font‑size:1.8rem; margin‑bottom:8px;">Home Care Routine</h1><p style="color:#64748b;">Prepared for: <strong>${c.name}</strong></p><p style="color:#94a3b8; font‑size:0.85rem;">${new Intl.DateTimeFormat('en‑CA',{timeZone:'America/Vancouver'}).format(new Date())}</p></div><div style="display:flex; gap:40px; margin‑top:20px;"><div style="flex:1;"><h3 style="color:#d97706; border‑bottom:1px solid #fcd34d; padding‑bottom:8px; margin‑bottom:12px;">☀️ Morning</h3>${genList(am)}</div><div style="flex:1;"><h3 style="color:#4338ca; border‑bottom:1px solid #a5b4fc; padding‑bottom:8px; margin‑bottom:12px;">🌙 Evening</h3>${genList(pm)}</div></div><div style="margin‑top:40px; text‑align:center; font‑size:0.8rem; color:#94a3b8;"><p>If you have any questions, please contact the clinic.</p></div></div>`;
     document.getElementById('printRoutineContent').innerHTML = html; openModal('printRoutineModal');
   }
-
-  document.querySelectorAll('.modal-overlay').forEach(overlay => { overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(overlay.id); }); });
+  document.querySelectorAll('.modal‑overlay').forEach(overlay => { overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(overlay.id); }); });
   checkSession();
 </script>
+
 </body>
 </html>
