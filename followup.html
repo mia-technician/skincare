@@ -260,15 +260,10 @@ label {
   flex: 1;
 }
 
-/* 搜索结果区域，直接在第二排按钮下方 */
+/* 搜索结果区域 */
 #searchModal #searchResultsArea {
   border-top: 1px solid #e2e8f0;
   padding-top: 16px;
-}
- 
-#searchModal #searchResultsArea {
-  border-top:1px solid #e2e8f0;
-  padding-top:16px;
 }
 
 /* search result text layout */
@@ -622,23 +617,21 @@ label {
       </div>
     </div>
 
-        <div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:12px;">
-      <div class="modal-button-row-1">
+        <div class="modal-button-row-1">
   <button type="button" class="btn btn-outline" id="btnClearSearch">Clear Search</button>
   <button type="button" class="btn" id="btnRunSearch">Search</button>
 </div>
-    </div>
 
-    <div id="searchResultsArea" style="display:none; border‑top:1px solid #e2e8f0; padding‑top:16px;">
-      <div style="display:flex; justify‑content:space‑between; align‑items:center; margin‑bottom:12px;flex‑wrap:wrap;gap:6px;">
-        <h4 style="font‑size:0.9rem;" id="searchResultsTitle">Results</h4>
-        <div>
-          <button class="btn btn-sm" onclick="exportSearchResultCSV()">📤 Export CSV(Name,ID,Email)</button>
-          <button class="btn btn-sm btn-outline" onclick="copySearchResultEmails()">📋 Copy Emails</button>
-        </div>
-      </div>
-      <div id="searchResultsList" style="max‑height: 250px; overflow‑y:auto; border:1px solid #e2e8f0; border‑radius:8px;"></div>
-    </div>
+<div class="modal-button-row-2">
+  <button class="btn btn-sm" onclick="exportSearchResultCSV()">📤 Export CSV(Name,ID,Email)</button>
+  <button class="btn btn-sm btn-outline" onclick="copySearchResultEmails()">📋 Copy Emails</button>
+</div>
+
+<div id="searchResultsArea" style="display:none; border-top:1px solid #e2e8f0; padding-top:16px;">
+  <h4 style="font-size:0.9rem; margin-bottom:12px;" id="searchResultsTitle">Results</h4>
+  <div id="searchResultsList" style="max-height: 250px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px;"></div>
+</div>
+
   </div>
 </div>
 
