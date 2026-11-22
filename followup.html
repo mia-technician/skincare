@@ -122,7 +122,6 @@
     .grid-3, .grid-2 { grid-template-columns: 1fr; }
   }
 
- /* UI Typography & layout fix */
 button,
 input,
 select,
@@ -132,21 +131,68 @@ label {
   font-size: 100%;
 }
 
-.sidebar-tool-row{
+/* 顶部4个视图tab：均分宽度，同样大小 */
+.view-tabs{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap:8px;
+  margin-bottom:12px;
+}
+.view-tab{
+  font-size:0.82rem;
+  padding:8px 4px;
+  border-radius:8px;
+  border:1px solid #cbd5e1;
+  cursor:pointer;
+  text-align:center;
+  white-space:nowrap;
+}
+.view-tab.active{
+  background:#3b82f6;
+  color:#fff;
+  border-color:#3b82f6;
+}
+
+.sidebar-control-row{
   display:flex;
   gap:10px;
   margin-bottom:12px;
   flex-wrap:wrap;
   align-items:center;
 }
-.sidebar-tool-row label{
-  flex:0 0 auto;
-  white-space:nowrap;
-  font-weight:400;
-  font-size:0.9rem;
+/* Only Strict 功能按钮 */
+.btn-strict-toggle{
+  flex:1;
+  padding:8px;
+  font-size:0.82rem;
+  border-radius:8px;
+  border:1px solid #cbd5e1;
+  background:#fff;
 }
-.sidebar-tool-row .btn-sm{
-  min-width:110px;
+.btn-strict-toggle.active{
+  background:#ef4444;
+  color:white;
+  border-color:#ef4444;
+}
+
+/* 导出按钮行，单独分隔 */
+.sidebar-export-row{
+  display:flex;
+  gap:10px;
+  margin-bottom:14px;
+  flex-wrap:wrap;
+}
+.btn-export{
+  flex:1;
+  padding:8px;
+  font-size:0.82rem;
+  border-radius:8px;
+  border:none;
+  background:#059669;
+  color:#ffffff;
+}
+.btn-export:hover{
+  background:#047857;
 }
 
 .search-mode-group{
@@ -174,7 +220,6 @@ label {
   font-size:0.95rem;
 }
 
-
 </style>
 </head>
 <body>
@@ -200,15 +245,18 @@ label {
         <div class="view-tab" data-view="allcustomer" onclick="switchLeftView('allcustomer')">👥 All Customers</div>
       </div>
 
-        <div class="sidebar-tool-row">
-        <label><input type="checkbox" id="leftStrictFilter"> 🔒 Only Strict</label>
-        <button class="btn btn-sm btn-outline" onclick="exportLeftViewCsv()">📤 Export CSV</button>
-        <button class="btn btn-sm btn-outline" onclick="copyLeftViewEmails()">📋 Copy Emails</button>
+      <div class="sidebar-control-row">
+        <button class="btn-strict-toggle" id="btnStrictToggle" onclick="toggleLeftStrict()">🔒 Only Strict</button>
       </div>
 
+      <div class="sidebar-export-row">
+        <button class="btn-export" onclick="exportLeftViewCsv()">📤 Export CSV</button>
+        <button class="btn-export" onclick="copyLeftViewEmails()">📋 Copy Emails</button>
+      </div>
 
       <input type="text" id="searchInput" class="search-box" placeholder="🔍 Quick search name/ID..." oninput="renderCustomers()">
       <div class="customer-list" id="customerList"></div>
+
     </div>
   </div>
   <div class="main-panel" id="mainPanel" style="display: none;">
@@ -522,7 +570,19 @@ label {
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let customers = [], records = [], productsLib = [], servicesLib = [], currentCustomerId = null;
   let currentSearchResults = [];
-  let leftActiveView = "overdue";
+let leftActiveView = "overdue";
+let leftStrictMode = false; // 替代原来checkbox
+
+ function toggleLeftStrict(){
+  leftStrictMode = !leftStrictMode;
+  const btn = document.getElementById("btnStrictToggle");
+  if(leftStrictMode){
+    btn.classList.add("active");
+  }else{
+    btn.classList.remove("active");
+  }
+  renderCustomers();
+}
 
   function getVancouverTodayStr(){
     return new Intl.DateTimeFormat('en-CA', {timeZone:'America/Vancouver',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()).replace(/\//g,"-");
@@ -592,7 +652,7 @@ label {
 
   function getLeftFilterCustomerList(){
     const kw = document.getElementById('searchInput').value.toLowerCase();
-    const strictOnly = document.getElementById("leftStrictFilter").checked;
+    const strictOnly = leftStrictMode;
     const todayStr = getVancouverTodayStr();
     const todayObj = getVancouverDateObj(todayStr);
     const sevenDaysLaterObj = new Date(todayObj.getTime() + 7*24*3600*1000);
