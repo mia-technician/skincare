@@ -122,6 +122,7 @@
     .grid-3, .grid-2 { grid-template-columns: 1fr; }
   }
 
+/* base form reset */
 button,
 input,
 select,
@@ -129,9 +130,10 @@ textarea,
 label {
   font-family: inherit;
   font-size: 100%;
+  font-weight: inherit;
 }
 
-/* 顶部 4 view tabs */
+/* sidebar tabs */
 .view-tabs{
   display:grid;
   grid-template-columns: repeat(4, 1fr);
@@ -145,7 +147,6 @@ label {
   border:1px solid #cbd5e1;
   cursor:pointer;
   text-align:center;
-  /* 关键：文字自动换行，不横向跑出去 */
   white-space:normal;
   line-height:1.3;
 }
@@ -155,6 +156,7 @@ label {
   border-color:#3b82f6;
 }
 
+/* strict toggle & export row */
 .sidebar-control-row{
   display:flex;
   gap:10px;
@@ -162,7 +164,6 @@ label {
   flex-wrap:wrap;
   align-items:center;
 }
-/* Only Strict 功能按钮 */
 .btn-strict-toggle{
   flex:1;
   padding:8px;
@@ -176,8 +177,6 @@ label {
   color:white;
   border-color:#ef4444;
 }
-
-/* 导出按钮行，单独分隔 */
 .sidebar-export-row{
   display:flex;
   gap:10px;
@@ -197,6 +196,14 @@ label {
   background:#047857;
 }
 
+/* search input placeholder style */
+#searchInput::placeholder {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+/* advanced search modal */
 .search-mode-group{
   display:flex;
   flex-direction:column;
@@ -211,7 +218,7 @@ label {
   gap:8px;
   cursor:pointer;
   font-size:0.86rem;
-  font-weight:400;
+  font-weight:400; /* 取消粗体 */
 }
 .search-mode-group input[type="radio"]{
   width:16px;
@@ -220,6 +227,47 @@ label {
 .form-group label{
   font-weight:600;
   font-size:0.9rem;
+}
+
+/* modal button row: equal width */
+.modal-button-row {
+  display:flex;
+  gap: 10px;
+  margin-top:16px;
+}
+.modal-button-row .btn {
+  flex: 1;
+}
+
+/* search result text layout */
+.search-result-count {
+  margin-top:10px;
+  line-height: 1.45;
+}
+.search-result-count .line-1 {
+  display:block;
+}
+.search-result-count .line-2 {
+  display:block;
+  color:#64748b;
+}
+
+/* customer list item: View > same line, vertically centered */
+.customer-row {
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+}
+.customer-view-link {
+  white-space: nowrap;
+  text-align:center;
+}
+.search-result-item {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 10px;
+  cursor:pointer;
 }
 
 </style>
@@ -256,7 +304,7 @@ label {
         <button class="btn-export" onclick="copyLeftViewEmails()">📋 Copy Emails</button>
       </div>
 
-      <input type="text" id="searchInput" class="search-box" placeholder="🔍 Quick search name/ID..." oninput="renderCustomers()">
+      <input type="text" id="searchInput" class="search-box" placeholder="🔍 Global Keyword: name / treatment / note / tag / centra" oninput="renderCustomers()">
       <div class="customer-list" id="customerList"></div>
 
     </div>
@@ -544,8 +592,10 @@ label {
 
 
     <div style="display:flex; justify‑content:flex‑end; gap:8px; margin‑bottom:12px;">
-      <button class="btn btn-outline" onclick="clearSearch()">Clear</button>
-      <button class="btn" onclick="executeAdvancedSearch()">Search</button>
+      <div class="modal-button-row">
+  <button type="button" class="btn btn-outline" onclick="clearAdvancedSearch()">Clear Search</button>
+  <button type="button" class="btn btn-primary" onclick="runAdvancedSearch()">Search</button>
+</div>
     </div>
 
     <div id="searchResultsArea" style="display:none; border‑top:1px solid #e2e8f0; padding‑top:16px;">
@@ -1301,9 +1351,17 @@ async function saveTreatment() {
     const resultList = document.getElementById('searchResultsList');
     const resultTitle = document.getElementById('searchResultsTitle');
     resultArea.style.display = 'block';
-    resultTitle.innerText = `Results (${currentSearchResults.length} customers)`;
+    resultTitle.innerHTML = `Result:<br>(${currentSearchResults.length} customers)`;
     if (currentSearchResults.length === 0) { resultList.innerHTML = '<div style="padding:12px; color:#94a3b8;">No matches found.</div>'; return; }
-    resultList.innerHTML = currentSearchResults.map(c => `<div class="search-result-item" onclick="selectCustomer('${c.id}')"><div><strong>${c.name}</strong><span style="font-size:0.75rem; color:#64748b; margin-left:8px;">${c.concern || ''}</span></div><span style="font-size:0.75rem; color:#3b82f6;">View →</span></div>`).join('');
+    resultList.innerHTML = currentSearchResults.map(c => `
+<div class="search-result-item" onclick="selectCustomer('${c.id}')">
+  <div>
+    <strong>${c.name}</strong>
+    <span style="font-size:0.75rem; color:#64748b; margin-left:8px;">${c.concern || ''}</span>
+  </div>
+  <span style="font-size:0.75rem; color:#3b82f6; white-space:nowrap;">View →</span>
+</div>`).join('');
+
   }
 
   // ========== CSV导出工具函数 ==========
